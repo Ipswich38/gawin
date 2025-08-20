@@ -37,18 +37,18 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   return (
     <div style={{
       minHeight: '100vh',
-      background: `linear-gradient(135deg, ${colors.terminalBlack} 0%, ${colors.terminalGray} 50%, ${colors.terminalLight} 100%)`,
+      background: `linear-gradient(135deg, ${"#1a1a1a"} 0%, ${"#1f2937"} 50%, ${"#374151"} 100%)`,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: spacing.lg
+      padding: "24px"
     }}>
       <div style={{
         background: `rgba(12, 12, 12, 0.95)`,
         backdropFilter: 'blur(24px)',
-        borderRadius: borderRadius.xl,
-        padding: spacing.xxl,
-        border: `1px solid ${colors.border}`,
+        borderRadius: "16px",
+        padding: "32px",
+        border: `1px solid ${"#374151"}`,
         width: '100%',
         maxWidth: '400px',
         boxShadow: `0 25px 80px rgba(0, 0, 0, 0.3)`,
@@ -56,28 +56,28 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         textAlign: 'center'
       }}>
         {/* Logo */}
-        <div style={{ marginBottom: spacing.xl }}>
+        <div style={{ marginBottom: "24px" }}>
           <div style={{
-            fontSize: spacing.xxl,
-            marginBottom: spacing.md
+            fontSize: "32px",
+            marginBottom: "16px"
           }}>🧠</div>
           <h1 style={{
-            fontSize: typography.xxxl,
+            fontSize: "48px",
             fontWeight: '700',
-            margin: `0 0 ${spacing.sm} 0`,
-            background: `linear-gradient(135deg, ${colors.amber} 0%, ${colors.amberDark} 100%)`,
+            margin: `0 0 ${"8px"} 0`,
+            background: `linear-gradient(135deg, ${"#F59E0B"} 0%, ${"#F59E0B"Dark} 100%)`,
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
-            color: colors.primaryText,
-            fontFamily: typography.system
+            color: "#ffffff",
+            fontFamily: "system-ui"
           }}>
             Gawyn AI System
           </h1>
           <p style={{
-            color: colors.secondaryText,
-            fontSize: typography.md,
+            color: "#9ca3af",
+            fontSize: "16px",
             margin: 0,
-            fontFamily: typography.mono
+            fontFamily: "monospace"
           }}>
             Advanced Reasoning & Analytics Platform
           </p>

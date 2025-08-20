@@ -172,7 +172,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
             <div className="space-y-6">
               {/* Real-time Metrics */}
               <div style={{
-                background: `${colors.terminalBlack}`,
+                background: "#1a1a1a",
                 backdropFilter: 'blur(24px)',
                 borderRadius: '20px',
                 padding: '24px',
@@ -206,7 +206,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
               {/* Reasoning Test Interface */}
               <div style={{
-                background: `${colors.terminalBlack}`,
+                background: "#1a1a1a",
                 backdropFilter: 'blur(24px)',
                 borderRadius: '20px',
                 padding: '24px',
@@ -284,7 +284,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
               {/* Reasoning Mode Distribution */}
               <div style={{
-                background: `${colors.terminalBlack}`,
+                background: "#1a1a1a",
                 backdropFilter: 'blur(24px)',
                 borderRadius: '20px',
                 padding: '24px',
@@ -332,7 +332,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
           {activeTab === 'reasoning' && (
             <div style={{
-              background: `${colors.terminalBlack}`,
+              background: "#1a1a1a",
               backdropFilter: 'blur(24px)',
               borderRadius: '20px',
               padding: '24px',
@@ -384,7 +384,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
           )}
           {activeTab === 'orchestration' && (
             <div style={{
-              background: `${colors.terminalBlack}`,
+              background: "#1a1a1a",
               backdropFilter: 'blur(24px)',
               borderRadius: '20px',
               padding: '24px',
@@ -440,7 +440,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
           {activeTab === 'analytics' && (
             <div style={{
-              background: `${colors.terminalBlack}`,
+              background: "#1a1a1a",
               backdropFilter: 'blur(24px)',
               borderRadius: '20px',
               padding: '24px',
@@ -495,7 +495,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
           {activeTab === 'system' && (
             <div style={{
-              background: `${colors.terminalBlack}`,
+              background: "#1a1a1a",
               backdropFilter: 'blur(24px)',
               borderRadius: '20px',
               padding: '24px',

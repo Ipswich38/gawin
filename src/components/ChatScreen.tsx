@@ -81,23 +81,23 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ selectedModel, onModelSelect })
         style={{
           display: 'flex',
           justifyContent: isUser ? 'flex-end' : 'flex-start',
-          marginBottom: spacing.md,
+          marginBottom: "16px",
         }}
       >
         <div
           style={{
             maxWidth: '80%',
-            padding: spacing.sm,
-            borderRadius: borderRadius.md,
-            backgroundColor: isUser ? colors.amber : colors.terminalGray,
-            border: isUser ? 'none' : `1px solid ${colors.phosphorGreen}`,
+            padding: "8px",
+            borderRadius: "8px",
+            backgroundColor: isUser ? "#F59E0B" : "#1f2937",
+            border: isUser ? 'none' : "1px solid #00ff00",
           }}
         >
           <div
             style={{
-              color: isUser ? colors.terminalBlack : colors.primaryText,
-              fontSize: typography.md,
-              fontFamily: typography.mono,
+              color: isUser ? "#1a1a1a" : "#ffffff",
+              fontSize: "16px",
+              fontFamily: "monospace",
               lineHeight: '1.6',
               whiteSpace: 'pre-wrap',
             }}
@@ -107,12 +107,12 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ selectedModel, onModelSelect })
           {!isUser && (
             <div
               style={{
-                marginTop: spacing.xs,
-                paddingTop: spacing.xs,
-                borderTop: `1px solid ${colors.border}`,
-                color: colors.secondaryText,
-                fontSize: typography.xs,
-                fontFamily: typography.mono,
+                marginTop: "4px",
+                paddingTop: "4px",
+                borderTop: "1px solid #374151",
+                color: "#9ca3af",
+                fontSize: "12px",
+                fontFamily: "monospace",
               }}
             >
               {message.modelUsed} • {message.responseTime}ms
@@ -129,9 +129,9 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ selectedModel, onModelSelect })
         display: 'flex',
         flexDirection: 'column',
         height: '100vh',
-        backgroundColor: colors.terminalBlack,
-        color: colors.primaryText,
-        fontFamily: typography.mono,
+        backgroundColor: "#1a1a1a",
+        color: "#ffffff",
+        fontFamily: "monospace",
       }}
     >
       {/* Header */}
@@ -140,8 +140,8 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ selectedModel, onModelSelect })
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: spacing.md,
-          borderBottom: `1px solid ${colors.border}`,
+          padding: "16px",
+          borderBottom: "1px solid #374151",
         }}
       >
         <button
@@ -149,9 +149,9 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ selectedModel, onModelSelect })
           style={{
             background: 'none',
             border: 'none',
-            color: colors.amber,
-            fontSize: typography.lg,
-            fontFamily: typography.mono,
+            color: "#F59E0B",
+            fontSize: "18px",
+            fontFamily: "monospace",
             fontWeight: 'bold',
             cursor: 'pointer',
           }}
@@ -159,8 +159,8 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ selectedModel, onModelSelect })
           {selectedModel.name}
           <div
             style={{
-              color: colors.phosphorGreen,
-              fontSize: typography.xs,
+              color: "#00ff00",
+              fontSize: "12px",
               letterSpacing: '1px',
             }}
           >
@@ -173,15 +173,15 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ selectedModel, onModelSelect })
               width: '8px',
               height: '8px',
               borderRadius: '4px',
-              backgroundColor: colors.phosphorGreen,
-              marginRight: spacing.xs,
+              backgroundColor: "#00ff00",
+              marginRight: "4px",
             }}
           />
           <span
             style={{
-              color: colors.phosphorGreen,
-              fontSize: typography.xs,
-              fontFamily: typography.mono,
+              color: "#00ff00",
+              fontSize: "12px",
+              fontFamily: "monospace",
               letterSpacing: '1px',
             }}
           >
@@ -195,7 +195,7 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ selectedModel, onModelSelect })
         style={{
           flex: 1,
           overflow: 'auto',
-          padding: spacing.md,
+          padding: "16px",
         }}
       >
         {messages.length === 0 && (
@@ -211,11 +211,11 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ selectedModel, onModelSelect })
           >
             <h1
               style={{
-                color: colors.amber,
-                fontSize: typography.xxxl,
-                fontFamily: typography.mono,
+                color: "#F59E0B",
+                fontSize: "48px",
+                fontFamily: "monospace",
                 fontWeight: 'bold',
-                marginBottom: spacing.sm,
+                marginBottom: "8px",
                 margin: 0,
               }}
             >
@@ -223,20 +223,20 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ selectedModel, onModelSelect })
             </h1>
             <p
               style={{
-                color: colors.phosphorGreen,
-                fontSize: typography.md,
-                fontFamily: typography.mono,
-                marginBottom: spacing.lg,
-                margin: spacing.sm + ' 0',
+                color: "#00ff00",
+                fontSize: "16px",
+                fontFamily: "monospace",
+                marginBottom: "24px",
+                margin: "8px" + ' 0',
               }}
             >
               Lightning-fast AI responses with nostalgic vibes
             </p>
             <p
               style={{
-                color: colors.secondaryText,
-                fontSize: typography.sm,
-                fontFamily: typography.mono,
+                color: "#9ca3af",
+                fontSize: "14px",
+                fontFamily: "monospace",
                 margin: 0,
               }}
             >
@@ -246,12 +246,12 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ selectedModel, onModelSelect })
         )}
         {messages.map(renderMessage)}
         {isLoading && (
-          <div style={{ textAlign: 'center', padding: spacing.md }}>
+          <div style={{ textAlign: 'center', padding: "16px" }}>
             <span
               style={{
-                color: colors.phosphorGreen,
-                fontSize: typography.lg,
-                fontFamily: typography.mono,
+                color: "#00ff00",
+                fontSize: "18px",
+                fontFamily: "monospace",
                 letterSpacing: '2px',
               }}
             >
@@ -266,10 +266,10 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ selectedModel, onModelSelect })
       <div
         style={{
           display: 'flex',
-          padding: spacing.md,
-          borderTop: `1px solid ${colors.border}`,
+          padding: "16px",
+          borderTop: `1px solid ${"#374151"}`,
           alignItems: 'flex-end',
-          gap: spacing.sm,
+          gap: "8px",
         }}
       >
         <textarea
@@ -280,13 +280,13 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ selectedModel, onModelSelect })
           disabled={isLoading}
           style={{
             flex: 1,
-            backgroundColor: colors.terminalGray,
-            border: `1px solid ${colors.border}`,
-            borderRadius: borderRadius.md,
-            padding: spacing.sm,
-            color: colors.primaryText,
-            fontSize: typography.md,
-            fontFamily: typography.mono,
+            backgroundColor: "#1f2937",
+            border: `1px solid ${"#374151"}`,
+            borderRadius: "8px",
+            padding: "8px",
+            color: "#ffffff",
+            fontSize: "16px",
+            fontFamily: "monospace",
             resize: 'vertical',
             minHeight: '40px',
             maxHeight: '120px',
@@ -296,13 +296,13 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ selectedModel, onModelSelect })
           onClick={sendMessage}
           disabled={!inputText.trim() || isLoading}
           style={{
-            backgroundColor: !inputText.trim() || isLoading ? colors.buttonDisabled : colors.phosphorGreen,
-            color: colors.terminalBlack,
+            backgroundColor: !inputText.trim() || isLoading ? "#6B7280" : "#00ff00",
+            color: "#1a1a1a",
             border: 'none',
-            borderRadius: borderRadius.md,
-            padding: `${spacing.sm} ${spacing.md}`,
-            fontSize: typography.sm,
-            fontFamily: typography.mono,
+            borderRadius: "8px",
+            padding: `${"8px"} ${"16px"}`,
+            fontSize: "14px",
+            fontFamily: "monospace",
             fontWeight: 'bold',
             letterSpacing: '1px',
             cursor: !inputText.trim() || isLoading ? 'not-allowed' : 'pointer',
