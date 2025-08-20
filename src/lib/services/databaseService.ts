@@ -52,18 +52,25 @@ class DatabaseService {
   private constructor() {
     // For development, we'll use environment variables
     // In production, you would set these in your hosting platform
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://your-project.supabase.co';
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'your-anon-key';
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
-    this.supabase = createClient(supabaseUrl, supabaseKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true
-      }
-    });
-
-    this.initializeDatabase();
+    // Only create Supabase client if we have valid environment variables
+    if (supabaseUrl && supabaseKey && supabaseUrl.includes('supabase.co')) {
+      this.supabase = createClient(supabaseUrl, supabaseKey, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true
+        }
+      });
+      this.initializeDatabase();
+    } else {
+      console.log('🗄️ Supabase not configured, using local storage fallback');
+      // Create a mock client to prevent errors
+      this.supabase = {} as SupabaseClient;
+      this.initializeLocalStorage();
+    }
   }
 
   public static getInstance(): DatabaseService {
