@@ -1,9 +1,9 @@
 // Configuration and Environment Variables
-// Uses Vite's environment variable system for secure configuration
+// Uses Next.js environment variable system for secure configuration
 
 export const config = {
   // API Configuration - from environment variables
-  groqApiKey: import.meta.env.VITE_GROQ_API_KEY || '',
+  groqApiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY || '',
   
   // App Configuration
   appName: 'Gawin AI',
@@ -27,8 +27,8 @@ export const config = {
   typingIndicatorDelay: 500,
   
   // Debug
-  isDevelopment: import.meta.env.DEV,
-  enableLogging: import.meta.env.DEV,
+  isDevelopment: process.env.NODE_ENV === 'development',
+  enableLogging: process.env.NODE_ENV === 'development',
 };
 
 // Validation function to check if required config is present
@@ -36,7 +36,7 @@ export const validateConfig = (): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
   
   if (!config.groqApiKey) {
-    errors.push('VITE_GROQ_API_KEY environment variable is required');
+    errors.push('NEXT_PUBLIC_GROQ_API_KEY environment variable is required');
   }
   
   return {

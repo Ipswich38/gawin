@@ -267,7 +267,7 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ selectedModel, onModelSelect })
         style={{
           display: 'flex',
           padding: "16px",
-          borderTop: `1px solid ${"#374151"}`,
+          borderTop: "1px solid #374151",
           alignItems: 'flex-end',
           gap: "8px",
         }}
@@ -281,7 +281,7 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ selectedModel, onModelSelect })
           style={{
             flex: 1,
             backgroundColor: "#1f2937",
-            border: `1px solid ${"#374151"}`,
+            border: "1px solid #374151",
             borderRadius: "8px",
             padding: "8px",
             color: "#ffffff",
@@ -300,7 +300,7 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ selectedModel, onModelSelect })
             color: "#1a1a1a",
             border: 'none',
             borderRadius: "8px",
-            padding: `${"8px"} ${"16px"}`,
+            padding: "8px 16px",
             fontSize: "14px",
             fontFamily: "monospace",
             fontWeight: 'bold',

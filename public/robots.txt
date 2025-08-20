@@ -1,0 +1,12 @@
+# *
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /auth/verify
+Disallow: /_next/
+
+# Host
+Host: https://gawin-ai.vercel.app
+
+# Sitemaps
+Sitemap: https://gawin-ai.vercel.app/sitemap.xml

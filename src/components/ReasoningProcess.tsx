@@ -219,13 +219,13 @@ const ReasoningProcess: React.FC<ReasoningProcessProps> = ({ query, intentType, 
   const getStepColor = (status: ReasoningStep['status']) => {
     switch (status) {
       case 'active':
-        return colors.amber;
+        return "#F59E0B";
       case 'completed':
-        return colors.phosphorGreen;
+        return "#00ff00";
       case 'error':
-        return colors.warning;
+        return "#F59E0B";
       default:
-        return colors.secondaryText;
+        return "#9ca3af";
     }
   };
 
@@ -234,9 +234,9 @@ const ReasoningProcess: React.FC<ReasoningProcessProps> = ({ query, intentType, 
       style={{
         backgroundColor: 'white', // White background
         border: `1px solid rgba(0, 0, 0, 0.15)`,
-        borderRadius: borderRadius.md,
-        padding: spacing.sm,
-        margin: `${spacing.xs} 0`,
+        borderRadius: "8px",
+        padding: "8px",
+        margin: `${"4px"} 0`,
       }}
     >
       {/* Header */}
@@ -244,8 +244,8 @@ const ReasoningProcess: React.FC<ReasoningProcessProps> = ({ query, intentType, 
         style={{
           display: 'flex',
           alignItems: 'center',
-          marginBottom: spacing.xs,
-          paddingBottom: spacing.xs,
+          marginBottom: "4px",
+          paddingBottom: "4px",
           borderBottom: `1px solid rgba(34, 139, 34, 0.2)`,
         }}
       >
@@ -255,7 +255,7 @@ const ReasoningProcess: React.FC<ReasoningProcessProps> = ({ query, intentType, 
             height: '6px',
             borderRadius: '3px',
             backgroundColor: isCompleted ? 'rgba(255, 107, 53, 0.6)' : 'rgba(255, 107, 53, 0.4)',
-            marginRight: spacing.xs,
+            marginRight: "4px",
             animation: isCompleted ? 'none' : 'pulse 1.5s infinite',
           }}
         />
@@ -263,7 +263,7 @@ const ReasoningProcess: React.FC<ReasoningProcessProps> = ({ query, intentType, 
           style={{
             color: 'rgba(0, 0, 0, 0.8)', // Black text
             fontSize: '10px', // Smaller text
-            fontFamily: typography.mono,
+            fontFamily: "monospace",
             fontStyle: 'normal',
             fontWeight: 'normal',
             letterSpacing: '0.5px',
@@ -275,14 +275,14 @@ const ReasoningProcess: React.FC<ReasoningProcessProps> = ({ query, intentType, 
       </div>
 
       {/* Reasoning Steps */}
-      <div style={{ marginBottom: spacing.xs }}>
+      <div style={{ marginBottom: "4px" }}>
         {steps.map((step, index) => (
           <div
             key={step.id}
             style={{
               display: 'flex',
               alignItems: 'flex-start',
-              marginBottom: spacing.xs,
+              marginBottom: "4px",
               opacity: step.status === 'pending' ? 0.4 : step.status === 'active' ? 0.9 : 0.6,
               transition: 'opacity 0.3s ease',
             }}
@@ -290,7 +290,7 @@ const ReasoningProcess: React.FC<ReasoningProcessProps> = ({ query, intentType, 
             <div
               style={{
                 fontSize: '10px',
-                marginRight: spacing.xs,
+                marginRight: "4px",
                 minWidth: '14px',
                 opacity: 0.7,
               }}
@@ -303,7 +303,7 @@ const ReasoningProcess: React.FC<ReasoningProcessProps> = ({ query, intentType, 
                 style={{
                   color: step.status === 'active' ? 'rgba(0, 0, 0, 0.9)' : 'rgba(0, 0, 0, 0.6)',
                   fontSize: '9px',
-                  fontFamily: typography.mono,
+                  fontFamily: "monospace",
                   fontStyle: 'italic',
                   fontWeight: 'normal',
                   marginBottom: '1px',
@@ -317,7 +317,7 @@ const ReasoningProcess: React.FC<ReasoningProcessProps> = ({ query, intentType, 
                 style={{
                   color: step.status === 'active' ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.5)',
                   fontSize: '8px',
-                  fontFamily: typography.mono,
+                  fontFamily: "monospace",
                   fontStyle: 'italic',
                   marginBottom: '2px',
                   opacity: 0.7,
@@ -331,7 +331,7 @@ const ReasoningProcess: React.FC<ReasoningProcessProps> = ({ query, intentType, 
                   style={{
                     color: 'rgba(0, 0, 0, 0.4)',
                     fontSize: '8px',
-                    fontFamily: typography.mono,
+                    fontFamily: "monospace",
                     fontStyle: 'italic',
                     opacity: 0.6,
                     lineHeight: 1.2,
@@ -349,7 +349,7 @@ const ReasoningProcess: React.FC<ReasoningProcessProps> = ({ query, intentType, 
                     display: 'flex',
                     gap: '8px',
                     fontSize: '7px',
-                    fontFamily: typography.mono,
+                    fontFamily: "monospace",
                   }}
                 >
                   {step.agentAssigned && (
@@ -372,8 +372,8 @@ const ReasoningProcess: React.FC<ReasoningProcessProps> = ({ query, intentType, 
       {/* Progress Indicator */}
       <div
         style={{
-          marginTop: spacing.xs,
-          paddingTop: spacing.xs,
+          marginTop: "4px",
+          paddingTop: "4px",
           borderTop: `1px solid rgba(34, 139, 34, 0.1)`,
         }}
       >
@@ -389,7 +389,7 @@ const ReasoningProcess: React.FC<ReasoningProcessProps> = ({ query, intentType, 
             style={{
               color: 'rgba(0, 0, 0, 0.4)',
               fontSize: '8px',
-              fontFamily: typography.mono,
+              fontFamily: "monospace",
               fontStyle: 'italic',
               letterSpacing: '0.5px',
             }}
@@ -400,7 +400,7 @@ const ReasoningProcess: React.FC<ReasoningProcessProps> = ({ query, intentType, 
             style={{
               color: 'rgba(34, 139, 34, 0.7)',
               fontSize: '8px',
-              fontFamily: typography.mono,
+              fontFamily: "monospace",
               fontStyle: 'italic',
             }}
           >
@@ -432,11 +432,11 @@ const ReasoningProcess: React.FC<ReasoningProcessProps> = ({ query, intentType, 
       {isCompleted && (
         <div
           style={{
-            marginTop: spacing.xs,
+            marginTop: "4px",
             padding: '4px 6px',
             backgroundColor: 'rgba(34, 139, 34, 0.05)',
             border: `1px solid rgba(34, 139, 34, 0.2)`,
-            borderRadius: borderRadius.sm,
+            borderRadius: "6px",
             textAlign: 'center',
           }}
         >
@@ -444,7 +444,7 @@ const ReasoningProcess: React.FC<ReasoningProcessProps> = ({ query, intentType, 
             style={{
               color: 'rgba(34, 139, 34, 0.8)',
               fontSize: '9px',
-              fontFamily: typography.mono,
+              fontFamily: "monospace",
               fontStyle: 'italic',
               letterSpacing: '0.3px',
             }}

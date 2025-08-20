@@ -27,8 +27,8 @@ interface ReplicateVideoModel {
 }
 
 class AdvancedVideoService {
-  private readonly REPLICATE_API_KEY = import.meta.env.VITE_REPLICATE_API_KEY;
-  private readonly RUNPOD_API_KEY = import.meta.env.VITE_RUNPOD_API_KEY;
+  private readonly REPLICATE_API_KEY = process.env.NEXT_PUBLIC_REPLICATE_API_KEY;
+  private readonly RUNPOD_API_KEY = process.env.NEXT_PUBLIC_RUNPOD_API_KEY;
   
   // Top-tier open source video models ranked by quality and speed
   private readonly VIDEO_MODELS: ReplicateVideoModel[] = [
@@ -111,7 +111,7 @@ class AdvancedVideoService {
       
     } catch (error) {
       console.error('❌ Advanced video generation failed:', error);
-      return this.createErrorResponse(prompt, error.message, startTime);
+      return this.createErrorResponse(prompt, error instanceof Error ? error.message : String(error), startTime);
     }
   }
 
@@ -295,7 +295,7 @@ class AdvancedVideoService {
           };
         }
       } catch (error) {
-        console.log(`❌ ${alt.name} failed:`, error.message);
+        console.log(`❌ ${alt.name} failed:`, error instanceof Error ? error.message : String(error));
       }
     }
 

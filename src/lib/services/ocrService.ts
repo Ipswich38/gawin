@@ -10,7 +10,7 @@ export interface OCRResult {
 
 class OCRService {
   private groq: Groq;
-  private readonly GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+  private readonly GROQ_API_KEY = process.env.NEXT_PUBLIC_GROQ_API_KEY;
 
   constructor() {
     this.groq = new Groq({

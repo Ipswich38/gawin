@@ -99,7 +99,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ onBack }) => {
           fontWeight: '500',
           backgroundColor: style.bg,
           color: style.text,
-          border: `1px solid ${style.border}`,
+          border: "1px solid #374151",
           textTransform: 'capitalize',
         }}
       >

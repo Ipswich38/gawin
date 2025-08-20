@@ -11,7 +11,7 @@ export interface SimplePerplexityResponse {
 
 class SimplePerplexityService {
   private groq: Groq;
-  private readonly GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+  private readonly GROQ_API_KEY = process.env.NEXT_PUBLIC_GROQ_API_KEY;
 
   constructor() {
     console.log('🔧 SimplePerplexityService initializing...');
@@ -69,17 +69,17 @@ Provide a helpful, accurate response:`;
     } catch (error) {
       console.error('❌ SimplePerplexity error:', error);
       console.error('Error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
+        message: error instanceof Error ? error.message : String(error),
+        response: (error as any)?.response?.data,
+        status: (error as any)?.response?.status
       });
       
       return {
-        content: `I apologize, but I encountered an error: ${error.message}. Please check the console for more details.`,
+        content: `I apologize, but I encountered an error: ${error instanceof Error ? error.message : String(error)}. Please check the console for more details.`,
         timestamp: new Date(),
         modelUsed: 'error-fallback',
         searchPerformed: false,
-        reasoning: `Error occurred: ${error.message}`,
+        reasoning: `Error occurred: ${error instanceof Error ? error.message : String(error)}`,
         responseTime: Date.now() - startTime
       };
     }

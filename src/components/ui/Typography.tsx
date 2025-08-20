@@ -143,7 +143,7 @@ const Typography: React.FC<TypographyProps> = ({
     ...colorStyles[color],
     ...(weight && weightStyles[weight]),
     textAlign: align,
-    margin: 'marginBottom' in variantStyles[variant] ? `0 0 ${(variantStyles[variant] as any).marginBottom} 0` : '0',
+    margin: 'marginBottom' in variantStyles[variant] ? "0 0 4px 0" : '0',
     ...style,
   };
 

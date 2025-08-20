@@ -7,7 +7,7 @@ interface TTSResult {
 }
 
 class TTSService {
-  private readonly GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+  private readonly GROQ_API_KEY = process.env.NEXT_PUBLIC_GROQ_API_KEY;
 
   /**
    * Main TTS function that tries multiple methods

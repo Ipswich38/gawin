@@ -52,8 +52,8 @@ class DatabaseService {
   private constructor() {
     // For development, we'll use environment variables
     // In production, you would set these in your hosting platform
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project.supabase.co';
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key';
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://your-project.supabase.co';
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'your-anon-key';
     
     this.supabase = createClient(supabaseUrl, supabaseKey, {
       auth: {

@@ -670,16 +670,16 @@ class AutonomousOrchestrator {
     
     // Technical queries
     if (input.includes('code') || input.includes('programming') || input.includes('bug')) {
-      return this.selfLearningModels.get('technical-specialist');
+      return this.selfLearningModels.get('technical-specialist') || null;
     }
     
     // Creative requests
     if (input.includes('story') || input.includes('creative') || input.includes('imagine')) {
-      return this.selfLearningModels.get('creative-assistant');
+      return this.selfLearningModels.get('creative-assistant') || null;
     }
     
     // Default to conversation master
-    return this.selfLearningModels.get('conversation-master');
+    return this.selfLearningModels.get('conversation-master') || null;
   }
 
   private async generateResponseFromPatterns(

@@ -1,7 +1,7 @@
 // Production utilities for error handling and monitoring
 
-export const isProduction = import.meta.env.PROD;
-export const isDevelopment = import.meta.env.DEV;
+export const isProduction = process.env.NODE_ENV === 'production';
+export const isDevelopment = process.env.NODE_ENV === 'development';
 
 // Global error handler for production
 export class ProductionErrorHandler {
@@ -61,7 +61,7 @@ export class ProductionErrorHandler {
     // - Datadog
     // - Custom analytics endpoint
     
-    if (import.meta.env.VITE_ENABLE_ERROR_REPORTING === 'true') {
+    if (process.env.NEXT_PUBLIC_ENABLE_ERROR_REPORTING === 'true') {
       // Example: Send to your error reporting service
       // fetch('/api/errors', {
       //   method: 'POST',
@@ -124,7 +124,7 @@ export class PerformanceMonitor {
         console.log('📊 Page Load Metrics:', metrics);
         
         // Send to analytics if enabled
-        if (import.meta.env.VITE_ENABLE_ANALYTICS === 'true') {
+        if (process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true') {
           // Example: Send to your analytics service
           // this.sendMetrics('page_load', metrics);
         }
@@ -159,7 +159,7 @@ export class PerformanceMonitor {
         const fidObserver = new PerformanceObserver((list) => {
           const entries = list.getEntries();
           entries.forEach((entry: PerformanceEntry) => {
-            console.log('📊 FID:', entry.processingStart - entry.startTime);
+            console.log('📊 FID:', (entry as any).processingStart - entry.startTime);
           });
         });
         fidObserver.observe({ entryTypes: ['first-input'] });
@@ -180,7 +180,7 @@ export class PerformanceMonitor {
 
     console.log('📊 Custom Metric:', metric);
     
-    if (import.meta.env.VITE_ENABLE_ANALYTICS === 'true') {
+    if (process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true') {
       // Send to analytics service
       // this.sendMetrics('custom_metric', metric);
     }
@@ -194,18 +194,18 @@ export function initProductionUtils() {
     PerformanceMonitor.getInstance().init();
     
     console.log('🚀 Production utilities initialized');
-    console.log(`📦 App Version: ${import.meta.env.VITE_APP_VERSION || 'unknown'}`);
+    console.log(`📦 App Version: ${process.env.NEXT_PUBLIC_APP_VERSION || 'unknown'}`);
     console.log(`🏗️ Build Time: ${(globalThis as any).__BUILD_TIME__ || 'unknown'}`);
   }
 }
 
 // Utility to check if features are enabled
 export const features = {
-  analytics: import.meta.env.VITE_ENABLE_ANALYTICS === 'true',
-  errorReporting: import.meta.env.VITE_ENABLE_ERROR_REPORTING === 'true',
-  serviceWorker: import.meta.env.VITE_ENABLE_SERVICE_WORKER === 'true',
-  compression: import.meta.env.VITE_ENABLE_COMPRESSION === 'true',
-  devMode: import.meta.env.VITE_DEV_MODE === 'true'
+  analytics: process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true',
+  errorReporting: process.env.NEXT_PUBLIC_ENABLE_ERROR_REPORTING === 'true',
+  serviceWorker: process.env.NEXT_PUBLIC_ENABLE_SERVICE_WORKER === 'true',
+  compression: process.env.NEXT_PUBLIC_ENABLE_COMPRESSION === 'true',
+  devMode: process.env.NODE_ENV === 'development'
 };
 
 export default {

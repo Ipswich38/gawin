@@ -39,8 +39,20 @@ export interface StateSpaceModelState {
 
 export class AdvancedArchitectureEngine {
   private experts: Map<string, ExpertNetwork> = new Map();
-  private retentionState: RetentionMechanismState;
-  private stateSpaceModel: StateSpaceModelState;
+  private retentionState: RetentionMechanismState = {
+    decayFactor: 0.95,
+    retentionMatrix: [[1, 0], [0, 1]],
+    temporalWeights: [1.0, 0.8, 0.6],
+    memoryCapacity: 1000,
+    informationDecay: 0.1
+  };
+  private stateSpaceModel: StateSpaceModelState = {
+    hiddenStates: new Array(512).fill(0),
+    convolutionKernel: [1, 0.5, 0.25],
+    discretizationStep: 0.01,
+    stateTransition: [[1, 0], [0, 1]],
+    outputProjection: new Array(256).fill(0)
+  };
   private routingHistory: Array<{
     timestamp: number;
     query: string;
@@ -884,5 +896,5 @@ export const getAdvancedArchitectureEngine = (): AdvancedArchitectureEngine => {
       } as any;
     }
   }
-  return _advancedArchitectureEngine;
+  return _advancedArchitectureEngine!;
 };

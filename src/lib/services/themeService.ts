@@ -131,7 +131,7 @@ export interface Theme {
 
 class ThemeService {
   private static instance: ThemeService;
-  private currentTheme: Theme;
+  private currentTheme!: Theme;
   private darkMode: boolean = false;
   private highContrast: boolean = false;
   private reducedMotion: boolean = false;

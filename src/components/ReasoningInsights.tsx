@@ -340,7 +340,7 @@ const ReasoningInsights: React.FC<ReasoningInsightsProps> = ({ response, onClose
                             Confidence: {(expert.confidence * 100).toFixed(0)}%
                           </div>
                           <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.7)' }}>
-                            Routing Score: {(response.expertRouting.routingScores[idx] * 100).toFixed(0)}%
+                            Routing Score: {response.expertRouting ? (response.expertRouting.routingScores[idx] * 100).toFixed(0) : '0'}%
                           </div>
                         </div>
                       ))}

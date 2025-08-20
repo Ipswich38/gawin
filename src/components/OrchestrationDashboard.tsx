@@ -34,7 +34,7 @@ const OrchestrationDashboard: React.FC<OrchestrationDashboardProps> = ({ isVisib
     if (agent.availability === 'offline') return '#dc2626';
     if (agent.currentLoad > 80) return '#f59e0b';
     if (agent.currentLoad > 50) return '#3b82f6';
-    return colors.phosphorGreen;
+    return "#00ff00";
   };
 
   const getAgentTypeIcon = (type: string) => {
@@ -54,14 +54,14 @@ const OrchestrationDashboard: React.FC<OrchestrationDashboardProps> = ({ isVisib
         right: '20px',
         width: '400px',
         maxHeight: '600px',
-        backgroundColor: colors.terminalBlack,
-        border: `1px solid ${colors.phosphorGreen}`,
-        borderRadius: borderRadius.lg,
-        padding: spacing.md,
+        backgroundColor: "#1a1a1a",
+        border: "1px solid #374151",
+        borderRadius: "12px",
+        padding: "16px",
         zIndex: 1000,
         backdropFilter: 'blur(10px)',
         overflow: 'hidden',
-        fontFamily: typography.mono,
+        fontFamily: "monospace",
       }}
     >
       {/* Header */}
@@ -70,8 +70,8 @@ const OrchestrationDashboard: React.FC<OrchestrationDashboardProps> = ({ isVisib
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          marginBottom: spacing.md,
-          paddingBottom: spacing.sm,
+          marginBottom: "16px",
+          paddingBottom: "8px",
           borderBottom: `1px solid rgba(34, 139, 34, 0.3)`,
         }}
       >
@@ -80,7 +80,7 @@ const OrchestrationDashboard: React.FC<OrchestrationDashboardProps> = ({ isVisib
             style={{
               margin: 0,
               fontSize: '14px',
-              color: colors.phosphorGreen,
+              color: "#00ff00",
               fontWeight: 'bold',
             }}
           >
@@ -108,7 +108,7 @@ const OrchestrationDashboard: React.FC<OrchestrationDashboardProps> = ({ isVisib
               width: '8px',
               height: '8px',
               borderRadius: '50%',
-              backgroundColor: colors.phosphorGreen,
+              backgroundColor: "#00ff00",
               animation: 'pulse 2s infinite',
             }}
           />
@@ -122,9 +122,9 @@ const OrchestrationDashboard: React.FC<OrchestrationDashboardProps> = ({ isVisib
       <div
         style={{
           display: 'flex',
-          marginBottom: spacing.sm,
+          marginBottom: "8px",
           backgroundColor: 'rgba(42, 43, 38, 0.3)',
-          borderRadius: borderRadius.sm,
+          borderRadius: "6px",
           padding: '2px',
         }}
       >
@@ -136,13 +136,13 @@ const OrchestrationDashboard: React.FC<OrchestrationDashboardProps> = ({ isVisib
               flex: 1,
               padding: '6px 8px',
               fontSize: '10px',
-              backgroundColor: selectedTab === tab ? colors.phosphorGreen : 'transparent',
+              backgroundColor: selectedTab === tab ? "#00ff00" : 'transparent',
               color: selectedTab === tab ? 'black' : 'rgba(255, 255, 255, 0.7)',
               border: 'none',
               borderRadius: '4px',
               cursor: 'pointer',
               textTransform: 'uppercase',
-              fontFamily: typography.mono,
+              fontFamily: "monospace",
               transition: 'all 0.2s ease',
             }}
           >
@@ -165,7 +165,7 @@ const OrchestrationDashboard: React.FC<OrchestrationDashboardProps> = ({ isVisib
               style={{
                 fontSize: '10px',
                 color: 'rgba(255, 255, 255, 0.5)',
-                marginBottom: spacing.xs,
+                marginBottom: "4px",
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px',
               }}
@@ -179,9 +179,9 @@ const OrchestrationDashboard: React.FC<OrchestrationDashboardProps> = ({ isVisib
                 style={{
                   backgroundColor: 'rgba(42, 43, 38, 0.2)',
                   border: `1px solid rgba(34, 139, 34, 0.2)`,
-                  borderRadius: borderRadius.sm,
-                  padding: spacing.xs,
-                  marginBottom: spacing.xs,
+                  borderRadius: "6px",
+                  padding: "4px",
+                  marginBottom: "4px",
                 }}
               >
                 <div
@@ -199,7 +199,7 @@ const OrchestrationDashboard: React.FC<OrchestrationDashboardProps> = ({ isVisib
                     <span
                       style={{
                         fontSize: '11px',
-                        color: colors.phosphorGreen,
+                        color: "#00ff00",
                         fontWeight: 'bold',
                       }}
                     >
@@ -273,7 +273,7 @@ const OrchestrationDashboard: React.FC<OrchestrationDashboardProps> = ({ isVisib
               style={{
                 fontSize: '10px',
                 color: 'rgba(255, 255, 255, 0.5)',
-                marginBottom: spacing.xs,
+                marginBottom: "4px",
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px',
               }}
@@ -285,7 +285,7 @@ const OrchestrationDashboard: React.FC<OrchestrationDashboardProps> = ({ isVisib
               style={{
                 display: 'grid',
                 gridTemplateColumns: '1fr 1fr',
-                gap: spacing.xs,
+                gap: "4px",
               }}
             >
               {Object.entries({
@@ -301,15 +301,15 @@ const OrchestrationDashboard: React.FC<OrchestrationDashboardProps> = ({ isVisib
                   style={{
                     backgroundColor: 'rgba(42, 43, 38, 0.2)',
                     border: `1px solid rgba(34, 139, 34, 0.2)`,
-                    borderRadius: borderRadius.sm,
-                    padding: spacing.xs,
+                    borderRadius: "6px",
+                    padding: "4px",
                     textAlign: 'center',
                   }}
                 >
                   <div
                     style={{
                       fontSize: '14px',
-                      color: colors.phosphorGreen,
+                      color: "#00ff00",
                       fontWeight: 'bold',
                       marginBottom: '2px',
                     }}
@@ -337,7 +337,7 @@ const OrchestrationDashboard: React.FC<OrchestrationDashboardProps> = ({ isVisib
               style={{
                 fontSize: '10px',
                 color: 'rgba(255, 255, 255, 0.5)',
-                marginBottom: spacing.xs,
+                marginBottom: "4px",
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px',
               }}
@@ -351,7 +351,7 @@ const OrchestrationDashboard: React.FC<OrchestrationDashboardProps> = ({ isVisib
                   textAlign: 'center',
                   color: 'rgba(255, 255, 255, 0.4)',
                   fontSize: '10px',
-                  padding: spacing.md,
+                  padding: "16px",
                 }}
               >
                 No active task assignments
@@ -363,9 +363,9 @@ const OrchestrationDashboard: React.FC<OrchestrationDashboardProps> = ({ isVisib
                   style={{
                     backgroundColor: 'rgba(42, 43, 38, 0.2)',
                     border: `1px solid rgba(34, 139, 34, 0.2)`,
-                    borderRadius: borderRadius.sm,
-                    padding: spacing.xs,
-                    marginBottom: spacing.xs,
+                    borderRadius: "6px",
+                    padding: "4px",
+                    marginBottom: "4px",
                   }}
                 >
                   <div
@@ -379,7 +379,7 @@ const OrchestrationDashboard: React.FC<OrchestrationDashboardProps> = ({ isVisib
                     <span
                       style={{
                         fontSize: '10px',
-                        color: colors.phosphorGreen,
+                        color: "#00ff00",
                         fontWeight: 'bold',
                       }}
                     >

@@ -45,15 +45,15 @@ const ModelSelectionScreen: React.FC<ModelSelectionScreenProps> = ({
   const getTypeColor = (type: AIModel['type']) => {
     switch (type) {
       case 'text':
-        return colors.amber;
+        return "#F59E0B";
       case 'vision':
-        return colors.phosphorGreen;
+        return "#00ff00";
       case 'audio':
-        return colors.info;
+        return "#3B82F6";
       case 'reasoning':
-        return colors.warning;
+        return "#F59E0B";
       default:
-        return colors.secondaryText;
+        return "#9ca3af";
     }
   };
 
@@ -82,11 +82,11 @@ const ModelSelectionScreen: React.FC<ModelSelectionScreenProps> = ({
         key={model.id}
         onClick={() => handleModelSelect(model)}
         style={{
-          backgroundColor: colors.terminalGray,
-          border: `1px solid ${isSelected ? colors.phosphorGreen : colors.border}`,
-          borderRadius: borderRadius.md,
-          padding: spacing.md,
-          marginBottom: spacing.sm,
+          backgroundColor: "#1f2937",
+          border: "1px solid #374151",
+          borderRadius: "8px",
+          padding: "16px",
+          marginBottom: "8px",
           cursor: model.isActive ? 'pointer' : 'not-allowed',
           opacity: model.isActive ? 1 : 0.6,
           position: 'relative',
@@ -97,15 +97,15 @@ const ModelSelectionScreen: React.FC<ModelSelectionScreenProps> = ({
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: spacing.sm,
+            marginBottom: "8px",
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span
               style={{
                 color: typeColor,
-                fontSize: typography.md,
-                marginRight: spacing.xs,
+                fontSize: "16px",
+                marginRight: "4px",
               }}
             >
               {typeIcon}
@@ -113,8 +113,8 @@ const ModelSelectionScreen: React.FC<ModelSelectionScreenProps> = ({
             <span
               style={{
                 color: typeColor,
-                fontSize: typography.xs,
-                fontFamily: typography.mono,
+                fontSize: "12px",
+                fontFamily: "monospace",
                 fontWeight: 'bold',
                 letterSpacing: '1px',
               }}
@@ -125,12 +125,12 @@ const ModelSelectionScreen: React.FC<ModelSelectionScreenProps> = ({
           {isSelected && (
             <div
               style={{
-                backgroundColor: colors.phosphorGreen,
-                color: colors.terminalBlack,
+                backgroundColor: "#00ff00",
+                color: "#1a1a1a",
                 padding: '2px 8px',
-                borderRadius: borderRadius.sm,
-                fontSize: typography.xs,
-                fontFamily: typography.mono,
+                borderRadius: "6px",
+                fontSize: "12px",
+                fontFamily: "monospace",
                 fontWeight: 'bold',
                 letterSpacing: '1px',
               }}
@@ -142,11 +142,11 @@ const ModelSelectionScreen: React.FC<ModelSelectionScreenProps> = ({
 
         <h3
           style={{
-            color: colors.primaryText,
-            fontSize: typography.lg,
-            fontFamily: typography.mono,
+            color: "#ffffff",
+            fontSize: "18px",
+            fontFamily: "monospace",
             fontWeight: 'bold',
-            margin: `0 0 ${spacing.xs} 0`,
+            margin: "0 0 4px 0",
           }}
         >
           {model.name}
@@ -154,23 +154,23 @@ const ModelSelectionScreen: React.FC<ModelSelectionScreenProps> = ({
         
         <p
           style={{
-            color: colors.secondaryText,
-            fontSize: typography.sm,
-            fontFamily: typography.mono,
-            margin: `0 0 ${spacing.sm} 0`,
+            color: "#9ca3af",
+            fontSize: "14px",
+            fontFamily: "monospace",
+            margin: "0 0 4px 0",
             lineHeight: '1.6',
           }}
         >
           {model.description}
         </p>
 
-        <div style={{ display: 'flex', gap: spacing.lg, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: "24px", flexWrap: 'wrap' }}>
           <div>
             <div
               style={{
-                color: colors.secondaryText,
-                fontSize: typography.xs,
-                fontFamily: typography.mono,
+                color: "#9ca3af",
+                fontSize: "12px",
+                fontFamily: "monospace",
                 letterSpacing: '1px',
               }}
             >
@@ -178,9 +178,9 @@ const ModelSelectionScreen: React.FC<ModelSelectionScreenProps> = ({
             </div>
             <div
               style={{
-                color: colors.amber,
-                fontSize: typography.sm,
-                fontFamily: typography.mono,
+                color: "#F59E0B",
+                fontSize: "14px",
+                fontFamily: "monospace",
                 fontWeight: 'bold',
               }}
             >
@@ -191,9 +191,9 @@ const ModelSelectionScreen: React.FC<ModelSelectionScreenProps> = ({
             <div>
               <div
                 style={{
-                  color: colors.secondaryText,
-                  fontSize: typography.xs,
-                  fontFamily: typography.mono,
+                  color: "#9ca3af",
+                  fontSize: "12px",
+                  fontFamily: "monospace",
                   letterSpacing: '1px',
                 }}
               >
@@ -201,9 +201,9 @@ const ModelSelectionScreen: React.FC<ModelSelectionScreenProps> = ({
               </div>
               <div
                 style={{
-                  color: colors.amber,
-                  fontSize: typography.sm,
-                  fontFamily: typography.mono,
+                  color: "#F59E0B",
+                  fontSize: "14px",
+                  fontFamily: "monospace",
                   fontWeight: 'bold',
                 }}
               >
@@ -222,7 +222,7 @@ const ModelSelectionScreen: React.FC<ModelSelectionScreenProps> = ({
               right: 0,
               bottom: 0,
               backgroundColor: 'rgba(0, 0, 0, 0.7)',
-              borderRadius: borderRadius.md,
+              borderRadius: "8px",
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
@@ -230,9 +230,9 @@ const ModelSelectionScreen: React.FC<ModelSelectionScreenProps> = ({
           >
             <span
               style={{
-                color: colors.warning,
-                fontSize: typography.md,
-                fontFamily: typography.mono,
+                color: "#F59E0B",
+                fontSize: "16px",
+                fontFamily: "monospace",
                 fontWeight: 'bold',
                 letterSpacing: '2px',
               }}
@@ -249,9 +249,9 @@ const ModelSelectionScreen: React.FC<ModelSelectionScreenProps> = ({
     <div
       style={{
         height: '100vh',
-        backgroundColor: colors.terminalBlack,
-        color: colors.primaryText,
-        fontFamily: typography.mono,
+        backgroundColor: "#1a1a1a",
+        color: "#ffffff",
+        fontFamily: "monospace",
         overflow: 'auto',
       }}
     >
@@ -261,8 +261,8 @@ const ModelSelectionScreen: React.FC<ModelSelectionScreenProps> = ({
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: spacing.md,
-          borderBottom: `1px solid ${colors.border}`,
+          padding: "16px",
+          borderBottom: "1px solid #374151",
         }}
       >
         <button
@@ -270,21 +270,21 @@ const ModelSelectionScreen: React.FC<ModelSelectionScreenProps> = ({
           style={{
             background: 'none',
             border: 'none',
-            color: colors.amber,
-            fontSize: typography.sm,
-            fontFamily: typography.mono,
+            color: "#F59E0B",
+            fontSize: "14px",
+            fontFamily: "monospace",
             fontWeight: 'bold',
             cursor: 'pointer',
-            padding: spacing.xs,
+            padding: "4px",
           }}
         >
           ← BACK
         </button>
         <h1
           style={{
-            color: colors.primaryText,
-            fontSize: typography.lg,
-            fontFamily: typography.mono,
+            color: "#ffffff",
+            fontSize: "18px",
+            fontFamily: "monospace",
             fontWeight: 'bold',
             letterSpacing: '1px',
             margin: 0,
@@ -296,7 +296,7 @@ const ModelSelectionScreen: React.FC<ModelSelectionScreenProps> = ({
       </div>
 
       {/* Content */}
-      <div style={{ padding: spacing.md }}>
+      <div style={{ padding: "16px" }}>
         {isLoading ? (
           <div
             style={{
@@ -308,9 +308,9 @@ const ModelSelectionScreen: React.FC<ModelSelectionScreenProps> = ({
           >
             <span
               style={{
-                color: colors.phosphorGreen,
-                fontSize: typography.lg,
-                fontFamily: typography.mono,
+                color: "#00ff00",
+                fontSize: "18px",
+                fontFamily: "monospace",
               }}
             >
               Loading models...
@@ -320,11 +320,11 @@ const ModelSelectionScreen: React.FC<ModelSelectionScreenProps> = ({
           <>
             <p
               style={{
-                color: colors.secondaryText,
-                fontSize: typography.md,
-                fontFamily: typography.mono,
+                color: "#9ca3af",
+                fontSize: "16px",
+                fontFamily: "monospace",
                 textAlign: 'center',
-                marginBottom: spacing.xl,
+                marginBottom: "32px",
                 lineHeight: '1.6',
               }}
             >
@@ -337,14 +337,14 @@ const ModelSelectionScreen: React.FC<ModelSelectionScreenProps> = ({
               if (typeModels.length === 0) return null;
 
               return (
-                <div key={type} style={{ marginBottom: spacing.lg }}>
+                <div key={type} style={{ marginBottom: "24px" }}>
                   <h2
                     style={{
                       color: getTypeColor(type as AIModel['type']),
-                      fontSize: typography.md,
-                      fontFamily: typography.mono,
+                      fontSize: "16px",
+                      fontFamily: "monospace",
                       fontWeight: 'bold',
-                      marginBottom: spacing.sm,
+                      marginBottom: "8px",
                       letterSpacing: '1px',
                     }}
                   >

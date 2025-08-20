@@ -37,7 +37,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   return (
     <div style={{
       minHeight: '100vh',
-      background: `linear-gradient(135deg, ${"#1a1a1a"} 0%, ${"#1f2937"} 50%, ${"#374151"} 100%)`,
+      background: "linear-gradient(135deg, #1a1a1a 0%, #1f2937 50%, #374151 100%)",
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -48,7 +48,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         backdropFilter: 'blur(24px)',
         borderRadius: "16px",
         padding: "32px",
-        border: `1px solid ${"#374151"}`,
+        border: "1px solid #374151",
         width: '100%',
         maxWidth: '400px',
         boxShadow: `0 25px 80px rgba(0, 0, 0, 0.3)`,
@@ -64,8 +64,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           <h1 style={{
             fontSize: "48px",
             fontWeight: '700',
-            margin: `0 0 ${"8px"} 0`,
-            background: `linear-gradient(135deg, ${"#F59E0B"} 0%, ${"#F59E0B"Dark} 100%)`,
+            margin: "0 0 8px 0",
+            background: `linear-gradient(135deg, #F59E0B 0%, #E55A2B 100%)`,
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             color: "#ffffff",

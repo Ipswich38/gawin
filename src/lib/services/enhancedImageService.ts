@@ -176,7 +176,7 @@ class EnhancedImageService {
           technique: 'unknown'
         },
         message: 'Image generation failed. Please try again with a different prompt.',
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       };
     }
   }
@@ -205,8 +205,8 @@ class EnhancedImageService {
 
     // Quality support
     const qualityLevels = { draft: 1, standard: 2, high: 3, ultra: 4 };
-    const requestedLevel = qualityLevels[request.quality || 'standard'];
-    const providerMaxLevel = qualityLevels[provider.maxQuality];
+    const requestedLevel = qualityLevels[request.quality || 'standard' as keyof typeof qualityLevels];
+    const providerMaxLevel = qualityLevels[provider.maxQuality as keyof typeof qualityLevels];
     
     if (providerMaxLevel >= requestedLevel) {
       score += 0.2;
