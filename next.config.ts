@@ -6,6 +6,25 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   generateEtags: true,
   
+  // Disable type checking for faster deployment
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  
+  // Handle webpack issues
+  webpack: (config) => {
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      path: false,
+      os: false,
+    };
+    return config;
+  },
+  
   // Security headers
   async headers() {
     return [

@@ -51,7 +51,7 @@ export class ProductionErrorHandler {
     this.logError('Unhandled Promise Rejection', error);
   }
 
-  private logError(type: string, error: any) {
+  private logError(type: string, error: unknown) {
     // Log to console in production (can be replaced with external service)
     console.error(`🚨 ${type}:`, error);
     
@@ -150,7 +150,7 @@ export class PerformanceMonitor {
           console.log('📊 LCP:', lastEntry.startTime);
         });
         lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
-      } catch (e) {
+      } catch {
         // LCP not supported
       }
 
@@ -158,12 +158,12 @@ export class PerformanceMonitor {
       try {
         const fidObserver = new PerformanceObserver((list) => {
           const entries = list.getEntries();
-          entries.forEach((entry: any) => {
+          entries.forEach((entry: PerformanceEntry) => {
             console.log('📊 FID:', entry.processingStart - entry.startTime);
           });
         });
         fidObserver.observe({ entryTypes: ['first-input'] });
-      } catch (e) {
+      } catch {
         // FID not supported
       }
     }

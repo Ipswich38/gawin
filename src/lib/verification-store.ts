@@ -79,7 +79,7 @@ export class VerificationStore {
   }
 
   static getByEmail(email: string): VerificationCode | undefined {
-    for (const [key, record] of verificationCodes.entries()) {
+    for (const [, record] of verificationCodes.entries()) {
       if (record.email === email && !record.used) {
         return record;
       }
