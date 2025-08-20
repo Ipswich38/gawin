@@ -1,5 +1,5 @@
 import React from 'react';
-import { sanitizationService } from '../services/sanitizationService';
+import { sanitizationService } from '../lib/services/sanitizationService';
 
 interface SafeHTMLProps {
   content: string;

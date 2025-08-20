@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { textFormattingService } from '../services/textFormattingService';
+import { textFormattingService } from '../lib/services/textFormattingService';
 import SafeHTML from './SafeHTML';
-import { sanitizationService } from '../services/sanitizationService';
+import { sanitizationService } from '../lib/services/sanitizationService';
 
 interface AIAcademyProps {
   onBack: () => void;

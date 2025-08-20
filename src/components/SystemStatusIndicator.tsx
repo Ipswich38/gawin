@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { systemGuardianService } from '../services/systemGuardianService';
-import { themeService } from '../services/themeService';
+import { systemGuardianService } from '../lib/services/systemGuardianService';
+import { themeService } from '../lib/services/themeService';
 
 interface SystemStatusIndicatorProps {
   position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';

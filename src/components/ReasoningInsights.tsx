@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { PerplexityResponse } from '../services/perplexityService';
-import { ReasoningMode } from '../services/advancedReasoningEngine';
-import { EmergentCapability } from '../services/scalingLawsAnalyzer';
+import { PerplexityResponse } from '../lib/services/perplexityService';
+import { ReasoningMode } from '../lib/services/advancedReasoningEngine';
+import { EmergentCapability } from '../lib/services/scalingLawsAnalyzer';
 
 interface ReasoningInsightsProps {
   response: PerplexityResponse;

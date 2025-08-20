@@ -4,7 +4,7 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { UserIcon, EmailIcon, SettingsIcon, ArrowLeftIcon } from '../ui/Icons';
 import { useAuth } from '../../contexts/AuthContext';
-import { User } from '../../services/databaseService';
+import { User } from '../../lib/services/databaseService';
 
 interface UserProfileProps {
   onBack?: () => void;

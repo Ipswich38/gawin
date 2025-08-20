@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { memoryService } from '../services/memoryService';
+import { memoryService } from '../lib/services/memoryService';
 
 interface MemoryStatusProps {
   onClose: () => void;

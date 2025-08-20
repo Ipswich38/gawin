@@ -1,7 +1,7 @@
 // Real-time AI Orchestration Dashboard
 import React, { useState, useEffect } from 'react';
-import { aiOrchestrator, type AIAgent, type OrchestrationMetrics, type TaskAssignment } from '../services/aiOrchestrator';
-import { colors, typography, spacing, borderRadius } from '../styles/theme';
+import { aiOrchestrator, type AIAgent, type OrchestrationMetrics, type TaskAssignment } from '../lib/services/aiOrchestrator';
+// import { colors, typography, spacing, borderRadius } from theme - DISABLED
 
 interface OrchestrationDashboardProps {
   isVisible: boolean;

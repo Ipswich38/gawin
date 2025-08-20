@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { singaporeEducationService, type SingaporeQuestion, type QuestionType, type LearningProfile, type AssessmentResult } from '../services/singaporeEducationService';
+import { singaporeEducationService, type SingaporeQuestion, type QuestionType, type LearningProfile, type AssessmentResult } from '../lib/services/singaporeEducationService';
 
 interface SingaporeQuizGeneratorProps {
   onBack: () => void;

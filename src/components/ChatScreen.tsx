@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { AIModel, ChatMessage } from '../types';
-// import { groqApi } from '../services/groqApi'; // REMOVED - service no longer exists
-import { colors, typography, spacing, borderRadius } from '../styles/theme';
+import { AIModel, ChatMessage } from '../lib/types';
+// import { groqApi } from '../lib/services/groqApi'; // REMOVED - service no longer exists
+// import { colors, typography, spacing, borderRadius } from theme - DISABLED
 
 interface ChatScreenProps {
   selectedModel: AIModel;

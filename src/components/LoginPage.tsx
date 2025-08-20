@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { colors, typography, spacing, borderRadius } from '../styles/theme';
+// import { colors, typography, spacing, borderRadius } from theme - DISABLED
 
 interface LoginPageProps {
   onLogin: (role: 'admin' | 'user') => void;

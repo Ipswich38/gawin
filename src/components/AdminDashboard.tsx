@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import AttentionVisualizationTools from './AttentionVisualizationTools';
 import ReasoningInsights from './ReasoningInsights';
 import OrchestrationDashboard from './OrchestrationDashboard';
-import { perplexityService, PerplexityResponse } from '../services/perplexityService';
-import { EmergentCapability } from '../services/scalingLawsAnalyzer';
-import { colors, typography, spacing, borderRadius } from '../styles/theme';
+import { perplexityService, PerplexityResponse } from '../lib/services/perplexityService';
+import { EmergentCapability } from '../lib/services/scalingLawsAnalyzer';
+// import { colors, typography, spacing, borderRadius } from theme - DISABLED
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -77,8 +77,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   return (
     <div style={{
       minHeight: '100vh',
-      background: `linear-gradient(135deg, ${colors.terminalBlack} 0%, ${colors.terminalGray} 50%, ${colors.terminalLight} 100%)`,
-      padding: spacing.lg
+      background: `linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 50%, #3a3a3a 100%)`,
+      padding: '2rem'
     }}>
       <div style={{
         maxWidth: '1400px',

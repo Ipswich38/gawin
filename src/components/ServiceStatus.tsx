@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { perplexityService } from '../services/perplexityService';
+import { perplexityService } from '../lib/services/perplexityService';
 
 interface ServiceStatusProps {
   onClose: () => void;
