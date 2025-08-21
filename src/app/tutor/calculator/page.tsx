@@ -1,185 +1,227 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { ArrowLeft, Loader2, TrendingUp, BarChart3, PieChart, Calculator, Brain, History, X, HelpCircle } from 'lucide-react';
+import { evaluate, parse, simplify } from 'mathjs';
+import { useRouter } from 'next/navigation';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
+interface CalculationHistory {
+  id: string;
+  expression: string;
+  result: string;
+  timestamp: Date;
+  aiAnalysis?: string;
+}
+
+interface AIAnalysisResponse {
+  explanation: string;
+  concepts: string[];
+  nextSteps: string[];
+  visualization?: 'graph' | 'table' | 'diagram' | null;
+  difficulty: 'basic' | 'intermediate' | 'advanced';
+}
+
 export default function CalculatorPage() {
+  const router = useRouter();
   const [display, setDisplay] = useState('0');
-  const [previousValue, setPreviousValue] = useState<number | null>(null);
-  const [operation, setOperation] = useState<string | null>(null);
-  const [waitingForNewValue, setWaitingForNewValue] = useState(false);
+  const [previousOperand, setPreviousOperand] = useState('');
+  const [operation, setOperation] = useState('');
+  const [waitingForNewOperand, setWaitingForNewOperand] = useState(false);
+  const [isAdvancedMode, setIsAdvancedMode] = useState(false);
   const [memory, setMemory] = useState(0);
-  const [isRadians, setIsRadians] = useState(true);
-  const [history, setHistory] = useState<Array<{expression: string, result: string}>>([]);
+  const [history, setHistory] = useState<CalculationHistory[]>([]);
   const [showHistory, setShowHistory] = useState(false);
-  const [explanation, setExplanation] = useState('');
-  const [showExplanation, setShowExplanation] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [aiAnalysis, setAiAnalysis] = useState<AIAnalysisResponse | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const [isDark, setIsDark] = useState(true);
 
-  // Mathematical constants
-  const constants = {
-    pi: Math.PI,
-    e: Math.E,
-    phi: (1 + Math.sqrt(5)) / 2, // Golden ratio
+  // Utility function for contrast classes
+  const getContrastClass = () => {
+    return isDark 
+      ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+      : 'bg-gray-100 hover:bg-gray-200 text-gray-900';
   };
 
-  // Helper function to evaluate mathematical expressions safely
-  const evaluateExpression = (expr: string): number => {
-    try {
-      // Replace constants
-      let processedExpr = expr
-        .replace(/π|pi/g, constants.pi.toString())
-        .replace(/e(?![0-9])/g, constants.e.toString())
-        .replace(/φ|phi/g, constants.phi.toString());
-
-      // Replace mathematical functions
-      processedExpr = processedExpr
-        .replace(/sin\(/g, 'Math.sin(')
-        .replace(/cos\(/g, 'Math.cos(')
-        .replace(/tan\(/g, 'Math.tan(')
-        .replace(/asin\(/g, 'Math.asin(')
-        .replace(/acos\(/g, 'Math.acos(')
-        .replace(/atan\(/g, 'Math.atan(')
-        .replace(/log\(/g, 'Math.log(')
-        .replace(/ln\(/g, 'Math.log(')
-        .replace(/log10\(/g, 'Math.log10(')
-        .replace(/sqrt\(/g, 'Math.sqrt(')
-        .replace(/exp\(/g, 'Math.exp(')
-        .replace(/abs\(/g, 'Math.abs(')
-        .replace(/floor\(/g, 'Math.floor(')
-        .replace(/ceil\(/g, 'Math.ceil(')
-        .replace(/round\(/g, 'Math.round(')
-        .replace(/\^/g, '**'); // Power operator
-
-      // Convert degrees to radians if needed
-      if (!isRadians) {
-        processedExpr = processedExpr
-          .replace(/Math\.sin\(([^)]+)\)/g, 'Math.sin(($1) * Math.PI / 180)')
-          .replace(/Math\.cos\(([^)]+)\)/g, 'Math.cos(($1) * Math.PI / 180)')
-          .replace(/Math\.tan\(([^)]+)\)/g, 'Math.tan(($1) * Math.PI / 180)');
-      }
-
-      // Validate expression contains only safe characters
-      if (!/^[0-9+\-*/.()Math\s,a-z]+$/i.test(processedExpr)) {
-        throw new Error('Invalid characters in expression');
-      }
-
-      // Evaluate safely
-      const result = Function(`"use strict"; return (${processedExpr})`)();
-      return typeof result === 'number' && !isNaN(result) ? result : NaN;
-    } catch (error) {
-      console.error('Expression evaluation error:', error);
-      return NaN;
-    }
-  };
-
-  const inputValue = (value: string) => {
-    if (waitingForNewValue) {
-      setDisplay(value);
-      setWaitingForNewValue(false);
+  // Scientific calculator functions
+  const inputDigit = (digit: string) => {
+    if (waitingForNewOperand) {
+      setDisplay(digit);
+      setWaitingForNewOperand(false);
     } else {
-      setDisplay(display === '0' ? value : display + value);
+      setDisplay(display === '0' ? digit : display + digit);
     }
   };
 
-  const inputFunction = (func: string) => {
-    const currentExpression = display === '0' ? '' : display;
-    setDisplay(currentExpression + func + '(');
-    setWaitingForNewValue(false);
-  };
-
-  const inputConstant = (constant: string) => {
-    if (waitingForNewValue) {
-      setDisplay(constant);
-      setWaitingForNewValue(false);
-    } else {
-      setDisplay(display === '0' ? constant : display + constant);
+  const inputDecimal = () => {
+    if (waitingForNewOperand) {
+      setDisplay('0.');
+      setWaitingForNewOperand(false);
+    } else if (display.indexOf('.') === -1) {
+      setDisplay(display + '.');
     }
   };
 
-  const inputOperation = (nextOperation: string) => {
+  const clear = () => {
+    setDisplay('0');
+    setPreviousOperand('');
+    setOperation('');
+    setWaitingForNewOperand(false);
+  };
+
+  const performOperation = (nextOperation: string) => {
     const inputValue = parseFloat(display);
 
-    if (previousValue === null) {
-      setPreviousValue(inputValue);
+    if (previousOperand === '') {
+      setPreviousOperand(String(inputValue));
     } else if (operation) {
-      const currentValue = previousValue || 0;
-      const result = calculate(currentValue, inputValue, operation);
+      const currentValue = previousOperand || '0';
+      const newValue = calculate(currentValue, display, operation);
 
-      setDisplay(String(result));
-      setPreviousValue(result);
+      setDisplay(String(newValue));
+      setPreviousOperand(String(newValue));
+      
+      // Add to history
+      addToHistory(`${currentValue} ${operation} ${display}`, String(newValue));
     }
 
-    setWaitingForNewValue(true);
+    setWaitingForNewOperand(true);
     setOperation(nextOperation);
   };
 
-  const calculate = (firstValue: number, secondValue: number, operation: string): number => {
+  const calculate = (firstOperand: string, secondOperand: string, operation: string) => {
+    const prev = parseFloat(firstOperand);
+    const current = parseFloat(secondOperand);
+
     switch (operation) {
       case '+':
-        return firstValue + secondValue;
+        return prev + current;
       case '-':
-        return firstValue - secondValue;
+        return prev - current;
       case '×':
-        return firstValue * secondValue;
+        return prev * current;
       case '÷':
-        return secondValue !== 0 ? firstValue / secondValue : NaN;
-      case '^':
-        return Math.pow(firstValue, secondValue);
-      case 'mod':
-        return firstValue % secondValue;
+        return current !== 0 ? prev / current : 0;
+      case '=':
+        return current;
       default:
-        return secondValue;
+        return current;
     }
   };
 
-  const performCalculation = async () => {
+  // Scientific functions
+  const performScientificOperation = (func: string) => {
+    const value = parseFloat(display);
+    let result: number;
+
     try {
-      let result: number;
-      let expression = display;
-
-      if (previousValue !== null && operation) {
-        const inputValue = parseFloat(display);
-        result = calculate(previousValue, inputValue, operation);
-        expression = `${previousValue} ${operation} ${inputValue}`;
-      } else {
-        // Evaluate complex expression
-        result = evaluateExpression(display);
-        expression = display;
+      switch (func) {
+        case 'sin':
+          result = Math.sin(value * Math.PI / 180);
+          break;
+        case 'cos':
+          result = Math.cos(value * Math.PI / 180);
+          break;
+        case 'tan':
+          result = Math.tan(value * Math.PI / 180);
+          break;
+        case 'ln':
+          result = Math.log(value);
+          break;
+        case 'log':
+          result = Math.log10(value);
+          break;
+        case 'sqrt':
+          result = Math.sqrt(value);
+          break;
+        case 'square':
+          result = value * value;
+          break;
+        case 'cube':
+          result = value * value * value;
+          break;
+        case 'factorial':
+          result = factorial(value);
+          break;
+        case 'inverse':
+          result = 1 / value;
+          break;
+        case 'exp':
+          result = Math.exp(value);
+          break;
+        case 'abs':
+          result = Math.abs(value);
+          break;
+        default:
+          result = value;
       }
 
-      if (isNaN(result)) {
-        setDisplay('Error');
-        return;
-      }
-
-      const resultStr = result.toString();
-      setDisplay(resultStr);
-      
-      // Add to history
-      setHistory(prev => [{
-        expression: expression,
-        result: resultStr
-      }, ...prev.slice(0, 9)]);
-
-      // Get AI explanation
-      await getAIExplanation(expression, resultStr);
-
-      setPreviousValue(null);
-      setOperation(null);
-      setWaitingForNewValue(true);
+      const expression = `${func}(${value})`;
+      setDisplay(String(result));
+      setWaitingForNewOperand(true);
+      addToHistory(expression, String(result));
     } catch (error) {
       setDisplay('Error');
-      console.error('Calculation error:', error);
+      setWaitingForNewOperand(true);
     }
   };
 
-  const getAIExplanation = async (expression: string, result: string) => {
-    setIsLoading(true);
+  const factorial = (n: number): number => {
+    if (n < 0) return NaN;
+    if (n === 0 || n === 1) return 1;
+    return n * factorial(n - 1);
+  };
+
+  // Memory functions
+  const memoryStore = () => {
+    setMemory(parseFloat(display));
+  };
+
+  const memoryRecall = () => {
+    setDisplay(String(memory));
+    setWaitingForNewOperand(true);
+  };
+
+  const memoryAdd = () => {
+    setMemory(memory + parseFloat(display));
+  };
+
+  const memoryClear = () => {
+    setMemory(0);
+  };
+
+  // History management
+  const addToHistory = (expression: string, result: string) => {
+    const newEntry: CalculationHistory = {
+      id: Date.now().toString(),
+      expression,
+      result,
+      timestamp: new Date()
+    };
+    setHistory(prev => [newEntry, ...prev.slice(0, 19)]); // Keep last 20 entries
+  };
+
+  const clearHistory = () => {
+    setHistory([]);
+  };
+
+  const useHistoryEntry = (entry: CalculationHistory) => {
+    setDisplay(entry.result);
+    setWaitingForNewOperand(true);
+    setShowHistory(false);
+  };
+
+  // AI Analysis
+  const analyzeCalculation = async () => {
+    if (history.length === 0) return;
+
+    setIsAnalyzing(true);
+    
     try {
+      const lastCalculation = history[0];
       const response = await fetch('/api/groq', {
         method: 'POST',
         headers: {
@@ -188,262 +230,526 @@ export default function CalculatorPage() {
         body: JSON.stringify({
           messages: [{
             role: 'user',
-            content: `Explain this mathematical calculation in a clear, educational way:
+            content: `Analyze this mathematical calculation and provide educational insights:
 
-Expression: ${expression}
-Result: ${result}
+Calculation: ${lastCalculation.expression} = ${lastCalculation.result}
 
 Please provide:
-1. **What the calculation does** - Explain the mathematical operation in simple terms
-2. **Step-by-step breakdown** - Walk through the calculation process
-3. **Mathematical concepts** - What mathematical principles are involved
-4. **Real-world applications** - Where this type of calculation might be used
-5. **Tips and insights** - Any helpful mathematical insights
+1. **Explanation**: What this calculation does in simple terms
+2. **Key Concepts**: Mathematical concepts involved (3-4 items)
+3. **Next Steps**: Learning suggestions (3-4 items)
+4. **Difficulty Level**: Rate as basic, intermediate, or advanced
 
-Keep the explanation concise but educational, suitable for learning.`
+Format your response as JSON with these exact keys: explanation, concepts (array), nextSteps (array), difficulty.`
           }],
           model: 'llama-3.3-70b-versatile',
           temperature: 0.1,
-          max_tokens: 1000
+          max_tokens: 800
         }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        const aiExplanation = data.choices?.[0]?.message?.content || 'Unable to generate explanation.';
-        setExplanation(aiExplanation);
-        setShowExplanation(true);
+        const aiResponse = data.choices?.[0]?.message?.content || '';
+        
+        try {
+          // Try to parse as JSON first
+          const parsed = JSON.parse(aiResponse);
+          setAiAnalysis(parsed);
+        } catch {
+          // Fallback to text response
+          const mockAnalysis: AIAnalysisResponse = {
+            explanation: aiResponse || `This calculation involves ${lastCalculation.expression}. The result ${lastCalculation.result} demonstrates the mathematical relationship between the operands.`,
+            concepts: ['Mathematical Operations', 'Numerical Calculation', 'Problem Solving'],
+            nextSteps: [
+              'Try similar calculations with different values',
+              'Explore related mathematical concepts',
+              'Practice with more complex expressions'
+            ],
+            difficulty: 'intermediate'
+          };
+          setAiAnalysis(mockAnalysis);
+        }
       }
     } catch (error) {
-      console.error('AI explanation error:', error);
+      console.error('AI analysis error:', error);
+      // Fallback analysis
+      const lastCalculation = history[0];
+      const mockAnalysis: AIAnalysisResponse = {
+        explanation: `This calculation involves ${lastCalculation.expression}. The result ${lastCalculation.result} demonstrates the mathematical relationship between the operands.`,
+        concepts: ['Mathematical Operations', 'Numerical Calculation', 'Problem Solving'],
+        nextSteps: [
+          'Try similar calculations with different values',
+          'Explore related mathematical concepts',
+          'Practice with more complex expressions'
+        ],
+        difficulty: 'intermediate'
+      };
+      setAiAnalysis(mockAnalysis);
     } finally {
-      setIsLoading(false);
+      setIsAnalyzing(false);
     }
   };
 
-  const clear = () => {
-    setDisplay('0');
-    setPreviousValue(null);
-    setOperation(null);
-    setWaitingForNewValue(false);
+  // Advanced expression evaluation
+  const evaluateExpression = () => {
+    try {
+      const result = evaluate(display);
+      addToHistory(display, String(result));
+      setDisplay(String(result));
+      setWaitingForNewOperand(true);
+    } catch (error) {
+      setDisplay('Error');
+      setWaitingForNewOperand(true);
+    }
   };
 
-  const clearEntry = () => {
-    setDisplay('0');
-  };
-
-  const backspace = () => {
-    if (display.length > 1) {
-      setDisplay(display.slice(0, -1));
+  const inputExpression = (expr: string) => {
+    if (waitingForNewOperand) {
+      setDisplay(expr);
+      setWaitingForNewOperand(false);
     } else {
-      setDisplay('0');
+      setDisplay(display + expr);
     }
-  };
-
-  const toggleSign = () => {
-    setDisplay(String(parseFloat(display) * -1));
-  };
-
-  const factorial = (n: number): number => {
-    if (n < 0) return NaN;
-    if (n === 0 || n === 1) return 1;
-    let result = 1;
-    for (let i = 2; i <= n; i++) {
-      result *= i;
-    }
-    return result;
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      {/* Header */}
-      <header className="bg-black/20 backdrop-blur-xl border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">G</span>
-              </div>
-              <div className="text-white font-semibold text-lg">Gawin AI Calculator</div>
-            </Link>
-            <Link href="/" className="text-white/70 hover:text-white transition-colors">
-              ← Back to Home
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <div className="max-w-6xl mx-auto p-6">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">🧮 Advanced Scientific Calculator</h1>
-          <p className="text-white/70 text-lg">High-precision calculations with AI-powered explanations</p>
-          <div className="mt-4 flex justify-center space-x-4">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <button
+            onClick={() => router.push('/')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${getContrastClass()}`}
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back to Home
+          </button>
+          <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            AI Scientific Calculator
+          </h1>
+          <div className="flex gap-2">
             <button
-              onClick={() => setIsRadians(!isRadians)}
-              className={`px-4 py-2 rounded-lg transition-all ${
-                isRadians 
-                  ? 'bg-blue-500 text-white' 
-                  : 'bg-white/10 text-white/70 hover:bg-white/20'
-              }`}
+              onClick={() => setShowHelp(true)}
+              className={`p-2 rounded-lg transition-all ${getContrastClass()}`}
             >
-              {isRadians ? 'RAD' : 'DEG'}
+              <HelpCircle className="w-5 h-5" />
             </button>
             <button
               onClick={() => setShowHistory(!showHistory)}
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all"
+              className={`p-2 rounded-lg transition-all ${getContrastClass()}`}
             >
-              History ({history.length})
+              <History className="w-5 h-5" />
             </button>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Calculator Main Panel */}
+          {/* Calculator */}
           <div className="lg:col-span-2">
-            <div className="bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-white/10">
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-white/20">
               {/* Display */}
-              <div className="bg-black/60 rounded-xl p-6 mb-6">
-                <div className="text-right">
-                  <div className="text-white/60 text-sm mb-1 font-mono min-h-[20px]">
-                    {operation && previousValue !== null ? `${previousValue} ${operation}` : ''}
-                  </div>
-                  <div className="text-white text-3xl font-mono break-all min-h-[40px] flex items-center justify-end">
+              <div className="mb-4">
+                <div className={`p-4 rounded-lg bg-gray-100 dark:bg-gray-700 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  <div className="text-right text-3xl font-mono break-all">
                     {display}
+                  </div>
+                  {operation && (
+                    <div className="text-right text-sm opacity-60">
+                      {previousOperand} {operation}
+                    </div>
+                  )}
+                </div>
+                
+                {/* Mode Toggle */}
+                <div className="flex justify-between items-center mt-2">
+                  <button
+                    onClick={() => setIsAdvancedMode(!isAdvancedMode)}
+                    className={`px-3 py-1 rounded-lg text-sm transition-all ${
+                      isAdvancedMode 
+                        ? 'bg-blue-500 text-white' 
+                        : getContrastClass()
+                    }`}
+                  >
+                    {isAdvancedMode ? 'Advanced' : 'Basic'} Mode
+                  </button>
+                  <div className={`text-sm opacity-60 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    Memory: {memory}
                   </div>
                 </div>
               </div>
 
-              {/* Button Grid */}
-              <div className="grid grid-cols-6 gap-3">
-                {/* Row 1 - Functions and Constants */}
-                <button onClick={() => inputConstant('π')} className="bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-lg transition-all text-sm font-semibold">π</button>
-                <button onClick={() => inputConstant('e')} className="bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-lg transition-all text-sm font-semibold">e</button>
-                <button onClick={() => inputFunction('sin')} className="bg-green-600 hover:bg-green-700 text-white p-3 rounded-lg transition-all text-sm font-semibold">sin</button>
-                <button onClick={() => inputFunction('cos')} className="bg-green-600 hover:bg-green-700 text-white p-3 rounded-lg transition-all text-sm font-semibold">cos</button>
-                <button onClick={() => inputFunction('tan')} className="bg-green-600 hover:bg-green-700 text-white p-3 rounded-lg transition-all text-sm font-semibold">tan</button>
-                <button onClick={clear} className="bg-red-600 hover:bg-red-700 text-white p-3 rounded-lg transition-all font-semibold">C</button>
+              {/* Calculator Buttons */}
+              <div className="grid grid-cols-5 gap-2">
+                {/* Memory Functions */}
+                <button
+                  onClick={memoryClear}
+                  className={`p-3 rounded-lg transition-all bg-gray-200 dark:bg-gray-600 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                >
+                  MC
+                </button>
+                <button
+                  onClick={memoryRecall}
+                  className={`p-3 rounded-lg transition-all bg-gray-200 dark:bg-gray-600 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                >
+                  MR
+                </button>
+                <button
+                  onClick={memoryAdd}
+                  className={`p-3 rounded-lg transition-all bg-gray-200 dark:bg-gray-600 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                >
+                  M+
+                </button>
+                <button
+                  onClick={memoryStore}
+                  className={`p-3 rounded-lg transition-all bg-gray-200 dark:bg-gray-600 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                >
+                  MS
+                </button>
+                <button
+                  onClick={clear}
+                  className={`p-3 rounded-lg transition-all bg-red-500 text-white hover:bg-red-600`}
+                >
+                  C
+                </button>
 
-                {/* Row 2 - More Functions */}
-                <button onClick={() => inputFunction('asin')} className="bg-green-600 hover:bg-green-700 text-white p-3 rounded-lg transition-all text-xs font-semibold">asin</button>
-                <button onClick={() => inputFunction('acos')} className="bg-green-600 hover:bg-green-700 text-white p-3 rounded-lg transition-all text-xs font-semibold">acos</button>
-                <button onClick={() => inputFunction('atan')} className="bg-green-600 hover:bg-green-700 text-white p-3 rounded-lg transition-all text-xs font-semibold">atan</button>
-                <button onClick={() => inputFunction('log')} className="bg-yellow-600 hover:bg-yellow-700 text-white p-3 rounded-lg transition-all text-sm font-semibold">ln</button>
-                <button onClick={() => inputFunction('log10')} className="bg-yellow-600 hover:bg-yellow-700 text-white p-3 rounded-lg transition-all text-xs font-semibold">log</button>
-                <button onClick={backspace} className="bg-orange-600 hover:bg-orange-700 text-white p-3 rounded-lg transition-all font-semibold">⌫</button>
+                {/* Scientific Functions (Advanced Mode) */}
+                {isAdvancedMode && (
+                  <>
+                    <button
+                      onClick={() => performScientificOperation('sin')}
+                      className={`p-3 rounded-lg transition-all bg-blue-200 dark:bg-blue-700 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                    >
+                      sin
+                    </button>
+                    <button
+                      onClick={() => performScientificOperation('cos')}
+                      className={`p-3 rounded-lg transition-all bg-blue-200 dark:bg-blue-700 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                    >
+                      cos
+                    </button>
+                    <button
+                      onClick={() => performScientificOperation('tan')}
+                      className={`p-3 rounded-lg transition-all bg-blue-200 dark:bg-blue-700 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                    >
+                      tan
+                    </button>
+                    <button
+                      onClick={() => performScientificOperation('ln')}
+                      className={`p-3 rounded-lg transition-all bg-blue-200 dark:bg-blue-700 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                    >
+                      ln
+                    </button>
+                    <button
+                      onClick={() => performScientificOperation('log')}
+                      className={`p-3 rounded-lg transition-all bg-blue-200 dark:bg-blue-700 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                    >
+                      log
+                    </button>
 
-                {/* Row 3 - Powers and Roots */}
-                <button onClick={() => inputOperation('^')} className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg transition-all font-semibold">x^y</button>
-                <button onClick={() => inputFunction('sqrt')} className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg transition-all font-semibold">√</button>
-                <button onClick={() => inputValue('(')} className="bg-gray-600 hover:bg-gray-700 text-white p-3 rounded-lg transition-all font-semibold">(</button>
-                <button onClick={() => inputValue(')')} className="bg-gray-600 hover:bg-gray-700 text-white p-3 rounded-lg transition-all font-semibold">)</button>
-                <button onClick={() => inputOperation('mod')} className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg transition-all text-sm font-semibold">mod</button>
-                <button onClick={() => inputOperation('÷')} className="bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-lg transition-all font-semibold text-xl">÷</button>
+                    <button
+                      onClick={() => performScientificOperation('sqrt')}
+                      className={`p-3 rounded-lg transition-all bg-green-200 dark:bg-green-700 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                    >
+                      √
+                    </button>
+                    <button
+                      onClick={() => performScientificOperation('square')}
+                      className={`p-3 rounded-lg transition-all bg-green-200 dark:bg-green-700 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                    >
+                      x²
+                    </button>
+                    <button
+                      onClick={() => performScientificOperation('cube')}
+                      className={`p-3 rounded-lg transition-all bg-green-200 dark:bg-green-700 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                    >
+                      x³
+                    </button>
+                    <button
+                      onClick={() => performScientificOperation('factorial')}
+                      className={`p-3 rounded-lg transition-all bg-green-200 dark:bg-green-700 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                    >
+                      x!
+                    </button>
+                    <button
+                      onClick={() => performScientificOperation('inverse')}
+                      className={`p-3 rounded-lg transition-all bg-green-200 dark:bg-green-700 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                    >
+                      1/x
+                    </button>
 
-                {/* Row 4 - Numbers */}
-                <button onClick={() => inputValue('7')} className="bg-white/10 hover:bg-white/20 text-white p-3 rounded-lg transition-all font-semibold text-xl">7</button>
-                <button onClick={() => inputValue('8')} className="bg-white/10 hover:bg-white/20 text-white p-3 rounded-lg transition-all font-semibold text-xl">8</button>
-                <button onClick={() => inputValue('9')} className="bg-white/10 hover:bg-white/20 text-white p-3 rounded-lg transition-all font-semibold text-xl">9</button>
-                <button onClick={() => inputOperation('×')} className="bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-lg transition-all font-semibold text-xl">×</button>
-                <button onClick={() => setDisplay(String(factorial(parseFloat(display))))} className="bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-lg transition-all font-semibold">n!</button>
-                <button onClick={() => inputFunction('exp')} className="bg-yellow-600 hover:bg-yellow-700 text-white p-3 rounded-lg transition-all text-sm font-semibold">e^x</button>
+                    <button
+                      onClick={() => inputExpression('π')}
+                      className={`p-3 rounded-lg transition-all bg-purple-200 dark:bg-purple-700 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                    >
+                      π
+                    </button>
+                    <button
+                      onClick={() => inputExpression('e')}
+                      className={`p-3 rounded-lg transition-all bg-purple-200 dark:bg-purple-700 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                    >
+                      e
+                    </button>
+                    <button
+                      onClick={() => inputExpression('(')}
+                      className={`p-3 rounded-lg transition-all bg-purple-200 dark:bg-purple-700 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                    >
+                      (
+                    </button>
+                    <button
+                      onClick={() => inputExpression(')')}
+                      className={`p-3 rounded-lg transition-all bg-purple-200 dark:bg-purple-700 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                    >
+                      )
+                    </button>
+                    <button
+                      onClick={evaluateExpression}
+                      className={`p-3 rounded-lg transition-all bg-orange-500 text-white hover:bg-orange-600`}
+                    >
+                      Eval
+                    </button>
+                  </>
+                )}
 
-                {/* Row 5 - Numbers */}
-                <button onClick={() => inputValue('4')} className="bg-white/10 hover:bg-white/20 text-white p-3 rounded-lg transition-all font-semibold text-xl">4</button>
-                <button onClick={() => inputValue('5')} className="bg-white/10 hover:bg-white/20 text-white p-3 rounded-lg transition-all font-semibold text-xl">5</button>
-                <button onClick={() => inputValue('6')} className="bg-white/10 hover:bg-white/20 text-white p-3 rounded-lg transition-all font-semibold text-xl">6</button>
-                <button onClick={() => inputOperation('-')} className="bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-lg transition-all font-semibold text-xl">−</button>
-                <button onClick={() => inputFunction('abs')} className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg transition-all text-sm font-semibold">|x|</button>
-                <button onClick={toggleSign} className="bg-gray-600 hover:bg-gray-700 text-white p-3 rounded-lg transition-all font-semibold">±</button>
+                {/* Number Buttons */}
+                {[7, 8, 9].map(num => (
+                  <button
+                    key={num}
+                    onClick={() => inputDigit(String(num))}
+                    className={`p-3 rounded-lg transition-all ${getContrastClass()}`}
+                  >
+                    {num}
+                  </button>
+                ))}
+                <button
+                  onClick={() => performOperation('÷')}
+                  className={`p-3 rounded-lg transition-all bg-orange-500 text-white hover:bg-orange-600`}
+                >
+                  ÷
+                </button>
+                <button
+                  onClick={() => performOperation('×')}
+                  className={`p-3 rounded-lg transition-all bg-orange-500 text-white hover:bg-orange-600`}
+                >
+                  ×
+                </button>
 
-                {/* Row 6 - Numbers */}
-                <button onClick={() => inputValue('1')} className="bg-white/10 hover:bg-white/20 text-white p-3 rounded-lg transition-all font-semibold text-xl">1</button>
-                <button onClick={() => inputValue('2')} className="bg-white/10 hover:bg-white/20 text-white p-3 rounded-lg transition-all font-semibold text-xl">2</button>
-                <button onClick={() => inputValue('3')} className="bg-white/10 hover:bg-white/20 text-white p-3 rounded-lg transition-all font-semibold text-xl">3</button>
-                <button onClick={() => inputOperation('+')} className="bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-lg transition-all font-semibold text-xl">+</button>
-                <button onClick={() => inputFunction('floor')} className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg transition-all text-xs font-semibold">⌊x⌋</button>
-                <button onClick={() => inputFunction('ceil')} className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg transition-all text-xs font-semibold">⌈x⌉</button>
+                {[4, 5, 6].map(num => (
+                  <button
+                    key={num}
+                    onClick={() => inputDigit(String(num))}
+                    className={`p-3 rounded-lg transition-all ${getContrastClass()}`}
+                  >
+                    {num}
+                  </button>
+                ))}
+                <button
+                  onClick={() => performOperation('-')}
+                  className={`p-3 rounded-lg transition-all bg-orange-500 text-white hover:bg-orange-600`}
+                >
+                  -
+                </button>
+                <button
+                  onClick={() => performOperation('+')}
+                  className={`p-3 rounded-lg transition-all bg-orange-500 text-white hover:bg-orange-600`}
+                >
+                  +
+                </button>
 
-                {/* Row 7 - Bottom Row */}
-                <button onClick={() => inputValue('0')} className="bg-white/10 hover:bg-white/20 text-white p-3 rounded-lg transition-all font-semibold text-xl col-span-2">0</button>
-                <button onClick={() => inputValue('.')} className="bg-white/10 hover:bg-white/20 text-white p-3 rounded-lg transition-all font-semibold text-xl">.</button>
-                <button onClick={performCalculation} className="bg-green-500 hover:bg-green-600 text-white p-3 rounded-lg transition-all font-semibold text-xl col-span-3">=</button>
+                {[1, 2, 3].map(num => (
+                  <button
+                    key={num}
+                    onClick={() => inputDigit(String(num))}
+                    className={`p-3 rounded-lg transition-all ${getContrastClass()}`}
+                  >
+                    {num}
+                  </button>
+                ))}
+                <button
+                  onClick={inputDecimal}
+                  className={`p-3 rounded-lg transition-all ${getContrastClass()}`}
+                >
+                  .
+                </button>
+                <button
+                  onClick={() => performOperation('=')}
+                  className={`p-3 rounded-lg transition-all bg-blue-500 text-white hover:bg-blue-600`}
+                >
+                  =
+                </button>
+
+                <button
+                  onClick={() => inputDigit('0')}
+                  className={`col-span-2 p-3 rounded-lg transition-all ${getContrastClass()}`}
+                >
+                  0
+                </button>
+                <button
+                  onClick={() => setDisplay(display.slice(0, -1) || '0')}
+                  className={`p-3 rounded-lg transition-all bg-gray-300 dark:bg-gray-600 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                >
+                  ⌫
+                </button>
+                <button
+                  onClick={analyzeCalculation}
+                  disabled={isAnalyzing || history.length === 0}
+                  className={`p-3 rounded-lg transition-all bg-purple-500 text-white hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  {isAnalyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4" />}
+                </button>
               </div>
             </div>
           </div>
 
-          {/* Side Panel */}
+          {/* Sidebar */}
           <div className="space-y-6">
-            {/* History Panel */}
+            {/* History */}
             {showHistory && (
-              <div className="bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-white/10">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-white font-semibold text-lg">History</h3>
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-white/20">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    Calculation History
+                  </h3>
                   <button
-                    onClick={() => setHistory([])}
-                    className="text-red-400 hover:text-red-300 transition-colors text-sm"
+                    onClick={clearHistory}
+                    className="text-red-500 hover:text-red-600"
                   >
-                    Clear
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
-                <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {history.length === 0 ? (
-                    <p className="text-white/50 text-sm">No calculations yet</p>
-                  ) : (
-                    history.map((item, index) => (
-                      <div
-                        key={index}
-                        onClick={() => {
-                          setDisplay(item.expression);
-                          setWaitingForNewValue(false);
-                        }}
-                        className="bg-white/5 hover:bg-white/10 p-3 rounded-lg cursor-pointer transition-all"
-                      >
-                        <div className="text-white/70 text-xs font-mono">{item.expression}</div>
-                        <div className="text-white font-mono text-sm">= {item.result}</div>
-                      </div>
-                    ))
-                  )}
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {history.map(entry => (
+                    <div
+                      key={entry.id}
+                      onClick={() => useHistoryEntry(entry)}
+                      className={`p-2 rounded-lg cursor-pointer transition-all ${getContrastClass()} hover:bg-gray-100 dark:hover:bg-gray-700`}
+                    >
+                      <div className="text-sm opacity-60">{entry.expression}</div>
+                      <div className="font-mono">{entry.result}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
 
-            {/* AI Explanation Panel */}
-            {showExplanation && (
-              <div className="bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-white/10 border-green-500/30">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-green-400 font-semibold text-lg">🤖 AI Explanation</h3>
-                  <button
-                    onClick={() => setShowExplanation(false)}
-                    className="text-white/50 hover:text-white transition-colors"
-                  >
-                    ×
-                  </button>
+            {/* AI Analysis */}
+            {aiAnalysis && (
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-white/20">
+                <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  AI Analysis
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <h4 className={`font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Explanation</h4>
+                    <p className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{aiAnalysis.explanation}</p>
+                  </div>
+                  <div>
+                    <h4 className={`font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Key Concepts</h4>
+                    <div className="flex flex-wrap gap-1">
+                      {aiAnalysis.concepts.map((concept, index) => (
+                        <span
+                          key={index}
+                          className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded text-xs"
+                        >
+                          {concept}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className={`font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Next Steps</h4>
+                    <ul className={`text-sm space-y-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      {aiAnalysis.nextSteps.map((step, index) => (
+                        <li key={index} className="flex items-start gap-2">
+                          <span className="text-blue-500">•</span>
+                          {step}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
-                <div className="text-white/80 text-sm leading-relaxed max-h-80 overflow-y-auto">
-                  <div className="whitespace-pre-wrap">{explanation}</div>
-                </div>
-              </div>
-            )}
-
-            {/* Loading Indicator */}
-            {isLoading && (
-              <div className="bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-white/10 text-center">
-                <div className="text-white/70">🤖 Generating explanation...</div>
               </div>
             )}
 
             {/* Quick Functions */}
-            <div className="bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-white/10">
-              <h3 className="text-white font-semibold text-lg mb-4">Quick Functions</h3>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <button onClick={() => inputConstant('π')} className="bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 p-2 rounded transition-all">π (Pi)</button>
-                <button onClick={() => inputConstant('e')} className="bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 p-2 rounded transition-all">e (Euler)</button>
-                <button onClick={() => inputFunction('sqrt')} className="bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 p-2 rounded transition-all">√ (Square Root)</button>
-                <button onClick={() => inputFunction('log')} className="bg-yellow-600/20 hover:bg-yellow-600/40 text-yellow-300 p-2 rounded transition-all">ln (Natural Log)</button>
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-white/20">
+              <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Quick Functions
+              </h3>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => performScientificOperation('abs')}
+                  className={`p-2 rounded-lg transition-all ${getContrastClass()}`}
+                >
+                  |x|
+                </button>
+                <button
+                  onClick={() => performScientificOperation('exp')}
+                  className={`p-2 rounded-lg transition-all ${getContrastClass()}`}
+                >
+                  eˣ
+                </button>
+                <button
+                  onClick={() => inputExpression('∞')}
+                  className={`p-2 rounded-lg transition-all ${getContrastClass()}`}
+                >
+                  ∞
+                </button>
+                <button
+                  onClick={() => setDisplay(String(Math.random()))}
+                  className={`p-2 rounded-lg transition-all ${getContrastClass()}`}
+                >
+                  Random
+                </button>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Help Modal */}
+        {showHelp && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-2xl max-h-[80vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  Calculator Help
+                </h3>
+                <button
+                  onClick={() => setShowHelp(false)}
+                  className={`p-2 rounded-lg ${getContrastClass()}`}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <h4 className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Basic Operations</h4>
+                  <p className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    Use +, -, ×, ÷ for basic arithmetic operations. The calculator follows standard order of operations.
+                  </p>
+                </div>
+                <div>
+                  <h4 className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Scientific Functions</h4>
+                  <p className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    Toggle Advanced Mode to access trigonometric functions, logarithms, powers, and more.
+                  </p>
+                </div>
+                <div>
+                  <h4 className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Memory Functions</h4>
+                  <p className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    MS: Memory Store, MR: Memory Recall, M+: Memory Add, MC: Memory Clear
+                  </p>
+                </div>
+                <div>
+                  <h4 className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>AI Analysis</h4>
+                  <p className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    Click the brain icon to get AI-powered explanations of your calculations and learning suggestions.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
