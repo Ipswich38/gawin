@@ -208,7 +208,7 @@ export default function CalculatorPage() {
     setHistory([]);
   };
 
-  const useHistoryEntry = (entry: CalculationHistory) => {
+  const selectHistoryEntry = (entry: CalculationHistory) => {
     setDisplay(entry.result);
     setWaitingForNewOperand(true);
     setShowHistory(false);
@@ -633,7 +633,7 @@ Please provide a JSON response with these exact keys:
                   {history.map(entry => (
                     <div
                       key={entry.id}
-                      onClick={() => useHistoryEntry(entry)}
+                      onClick={() => selectHistoryEntry(entry)}
                       className={`p-2 rounded-lg cursor-pointer transition-all ${getContrastClass()} hover:bg-gray-100 dark:hover:bg-gray-700`}
                     >
                       <div className="text-sm opacity-60">{entry.expression}</div>

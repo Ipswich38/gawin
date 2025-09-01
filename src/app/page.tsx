@@ -3,6 +3,7 @@
 import Link from "next/link";
 // import { Button } from "@/components/ui/Button"; // Unused import
 import { useEffect, useState } from "react";
+import { databaseService } from '@/lib/services/databaseService';
 
 // ChatInterface Component
 function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: string }; onLogout: () => void }) {
@@ -448,6 +449,212 @@ function TicTacToeGrid({ onFeatureClick }: { onFeatureClick: () => void }) {
   );
 }
 
+// AuthModal Component
+function AuthModal({ onClose }: { onClose: () => void }) {
+  const [isSignUp, setIsSignUp] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    fullName: '',
+    confirmPassword: ''
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError('');
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    try {
+      if (isSignUp) {
+        // Sign up validation
+        if (!formData.fullName.trim()) {
+          setError('Full name is required');
+          setIsLoading(false);
+          return;
+        }
+        if (formData.password !== formData.confirmPassword) {
+          setError('Passwords do not match');
+          setIsLoading(false);
+          return;
+        }
+        if (formData.password.length < 8) {
+          setError('Password must be at least 8 characters long');
+          setIsLoading(false);
+          return;
+        }
+
+        // Sign up with database service
+        const result = await databaseService.signUp(formData.email, formData.password, formData.fullName);
+        
+        if (result.error) {
+          setError(result.error);
+        } else {
+          setSuccess('Account created successfully! You can now sign in.');
+          setIsSignUp(false);
+          setFormData({ email: formData.email, password: '', fullName: '', confirmPassword: '' });
+        }
+      } else {
+        // Sign in
+        const result = await databaseService.signIn(formData.email, formData.password);
+        
+        if (result.error) {
+          setError(result.error);
+        } else if (result.user) {
+          setSuccess('Sign in successful! Welcome back.');
+          // Close modal after success
+          setTimeout(() => {
+            onClose();
+            // Refresh page to show authenticated state
+            window.location.reload();
+          }, 1000);
+        }
+      }
+    } catch (error) {
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <div 
+        className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50"
+        onClick={onClose}
+      />
+      <div className="fixed inset-0 flex items-center justify-center z-50 p-6">
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-8 max-w-md w-full shadow-2xl border border-white/40">
+          <div className="text-center mb-6">
+            <div className="text-3xl mb-4">🚀</div>
+            <h3 className="text-xl font-medium mb-2" style={{ color: '#051a1c' }}>
+              {isSignUp ? 'Join Gawin AI' : 'Welcome Back'}
+            </h3>
+            <p className="text-sm opacity-70" style={{ color: '#051a1c' }}>
+              {isSignUp ? 'Create your account to get started' : 'Sign in to continue your learning'}
+            </p>
+          </div>
+
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="mb-4 p-3 bg-green-100 border border-green-300 text-green-700 rounded-lg text-sm">
+              {success}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {isSignUp && (
+              <div>
+                <input
+                  type="text"
+                  name="fullName"
+                  placeholder="Full Name"
+                  value={formData.fullName}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full p-3 rounded-xl border border-gray-300 focus:border-[#00A3A3] focus:outline-none transition-colors"
+                  style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }}
+                />
+              </div>
+            )}
+
+            <div>
+              <input
+                type="email"
+                name="email"
+                placeholder="Email Address"
+                value={formData.email}
+                onChange={handleInputChange}
+                required
+                className="w-full p-3 rounded-xl border border-gray-300 focus:border-[#00A3A3] focus:outline-none transition-colors"
+                style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }}
+              />
+            </div>
+
+            <div>
+              <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleInputChange}
+                required
+                className="w-full p-3 rounded-xl border border-gray-300 focus:border-[#00A3A3] focus:outline-none transition-colors"
+                style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }}
+              />
+            </div>
+
+            {isSignUp && (
+              <div>
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  placeholder="Confirm Password"
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full p-3 rounded-xl border border-gray-300 focus:border-[#00A3A3] focus:outline-none transition-colors"
+                  style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }}
+                />
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full text-white py-3 rounded-xl transition-all font-medium shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ backgroundColor: isLoading ? '#666' : '#00A3A3' }}
+              onMouseEnter={(e) => {
+                if (!isLoading) e.currentTarget.style.backgroundColor = '#051a1c';
+              }}
+              onMouseLeave={(e) => {
+                if (!isLoading) e.currentTarget.style.backgroundColor = '#00A3A3';
+              }}
+            >
+              {isLoading ? (isSignUp ? 'Creating Account...' : 'Signing In...') : (isSignUp ? 'Create Account' : 'Sign In')}
+            </button>
+          </form>
+
+          <div className="text-center mt-4">
+            <button
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setError('');
+                setSuccess('');
+                setFormData({ email: '', password: '', fullName: '', confirmPassword: '' });
+              }}
+              className="text-sm opacity-70 hover:opacity-100 transition-opacity"
+              style={{ color: '#00A3A3' }}
+            >
+              {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
+            </button>
+          </div>
+
+          <button 
+            onClick={onClose}
+            className="mt-4 w-full text-xs opacity-50 hover:opacity-70 transition-opacity"
+            style={{ color: '#051a1c' }}
+          >
+            Continue browsing
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
 export default function Home() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -628,58 +835,7 @@ export default function Home() {
       </main>
 
       {/* Auth Modal */}
-      {showAuthModal && (
-        <>
-          <div 
-            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50"
-            onClick={() => setShowAuthModal(false)}
-          />
-          <div className="fixed inset-0 flex items-center justify-center z-50 p-6">
-            <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-white/40">
-              <div className="text-center">
-                <div className="text-3xl mb-4">🚀</div>
-                <h3 className="text-xl font-medium mb-2" style={{ color: '#051a1c' }}>Ready to get started?</h3>
-                <p className="text-sm opacity-70 mb-6" style={{ color: '#051a1c' }}>
-                  Join thousands of learners mastering AI and technology
-                </p>
-                
-                <div className="space-y-3">
-                  <Link href="/auth/signup">
-                    <button 
-                      className="w-full text-white py-3 rounded-2xl transition-all font-medium shadow-lg hover:scale-105"
-                      style={{ backgroundColor: '#00A3A3' }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#051a1c';
-                        e.currentTarget.style.color = 'white';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#00A3A3';
-                        e.currentTarget.style.color = 'white';
-                      }}
-                    >
-                      Sign up for free
-                    </button>
-                  </Link>
-                  
-                  <Link href="/auth/login">
-                    <button className="w-full py-3 rounded-2xl transition-all border border-white/30 bg-white/40 backdrop-blur-sm hover:bg-white/60" style={{ color: '#051a1c' }}>
-                      Sign in
-                    </button>
-                  </Link>
-                </div>
-                
-                <button 
-                  onClick={() => setShowAuthModal(false)}
-                  className="mt-4 text-xs opacity-50 hover:opacity-70 transition-opacity"
-                  style={{ color: '#051a1c' }}
-                >
-                  Continue browsing
-                </button>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
+      {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
 
       {/* Minimal Footer */}
       <footer className="mt-16">
