@@ -151,10 +151,18 @@ const AIAcademy: React.FC<AIAcademyProps> = ({ onBack, aiService }) => {
   const generateLesson = async (topic: any, lessonTitle: string) => {
     setIsLoading(true);
     try {
-      const response = await aiService([{
-        id: 'ai-lesson',
-        role: 'user',
-        content: `Create an interactive AI lesson about "${lessonTitle}" in the context of "${topic.title}".
+      const response = await fetch('/api/deepseek', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [{
+            role: 'system',
+            content: 'You are an AI education specialist with deep expertise in explaining artificial intelligence, machine learning, and computer science concepts in an accessible and engaging way.'
+          }, {
+            role: 'user',
+            content: `Create an interactive AI lesson about "${lessonTitle}" in the context of "${topic.title}".
 
 Structure the lesson with:
 1. Clear learning objectives
@@ -165,22 +173,58 @@ Structure the lesson with:
 6. Key takeaways and next steps
 7. Additional resources for deeper learning
 
-Make it engaging, practical, and accessible to learners. Include code examples where appropriate.`,
-        timestamp: new Date()
-      }], 'llama-3.3-70b-versatile');
-
-      // Validate AI response before setting lesson content
-      if (!validateAIResponse(response.content)) {
-        throw new Error('AI response failed security validation');
-      }
-
-      setCurrentLesson({
-        title: lessonTitle,
-        topic: topic.title,
-        content: response.content,
-        topicData: topic
+Make it engaging, practical, and accessible to learners. Include code examples where appropriate.`
+          }],
+          module: 'ai_academy',
+          action: 'explain_ai',
+          metadata: {
+            concept: lessonTitle,
+            level: 'beginner'
+          }
+        })
       });
-      setInteractiveDemo('');
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.success && data.data) {
+          let content = '';
+          
+          if (data.data.explanation && data.data.examples) {
+            // If using the structured AI explanation response
+            content = `
+## Learning Objectives
+${data.data.explanation}
+
+## Examples
+${data.data.examples.map((example: string, index: number) => `${index + 1}. ${example}`).join('\n')}
+
+## Resources
+${data.data.resources ? data.data.resources.map((resource: string, index: number) => `${index + 1}. ${resource}`).join('\n') : 'Practice with the concepts above and explore related topics.'}
+            `;
+          } else if (data.data.response) {
+            // If using general chat response
+            content = data.data.response;
+          }
+
+          // Validate AI response before setting lesson content
+          if (!validateAIResponse(content)) {
+            throw new Error('AI response failed security validation');
+          }
+
+          setCurrentLesson({
+            title: lessonTitle,
+            topic: topic.title,
+            content: content,
+            topicData: topic
+          });
+          setInteractiveDemo('');
+        } else {
+          throw new Error(data.error || 'Failed to generate lesson');
+        }
+      } else {
+        throw new Error('Failed to communicate with AI service');
+      }
     } catch (error) {
       console.error('Error generating lesson:', error);
       alert('Failed to generate lesson. Please try again.');
@@ -194,10 +238,18 @@ Make it engaging, practical, and accessible to learners. Include code examples w
     
     setIsLoading(true);
     try {
-      const response = await aiService([{
-        id: 'ai-demo',
-        role: 'user',
-        content: `Create an interactive demonstration for "${demoType}" related to the lesson "${currentLesson.title}".
+      const response = await fetch('/api/deepseek', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [{
+            role: 'system',
+            content: 'You are an AI education specialist creating hands-on demonstrations and interactive examples for AI and machine learning concepts.'
+          }, {
+            role: 'user',
+            content: `Create an interactive demonstration for "${demoType}" related to the lesson "${currentLesson.title}".
 
 Provide:
 1. Step-by-step interactive example
@@ -207,16 +259,29 @@ Provide:
 5. Variations to try
 6. Common mistakes and how to fix them
 
-Make it hands-on and educational with clear explanations.`,
-        timestamp: new Date()
-      }], 'llama-3.3-70b-versatile');
+Make it hands-on and educational with clear explanations.`
+          }],
+          module: 'ai_academy',
+          action: 'chat'
+        })
+      });
 
-      // Validate AI response before setting interactive demo
-      if (!validateAIResponse(response.content)) {
-        throw new Error('AI response failed security validation');
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.success && data.data.response) {
+          // Validate AI response before setting interactive demo
+          if (!validateAIResponse(data.data.response)) {
+            throw new Error('AI response failed security validation');
+          }
+
+          setInteractiveDemo(data.data.response);
+        } else {
+          throw new Error(data.error || 'Failed to generate demo');
+        }
+      } else {
+        throw new Error('Failed to communicate with AI service');
       }
-
-      setInteractiveDemo(response.content);
     } catch (error) {
       console.error('Error generating demo:', error);
       alert('Failed to generate demo. Please try again.');

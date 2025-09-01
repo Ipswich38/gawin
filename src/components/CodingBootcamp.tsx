@@ -135,10 +135,18 @@ const CodingBootcamp: React.FC<CodingBootcampProps> = ({ onBack, aiService }) =>
   const generateChallenge = async (language: any, challengeTitle: string) => {
     setIsLoading(true);
     try {
-      const response = await aiService([{
-        id: 'coding-challenge',
-        role: 'user',
-        content: `Create an interactive coding challenge for "${challengeTitle}" in ${language.title}.
+      const response = await fetch('/api/deepseek', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [{
+            role: 'system',
+            content: 'You are an expert coding instructor specializing in interactive programming education. Create engaging, practical coding challenges.'
+          }, {
+            role: 'user',
+            content: `Create an interactive coding challenge for "${challengeTitle}" in ${language.title}.
 
 Structure the challenge with:
 1. Clear learning objectives
@@ -150,22 +158,61 @@ Structure the challenge with:
 7. Real-world applications
 8. Advanced challenges for practice
 
-Make it engaging and educational with hands-on coding exercises.`,
-        timestamp: new Date()
-      }], 'llama-3.3-70b-versatile');
-
-      // Validate AI response before setting challenge content
-      if (!validateAIResponse(response.content)) {
-        throw new Error('AI response failed security validation');
-      }
-
-      setCurrentChallenge({
-        title: challengeTitle,
-        language: language.title,
-        content: response.content,
-        languageData: language
+Make it engaging and educational with hands-on coding exercises.`
+          }],
+          module: 'coding_academy',
+          action: 'generate_code',
+          metadata: {
+            problem: `${challengeTitle} in ${language.title}`,
+            language: language.id,
+            difficulty: 'beginner'
+          }
+        })
       });
-      setCodeReview('');
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.success && data.data) {
+          let content = '';
+          
+          if (data.data.code && data.data.explanation) {
+            // If using the structured code generation response
+            content = `
+## Learning Objectives
+${data.data.explanation}
+
+## Code Example
+\`\`\`${language.id}
+${data.data.code}
+\`\`\`
+
+## Testing
+${data.data.tests ? `\`\`\`${language.id}\n${data.data.tests}\n\`\`\`` : 'Practice with the provided code examples.'}
+            `;
+          } else if (data.data.response) {
+            // If using general chat response
+            content = data.data.response;
+          }
+
+          // Validate AI response before setting challenge content
+          if (!validateAIResponse(content)) {
+            throw new Error('AI response failed security validation');
+          }
+
+          setCurrentChallenge({
+            title: challengeTitle,
+            language: language.title,
+            content: content,
+            languageData: language
+          });
+          setCodeReview('');
+        } else {
+          throw new Error(data.error || 'Failed to generate challenge');
+        }
+      } else {
+        throw new Error('Failed to communicate with AI service');
+      }
     } catch (error) {
       console.error('Error generating challenge:', error);
       alert('Failed to generate challenge. Please try again.');
@@ -179,10 +226,18 @@ Make it engaging and educational with hands-on coding exercises.`,
     
     setIsLoading(true);
     try {
-      const response = await aiService([{
-        id: 'code-review',
-        role: 'user',
-        content: `Provide a comprehensive code review for "${reviewType}" in the context of "${currentChallenge.title}" using ${currentChallenge.language}.
+      const response = await fetch('/api/deepseek', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [{
+            role: 'system',
+            content: 'You are a senior software engineer and code reviewer with expertise in best practices, performance optimization, and security.'
+          }, {
+            role: 'user',
+            content: `Provide a comprehensive code review for "${reviewType}" in the context of "${currentChallenge.title}" using ${currentChallenge.language}.
 
 Include:
 1. Code quality assessment
@@ -193,16 +248,29 @@ Include:
 6. Testing strategies
 7. Documentation guidelines
 
-Make it educational and actionable for developers.`,
-        timestamp: new Date()
-      }], 'llama-3.3-70b-versatile');
+Make it educational and actionable for developers.`
+          }],
+          module: 'coding_academy',
+          action: 'chat'
+        })
+      });
 
-      // Validate AI response before setting code review
-      if (!validateAIResponse(response.content)) {
-        throw new Error('AI response failed security validation');
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.success && data.data.response) {
+          // Validate AI response before setting code review
+          if (!validateAIResponse(data.data.response)) {
+            throw new Error('AI response failed security validation');
+          }
+
+          setCodeReview(data.data.response);
+        } else {
+          throw new Error(data.error || 'Failed to get code review');
+        }
+      } else {
+        throw new Error('Failed to communicate with AI service');
       }
-
-      setCodeReview(response.content);
     } catch (error) {
       console.error('Error getting code review:', error);
       alert('Failed to get code review. Please try again.');

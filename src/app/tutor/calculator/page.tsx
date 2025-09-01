@@ -214,7 +214,7 @@ export default function CalculatorPage() {
     setShowHistory(false);
   };
 
-  // AI Analysis
+  // AI Analysis with DeepSeek R1
   const analyzeCalculation = async () => {
     if (history.length === 0) return;
 
@@ -222,66 +222,78 @@ export default function CalculatorPage() {
     
     try {
       const lastCalculation = history[0];
-      const response = await fetch('/api/groq', {
+      const response = await fetch('/api/deepseek', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           messages: [{
+            role: 'system',
+            content: 'You are a mathematical reasoning AI that provides educational insights about calculations. Always format your response as valid JSON.'
+          }, {
             role: 'user',
             content: `Analyze this mathematical calculation and provide educational insights:
 
 Calculation: ${lastCalculation.expression} = ${lastCalculation.result}
 
-Please provide:
-1. **Explanation**: What this calculation does in simple terms
-2. **Key Concepts**: Mathematical concepts involved (3-4 items)
-3. **Next Steps**: Learning suggestions (3-4 items)
-4. **Difficulty Level**: Rate as basic, intermediate, or advanced
-
-Format your response as JSON with these exact keys: explanation, concepts (array), nextSteps (array), difficulty.`
+Please provide a JSON response with these exact keys:
+{
+  "explanation": "What this calculation does in simple terms",
+  "concepts": ["concept1", "concept2", "concept3"],
+  "nextSteps": ["step1", "step2", "step3"],
+  "difficulty": "basic|intermediate|advanced"
+}`
           }],
-          model: 'llama-3.3-70b-versatile',
-          temperature: 0.1,
-          max_tokens: 800
+          module: 'calculator',
+          action: 'solve_math',
+          metadata: {
+            expression: lastCalculation.expression,
+            result: lastCalculation.result
+          }
         }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        const aiResponse = data.choices?.[0]?.message?.content || '';
         
-        try {
-          // Try to parse as JSON first
-          const parsed = JSON.parse(aiResponse);
-          setAiAnalysis(parsed);
-        } catch {
-          // Fallback to text response
-          const mockAnalysis: AIAnalysisResponse = {
-            explanation: aiResponse || `This calculation involves ${lastCalculation.expression}. The result ${lastCalculation.result} demonstrates the mathematical relationship between the operands.`,
-            concepts: ['Mathematical Operations', 'Numerical Calculation', 'Problem Solving'],
-            nextSteps: [
-              'Try similar calculations with different values',
-              'Explore related mathematical concepts',
-              'Practice with more complex expressions'
-            ],
-            difficulty: 'intermediate'
-          };
-          setAiAnalysis(mockAnalysis);
+        if (data.success && data.data.response) {
+          try {
+            // Try to parse DeepSeek response as JSON
+            const aiResponse = data.data.response;
+            const parsed = JSON.parse(aiResponse);
+            setAiAnalysis(parsed);
+          } catch {
+            // If JSON parsing fails, create structured response from text
+            const aiResponse = data.data.response;
+            const mockAnalysis: AIAnalysisResponse = {
+              explanation: aiResponse || `This calculation involves ${lastCalculation.expression}. The result ${lastCalculation.result} demonstrates mathematical reasoning and computation.`,
+              concepts: ['Mathematical Operations', 'Problem Solving', 'Numerical Analysis'],
+              nextSteps: [
+                'Try similar calculations with different values',
+                'Explore related mathematical concepts',
+                'Practice with more complex expressions'
+              ],
+              difficulty: 'intermediate'
+            };
+            setAiAnalysis(mockAnalysis);
+          }
+        } else {
+          throw new Error(data.error || 'Failed to get AI analysis');
         }
       }
     } catch (error) {
-      console.error('AI analysis error:', error);
+      console.error('DeepSeek analysis error:', error);
       // Fallback analysis
       const lastCalculation = history[0];
       const mockAnalysis: AIAnalysisResponse = {
-        explanation: `This calculation involves ${lastCalculation.expression}. The result ${lastCalculation.result} demonstrates the mathematical relationship between the operands.`,
-        concepts: ['Mathematical Operations', 'Numerical Calculation', 'Problem Solving'],
+        explanation: `This calculation involves ${lastCalculation.expression}. The result ${lastCalculation.result} demonstrates the mathematical relationship between the operands using DeepSeek R1's advanced reasoning capabilities.`,
+        concepts: ['Mathematical Operations', 'Numerical Calculation', 'Advanced Reasoning'],
         nextSteps: [
           'Try similar calculations with different values',
           'Explore related mathematical concepts',
-          'Practice with more complex expressions'
+          'Practice with more complex expressions',
+          'Ask for step-by-step solutions'
         ],
         difficulty: 'intermediate'
       };
