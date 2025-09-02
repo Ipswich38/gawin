@@ -1,5 +1,6 @@
 import { validationService } from './validationService';
 import { systemGuardianService } from './systemGuardianService';
+import { aiModelManager } from './aiModelManager';
 
 export interface DeepSeekMessage {
   role: 'system' | 'user' | 'assistant';
@@ -27,7 +28,7 @@ export interface DeepSeekResponse {
 }
 
 export interface DeepSeekConfig {
-  model: 'deepseek/deepseek-r1' | 'deepseek/deepseek-r1-distill-llama-70b' | 'deepseek/deepseek-chat';
+  model: string;
   temperature?: number;
   max_tokens?: number;
   stream?: boolean;
@@ -58,14 +59,24 @@ class DeepSeekService {
 
   async generateResponse(
     messages: DeepSeekMessage[],
-    config: DeepSeekConfig = { model: 'deepseek/deepseek-chat' }
-  ): Promise<{ success: boolean; response?: string; error?: string; usage?: any }> {
+    config: DeepSeekConfig = { model: 'deepseek/deepseek-chat' },
+    feature: string = 'general_chat'
+  ): Promise<{ success: boolean; response?: string; error?: string; usage?: any; modelUsed?: string }> {
+    const startTime = Date.now();
+    let selectedModel = config.model;
+    
     try {
       if (!this.isConfigured()) {
         return {
           success: false,
           error: 'OpenRouter API not configured. Please set OPENROUTER_API_KEY environment variable.'
         };
+      }
+
+      // Use AI Model Manager for smart model selection
+      if (feature !== 'general_chat') {
+        selectedModel = aiModelManager.getBestModelForFeature(feature as any);
+        config = { ...config, model: selectedModel as any };
       }
 
       // Validate and sanitize messages
@@ -101,14 +112,26 @@ class DeepSeekService {
 
       if (!response.ok) {
         const errorData = await response.json();
+        
+        // Report failure to AI Model Manager
+        aiModelManager.reportModelResult(selectedModel, false);
+        
         systemGuardianService.reportError(
           `OpenRouter API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`,
           'api',
           'medium'
         );
+
+        // Try fallback if this was not already a fallback attempt
+        if (feature !== 'general_chat' && selectedModel !== 'deepseek/deepseek-chat') {
+          console.log(`🔄 Attempting fallback for ${feature} due to API error`);
+          return this.generateResponse(messages, { ...config, model: 'deepseek/deepseek-chat' as any }, 'general_chat');
+        }
+
         return {
           success: false,
-          error: `API Error: ${errorData.error?.message || 'Request failed'}`
+          error: `API Error: ${errorData.error?.message || 'Request failed'}`,
+          modelUsed: selectedModel
         };
       }
 
@@ -121,18 +144,28 @@ class DeepSeekService {
         };
       }
 
+      // Report success to AI Model Manager
+      const responseTime = Date.now() - startTime;
+      aiModelManager.reportModelResult(selectedModel, true, responseTime);
+
       return {
         success: true,
         response: data.choices[0].message.content,
-        usage: data.usage
+        usage: data.usage,
+        modelUsed: selectedModel
       };
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      // Report failure to AI Model Manager
+      aiModelManager.reportModelResult(selectedModel, false);
+      
       systemGuardianService.reportError(`OpenRouter service error: ${errorMessage}`, 'api', 'high');
       return {
         success: false,
-        error: errorMessage
+        error: errorMessage,
+        modelUsed: selectedModel
       };
     }
   }
@@ -170,7 +203,7 @@ class DeepSeekService {
         }
       ];
 
-      const result = await this.generateResponse(messages, { model: 'deepseek/deepseek-r1', temperature: 0.1 });
+      const result = await this.generateResponse(messages, { model: 'deepseek/deepseek-r1', temperature: 0.1 }, 'calculator');
       
       if (!result.success || !result.response) {
         return { success: false, error: result.error };
@@ -244,7 +277,7 @@ class DeepSeekService {
         }
       ];
 
-      const result = await this.generateResponse(messages, { model: 'deepseek/deepseek-r1', temperature: 0.3 });
+      const result = await this.generateResponse(messages, { model: 'anthropic/claude-3.5-sonnet', temperature: 0.3 }, 'coding_academy');
       
       if (!result.success || !result.response) {
         return { success: false, error: result.error };
@@ -316,7 +349,7 @@ class DeepSeekService {
         }
       ];
 
-      const result = await this.generateResponse(messages, { model: 'deepseek/deepseek-r1', temperature: 0.4 });
+      const result = await this.generateResponse(messages, { model: 'openai/gpt-4o', temperature: 0.4 }, 'ai_academy');
       
       if (!result.success || !result.response) {
         return { success: false, error: result.error };
@@ -375,7 +408,7 @@ class DeepSeekService {
         ];
       }
 
-      return await this.generateResponse(messages, { model: 'deepseek/deepseek-r1' });
+      return await this.generateResponse(messages, { model: 'anthropic/claude-3-haiku' }, module);
 
     } catch (error) {
       return {

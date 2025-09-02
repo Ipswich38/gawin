@@ -3,6 +3,8 @@
 import Link from "next/link";
 // import { Button } from "@/components/ui/Button"; // Unused import
 import { useEffect, useState } from "react";
+import { CreditsGuide } from "@/components/ui/CreditsGuide";
+import { ModelSettings } from "@/components/ui/ModelSettings";
 
 // ChatInterface Component
 function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: string }; onLogout: () => void }) {
@@ -593,6 +595,8 @@ export default function Home() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showCreditsGuide, setShowCreditsGuide] = useState(false);
+  const [showModelSettings, setShowModelSettings] = useState(false);
   const [heroText, setHeroText] = useState('');
   const [isHeroTyping, setIsHeroTyping] = useState(true);
 
@@ -755,6 +759,25 @@ export default function Home() {
             Enter Access Code
           </button>
           
+          {/* AI Model Management Buttons */}
+          <div className="flex flex-wrap justify-center gap-4 mt-6 mb-6">
+            <button 
+              onClick={() => setShowCreditsGuide(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl hover:bg-white/30 transition-all text-sm"
+              style={{ color: '#051a1c' }}
+            >
+              💳 Credits Guide
+            </button>
+            
+            <button 
+              onClick={() => setShowModelSettings(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl hover:bg-white/30 transition-all text-sm"
+              style={{ color: '#051a1c' }}
+            >
+              🤖 AI Models ({user ? 'Active' : 'Preview'})
+            </button>
+          </div>
+          
           <div className="text-center">
             <div className="text-sm opacity-60" style={{ color: '#051a1c' }}>
               Access code required to use Gawin AI
@@ -765,6 +788,12 @@ export default function Home() {
 
       {/* Access Code Modal */}
       {showAuthModal && <AccessCodeModal onClose={() => setShowAuthModal(false)} />}
+      
+      {/* Credits Guide Modal */}
+      {showCreditsGuide && <CreditsGuide onClose={() => setShowCreditsGuide(false)} />}
+      
+      {/* Model Settings Modal */}
+      {showModelSettings && <ModelSettings onClose={() => setShowModelSettings(false)} />}
 
       {/* Minimal Footer */}
       <footer className="mt-16">
