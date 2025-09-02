@@ -476,5 +476,14 @@ if (typeof window !== 'undefined') {
   (window as any).appStartTime = Date.now();
 }
 
-// Export singleton instance
-export const systemGuardianService = SystemGuardianService.getInstance();
+// Export singleton getter to avoid server-side initialization issues
+export const getSystemGuardianService = () => SystemGuardianService.getInstance();
+
+// For backward compatibility
+export const systemGuardianService = {
+  reportError: (error: string, context: string, severity: 'low' | 'medium' | 'high' | 'critical') => {
+    if (typeof window !== 'undefined') {
+      getSystemGuardianService().reportError(error, context, severity);
+    }
+  }
+};
