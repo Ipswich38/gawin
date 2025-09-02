@@ -485,5 +485,21 @@ export const systemGuardianService = {
     if (typeof window !== 'undefined') {
       getSystemGuardianService().reportError(error, context, severity);
     }
+  },
+  trackOperation: (operation: string, duration: number, success: boolean) => {
+    if (typeof window !== 'undefined') {
+      getSystemGuardianService().trackOperation(operation, duration, success);
+    }
+  },
+  getSystemStatus: () => {
+    if (typeof window !== 'undefined') {
+      return getSystemGuardianService().getSystemStatus();
+    }
+    return {
+      health: 'good' as const,
+      security: 'secure' as const,
+      errors: 0,
+      uptime: 0
+    };
   }
 };
