@@ -13,6 +13,7 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
   const [messages, setMessages] = useState<Array<{id: number, role: 'user' | 'assistant', content: string, timestamp: string}>>([]);
   const [chatHistory, setChatHistory] = useState<Array<{id: number, title: string, timestamp: string, preview: string}>>([]);
   const [cognitiveProcess, setCognitiveProcess] = useState<string>('');
+  const [copiedMessageId, setCopiedMessageId] = useState<number | null>(null);
 
   // Helper function to process AI response and extract cognitive indicators
   const processAIResponse = (rawResponse: string) => {
@@ -51,6 +52,15 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
       .replace(/First, let me analyze[\s\S]*?(?=\n\n|$)/gi, '') // Remove analysis blocks
       .replace(/I'm DeepSeek-R1/gi, 'I\'m Gawin AI') // Replace DeepSeek identity
       .replace(/DeepSeek-R1/gi, 'Gawin AI') // Replace any DeepSeek references
+      // Clean up formatting for better readability
+      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold asterisks but keep content
+      .replace(/\*(.*?)\*/g, '$1') // Remove italic asterisks but keep content
+      .replace(/###\s*/g, '') // Remove ### markdown headers
+      .replace(/##\s*/g, '') // Remove ## markdown headers
+      .replace(/#\s*/g, '') // Remove # markdown headers
+      .replace(/^\d+\.\s+\*\*(.*?)\*\*:/gm, '$1:') // Clean numbered bold items
+      .replace(/^\s*-\s+\*\*(.*?)\*\*:/gm, '• $1:') // Clean bullet points with bold
+      .replace(/^\s*-\s+/gm, '• ') // Convert - to bullets
       .replace(/^\s*\n+/gm, '') // Remove extra newlines
       .trim();
 
@@ -188,6 +198,17 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
       } finally {
         setIsLoading(false);
       }
+    }
+  };
+
+  // Copy function for AI responses
+  const copyToClipboard = async (text: string, messageId: number) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedMessageId(messageId);
+      setTimeout(() => setCopiedMessageId(null), 2000); // Clear after 2 seconds
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
     }
   };
 
@@ -400,18 +421,38 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
                   className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-2xl px-6 py-4 rounded-3xl ${
+                    className={`max-w-2xl px-6 py-4 rounded-3xl relative ${
                       message.role === 'user'
                         ? 'bg-[#051a1c] text-white shadow-xl'
                         : 'bg-white/60 backdrop-blur-md text-[#051a1c] border border-white/40 shadow-lg'
                     }`}
                   >
                     <p className="text-base leading-relaxed whitespace-pre-wrap">{message.content}</p>
-                    <p className={`text-xs mt-2 opacity-60 ${
-                      message.role === 'user' ? 'text-white/70' : 'text-[#051a1c]/70'
-                    }`}>
-                      {message.timestamp}
-                    </p>
+                    <div className="flex items-center justify-between mt-2">
+                      <p className={`text-xs opacity-60 ${
+                        message.role === 'user' ? 'text-white/70' : 'text-[#051a1c]/70'
+                      }`}>
+                        {message.timestamp}
+                      </p>
+                      {message.role === 'assistant' && (
+                        <button
+                          onClick={() => copyToClipboard(message.content, message.id)}
+                          className="p-1.5 rounded-lg hover:bg-black/10 transition-colors opacity-60 hover:opacity-100"
+                          title="Copy response"
+                        >
+                          {copiedMessageId === message.id ? (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M20 6L9 17l-5-5"/>
+                            </svg>
+                          ) : (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                              <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                            </svg>
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
