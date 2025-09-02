@@ -1,6 +1,5 @@
 'use client';
 
-import Link from "next/link";
 // import { Button } from "@/components/ui/Button"; // Unused import
 import { useEffect, useState } from "react";
 
@@ -29,7 +28,6 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
-    let currentIndex = 0;
     
     const typePrompt = () => {
       const suggestion = promptSuggestions[Math.floor(Math.random() * promptSuggestions.length)];
@@ -301,41 +299,30 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
 
           {/* Tool Chips - Smaller Premium Glassmorphism */}
           <div className="flex flex-wrap justify-center gap-2 mb-12">
-            <Link href="/academy">
-              <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }}>
-                🎓 AI Academy
-              </span>
-            </Link>
-            <Link href="/bootcamp">
-              <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }}>
-                💻 Coding Bootcamp
-              </span>
-            </Link>
-            <Link href="/robotics">
-              <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }}>
-                🤖 Robotics Lab
-              </span>
-            </Link>
-            <Link href="/studio">
-              <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }}>
-                🎨 Creative Studio
-              </span>
-            </Link>
-            <Link href="/tutor/grammar">
-              <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }}>
-                📝 Grammar
-              </span>
-            </Link>
-            <Link href="/tutor/math">
-              <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }}>
-                🔢 Math Solver
-              </span>
-            </Link>
-            <Link href="/tutor/translator">
-              <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }}>
-                🌍 Translator
-              </span>
-            </Link>
+            <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Explain artificial intelligence concepts")}>
+              🤖 AI Concepts
+            </span>
+            <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Help me with coding problems")}>
+              💻 Coding Help
+            </span>
+            <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Solve this math problem")}>
+              🔢 Math Problems
+            </span>
+            <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Help me write creative content")}>
+              🎨 Creative Writing
+            </span>
+            <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Check my grammar and writing")}>
+              📝 Grammar & Writing
+            </span>
+            <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Translate text to another language")}>
+              🌍 Translation
+            </span>
+            <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Explain scientific concepts")}>
+              🔬 Science
+            </span>
+            <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Help me learn a new topic")}>
+              📚 Learning
+            </span>
           </div>
 
           {/* Typing Prompt Display */}

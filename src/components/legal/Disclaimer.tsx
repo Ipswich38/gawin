@@ -38,7 +38,7 @@ const Disclaimer: React.FC<DisclaimerProps> = ({ onBack }) => {
           <CardHeader>
             <CardTitle style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <AlertCircleIcon size={24} color="#F59E0B" />
-              KreativLoops AI Service Disclaimer
+              Gawin AI Service Disclaimer
             </CardTitle>
             <p style={{ fontSize: '14px', color: '#6B7280', margin: '8px 0 0 0' }}>
               Last updated: {new Date().toLocaleDateString()}
@@ -62,7 +62,7 @@ const Disclaimer: React.FC<DisclaimerProps> = ({ onBack }) => {
                       Important Notice
                     </h3>
                     <p style={{ margin: 0, color: '#7F1D1D' }}>
-                      KreativLoops AI is an artificial intelligence service. While we strive for accuracy and helpfulness, 
+                      Gawin AI is an artificial intelligence service. While we strive for accuracy and helpfulness, 
                       AI-generated content may contain errors, inaccuracies, or biases. Always verify important information 
                       and use your judgment when relying on AI-generated content.
                     </p>
@@ -119,7 +119,7 @@ const Disclaimer: React.FC<DisclaimerProps> = ({ onBack }) => {
                   3. Professional Advice Disclaimer
                 </h2>
                 <p style={{ marginBottom: '16px' }}>
-                  KreativLoops AI does not provide professional advice and should not be used as a substitute for:
+                  Gawin AI does not provide professional advice and should not be used as a substitute for:
                 </p>
                 <ul style={{ marginLeft: '20px', marginBottom: '16px' }}>
                   <li><strong>Medical advice:</strong> Consult healthcare professionals for medical concerns</li>
@@ -182,7 +182,7 @@ const Disclaimer: React.FC<DisclaimerProps> = ({ onBack }) => {
                   7. User Responsibility
                 </h2>
                 <p style={{ marginBottom: '16px' }}>
-                  As a user of KreativLoops AI, you are responsible for:
+                  As a user of Gawin AI, you are responsible for:
                 </p>
                 <ul style={{ marginLeft: '20px', marginBottom: '16px' }}>
                   <li>Using the service in accordance with our Terms of Service</li>
@@ -246,7 +246,7 @@ const Disclaimer: React.FC<DisclaimerProps> = ({ onBack }) => {
                   borderRadius: '8px',
                   border: '1px solid rgba(255, 107, 53, 0.2)'
                 }}>
-                  <p style={{ margin: 0, fontWeight: '500' }}>KreativLoops AI Support</p>
+                  <p style={{ margin: 0, fontWeight: '500' }}>Gawin AI Support</p>
                   <p style={{ margin: '4px 0 0 0' }}>Email: support@kreativloops.ai</p>
                 </div>
               </section>
@@ -264,7 +264,7 @@ const Disclaimer: React.FC<DisclaimerProps> = ({ onBack }) => {
                   Acknowledgment of Understanding
                 </h3>
                 <p style={{ margin: 0, fontSize: '14px', color: '#6B7280' }}>
-                  By using KreativLoops AI, you acknowledge that you have read, understood, and accept this disclaimer 
+                  By using Gawin AI, you acknowledge that you have read, understood, and accept this disclaimer 
                   and the limitations of our AI-powered service. Use your best judgment and verify important information 
                   independently.
                 </p>

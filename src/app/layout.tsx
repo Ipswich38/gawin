@@ -11,10 +11,10 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "KreativLoops AI - Advanced AI Education Platform",
-  description: "Comprehensive AI-powered learning platform with coding, robotics, and tutoring tools",
-  keywords: "AI education, coding bootcamp, robotics, tutoring, Singapore education",
-  authors: [{ name: "KreativLoops AI Team" }],
+  title: "Gawin AI - Your Intelligent AI Assistant",
+  description: "Advanced AI-powered chat assistant for coding, math, writing, learning, and creative projects",
+  keywords: "AI assistant, chatbot, coding help, math solver, writing assistant, AI chat",
+  authors: [{ name: "Gawin AI Team" }],
   robots: "index, follow",
 };
 
@@ -33,7 +33,7 @@ export default function RootLayout({
       <body className={`${inter.className} antialiased`}>
         {/* TODO: Uncomment when contexts are properly configured */}
         {/* <AuthProvider> */}
-          <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+          <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
             {/* <SystemStatusIndicator /> */}
             <main className="relative">
               {children}

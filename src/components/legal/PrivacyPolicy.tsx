@@ -36,7 +36,7 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
 
         <Card>
           <CardHeader>
-            <CardTitle>KreativLoops AI Privacy Policy</CardTitle>
+            <CardTitle>Gawin AI Privacy Policy</CardTitle>
             <p style={{ fontSize: '14px', color: '#6B7280', margin: '8px 0 0 0' }}>
               Last updated: {new Date().toLocaleDateString()}
             </p>
@@ -238,7 +238,7 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
                   borderRadius: '8px',
                   border: '1px solid rgba(255, 107, 53, 0.2)'
                 }}>
-                  <p style={{ margin: 0, fontWeight: '500' }}>KreativLoops AI Privacy Team</p>
+                  <p style={{ margin: 0, fontWeight: '500' }}>Gawin AI Privacy Team</p>
                   <p style={{ margin: '4px 0' }}>Email: privacy@kreativloops.ai</p>
                   <p style={{ margin: '4px 0 0 0' }}>Data Protection Officer: dpo@kreativloops.ai</p>
                 </div>

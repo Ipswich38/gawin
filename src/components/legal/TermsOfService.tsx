@@ -36,7 +36,7 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
 
         <Card>
           <CardHeader>
-            <CardTitle>KreativLoops AI Terms of Service</CardTitle>
+            <CardTitle>Gawin AI Terms of Service</CardTitle>
             <p style={{ fontSize: '14px', color: '#6B7280', margin: '8px 0 0 0' }}>
               Last updated: {new Date().toLocaleDateString()}
             </p>
@@ -49,7 +49,7 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
                   1. Acceptance of Terms
                 </h2>
                 <p style={{ marginBottom: '16px' }}>
-                  By accessing and using KreativLoops AI ("the Service"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
+                  By accessing and using Gawin AI ("the Service"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
                 </p>
               </section>
 
@@ -58,7 +58,7 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
                   2. Description of Service
                 </h2>
                 <p style={{ marginBottom: '16px' }}>
-                  KreativLoops AI provides artificial intelligence-powered services including but not limited to:
+                  Gawin AI provides artificial intelligence-powered services including but not limited to:
                 </p>
                 <ul style={{ marginLeft: '20px', marginBottom: '16px' }}>
                   <li>AI-powered conversations and assistance</li>
@@ -130,7 +130,7 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
                   7. Intellectual Property
                 </h2>
                 <p style={{ marginBottom: '16px' }}>
-                  The Service and its original content, features, and functionality are owned by KreativLoops AI and are protected by international copyright, trademark, patent, trade secret, and other intellectual property laws.
+                  The Service and its original content, features, and functionality are owned by Gawin AI and are protected by international copyright, trademark, patent, trade secret, and other intellectual property laws.
                 </p>
               </section>
 
@@ -139,7 +139,7 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
                   8. Limitation of Liability
                 </h2>
                 <p style={{ marginBottom: '16px' }}>
-                  In no event shall KreativLoops AI be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your use of the Service.
+                  In no event shall Gawin AI be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your use of the Service.
                 </p>
               </section>
 
@@ -174,7 +174,7 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
                   borderRadius: '8px',
                   border: '1px solid rgba(255, 107, 53, 0.2)'
                 }}>
-                  <p style={{ margin: 0, fontWeight: '500' }}>KreativLoops AI Support</p>
+                  <p style={{ margin: 0, fontWeight: '500' }}>Gawin AI Support</p>
                   <p style={{ margin: '4px 0 0 0' }}>Email: legal@kreativloops.ai</p>
                 </div>
               </section>
@@ -192,7 +192,7 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
                     Agreement Acknowledgment
                   </p>
                   <p style={{ margin: '8px 0 0 0' }}>
-                    By using KreativLoops AI, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.
+                    By using Gawin AI, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.
                   </p>
                 </div>
               </section>
