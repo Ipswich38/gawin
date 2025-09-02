@@ -1,6 +1,7 @@
 import { validationService } from './validationService';
 import { systemGuardianService } from './systemGuardianService';
 import { aiModelManager } from './aiModelManager';
+import Groq from 'groq-sdk';
 
 export interface DeepSeekMessage {
   role: 'system' | 'user' | 'assistant';
@@ -36,13 +37,18 @@ export interface DeepSeekConfig {
 
 class DeepSeekService {
   private static instance: DeepSeekService;
-  private apiKey: string | null = null;
-  private baseUrl = 'https://openrouter.ai/api/v1';
+  private groq: Groq | null = null;
 
   private constructor() {
-    this.apiKey = process.env.OPENROUTER_API_KEY || null;
-    if (!this.apiKey) {
-      console.warn('🤖 OpenRouter API key not found. AI features will be disabled.');
+    const apiKey = process.env.GROQ_API_KEY || null;
+    
+    if (apiKey) {
+      this.groq = new Groq({
+        apiKey: apiKey,
+        dangerouslyAllowBrowser: false // Server-side only
+      });
+    } else {
+      console.warn('🤖 Groq API key not found. AI features will be disabled.');
     }
   }
 
@@ -54,7 +60,7 @@ class DeepSeekService {
   }
 
   private isConfigured(): boolean {
-    return this.apiKey !== null;
+    return this.groq !== null;
   }
 
   async generateResponse(
@@ -69,14 +75,18 @@ class DeepSeekService {
       if (!this.isConfigured()) {
         return {
           success: false,
-          error: 'OpenRouter API not configured. Please set OPENROUTER_API_KEY environment variable.'
+          error: 'Groq API not configured. Please set GROQ_API_KEY environment variable.'
         };
       }
 
       // Use AI Model Manager for smart model selection
       if (feature !== 'general_chat') {
-        selectedModel = aiModelManager.getBestModelForFeature(feature as any);
-        config = { ...config, model: selectedModel as any };
+        selectedModel = aiModelManager.getBestModelForFeature(feature as keyof import('./aiModelManager').FeatureModelMapping);
+        config = { ...config, model: selectedModel };
+      } else {
+        // For general chat, use the general_chat mapping
+        selectedModel = aiModelManager.getBestModelForFeature('general_chat');
+        config = { ...config, model: selectedModel };
       }
 
       // Validate and sanitize messages
@@ -91,68 +101,69 @@ class DeepSeekService {
         };
       });
 
-      const requestBody = {
-        model: config.model,
-        messages: sanitizedMessages,
-        temperature: config.temperature || 0.7,
-        max_tokens: config.max_tokens || 2048,
-        stream: config.stream || false
-      };
-
-      const response = await fetch(`${this.baseUrl}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`,
-          'HTTP-Referer': 'https://gawin-ai.vercel.app',
-          'X-Title': 'Gawin AI - Your Pocket AI Companion'
-        },
-        body: JSON.stringify(requestBody)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
+      // Use Groq SDK for API calls with automatic fallback
+      let completion;
+      let attemptedModel = config.model;
+      
+      try {
+        completion = await this.groq!.chat.completions.create({
+          messages: sanitizedMessages as any,
+          model: config.model,
+          temperature: config.temperature || 0.7,
+          max_tokens: config.max_tokens || 2048,
+          stream: config.stream || false
+        });
+      } catch (modelError: any) {
+        // If model is not available/decommissioned, try fallback models
+        const fallbackModels = ['llama-3.3-70b-versatile', 'llama3-8b-8192', 'llama-3.2-1b-preview'];
         
-        // Report failure to AI Model Manager
-        aiModelManager.reportModelResult(selectedModel, false);
-        
-        systemGuardianService.reportError(
-          `OpenRouter API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`,
-          'api',
-          'medium'
-        );
-
-        // Try fallback if this was not already a fallback attempt
-        if (feature !== 'general_chat' && selectedModel !== 'deepseek/deepseek-chat') {
-          console.log(`🔄 Attempting fallback for ${feature} due to API error`);
-          return this.generateResponse(messages, { ...config, model: 'deepseek/deepseek-chat' as any }, 'general_chat');
+        for (const fallbackModel of fallbackModels) {
+          if (fallbackModel !== config.model) {
+            try {
+              console.log(`🔄 Model ${config.model} failed, trying fallback: ${fallbackModel}`);
+              completion = await this.groq!.chat.completions.create({
+                messages: sanitizedMessages as any,
+                model: fallbackModel,
+                temperature: config.temperature || 0.7,
+                max_tokens: config.max_tokens || 2048,
+                stream: config.stream || false
+              });
+              attemptedModel = fallbackModel;
+              break;
+            } catch (fallbackError) {
+              console.warn(`Fallback model ${fallbackModel} also failed:`, fallbackError);
+              continue;
+            }
+          }
         }
-
-        return {
-          success: false,
-          error: `API Error: ${errorData.error?.message || 'Request failed'}`,
-          modelUsed: selectedModel
-        };
+        
+        if (!completion) {
+          throw new Error(`All models failed. Original error: ${modelError.message}`);
+        }
       }
 
-      const data: DeepSeekResponse = await response.json();
+      // Handle both streaming and non-streaming responses
+      const data = {
+        choices: 'choices' in completion ? completion.choices : [],
+        usage: 'usage' in completion ? completion.usage : undefined
+      };
       
       if (!data.choices || data.choices.length === 0) {
         return {
           success: false,
-          error: 'No response generated from DeepSeek'
+          error: 'No response generated from AI model'
         };
       }
 
       // Report success to AI Model Manager
       const responseTime = Date.now() - startTime;
-      aiModelManager.reportModelResult(selectedModel, true, responseTime);
+      aiModelManager.reportModelResult(attemptedModel, true, responseTime);
 
       return {
         success: true,
-        response: data.choices[0].message.content,
+        response: data.choices[0].message.content || undefined,
         usage: data.usage,
-        modelUsed: selectedModel
+        modelUsed: attemptedModel
       };
 
     } catch (error) {
@@ -161,7 +172,7 @@ class DeepSeekService {
       // Report failure to AI Model Manager
       aiModelManager.reportModelResult(selectedModel, false);
       
-      systemGuardianService.reportError(`OpenRouter service error: ${errorMessage}`, 'api', 'high');
+      systemGuardianService.reportError(`Groq service error: ${errorMessage}`, 'api', 'high');
       return {
         success: false,
         error: errorMessage,
@@ -171,67 +182,6 @@ class DeepSeekService {
   }
 
   // Specialized methods for different modules
-  async solveCalculatorProblem(expression: string, context?: string): Promise<{ success: boolean; solution?: string; steps?: string[]; error?: string }> {
-    try {
-      const messages: DeepSeekMessage[] = [
-        {
-          role: 'system',
-          content: `You are an advanced mathematical reasoning AI specializing in solving complex calculations and mathematical problems. 
-          
-          Your capabilities include:
-          - Advanced arithmetic and algebra
-          - Calculus and differential equations
-          - Statistical analysis
-          - Mathematical proofs and reasoning
-          - Step-by-step problem solving
-          
-          Always provide:
-          1. The final answer
-          2. Clear step-by-step solution
-          3. Explanations for complex operations
-          
-          Format your response as:
-          ANSWER: [final answer]
-          STEPS:
-          1. [step 1]
-          2. [step 2]
-          ...`
-        },
-        {
-          role: 'user',
-          content: `Solve this mathematical problem: ${expression}${context ? `\n\nContext: ${context}` : ''}`
-        }
-      ];
-
-      const result = await this.generateResponse(messages, { model: 'deepseek/deepseek-r1', temperature: 0.1 }, 'calculator');
-      
-      if (!result.success || !result.response) {
-        return { success: false, error: result.error };
-      }
-
-      // Parse the structured response
-      const response = result.response;
-      const answerMatch = response.match(/ANSWER:\s*(.+?)(?=\n|$)/);
-      const stepsMatch = response.match(/STEPS:\s*([\s\S]+?)(?=\n\n|$)/);
-      
-      const solution = answerMatch ? answerMatch[1].trim() : response;
-      const steps = stepsMatch 
-        ? stepsMatch[1].split('\n').filter(step => step.trim()).map(step => step.replace(/^\d+\.\s*/, '').trim())
-        : [];
-
-      return {
-        success: true,
-        solution,
-        steps
-      };
-
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to solve problem'
-      };
-    }
-  }
 
   async generateCodeSolution(
     problem: string, 
@@ -388,7 +338,7 @@ class DeepSeekService {
   // General chat for any module
   async chat(
     messages: DeepSeekMessage[],
-    module: 'calculator' | 'coding_academy' | 'ai_academy' | 'general' = 'general'
+    module: 'coding_academy' | 'ai_academy' | 'general' = 'general'
   ): Promise<{ success: boolean; response?: string; error?: string; usage?: any }> {
     try {
       // Add module-specific system message if not already present
@@ -396,7 +346,6 @@ class DeepSeekService {
       
       if (!hasSystemMessage) {
         const systemPrompts = {
-          calculator: 'You are a mathematical reasoning AI assistant specializing in calculations, problem-solving, and mathematical explanations.',
           coding_academy: 'You are a coding instructor AI specializing in programming education, code reviews, and software development guidance.',
           ai_academy: 'You are an AI education specialist teaching artificial intelligence, machine learning, and computer science concepts.',
           general: 'You are a helpful AI assistant powered by DeepSeek R1, specializing in reasoning and problem-solving.'
@@ -408,7 +357,15 @@ class DeepSeekService {
         ];
       }
 
-      return await this.generateResponse(messages, { model: 'anthropic/claude-3-haiku' }, module);
+      // Map module to feature name for AI model manager
+      const featureMapping = {
+        'general': 'general_chat',
+        'coding_academy': 'coding_academy',
+        'ai_academy': 'ai_academy'
+      } as const;
+      
+      const feature = featureMapping[module] || 'general_chat';
+      return await this.generateResponse(messages, { model: 'deepseek-r1-distill-llama-70b' }, feature);
 
     } catch (error) {
       return {
@@ -422,7 +379,7 @@ class DeepSeekService {
   async healthCheck(): Promise<{ status: 'healthy' | 'degraded' | 'offline'; message: string }> {
     try {
       if (!this.isConfigured()) {
-        return { status: 'offline', message: 'OpenRouter API not configured' };
+        return { status: 'offline', message: 'Groq API not configured' };
       }
 
       const testMessage: DeepSeekMessage[] = [
@@ -430,19 +387,19 @@ class DeepSeekService {
       ];
 
       const result = await this.generateResponse(testMessage, { 
-        model: 'deepseek/deepseek-chat', 
+        model: 'llama3-8b-8192', 
         max_tokens: 10, 
         temperature: 0 
       });
 
       if (result.success) {
-        return { status: 'healthy', message: 'OpenRouter API operational' };
+        return { status: 'healthy', message: 'Groq API operational' };
       } else {
         return { status: 'degraded', message: result.error || 'API issues detected' };
       }
 
     } catch (error) {
-      return { status: 'offline', message: 'OpenRouter API unavailable' };
+      return { status: 'offline', message: 'Groq API unavailable' };
     }
   }
 }

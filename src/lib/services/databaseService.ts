@@ -99,6 +99,13 @@ class DatabaseService {
   }
 
   private initializeLocalStorage(): void {
+    // Only initialize localStorage on client-side
+    if (typeof window === 'undefined') {
+      this.isInitialized = true;
+      console.log('🗄️ Server-side: skipping localStorage initialization');
+      return;
+    }
+
     // Initialize local storage schema for development
     const schema = {
       users: [],
@@ -180,10 +187,12 @@ class DatabaseService {
         }
       };
 
-      const users = JSON.parse(localStorage.getItem('kreativloops_users') || '[]');
-      users.push(newUser);
-      localStorage.setItem('kreativloops_users', JSON.stringify(users));
-      localStorage.setItem('kreativloops_current_user', JSON.stringify(newUser));
+      if (typeof window !== 'undefined') {
+        const users = JSON.parse(localStorage.getItem('kreativloops_users') || '[]');
+        users.push(newUser);
+        localStorage.setItem('kreativloops_users', JSON.stringify(users));
+        localStorage.setItem('kreativloops_current_user', JSON.stringify(newUser));
+      }
 
       return { user: newUser, error: null };
     } catch (error) {
@@ -219,12 +228,14 @@ class DatabaseService {
       }
 
       // Fallback to local storage
-      const users = JSON.parse(localStorage.getItem('kreativloops_users') || '[]');
-      const user = users.find((u: User) => u.email === emailValidation.sanitized);
-      
-      if (user) {
-        localStorage.setItem('kreativloops_current_user', JSON.stringify(user));
-        return { user, error: null };
+      if (typeof window !== 'undefined') {
+        const users = JSON.parse(localStorage.getItem('kreativloops_users') || '[]');
+        const user = users.find((u: User) => u.email === emailValidation.sanitized);
+        
+        if (user) {
+          localStorage.setItem('kreativloops_current_user', JSON.stringify(user));
+          return { user, error: null };
+        }
       }
 
       return { user: null, error: 'Invalid credentials' };
@@ -245,7 +256,9 @@ class DatabaseService {
       }
 
       // Clear local storage
-      localStorage.removeItem('kreativloops_current_user');
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('kreativloops_current_user');
+      }
       return { error: null };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -264,8 +277,11 @@ class DatabaseService {
       }
 
       // Fallback to local storage
-      const userJson = localStorage.getItem('kreativloops_current_user');
-      return userJson ? JSON.parse(userJson) : null;
+      if (typeof window !== 'undefined') {
+        const userJson = localStorage.getItem('kreativloops_current_user');
+        return userJson ? JSON.parse(userJson) : null;
+      }
+      return null;
     } catch (error) {
       console.warn('Error getting current user:', error);
       return null;
@@ -315,8 +331,11 @@ class DatabaseService {
     }
 
     // Fallback to local storage
-    const users = JSON.parse(localStorage.getItem('kreativloops_users') || '[]');
-    return users.find((user: User) => user.id === userId) || null;
+    if (typeof window !== 'undefined') {
+      const users = JSON.parse(localStorage.getItem('kreativloops_users') || '[]');
+      return users.find((user: User) => user.id === userId) || null;
+    }
+    return null;
   }
 
   async updateUserProfile(userId: string, updates: Partial<User>): Promise<{ error: string | null }> {
@@ -338,11 +357,13 @@ class DatabaseService {
       }
 
       // Update local storage
-      const users = JSON.parse(localStorage.getItem('kreativloops_users') || '[]');
-      const userIndex = users.findIndex((user: User) => user.id === userId);
-      if (userIndex !== -1) {
-        users[userIndex] = { ...users[userIndex], ...sanitizedUpdates };
-        localStorage.setItem('kreativloops_users', JSON.stringify(users));
+      if (typeof window !== 'undefined') {
+        const users = JSON.parse(localStorage.getItem('kreativloops_users') || '[]');
+        const userIndex = users.findIndex((user: User) => user.id === userId);
+        if (userIndex !== -1) {
+          users[userIndex] = { ...users[userIndex], ...sanitizedUpdates };
+          localStorage.setItem('kreativloops_users', JSON.stringify(users));
+        }
       }
 
       return { error: null };
@@ -377,9 +398,11 @@ class DatabaseService {
       }
 
       // Fallback to local storage
-      const conversations = JSON.parse(localStorage.getItem('kreativloops_conversations') || '[]');
-      conversations.push(conversationRecord);
-      localStorage.setItem('kreativloops_conversations', JSON.stringify(conversations));
+      if (typeof window !== 'undefined') {
+        const conversations = JSON.parse(localStorage.getItem('kreativloops_conversations') || '[]');
+        conversations.push(conversationRecord);
+        localStorage.setItem('kreativloops_conversations', JSON.stringify(conversations));
+      }
 
       return { id: conversationRecord.id, error: null };
     } catch (error) {
@@ -406,8 +429,11 @@ class DatabaseService {
       }
 
       // Fallback to local storage
-      const conversations = JSON.parse(localStorage.getItem('kreativloops_conversations') || '[]');
-      return conversations.filter((conv: ConversationRecord) => conv.user_id === userId);
+      if (typeof window !== 'undefined') {
+        const conversations = JSON.parse(localStorage.getItem('kreativloops_conversations') || '[]');
+        return conversations.filter((conv: ConversationRecord) => conv.user_id === userId);
+      }
+      return [];
     } catch (error) {
       console.warn('Error getting user conversations:', error);
       return [];
@@ -431,9 +457,11 @@ class DatabaseService {
       }
 
       // Also update local storage
-      const usageRecords = JSON.parse(localStorage.getItem('kreativloops_usage_records') || '[]');
-      usageRecords.push(usageRecord);
-      localStorage.setItem('kreativloops_usage_records', JSON.stringify(usageRecords));
+      if (typeof window !== 'undefined') {
+        const usageRecords = JSON.parse(localStorage.getItem('kreativloops_usage_records') || '[]');
+        usageRecords.push(usageRecord);
+        localStorage.setItem('kreativloops_usage_records', JSON.stringify(usageRecords));
+      }
 
       // Update user credits
       await this.updateUserCredits(userId, -creditsUsed);

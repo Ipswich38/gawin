@@ -23,7 +23,6 @@ export interface ModelConfig {
 }
 
 export interface FeatureModelMapping {
-  calculator: ModelConfig;
   coding_academy: ModelConfig;
   ai_academy: ModelConfig;
   creative_studio: ModelConfig;
@@ -59,133 +58,92 @@ class AIModelManager {
 
   private initializeModels(): void {
     this.models = [
-      // Reasoning Specialists
+      // STEM-focused models available on Groq (Free)
       {
-        id: 'deepseek/deepseek-r1',
-        name: 'DeepSeek R1',
-        provider: 'DeepSeek',
+        id: 'deepseek-r1-distill-llama-70b',
+        name: 'DeepSeek R1 Distill (Llama 70B)',
+        provider: 'Groq',
         category: 'reasoning',
-        cost_per_1k_tokens: 0.55,
+        cost_per_1k_tokens: 0.0,
         max_tokens: 8192,
-        strengths: ['Mathematical reasoning', 'Complex problem solving', 'Chain of thought'],
+        strengths: ['Mathematical reasoning', 'STEM problem solving', 'Chain of thought', 'Scientific analysis'],
         active: true,
         fallback_priority: 1
       },
       {
-        id: 'openai/o1-preview',
-        name: 'GPT-4o1 Preview',
-        provider: 'OpenAI',
-        category: 'reasoning',
-        cost_per_1k_tokens: 15.0,
+        id: 'llama-3.3-70b-versatile',
+        name: 'Llama 3.3 70B Versatile',
+        provider: 'Groq',
+        category: 'general',
+        cost_per_1k_tokens: 0.0,
         max_tokens: 32768,
-        strengths: ['Advanced reasoning', 'Scientific analysis', 'Complex mathematics'],
-        active: true,
-        fallback_priority: 3
-      },
-
-      // Coding Specialists
-      {
-        id: 'anthropic/claude-3.5-sonnet',
-        name: 'Claude 3.5 Sonnet',
-        provider: 'Anthropic',
-        category: 'coding',
-        cost_per_1k_tokens: 3.0,
-        max_tokens: 200000,
-        strengths: ['Code generation', 'Debugging', 'Code review', 'System architecture'],
-        active: true,
-        fallback_priority: 1
-      },
-      {
-        id: 'openai/gpt-4-turbo',
-        name: 'GPT-4 Turbo',
-        provider: 'OpenAI',
-        category: 'coding',
-        cost_per_1k_tokens: 10.0,
-        max_tokens: 128000,
-        strengths: ['Code generation', 'Multi-language support', 'Complex algorithms'],
+        strengths: ['General reasoning', 'Problem solving', 'Multi-domain knowledge'],
         active: true,
         fallback_priority: 2
       },
       {
-        id: 'deepseek/deepseek-coder',
-        name: 'DeepSeek Coder',
-        provider: 'DeepSeek',
+        id: 'llama3-groq-70b-8192-tool-use-preview',
+        name: 'Llama 3 Groq 70B Tool Use',
+        provider: 'Groq',
         category: 'coding',
-        cost_per_1k_tokens: 0.14,
-        max_tokens: 16384,
-        strengths: ['Code completion', 'Bug fixing', 'Code explanation'],
-        active: true,
-        fallback_priority: 3
-      },
-
-      // Creative & General
-      {
-        id: 'openai/gpt-4o',
-        name: 'GPT-4o',
-        provider: 'OpenAI',
-        category: 'creative',
-        cost_per_1k_tokens: 5.0,
-        max_tokens: 128000,
-        strengths: ['Creative writing', 'General knowledge', 'Multimodal understanding'],
+        cost_per_1k_tokens: 0.0,
+        max_tokens: 8192,
+        strengths: ['Code generation', 'Tool usage', 'Function calling', 'API integration'],
         active: true,
         fallback_priority: 1
       },
       {
-        id: 'anthropic/claude-3-haiku',
-        name: 'Claude 3 Haiku',
-        provider: 'Anthropic',
+        id: 'llama-3.1-70b-versatile',
+        name: 'Llama 3.1 70B Versatile',
+        provider: 'Groq',
         category: 'general',
-        cost_per_1k_tokens: 0.25,
-        max_tokens: 200000,
-        strengths: ['Fast responses', 'Efficient processing', 'Good quality'],
-        active: true,
-        fallback_priority: 2
-      },
-      {
-        id: 'google/gemini-pro',
-        name: 'Gemini Pro',
-        provider: 'Google',
-        category: 'general',
-        cost_per_1k_tokens: 0.5,
-        max_tokens: 32768,
-        strengths: ['Multilingual', 'Factual accuracy', 'Reasoning'],
-        active: true,
-        fallback_priority: 3
-      },
-
-      // Translation Specialists
-      {
-        id: 'google/gemini-pro',
-        name: 'Gemini Pro',
-        provider: 'Google',
-        category: 'translation',
-        cost_per_1k_tokens: 0.5,
-        max_tokens: 32768,
-        strengths: ['100+ languages', 'Context preservation', 'Cultural nuances'],
-        active: true,
-        fallback_priority: 1
-      },
-      {
-        id: 'meta-llama/llama-3.1-70b-instruct',
-        name: 'Llama 3.1 70B',
-        provider: 'Meta',
-        category: 'translation',
-        cost_per_1k_tokens: 0.52,
+        cost_per_1k_tokens: 0.0,
         max_tokens: 131072,
-        strengths: ['Open source', 'Multilingual', 'Good performance'],
+        strengths: ['Long context', 'Complex reasoning', 'Multi-step problems'],
+        active: true,
+        fallback_priority: 3
+      },
+      {
+        id: 'mixtral-8x7b-32768',
+        name: 'Mixtral 8x7B',
+        provider: 'Groq',
+        category: 'creative',
+        cost_per_1k_tokens: 0.0,
+        max_tokens: 32768,
+        strengths: ['Creative writing', 'Multi-language support', 'Complex reasoning'],
         active: true,
         fallback_priority: 2
       },
-
-      // Fallback Models (Always available)
       {
-        id: 'deepseek/deepseek-chat',
-        name: 'DeepSeek Chat',
-        provider: 'DeepSeek',
+        id: 'llama3-8b-8192',
+        name: 'Llama 3 8B',
+        provider: 'Groq',
         category: 'general',
-        cost_per_1k_tokens: 0.14,
-        max_tokens: 32768,
-        strengths: ['Low cost', 'Reliable', 'General purpose'],
+        cost_per_1k_tokens: 0.0,
+        max_tokens: 8192,
+        strengths: ['Fast responses', 'Efficient processing', 'General purpose'],
+        active: true,
+        fallback_priority: 4
+      },
+      {
+        id: 'gemma2-9b-it',
+        name: 'Gemma 2 9B',
+        provider: 'Groq',
+        category: 'translation',
+        cost_per_1k_tokens: 0.0,
+        max_tokens: 8192,
+        strengths: ['Multilingual', 'Instruction following', 'Translation tasks'],
+        active: true,
+        fallback_priority: 1
+      },
+      {
+        id: 'llama-3.2-1b-preview',
+        name: 'Llama 3.2 1B Preview',
+        provider: 'Groq',
+        category: 'general',
+        cost_per_1k_tokens: 0.0,
+        max_tokens: 8192,
+        strengths: ['Ultra-fast', 'Basic tasks', 'Fallback model'],
         active: true,
         fallback_priority: 10
       }
@@ -194,53 +152,47 @@ class AIModelManager {
 
   private initializeFeatureMapping(): void {
     this.featureMapping = {
-      calculator: {
-        primary: 'deepseek/deepseek-r1',
-        fallbacks: ['openai/o1-preview', 'deepseek/deepseek-chat'],
-        maxRetries: 3,
-        costThreshold: 2.0
-      },
       coding_academy: {
-        primary: 'anthropic/claude-3.5-sonnet',
-        fallbacks: ['deepseek/deepseek-coder', 'openai/gpt-4-turbo', 'deepseek/deepseek-chat'],
+        primary: 'llama3-groq-70b-8192-tool-use-preview',
+        fallbacks: ['llama-3.3-70b-versatile', 'llama-3.1-70b-versatile', 'llama3-8b-8192'],
         maxRetries: 3,
-        costThreshold: 5.0
+        costThreshold: 0.0
       },
       ai_academy: {
-        primary: 'openai/gpt-4o',
-        fallbacks: ['anthropic/claude-3.5-sonnet', 'google/gemini-pro', 'deepseek/deepseek-chat'],
+        primary: 'deepseek-r1-distill-llama-70b',
+        fallbacks: ['llama-3.3-70b-versatile', 'llama-3.1-70b-versatile', 'mixtral-8x7b-32768'],
         maxRetries: 3,
-        costThreshold: 7.0
+        costThreshold: 0.0
       },
       creative_studio: {
-        primary: 'openai/gpt-4o',
-        fallbacks: ['anthropic/claude-3.5-sonnet', 'deepseek/deepseek-chat'],
+        primary: 'mixtral-8x7b-32768',
+        fallbacks: ['llama-3.3-70b-versatile', 'llama-3.1-70b-versatile', 'llama3-8b-8192'],
         maxRetries: 3,
-        costThreshold: 8.0
+        costThreshold: 0.0
       },
       translator: {
-        primary: 'google/gemini-pro',
-        fallbacks: ['meta-llama/llama-3.1-70b-instruct', 'deepseek/deepseek-chat'],
+        primary: 'gemma2-9b-it',
+        fallbacks: ['llama-3.3-70b-versatile', 'mixtral-8x7b-32768', 'llama3-8b-8192'],
         maxRetries: 3,
-        costThreshold: 1.0
+        costThreshold: 0.0
       },
       robotics: {
-        primary: 'anthropic/claude-3.5-sonnet',
-        fallbacks: ['deepseek/deepseek-r1', 'openai/gpt-4-turbo', 'deepseek/deepseek-chat'],
+        primary: 'deepseek-r1-distill-llama-70b',
+        fallbacks: ['llama3-groq-70b-8192-tool-use-preview', 'llama-3.3-70b-versatile', 'llama-3.1-70b-versatile'],
         maxRetries: 3,
-        costThreshold: 4.0
+        costThreshold: 0.0
       },
       grammar_checker: {
-        primary: 'anthropic/claude-3-haiku',
-        fallbacks: ['google/gemini-pro', 'deepseek/deepseek-chat'],
-        maxRetries: 2,
-        costThreshold: 1.0
+        primary: 'llama-3.3-70b-versatile',
+        fallbacks: ['mixtral-8x7b-32768', 'gemma2-9b-it', 'llama3-8b-8192'],
+        maxRetries: 3,
+        costThreshold: 0.0
       },
       general_chat: {
-        primary: 'anthropic/claude-3-haiku',
-        fallbacks: ['google/gemini-pro', 'deepseek/deepseek-chat'],
-        maxRetries: 2,
-        costThreshold: 2.0
+        primary: 'deepseek-r1-distill-llama-70b',
+        fallbacks: ['llama-3.3-70b-versatile', 'llama-3.1-70b-versatile', 'mixtral-8x7b-32768'],
+        maxRetries: 3,
+        costThreshold: 0.0
       }
     };
   }

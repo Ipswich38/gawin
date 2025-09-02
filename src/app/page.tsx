@@ -10,12 +10,9 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
   const [currentPrompt, setCurrentPrompt] = useState('');
   const [isTyping, setIsTyping] = useState(true);
   const [showHistory, setShowHistory] = useState(false);
-  const [chatHistory, setChatHistory] = useState([
-    { id: 1, title: 'Help with React components', timestamp: '2 hours ago', preview: 'Can you help me understand React hooks...' },
-    { id: 2, title: 'Python data analysis', timestamp: 'Yesterday', preview: 'I need help with pandas and matplotlib...' },
-    { id: 3, title: 'Math problem solving', timestamp: '2 days ago', preview: 'Solve this calculus problem step by step...' },
-    { id: 4, title: 'Creative writing project', timestamp: '3 days ago', preview: 'Help me write a short story about AI...' },
-  ]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [messages, setMessages] = useState<Array<{id: number, role: 'user' | 'assistant', content: string, timestamp: string}>>([]);
+  const [chatHistory, setChatHistory] = useState<Array<{id: number, title: string, timestamp: string, preview: string}>>([]);
 
   const promptSuggestions = [
     "Explain quantum computing in simple terms",
@@ -65,22 +62,81 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
     };
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (input.trim()) {
-      // Handle the prompt submission here
-      console.log('User prompt:', input);
-      
-      // Add to chat history
-      const newChat = {
+    if (input.trim() && !isLoading) {
+      const userMessage = {
         id: Date.now(),
-        title: input.length > 30 ? input.substring(0, 30) + '...' : input,
-        timestamp: 'Just now',
-        preview: input
+        role: 'user' as const,
+        content: input.trim(),
+        timestamp: new Date().toLocaleTimeString()
       };
-      setChatHistory(prev => [newChat, ...prev]);
       
+      // Add user message to chat
+      setMessages(prev => [...prev, userMessage]);
+      setIsLoading(true);
+      
+      const currentInput = input.trim();
       setInput('');
+      
+      try {
+        // Call the AI service
+        const response = await fetch('/api/deepseek', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messages: [
+              { role: 'user', content: currentInput }
+            ],
+            action: 'chat',
+            module: 'general'
+          }),
+        });
+
+        const data = await response.json();
+        
+        if (data.success && data.data.response) {
+          const assistantMessage = {
+            id: Date.now() + 1,
+            role: 'assistant' as const,
+            content: data.data.response,
+            timestamp: new Date().toLocaleTimeString()
+          };
+          
+          setMessages(prev => [...prev, assistantMessage]);
+          
+          // Add to chat history
+          const newChat = {
+            id: Date.now(),
+            title: currentInput.length > 30 ? currentInput.substring(0, 30) + '...' : currentInput,
+            timestamp: 'Just now',
+            preview: currentInput
+          };
+          setChatHistory(prev => [newChat, ...prev]);
+        } else {
+          // Handle error
+          const errorMessage = {
+            id: Date.now() + 1,
+            role: 'assistant' as const,
+            content: `Sorry, I encountered an error: ${data.error || 'Unknown error'}. Please try again.`,
+            timestamp: new Date().toLocaleTimeString()
+          };
+          setMessages(prev => [...prev, errorMessage]);
+        }
+      } catch (error) {
+        console.error('Chat error:', error);
+        const errorMessage = {
+          id: Date.now() + 1,
+          role: 'assistant' as const,
+          content: 'Sorry, I\'m having trouble connecting right now. Please try again in a moment.',
+          timestamp: new Date().toLocaleTimeString()
+        };
+        setMessages(prev => [...prev, errorMessage]);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -231,7 +287,8 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
 
       {/* Main Chat Area */}
       <main className="flex-1 flex flex-col max-w-5xl mx-auto w-full px-6">
-          {/* Welcome Section */}
+        {messages.length === 0 ? (
+          /* Welcome Section */
           <div className="flex-1 flex flex-col justify-center py-16">
           <div className="text-center mb-12">
             <h1 className="text-3xl font-normal mb-3" style={{ color: '#051a1c' }}>
@@ -264,11 +321,6 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
                 🎨 Creative Studio
               </span>
             </Link>
-            <Link href="/tutor/calculator">
-              <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }}>
-                🧮 Calculator
-              </span>
-            </Link>
             <Link href="/tutor/grammar">
               <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }}>
                 📝 Grammar
@@ -298,6 +350,48 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
             </p>
           </div>
         </div>
+        ) : (
+          /* Chat Messages */
+          <div className="flex-1 flex flex-col py-8">
+            <div className="flex-1 overflow-y-auto space-y-4 mb-8">
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-2xl px-6 py-4 rounded-3xl ${
+                      message.role === 'user'
+                        ? 'bg-[#051a1c] text-white shadow-xl'
+                        : 'bg-white/60 backdrop-blur-md text-[#051a1c] border border-white/40 shadow-lg'
+                    }`}
+                  >
+                    <p className="text-base leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                    <p className={`text-xs mt-2 opacity-60 ${
+                      message.role === 'user' ? 'text-white/70' : 'text-[#051a1c]/70'
+                    }`}>
+                      {message.timestamp}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-white/60 backdrop-blur-md text-[#051a1c] border border-white/40 shadow-lg px-6 py-4 rounded-3xl">
+                    <div className="flex items-center space-x-2">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-[#051a1c] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                        <div className="w-2 h-2 bg-[#051a1c] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                        <div className="w-2 h-2 bg-[#051a1c] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                      </div>
+                      <span className="text-sm opacity-60">Gawin is thinking...</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Input Area - Premium Glassmorphism */}
         <div className="pb-8">
@@ -318,10 +412,10 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
               />
               <button
                 type="submit"
-                disabled={!input.trim()}
+                disabled={!input.trim() || isLoading}
                 className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 backdrop-blur-sm text-black rounded-full flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105 transition-all shadow-lg"
                 style={{
-                  backgroundColor: input.trim() ? '#00FFEF' : 'rgba(255,255,255,0.9)'
+                  backgroundColor: (input.trim() && !isLoading) ? '#00FFEF' : 'rgba(255,255,255,0.9)'
                 }}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -337,116 +431,6 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
   );
 }
 
-// Big 3x3 Tic-Tac-Toe Grid Component with Dynamic Content
-function TicTacToeGrid({ onFeatureClick }: { onFeatureClick: () => void }) {
-  const [currentSet, setCurrentSet] = useState(0);
-  
-  const featureSets = [
-    [
-      { emoji: '🎓', title: 'AI Academy' },
-      { emoji: '💻', title: 'Coding' },
-      { emoji: '🤖', title: 'Robotics' },
-      { emoji: '🎨', title: 'Creative' },
-      { emoji: '🧮', title: 'Calculator' },
-      { emoji: '📝', title: 'Grammar' },
-      { emoji: '🌍', title: 'Translator' },
-      { emoji: '🛠️', title: 'AI Tools' },
-      { emoji: '⭐', title: 'Premium' },
-    ],
-    [
-      { emoji: '🚀', title: 'Projects' },
-      { emoji: '📊', title: 'Analytics' },
-      { emoji: '🔬', title: 'Research' },
-      { emoji: '💡', title: 'Ideas' },
-      { emoji: '🎯', title: 'Goals' },
-      { emoji: '📚', title: 'Library' },
-      { emoji: '🌟', title: 'Featured' },
-      { emoji: '🔮', title: 'Future' },
-      { emoji: '💎', title: 'Elite' },
-    ],
-    [
-      { emoji: '🎵', title: 'Audio' },
-      { emoji: '🎬', title: 'Video' },
-      { emoji: '📸', title: 'Images' },
-      { emoji: '✍️', title: 'Writing' },
-      { emoji: '🗣️', title: 'Speech' },
-      { emoji: '👁️', title: 'Vision' },
-      { emoji: '🧠', title: 'Neural' },
-      { emoji: '⚡', title: 'Fast' },
-      { emoji: '🔒', title: 'Secure' },
-    ]
-  ];
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSet((prev) => (prev + 1) % featureSets.length);
-    }, 4000); // Change every 4 seconds
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const features = featureSets[currentSet];
-
-  return (
-    <div className="mb-16">
-      {/* 3x3 Grid - Manual Layout with Dynamic Content */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', maxWidth: '360px', margin: '0 auto' }}>
-        {features.map((feature, index) => (
-          <div
-            key={`${currentSet}-${index}`}
-            className="bg-white/50 backdrop-blur-md border-2 border-white/40 rounded-2xl p-4 shadow-lg hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col items-center justify-center group"
-            style={{ 
-              width: '100px', 
-              height: '100px',
-              minWidth: '100px',
-              minHeight: '100px',
-              animation: 'fadeIn 0.5s ease-in-out'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#00FFEF';
-              e.currentTarget.style.borderColor = '#00FFEF';
-              e.currentTarget.style.transform = 'scale(1.05)';
-              const titleElement = e.currentTarget.querySelector('.tile-title') as HTMLElement;
-              if (titleElement) {
-                titleElement.style.color = 'black';
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.5)';
-              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)';
-              e.currentTarget.style.transform = 'scale(1)';
-              const titleElement = e.currentTarget.querySelector('.tile-title') as HTMLElement;
-              if (titleElement) {
-                titleElement.style.color = '#051a1c';
-              }
-            }}
-            onClick={onFeatureClick}
-          >
-            <div className="text-2xl mb-2 transition-all duration-300">{feature.emoji}</div>
-            <div className="tile-title text-xs font-medium text-center leading-tight transition-all duration-300" style={{ color: '#051a1c' }}>
-              {feature.title}
-            </div>
-          </div>
-        ))}
-      </div>
-      
-      {/* Indicator dots to show current set */}
-      <div className="flex justify-center mt-6 space-x-2">
-        {featureSets.map((_, index) => (
-          <div
-            key={index}
-            className="w-2 h-2 rounded-full transition-all duration-300 cursor-pointer"
-            style={{ 
-              backgroundColor: index === currentSet ? '#051a1c' : 'rgba(5, 26, 28, 0.3)',
-              transform: index === currentSet ? 'scale(1.2)' : 'scale(1)'
-            }}
-            onClick={() => setCurrentSet(index)}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
 
 // AccessCodeModal Component
 function AccessCodeModal({ onClose }: { onClose: () => void }) {
@@ -736,8 +720,6 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Big 3x3 Tic-Tac-Toe Grid */}
-        <TicTacToeGrid onFeatureClick={() => setShowAuthModal(true)} />
 
         {/* Get Started CTA */}
         <div className="text-center mt-12">

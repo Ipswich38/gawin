@@ -20,25 +20,6 @@ export async function POST(request: NextRequest) {
     let result;
     
     switch (action) {
-      case 'solve_math':
-        if (!metadata?.expression) {
-          return NextResponse.json(
-            { error: 'Expression is required for math solving' },
-            { status: 400 }
-          );
-        }
-        result = await deepseekService.solveCalculatorProblem(
-          metadata.expression,
-          metadata.context
-        );
-        
-        // Save to calculator history if user is logged in
-        if (user && result.success) {
-          // You would implement this method in databaseService
-          // await databaseService.saveCalculatorHistory(user.id, metadata.expression, result.solution);
-        }
-        break;
-
       case 'generate_code':
         if (!metadata?.problem) {
           return NextResponse.json(
