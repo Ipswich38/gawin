@@ -1,5 +1,6 @@
 'use client';
 
+import Link from "next/link";
 // import { Button } from "@/components/ui/Button"; // Unused import
 import { useEffect, useState } from "react";
 
@@ -704,16 +705,13 @@ export default function Home() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <Link href="/auth/login">
-                <button className="text-sm opacity-60 hover:opacity-80 transition-opacity" style={{ color: '#051a1c' }}>
-                  Sign in
-                </button>
-              </Link>
-              <Link href="/auth/signup">
-                <button className="text-white text-sm px-5 py-2.5 rounded-2xl hover:opacity-90 transition-all shadow-sm" style={{ backgroundColor: '#00A3A3' }}>
-                  Sign up
-                </button>
-              </Link>
+              <button 
+                onClick={() => setShowAuthModal(true)}
+                className="text-white text-sm px-5 py-2.5 rounded-2xl hover:opacity-90 transition-all shadow-sm" 
+                style={{ backgroundColor: '#00A3A3' }}
+              >
+                Enter Access Code
+              </button>
             </div>
           </div>
         </div>
