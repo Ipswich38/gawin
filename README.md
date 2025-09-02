@@ -2,6 +2,9 @@
 
 > Your pocket AI companion, tutor and chat buddy... built for learners and dreamers
 
+## 🔐 Access Code
+Use access code **GAWINAPP2025** to enter the application.
+
 ## 🚀 Features
 
 - **🎓 AI Academy** - Interactive AI learning courses
