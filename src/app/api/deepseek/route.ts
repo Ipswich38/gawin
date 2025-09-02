@@ -79,8 +79,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Record usage if user is logged in
-    if (user && result.usage) {
+    // Record usage if user is logged in and usage data exists
+    if (user && 'usage' in result && result.usage) {
       await databaseService.recordUsage(
         user.id,
         'chat',
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: result,
-      usage: result.usage
+      ...('usage' in result && result.usage ? { usage: result.usage } : {})
     });
 
   } catch (error) {
