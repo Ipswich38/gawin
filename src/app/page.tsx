@@ -3,7 +3,6 @@
 import Link from "next/link";
 // import { Button } from "@/components/ui/Button"; // Unused import
 import { useEffect, useState } from "react";
-import { databaseService } from '@/lib/services/databaseService';
 
 // ChatInterface Component
 function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: string }; onLogout: () => void }) {
@@ -449,79 +448,62 @@ function TicTacToeGrid({ onFeatureClick }: { onFeatureClick: () => void }) {
   );
 }
 
-// AuthModal Component
-function AuthModal({ onClose }: { onClose: () => void }) {
-  const [isSignUp, setIsSignUp] = useState(true);
+// AccessCodeModal Component
+function AccessCodeModal({ onClose }: { onClose: () => void }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    fullName: '',
-    confirmPassword: ''
-  });
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    setError('');
-  };
+  const [accessCode, setAccessCode] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    try {
-      if (isSignUp) {
-        // Sign up validation
-        if (!formData.fullName.trim()) {
-          setError('Full name is required');
-          setIsLoading(false);
-          return;
+    // Check access code
+    if (accessCode.trim().toLowerCase() === 'gawinapp2025') {
+      setSuccess('Access granted! Welcome to Gawin AI.');
+      
+      // Create a guest session
+      const guestUser = {
+        id: 'guest_' + Date.now(),
+        email: 'guest@gawin.ai',
+        full_name: 'Gawin User',
+        subscription_tier: 'free',
+        credits_remaining: 100,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        email_verified: true,
+        preferences: {
+          theme: 'auto',
+          language: 'en',
+          notifications_enabled: true,
+          ai_model_preference: 'deepseek-r1',
+          tutor_mode_default: false
         }
-        if (formData.password !== formData.confirmPassword) {
-          setError('Passwords do not match');
-          setIsLoading(false);
-          return;
-        }
-        if (formData.password.length < 8) {
-          setError('Password must be at least 8 characters long');
-          setIsLoading(false);
-          return;
-        }
+      };
 
-        // Sign up with database service
-        const result = await databaseService.signUp(formData.email, formData.password, formData.fullName);
-        
-        if (result.error) {
-          setError(result.error);
-        } else {
-          setSuccess('Account created successfully! You can now sign in.');
-          setIsSignUp(false);
-          setFormData({ email: formData.email, password: '', fullName: '', confirmPassword: '' });
-        }
-      } else {
-        // Sign in
-        const result = await databaseService.signIn(formData.email, formData.password);
-        
-        if (result.error) {
-          setError(result.error);
-        } else if (result.user) {
-          setSuccess('Sign in successful! Welcome back.');
-          // Close modal after success
-          setTimeout(() => {
-            onClose();
-            // Refresh page to show authenticated state
-            window.location.reload();
-          }, 1000);
-        }
-      }
-    } catch (error) {
-      setError('An unexpected error occurred. Please try again.');
-    } finally {
-      setIsLoading(false);
+      const guestSession = {
+        access_token: 'guest_access_' + Date.now(),
+        refresh_token: 'guest_refresh_' + Date.now(),
+        expires_at: Date.now() + (24 * 60 * 60 * 1000), // 24 hours
+        user: guestUser
+      };
+
+      // Store in localStorage
+      localStorage.setItem('user', JSON.stringify(guestUser));
+      localStorage.setItem('session', JSON.stringify(guestSession));
+
+      // Close modal and refresh to show authenticated state
+      setTimeout(() => {
+        onClose();
+        window.location.reload();
+      }, 1000);
+    } else {
+      setError('Invalid access code. Please try again.');
     }
+
+    setIsLoading(false);
   };
 
   return (
@@ -533,12 +515,12 @@ function AuthModal({ onClose }: { onClose: () => void }) {
       <div className="fixed inset-0 flex items-center justify-center z-50 p-6">
         <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-8 max-w-md w-full shadow-2xl border border-white/40">
           <div className="text-center mb-6">
-            <div className="text-3xl mb-4">🚀</div>
+            <div className="text-3xl mb-4">🔐</div>
             <h3 className="text-xl font-medium mb-2" style={{ color: '#051a1c' }}>
-              {isSignUp ? 'Join Gawin AI' : 'Welcome Back'}
+              Access Gawin AI
             </h3>
             <p className="text-sm opacity-70" style={{ color: '#051a1c' }}>
-              {isSignUp ? 'Create your account to get started with AI learning' : 'Sign in to continue your learning journey'}
+              Enter your access code to continue
             </p>
           </div>
 
@@ -555,61 +537,22 @@ function AuthModal({ onClose }: { onClose: () => void }) {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {isSignUp && (
-              <div>
-                <input
-                  type="text"
-                  name="fullName"
-                  placeholder="Full Name"
-                  value={formData.fullName}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full p-3 rounded-xl border border-gray-300 focus:border-[#00A3A3] focus:outline-none transition-colors"
-                  style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }}
-                />
-              </div>
-            )}
-
             <div>
               <input
-                type="email"
-                name="email"
-                placeholder="Email Address"
-                value={formData.email}
-                onChange={handleInputChange}
+                type="text"
+                name="accessCode"
+                placeholder="Enter Access Code"
+                value={accessCode}
+                onChange={(e) => {
+                  setAccessCode(e.target.value);
+                  setError('');
+                }}
                 required
-                className="w-full p-3 rounded-xl border border-gray-300 focus:border-[#00A3A3] focus:outline-none transition-colors"
+                className="w-full p-3 rounded-xl border border-gray-300 focus:border-[#00A3A3] focus:outline-none transition-colors text-center font-mono tracking-wider"
                 style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }}
+                autoComplete="off"
               />
             </div>
-
-            <div>
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleInputChange}
-                required
-                className="w-full p-3 rounded-xl border border-gray-300 focus:border-[#00A3A3] focus:outline-none transition-colors"
-                style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }}
-              />
-            </div>
-
-            {isSignUp && (
-              <div>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  placeholder="Confirm Password"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full p-3 rounded-xl border border-gray-300 focus:border-[#00A3A3] focus:outline-none transition-colors"
-                  style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }}
-                />
-              </div>
-            )}
 
             <button
               type="submit"
@@ -623,23 +566,14 @@ function AuthModal({ onClose }: { onClose: () => void }) {
                 if (!isLoading) e.currentTarget.style.backgroundColor = '#00A3A3';
               }}
             >
-              {isLoading ? (isSignUp ? 'Creating Account...' : 'Signing In...') : (isSignUp ? 'Create Account' : 'Sign In')}
+              {isLoading ? 'Verifying...' : 'Access App'}
             </button>
           </form>
 
-          <div className="text-center mt-4">
-            <button
-              onClick={() => {
-                setIsSignUp(!isSignUp);
-                setError('');
-                setSuccess('');
-                setFormData({ email: '', password: '', fullName: '', confirmPassword: '' });
-              }}
-              className="text-sm opacity-70 hover:opacity-100 transition-opacity"
-              style={{ color: '#00A3A3' }}
-            >
-              {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
-            </button>
+          <div className="text-center mt-6">
+            <div className="text-xs opacity-50" style={{ color: '#051a1c' }}>
+              Need an access code? Contact support
+            </div>
           </div>
 
           <button 
@@ -821,21 +755,19 @@ export default function Home() {
               e.currentTarget.style.backgroundColor = '#00A3A3';
             }}
           >
-            Get Started
+            Enter Access Code
           </button>
           
           <div className="text-center">
-            <Link href="/auth/login">
-              <button className="text-sm opacity-60 hover:opacity-80 transition-all" style={{ color: '#051a1c' }}>
-                Already have an account? Sign in →
-              </button>
-            </Link>
+            <div className="text-sm opacity-60" style={{ color: '#051a1c' }}>
+              Access code required to use Gawin AI
+            </div>
           </div>
         </div>
       </main>
 
-      {/* Auth Modal */}
-      {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
+      {/* Access Code Modal */}
+      {showAuthModal && <AccessCodeModal onClose={() => setShowAuthModal(false)} />}
 
       {/* Minimal Footer */}
       <footer className="mt-16">
