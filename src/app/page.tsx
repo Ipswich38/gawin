@@ -43,11 +43,14 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
 
     // Remove explicit thinking blocks and verbose reasoning
     let cleanResponse = rawResponse
+      .replace(/<think>[\s\S]*?<\/think>/gi, '') // Remove <think> tags
       .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '') // Remove <thinking> tags
       .replace(/\*\*Thinking:\*\*[\s\S]*?(?=\n\n|$)/gi, '') // Remove **Thinking:** blocks
       .replace(/Let me think about this[\s\S]*?(?=\n\n|$)/gi, '') // Remove verbose thinking
       .replace(/I need to consider[\s\S]*?(?=\n\n|$)/gi, '') // Remove consideration blocks
       .replace(/First, let me analyze[\s\S]*?(?=\n\n|$)/gi, '') // Remove analysis blocks
+      .replace(/I'm DeepSeek-R1/gi, 'I\'m Gawin AI') // Replace DeepSeek identity
+      .replace(/DeepSeek-R1/gi, 'Gawin AI') // Replace any DeepSeek references
       .replace(/^\s*\n+/gm, '') // Remove extra newlines
       .trim();
 
