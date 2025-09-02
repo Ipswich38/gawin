@@ -1,4 +1,4 @@
-import Groq from 'groq-sdk';
+import { deepseekService } from './deepseekService';
 import { searchService, SearchResult, SearchResponse } from './searchService';
 import { memoryService } from './memoryService';
 import { AdvancedReasoningEngine, ReasoningMode, InferenceResult } from './advancedReasoningEngine';
@@ -46,21 +46,12 @@ export interface Citation {
 }
 
 class PerplexityService {
-  private groq: Groq;
-  private readonly GROQ_API_KEY = process.env.NEXT_PUBLIC_GROQ_API_KEY;
+  // Now uses OpenRouter through deepseekService
   private reasoningEngine: AdvancedReasoningEngine;
 
   constructor() {
-    console.log('🔑 Perplexity Service API Key check:', {
-      exists: !!this.GROQ_API_KEY,
-      length: this.GROQ_API_KEY?.length,
-      first6: this.GROQ_API_KEY?.substring(0, 6)
-    });
+    console.log('🔑 Perplexity Service now using OpenRouter');
     
-    this.groq = new Groq({
-      apiKey: this.GROQ_API_KEY,
-      dangerouslyAllowBrowser: true
-    });
     this.reasoningEngine = new AdvancedReasoningEngine();
     
     console.log('🧠 Perplexity Service enhanced with Advanced Reasoning Engine');
@@ -74,7 +65,7 @@ class PerplexityService {
     try {
       console.log(`🧠 Enhanced Reasoning: Processing "${query}"`);
       console.log('🔧 Service initialization check:', {
-        hasGroq: !!this.groq,
+        hasOpenRouter: true,
         hasReasoningEngine: !!this.reasoningEngine,
         apiKeyConfigured: this.isConfigured()
       });
@@ -216,7 +207,7 @@ class PerplexityService {
         );
 
         console.log('🤖 Generating reasoning-enhanced response...');
-        response = await this.callGroqWithContext(enhancedPrompt, searchResults.length > 0);
+        response = await this.callOpenRouterWithContext(enhancedPrompt, searchResults.length > 0);
       } catch (responseError) {
         console.error('❌ Response generation error:', responseError);
         // Create fallback response
@@ -605,30 +596,30 @@ CRITICAL: Provide clean responses without any citation markers or links.`;
   }
 
   /**
-   * Calls Groq API with appropriate model selection
+   * Calls OpenRouter API with appropriate model selection
    */
-  private async callGroqWithContext(prompt: string, hasWebContext: boolean): Promise<string> {
+  private async callOpenRouterWithContext(prompt: string, hasWebContext: boolean): Promise<string> {
     try {
       // Use more powerful model when we have web context
       const model = hasWebContext ? 'llama3-70b-8192' : 'llama3-8b-8192';
 
-      const completion = await this.groq.chat.completions.create({
-        messages: [
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        model: model,
-        temperature: 0.3,
-        max_tokens: 1024,
-        top_p: 0.9,
-      });
+      const messages = [
+        {
+          role: 'user' as const,
+          content: prompt
+        }
+      ];
 
-      return completion.choices[0]?.message?.content || 'No response generated';
+      const result = await deepseekService.chat(messages, 'general');
+      
+      if (result.success && result.response) {
+        return result.response;
+      }
+      
+      return 'No response generated';
     } catch (error) {
-      console.error('Groq API error:', error);
-      throw new Error(`Groq API failed: ${error}`);
+      console.error('OpenRouter API error:', error);
+      throw new Error(`OpenRouter API failed: ${error}`);
     }
   }
 
@@ -691,7 +682,8 @@ CRITICAL: Provide clean responses without any citation markers or links.`;
    * Validates if the service is properly configured
    */
   isConfigured(): boolean {
-    return !!this.GROQ_API_KEY;
+    // Always configured since we use OpenRouter through deepseekService
+    return true;
   }
 
   /**
@@ -700,17 +692,17 @@ CRITICAL: Provide clean responses without any citation markers or links.`;
   async getStatus(): Promise<{ status: 'ready' | 'error'; message: string }> {
     try {
       if (!this.isConfigured()) {
-        return { status: 'error', message: 'Groq API key not configured' };
+        return { status: 'error', message: 'OpenRouter API not configured' };
       }
 
-      // Test API connection
-      await this.groq.chat.completions.create({
-        messages: [{ role: 'user', content: 'Hello' }],
-        model: 'llama3-8b-8192',
-        max_tokens: 10
-      });
-
-      return { status: 'ready', message: 'Service ready' };
+      // Test API connection using deepseekService
+      const testResult = await deepseekService.healthCheck();
+      
+      if (testResult.status === 'healthy') {
+        return { status: 'ready', message: 'Service ready with OpenRouter' };
+      } else {
+        return { status: 'error', message: testResult.message };
+      }
     } catch (error) {
       return { status: 'error', message: `Service error: ${error}` };
     }

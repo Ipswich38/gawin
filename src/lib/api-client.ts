@@ -6,13 +6,7 @@ export interface AIMessage {
   content: string;
 }
 
-export interface GroqResponse {
-  choices: Array<{
-    message: {
-      content: string;
-    };
-  }>;
-}
+// Removed GroqResponse interface - now using OpenRouter
 
 export interface ImageGenerationOptions {
   provider?: 'pollinations' | 'deepai';
@@ -58,21 +52,7 @@ class APIClient {
     return response.json();
   }
 
-  // Groq AI Chat Completions
-  async chatGroq(
-    messages: AIMessage[],
-    model: string = 'llama-3.3-70b-versatile',
-    options: any = {}
-  ): Promise<GroqResponse> {
-    return this.request<GroqResponse>('/groq', {
-      method: 'POST',
-      body: JSON.stringify({
-        messages,
-        model,
-        ...options,
-      }),
-    });
-  }
+  // Removed chatGroq - now using OpenRouter through deepseek endpoint
 
   // Perplexity AI with web search
   async chatPerplexity(
@@ -156,7 +136,7 @@ class APIClient {
   // Health check for API endpoints
   async healthCheck(): Promise<{ status: string; endpoints: string[] }> {
     try {
-      const endpoints = ['/groq', '/perplexity', '/image', '/ocr'];
+      const endpoints = ['/deepseek', '/perplexity', '/image'];
       const results = await Promise.allSettled(
         endpoints.map(endpoint => 
           fetch(`${this.baseURL}/api${endpoint}`, { method: 'GET' })

@@ -1,7 +1,7 @@
 export interface AIModel {
   id: string;
   name: string;
-  provider: 'groq';
+  provider: 'openrouter';
   type: 'text' | 'vision' | 'audio' | 'reasoning';
   description: string;
   maxTokens: number;
@@ -47,19 +47,4 @@ export interface Citation {
   position: number;
 }
 
-export interface GroqResponse {
-  choices: Array<{
-    message: {
-      role: string;
-      content: string;
-    };
-    finish_reason: string;
-  }>;
-  usage: {
-    prompt_tokens: number;
-    completion_tokens: number;
-    total_tokens: number;
-  };
-  model: string;
-  responseTime?: number;
-}
+// Removed GroqResponse - now using OpenRouter
