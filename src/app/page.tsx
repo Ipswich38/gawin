@@ -12,6 +12,47 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Array<{id: number, role: 'user' | 'assistant', content: string, timestamp: string}>>([]);
   const [chatHistory, setChatHistory] = useState<Array<{id: number, title: string, timestamp: string, preview: string}>>([]);
+  const [cognitiveProcess, setCognitiveProcess] = useState<string>('');
+
+  // Helper function to process AI response and extract cognitive indicators
+  const processAIResponse = (rawResponse: string) => {
+    // Look for thinking patterns and extract cognitive process hints
+    const thinkingPatterns = [
+      /thinking about|considering|analyzing|evaluating/gi,
+      /let me think|let me consider|I need to/gi,
+      /this seems like|this appears to be|this looks like/gi,
+      /first|second|third|next|then|finally/gi,
+      /math|calculation|compute|solve/gi,
+      /code|programming|algorithm|function/gi,
+      /creative|story|write|compose/gi,
+      /grammar|language|translate/gi
+    ];
+
+    let cognitiveHint = '';
+    
+    // Extract subtle cognitive indicators
+    if (thinkingPatterns[0].test(rawResponse)) cognitiveHint = 'analyzing...';
+    else if (thinkingPatterns[1].test(rawResponse)) cognitiveHint = 'processing...';
+    else if (thinkingPatterns[2].test(rawResponse)) cognitiveHint = 'evaluating...';
+    else if (thinkingPatterns[3].test(rawResponse)) cognitiveHint = 'structuring...';
+    else if (thinkingPatterns[4].test(rawResponse)) cognitiveHint = 'computing...';
+    else if (thinkingPatterns[5].test(rawResponse)) cognitiveHint = 'coding...';
+    else if (thinkingPatterns[6].test(rawResponse)) cognitiveHint = 'creating...';
+    else if (thinkingPatterns[7].test(rawResponse)) cognitiveHint = 'understanding...';
+    else cognitiveHint = 'thinking...';
+
+    // Remove explicit thinking blocks and verbose reasoning
+    let cleanResponse = rawResponse
+      .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '') // Remove <thinking> tags
+      .replace(/\*\*Thinking:\*\*[\s\S]*?(?=\n\n|$)/gi, '') // Remove **Thinking:** blocks
+      .replace(/Let me think about this[\s\S]*?(?=\n\n|$)/gi, '') // Remove verbose thinking
+      .replace(/I need to consider[\s\S]*?(?=\n\n|$)/gi, '') // Remove consideration blocks
+      .replace(/First, let me analyze[\s\S]*?(?=\n\n|$)/gi, '') // Remove analysis blocks
+      .replace(/^\s*\n+/gm, '') // Remove extra newlines
+      .trim();
+
+    return { cleanResponse, cognitiveHint };
+  };
 
   const promptSuggestions = [
     "Explain quantum computing in simple terms",
@@ -96,14 +137,23 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
         const data = await response.json();
         
         if (data.success && data.data.response) {
-          const assistantMessage = {
-            id: Date.now() + 1,
-            role: 'assistant' as const,
-            content: data.data.response,
-            timestamp: new Date().toLocaleTimeString()
-          };
+          // Process the AI response to extract cognitive indicators and clean content
+          const { cleanResponse, cognitiveHint } = processAIResponse(data.data.response);
           
-          setMessages(prev => [...prev, assistantMessage]);
+          // Show cognitive process briefly
+          setCognitiveProcess(cognitiveHint);
+          
+          setTimeout(() => {
+            const assistantMessage = {
+              id: Date.now() + 1,
+              role: 'assistant' as const,
+              content: cleanResponse,
+              timestamp: new Date().toLocaleTimeString()
+            };
+            
+            setMessages(prev => [...prev, assistantMessage]);
+            setCognitiveProcess(''); // Clear cognitive indicator
+          }, 1000); // Show cognitive process for 1 second
           
           // Add to chat history
           const newChat = {
@@ -362,7 +412,7 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
                   </div>
                 </div>
               ))}
-              {isLoading && (
+              {(isLoading || cognitiveProcess) && (
                 <div className="flex justify-start">
                   <div className="bg-white/60 backdrop-blur-md text-[#051a1c] border border-white/40 shadow-lg px-6 py-4 rounded-3xl">
                     <div className="flex items-center space-x-2">
@@ -371,7 +421,9 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
                         <div className="w-2 h-2 bg-[#051a1c] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
                         <div className="w-2 h-2 bg-[#051a1c] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                       </div>
-                      <span className="text-sm opacity-60">Gawin is thinking...</span>
+                      <span className="text-sm opacity-60 italic">
+                        {cognitiveProcess || 'Gawin is thinking...'}
+                      </span>
                     </div>
                   </div>
                 </div>
