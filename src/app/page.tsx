@@ -538,7 +538,7 @@ function AuthModal({ onClose }: { onClose: () => void }) {
               {isSignUp ? 'Join Gawin AI' : 'Welcome Back'}
             </h3>
             <p className="text-sm opacity-70" style={{ color: '#051a1c' }}>
-              {isSignUp ? 'Create your account to get started' : 'Sign in to continue your learning'}
+              {isSignUp ? 'Create your account to get started with AI learning' : 'Sign in to continue your learning journey'}
             </p>
           </div>
 
