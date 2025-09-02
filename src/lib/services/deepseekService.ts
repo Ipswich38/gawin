@@ -27,7 +27,7 @@ export interface DeepSeekResponse {
 }
 
 export interface DeepSeekConfig {
-  model: 'deepseek-r1' | 'deepseek-r1-distill-llama-70b';
+  model: 'deepseek/deepseek-r1' | 'deepseek/deepseek-r1-distill-llama-70b' | 'deepseek/deepseek-chat';
   temperature?: number;
   max_tokens?: number;
   stream?: boolean;
@@ -36,12 +36,12 @@ export interface DeepSeekConfig {
 class DeepSeekService {
   private static instance: DeepSeekService;
   private apiKey: string | null = null;
-  private baseUrl = 'https://api.deepseek.com/v1';
+  private baseUrl = 'https://openrouter.ai/api/v1';
 
   private constructor() {
-    this.apiKey = process.env.DEEPSEEK_API_KEY || null;
+    this.apiKey = process.env.OPENROUTER_API_KEY || null;
     if (!this.apiKey) {
-      console.warn('🤖 DeepSeek API key not found. DeepSeek R1 features will be disabled.');
+      console.warn('🤖 OpenRouter API key not found. AI features will be disabled.');
     }
   }
 
@@ -58,13 +58,13 @@ class DeepSeekService {
 
   async generateResponse(
     messages: DeepSeekMessage[],
-    config: DeepSeekConfig = { model: 'deepseek-r1' }
+    config: DeepSeekConfig = { model: 'deepseek/deepseek-chat' }
   ): Promise<{ success: boolean; response?: string; error?: string; usage?: any }> {
     try {
       if (!this.isConfigured()) {
         return {
           success: false,
-          error: 'DeepSeek API not configured. Please set DEEPSEEK_API_KEY environment variable.'
+          error: 'OpenRouter API not configured. Please set OPENROUTER_API_KEY environment variable.'
         };
       }
 
@@ -92,7 +92,9 @@ class DeepSeekService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`
+          'Authorization': `Bearer ${this.apiKey}`,
+          'HTTP-Referer': 'https://gawin-ai.vercel.app',
+          'X-Title': 'Gawin AI - Your Pocket AI Companion'
         },
         body: JSON.stringify(requestBody)
       });
@@ -100,7 +102,7 @@ class DeepSeekService {
       if (!response.ok) {
         const errorData = await response.json();
         systemGuardianService.reportError(
-          `DeepSeek API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`,
+          `OpenRouter API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`,
           'api',
           'medium'
         );
@@ -127,7 +129,7 @@ class DeepSeekService {
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      systemGuardianService.reportError(`DeepSeek service error: ${errorMessage}`, 'api', 'high');
+      systemGuardianService.reportError(`OpenRouter service error: ${errorMessage}`, 'api', 'high');
       return {
         success: false,
         error: errorMessage
@@ -168,7 +170,7 @@ class DeepSeekService {
         }
       ];
 
-      const result = await this.generateResponse(messages, { model: 'deepseek-r1', temperature: 0.1 });
+      const result = await this.generateResponse(messages, { model: 'deepseek/deepseek-r1', temperature: 0.1 });
       
       if (!result.success || !result.response) {
         return { success: false, error: result.error };
@@ -242,7 +244,7 @@ class DeepSeekService {
         }
       ];
 
-      const result = await this.generateResponse(messages, { model: 'deepseek-r1', temperature: 0.3 });
+      const result = await this.generateResponse(messages, { model: 'deepseek/deepseek-r1', temperature: 0.3 });
       
       if (!result.success || !result.response) {
         return { success: false, error: result.error };
@@ -314,7 +316,7 @@ class DeepSeekService {
         }
       ];
 
-      const result = await this.generateResponse(messages, { model: 'deepseek-r1', temperature: 0.4 });
+      const result = await this.generateResponse(messages, { model: 'deepseek/deepseek-r1', temperature: 0.4 });
       
       if (!result.success || !result.response) {
         return { success: false, error: result.error };
@@ -373,7 +375,7 @@ class DeepSeekService {
         ];
       }
 
-      return await this.generateResponse(messages, { model: 'deepseek-r1' });
+      return await this.generateResponse(messages, { model: 'deepseek/deepseek-r1' });
 
     } catch (error) {
       return {
@@ -387,7 +389,7 @@ class DeepSeekService {
   async healthCheck(): Promise<{ status: 'healthy' | 'degraded' | 'offline'; message: string }> {
     try {
       if (!this.isConfigured()) {
-        return { status: 'offline', message: 'DeepSeek API not configured' };
+        return { status: 'offline', message: 'OpenRouter API not configured' };
       }
 
       const testMessage: DeepSeekMessage[] = [
@@ -395,19 +397,19 @@ class DeepSeekService {
       ];
 
       const result = await this.generateResponse(testMessage, { 
-        model: 'deepseek-r1', 
+        model: 'deepseek/deepseek-chat', 
         max_tokens: 10, 
         temperature: 0 
       });
 
       if (result.success) {
-        return { status: 'healthy', message: 'DeepSeek R1 API operational' };
+        return { status: 'healthy', message: 'OpenRouter API operational' };
       } else {
         return { status: 'degraded', message: result.error || 'API issues detected' };
       }
 
     } catch (error) {
-      return { status: 'offline', message: 'DeepSeek R1 API unavailable' };
+      return { status: 'offline', message: 'OpenRouter API unavailable' };
     }
   }
 }

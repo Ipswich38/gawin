@@ -40,6 +40,13 @@ export class SystemGuardianService {
   }
 
   private initializeGuardian(): void {
+    // Only initialize in browser environment
+    if (typeof window === 'undefined') {
+      console.log('🛡️ System Guardian - Server environment detected, monitoring disabled');
+      this.monitoringEnabled = false;
+      return;
+    }
+    
     // Start monitoring systems
     this.startPerformanceMonitoring();
     this.startSecurityMonitoring();
@@ -164,6 +171,8 @@ export class SystemGuardianService {
    * Recovery strategies
    */
   private recoverFromNetworkIssue(): void {
+    if (typeof window === 'undefined') return;
+    
     // Clear any cached failed requests
     localStorage.removeItem('failed_requests');
     
@@ -177,12 +186,14 @@ export class SystemGuardianService {
     this.clearOldErrorReports();
     
     // Trigger garbage collection if available
-    if ('gc' in window) {
+    if (typeof window !== 'undefined' && 'gc' in window) {
       (window as any).gc();
     }
   }
 
   private recoverFromStateIssue(): void {
+    if (typeof window === 'undefined') return;
+    
     // Reset corrupted state
     try {
       const currentState = localStorage.getItem('app_state');
@@ -231,6 +242,8 @@ export class SystemGuardianService {
    * Security Threat Scanning
    */
   private scanForSecurityThreats(): void {
+    if (typeof window === 'undefined') return;
+    
     // Check for XSS attempts in localStorage
     try {
       for (let i = 0; i < localStorage.length; i++) {
@@ -315,6 +328,8 @@ export class SystemGuardianService {
    * Mitigate security threats
    */
   private mitigateSecurityThreat(alert: any): void {
+    if (typeof window === 'undefined') return;
+    
     // Block suspicious content
     if (alert.source === 'localStorage') {
       // Already handled in scanning
@@ -333,6 +348,8 @@ export class SystemGuardianService {
    * Utility methods for health calculation
    */
   private getMemoryUsage(): number {
+    if (typeof window === 'undefined') return 0;
+    
     if ('memory' in performance) {
       const memory = (performance as any).memory;
       return memory.usedJSHeapSize / memory.totalJSHeapSize;
@@ -441,7 +458,7 @@ export class SystemGuardianService {
       health,
       security: this.getSecurityStatus(),
       errors: this.errorReports.filter(e => !e.resolved).length,
-      uptime: Date.now() - (window as any).appStartTime || 0
+      uptime: typeof window !== 'undefined' ? Date.now() - (window as any).appStartTime || 0 : 0
     };
   }
 
@@ -454,8 +471,10 @@ export class SystemGuardianService {
   }
 }
 
-// Initialize app start time
-(window as any).appStartTime = Date.now();
+// Initialize app start time (browser only)
+if (typeof window !== 'undefined') {
+  (window as any).appStartTime = Date.now();
+}
 
 // Export singleton instance
 export const systemGuardianService = SystemGuardianService.getInstance();
