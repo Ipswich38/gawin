@@ -37,7 +37,7 @@ export default function StudyCommons({ onClose }: StudyCommonsProps) {
     const welcomeMessage: Message = {
       id: 'welcome-' + Date.now(),
       user: 'Gawin AI',
-      text: '👋 Welcome to Study Commons! I\'m here as your AI tutor and learning companion.\n\nFeel free to:\n• Ask questions about any academic topic\n• Discuss concepts with fellow learners\n• Get help with homework or research\n\nI\'ll provide gentle guidance when needed. Let\'s create an amazing learning environment together! 🎓',
+      text: '👋 Hey everyone! Welcome to Study Commons! I\'m Gawin - think of me as your friendly study buddy who\'s been around the academic block a few times! 😄\n\nI love:\n• Helping with tricky concepts across all subjects\n• Cheering on good collaboration between learners\n• Sharing study tips and keeping things positive\n• Being your study motivation when things get tough\n\nJust chat naturally - I\'ll jump in when I can help! Let\'s make learning fun together! 🌟📚',
       timestamp: new Date().toLocaleTimeString(),
       isAI: true
     };
@@ -142,42 +142,65 @@ export default function StudyCommons({ onClose }: StudyCommonsProps) {
   const analyzeConversationContext = (recentMessages: Message[]): { shouldRespond: boolean; responseType: string; topic: string } => {
     if (aiCooldown) return { shouldRespond: false, responseType: '', topic: '' };
     
-    const lastFewMessages = recentMessages.slice(-5);
+    const lastFewMessages = recentMessages.slice(-6);
     const userMessages = lastFewMessages.filter(m => !m.isAI).map(m => m.text.toLowerCase());
+    const lastUserMessage = userMessages[userMessages.length - 1] || '';
     
-    if (userMessages.length < 2) return { shouldRespond: false, responseType: '', topic: '' };
+    // More responsive - only need 1 user message to potentially respond
+    if (userMessages.length < 1) return { shouldRespond: false, responseType: '', topic: '' };
     
     const combinedText = userMessages.join(' ');
     
+    // Detect direct questions or greetings (respond immediately)
+    if (/^(hi|hello|hey|gawin|anyone|question|can someone|does anyone know)/.test(lastUserMessage)) {
+      return { shouldRespond: true, responseType: 'friendly_response', topic: 'general' };
+    }
+    
     // Detect confusion or requests for help
-    if (/help|confused|don't understand|what.*mean|explain|how.*work|stuck|lost/.test(combinedText)) {
+    if (/help|confused|don't understand|what.*mean|explain|how.*work|stuck|lost|difficult|hard/.test(combinedText)) {
       return { shouldRespond: true, responseType: 'help', topic: 'general' };
     }
     
-    // Detect specific subject areas
-    if (/math|equation|algebra|calculus|geometry|trigonometry|statistics/.test(combinedText)) {
+    // Detect study motivation needs
+    if (/tired|bored|give up|quit|can't do|too hard|frustrated|stressed/.test(combinedText)) {
+      return { shouldRespond: true, responseType: 'motivation', topic: 'study_support' };
+    }
+    
+    // Detect specific subject areas with more keywords
+    if (/math|equation|algebra|calculus|geometry|trigonometry|statistics|solve|calculate|formula|number/.test(combinedText)) {
       return { shouldRespond: true, responseType: 'subject_help', topic: 'mathematics' };
     }
     
-    if (/physics|force|energy|momentum|velocity|acceleration|newton|einstein/.test(combinedText)) {
+    if (/physics|force|energy|momentum|velocity|acceleration|newton|einstein|motion|gravity|wave/.test(combinedText)) {
       return { shouldRespond: true, responseType: 'subject_help', topic: 'physics' };
     }
     
-    if (/chemistry|molecule|atom|element|reaction|organic|periodic/.test(combinedText)) {
+    if (/chemistry|molecule|atom|element|reaction|organic|periodic|chemical|compound|bond/.test(combinedText)) {
       return { shouldRespond: true, responseType: 'subject_help', topic: 'chemistry' };
     }
     
-    if (/biology|cell|dna|evolution|genetics|organism|photosynthesis/.test(combinedText)) {
+    if (/biology|cell|dna|evolution|genetics|organism|photosynthesis|life|living|species/.test(combinedText)) {
       return { shouldRespond: true, responseType: 'subject_help', topic: 'biology' };
     }
     
-    if (/history|ancient|medieval|war|civilization|culture|empire/.test(combinedText)) {
+    if (/history|ancient|medieval|war|civilization|culture|empire|century|historical/.test(combinedText)) {
       return { shouldRespond: true, responseType: 'subject_help', topic: 'history' };
     }
     
+    // Detect good study habits and collaboration
+    if (/thanks|thank you|got it|understand now|makes sense|helpful/.test(combinedText)) {
+      return { shouldRespond: true, responseType: 'positive_reinforcement', topic: 'learning' };
+    }
+    
     // Detect when students are sharing knowledge correctly
-    if (/formula|definition|solution|answer|correct|exactly|precisely/.test(combinedText) && userMessages.length >= 3) {
+    if (/formula|definition|solution|answer|correct|exactly|precisely/.test(combinedText) && userMessages.length >= 2) {
       return { shouldRespond: true, responseType: 'encouragement', topic: 'learning' };
+    }
+    
+    // Random friendly check-ins (10% chance after 4+ messages without AI)
+    const nonAIMessages = lastFewMessages.filter(m => !m.isAI);
+    if (nonAIMessages.length >= 4 && Math.random() < 0.1) {
+      return { shouldRespond: true, responseType: 'study_buddy_checkin', topic: 'general' };
     }
     
     return { shouldRespond: false, responseType: '', topic: '' };
@@ -185,40 +208,71 @@ export default function StudyCommons({ onClose }: StudyCommonsProps) {
 
   const generateAIResponse = (responseType: string, topic: string): string => {
     const responses: Record<string, string[]> = {
+      friendly_response: [
+        "Hey there! 👋 What's on your mind? I'm here if you need help with anything!",
+        "Hi! Great to see you here! Are you working on something interesting? 😊",
+        "Hello! I'm around if you need a study buddy or want to bounce ideas off someone! ✨",
+        "Hey! What are you studying today? Always happy to help a fellow learner! 📚"
+      ],
       help: [
-        "I see you might need some guidance! Feel free to ask specific questions - I'm here to help break down complex topics step by step. 🤔",
-        "Don't worry about feeling confused - that's part of learning! What specific concept would you like me to explain? 📚",
-        "I'm here to help! Try asking your question in a different way, and I'll do my best to provide a clear explanation. ✨"
+        "No worries, we've all been there! What specific part is tricky? I can help break it down. 🤔",
+        "Totally understand the confusion! Let's work through this together - what exactly is stumping you? 📚", 
+        "Been there! Sometimes looking at problems from a different angle helps. What's the main thing you're stuck on? ✨",
+        "Hey, learning is tough sometimes! What would help most - an example, explanation, or just talking through it? 🤓"
+      ],
+      motivation: [
+        "I get it, studying can be draining sometimes! 😅 Want to try a different approach or take a quick breather?",
+        "Totally normal to feel that way! Remember, even small progress counts. What if we break this into tiny steps? 💪",
+        "Been there! Sometimes our brain just needs a reset. Maybe try explaining what you DO understand first? 🌟",
+        "Oof, I feel you! Everyone hits walls. Want to tackle something easier first to build momentum? 🚀"
+      ],
+      positive_reinforcement: [
+        "Nice! Love seeing the lightbulb moments! 💡 You're getting it!",
+        "That's the spirit! Great job working through that! 🎉",
+        "Awesome! You're really getting the hang of this! Keep it up! ⭐",
+        "Yes! That feeling when things click is the best, right? You're doing great! 😊"
+      ],
+      study_buddy_checkin: [
+        "How's everyone doing? Just checking in on my study buddies! 😄",
+        "Hope the studying is going well! Anyone need a quick brain break? 🧠",
+        "Just popping in - you all are doing great! Keep up the good work! 💪",
+        "Friendly study buddy check! Remember to stay hydrated and stretch! 🌟"
       ],
       mathematics: [
-        "Math can be tricky! I'd be happy to walk through the problem step by step. What specific part is giving you trouble? 🧮",
-        "Great math discussion! Remember, breaking problems into smaller steps often makes them clearer. Need help with any specific concept? 📐",
-        "I notice you're working on math - would it help if I provided some additional examples or explained the underlying concepts? 🔢"
+        "Ooh, math time! 🧮 I actually enjoy working through these. What's the problem giving you trouble?",
+        "Math can be fun once it clicks! Want me to show you a trick or walk through the steps? 📐",
+        "Love a good math challenge! What part are you working on? I might know a shortcut! 🔢",
+        "Math buddies unite! 😄 What concept can we tackle together?"
       ],
       physics: [
-        "Physics concepts can be abstract! I can help explain the real-world applications or provide visual analogies. What would be most helpful? ⚛️",
-        "Interesting physics topic! Would it help if I explained the underlying principles or provided some practice problems? 🔬",
-        "Physics is all about understanding how our world works! Need me to clarify any concepts or provide additional examples? 🌟"
+        "Physics is like solving puzzles about how the universe works! ⚛️ What's got you curious?",
+        "Physics can be mind-bending but so cool! Want to work through the concept together? 🔬",
+        "I love physics discussions! It's like detective work but with equations. What's the mystery today? 🌟",
+        "Physics time! These concepts become so much clearer with examples. What are you exploring? 🚀"
       ],
       chemistry: [
-        "Chemistry involves a lot of complex interactions! I can help break down the molecular processes or explain the reactions step by step. 🧪",
-        "Great chemistry discussion! Would you like me to provide additional context about the chemical principles involved? ⚗️",
-        "Chemistry can be challenging - I'm here to help explain the bonds, reactions, or molecular structures you're discussing! 🔬"
+        "Chemistry is like cooking but with molecules! 🧪 What reaction are we figuring out?",
+        "Love chemistry - it's all about understanding how things bond and interact! What's puzzling you? ⚗️", 
+        "Chemistry can seem complex but it's just atoms being social! 😄 What compound or reaction?",
+        "Time for some molecular detective work! What chemical mystery are we solving? 🔬"
       ],
       biology: [
-        "Biology is fascinating! I can help explain the life processes or provide more details about the biological mechanisms. 🧬",
-        "Excellent biology topic! Would it be helpful if I explained how these biological systems work together? 🌱",
-        "Biology has so many interconnected concepts! Need me to clarify any processes or provide examples from nature? 🦋"
+        "Biology is amazing - life is so intricate! 🧬 What living system are we exploring?",
+        "Love biology discussions! Everything connects in such cool ways. What process interests you? 🌱",
+        "Biology is like studying the world's best engineering! What biological concept? 🦋",
+        "The complexity of life never stops fascinating me! What are you diving into? 🌿"
       ],
       history: [
-        "History provides great context for understanding our world! I can help explain the historical significance or connections to modern times. 📜",
-        "Fascinating historical topic! Would you like me to provide additional context about the time period or cultural significance? 🏛️",
-        "History is full of interesting connections! Need me to explain the causes and effects or related historical events? 📚"
+        "History is like time travel through stories! 📜 What period or event caught your interest?",
+        "I find history so fascinating - real people living amazing stories! What era are you exploring? 🏛️",
+        "History helps us understand today so much better! What historical topic? 📚",
+        "Love learning about how people lived and thought in different times! What's your focus? ⏳"
       ],
       encouragement: [
-        "Excellent explanation! I love seeing students help each other understand complex concepts. Keep up the great collaborative learning! 🌟",
-        "That's a fantastic way to explain it! Peer learning like this is one of the most effective ways to master subjects. Well done! 👏",
-        "Beautiful explanation! You're demonstrating real mastery by being able to teach others. This is how great learning communities work! 💫"
+        "Yes! That's exactly how peer learning should work! You're both getting it! 🌟",
+        "Love seeing students help each other like that! This is what good study groups are about! 👏",
+        "Perfect explanation! You clearly understand it well if you can teach it! Keep sharing knowledge! 💫",
+        "That collaborative spirit is awesome! You're creating such a positive learning environment! 🤝"
       ]
     };
 
@@ -228,16 +282,20 @@ export default function StudyCommons({ onClose }: StudyCommonsProps) {
 
   // Monitor conversation and provide AI assistance when appropriate
   useEffect(() => {
-    if (messages.length < 3) return;
+    if (messages.length < 2) return; // More responsive - only need 2 messages total
 
     const context = analyzeConversationContext(messages);
     
     if (context.shouldRespond && !aiCooldown) {
       // Set cooldown to prevent AI spam
       setAiCooldown(true);
-      setTimeout(() => setAiCooldown(false), 30000); // 30 second cooldown
+      setTimeout(() => setAiCooldown(false), 15000); // Reduced to 15 second cooldown
 
-      // Add AI response after a natural delay
+      // Add AI response after a natural delay (faster for greetings)
+      const isGreeting = context.responseType === 'friendly_response';
+      const baseDelay = isGreeting ? 1000 : 2000;
+      const randomDelay = Math.random() * (isGreeting ? 1000 : 2000);
+      
       setTimeout(() => {
         const aiResponse: Message = {
           id: 'ai-' + Date.now(),
@@ -247,7 +305,7 @@ export default function StudyCommons({ onClose }: StudyCommonsProps) {
           isAI: true
         };
         setMessages(prev => [...prev, aiResponse]);
-      }, 2000 + Math.random() * 3000); // 2-5 second natural delay
+      }, baseDelay + randomDelay); // 1-2 seconds for greetings, 2-4 seconds for others
     }
   }, [messages, aiCooldown]);
 
@@ -258,8 +316,8 @@ export default function StudyCommons({ onClose }: StudyCommonsProps) {
     if (!validation.allowed) {
       const warningMsg: Message = {
         id: Date.now().toString(),
-        user: "🛡️ Gawin AI (Moderator)",
-        text: `⚠️ ${validation.reason}\n\nI'm here to keep our Study Commons safe and focused on learning. Please keep discussions educational and respectful. Thanks for understanding! 🎓`,
+        user: "🛡️ Gawin AI",
+        text: `Hey there! 😅 ${validation.reason}\n\nI know I'm being a bit protective here, but I want to keep this space awesome for learning! Think of me as that older friend who looks out for everyone. Let's keep things educational and fun! Thanks! 💙📚`,
         timestamp: new Date().toLocaleTimeString(),
         isAI: true
       };
