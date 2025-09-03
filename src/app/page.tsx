@@ -189,6 +189,58 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
         const isSTEM = /math|physics|chemistry|biology|calculus|algebra|equation|formula|scientific|theorem/.test(currentInput.toLowerCase());
         const isCoding = /code|program|function|class|variable|debug|algorithm|javascript|python|react|typescript|css|html/.test(currentInput.toLowerCase());
         const isWriting = /write|essay|story|letter|email|article|blog|creative|compose|grammar|spelling/.test(currentInput.toLowerCase());
+        const isImageGeneration = /draw|create.*image|generate.*image|make.*image|paint|sketch|illustrate|picture|photo|artwork|visual/.test(currentInput.toLowerCase());
+        
+        // Handle image generation requests
+        if (isImageGeneration) {
+          setCognitiveProcess('🎨 FLUX.1-dev • generating image...');
+          
+          const imageResponse = await fetch('/api/huggingface', {
+            method: 'PUT', // PUT method for image generation
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              prompt: currentInput.replace(/draw|create.*image|generate.*image|make.*image|paint|sketch|illustrate/gi, '').trim(),
+              options: {
+                width: 1024,
+                height: 1024,
+                num_inference_steps: 28,
+                guidance_scale: 3.5
+              }
+            }),
+          });
+
+          const imageData = await imageResponse.json();
+          
+          if (imageData.success && imageData.data.image_url) {
+            setTimeout(() => {
+              const assistantMessage = {
+                id: Date.now() + 1,
+                role: 'assistant' as const,
+                content: `I've created an image for you! Here it is:
+
+![Generated Image](${imageData.data.image_url})
+
+*Generated using FLUX.1-dev model*`,
+                timestamp: new Date().toLocaleTimeString()
+              };
+              
+              setMessages(prev => [...prev, assistantMessage]);
+              setCognitiveProcess('');
+            }, 2000);
+          } else {
+            const errorMessage = {
+              id: Date.now() + 1,
+              role: 'assistant' as const,
+              content: `Sorry, I had trouble generating the image. Error: ${imageData.error || 'Unknown error'}. Please try again with a different description.`,
+              timestamp: new Date().toLocaleTimeString()
+            };
+            setMessages(prev => [...prev, errorMessage]);
+            setCognitiveProcess('');
+          }
+          return;
+        }
         
         // Use Hugging Face Pro for specialized tasks, DeepSeek for general chat
         const apiEndpoint = (isSTEM || isCoding || isWriting) ? '/api/huggingface' : '/api/deepseek';
@@ -574,6 +626,9 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
             <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-blue-100/70 to-blue-200/70 backdrop-blur-md rounded-2xl hover:from-blue-200/80 hover:to-blue-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-blue-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Explain quantum physics concepts")}>
               🔬 Science <span className="ml-1 text-xs opacity-60">(HF STEM)</span>
             </span>
+            <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-pink-100/70 to-pink-200/70 backdrop-blur-md rounded-2xl hover:from-pink-200/80 hover:to-pink-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-pink-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Draw a beautiful sunset over mountains")}>
+              🎨 Image Generation <span className="ml-1 text-xs opacity-60">(FLUX.1-dev)</span>
+            </span>
             <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Help me learn a new topic")}>
               📚 Learning <span className="ml-1 text-xs opacity-60">(DeepSeek)</span>
             </span>
@@ -582,13 +637,15 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
           {/* Model Info */}
           <div className="text-center mb-6">
             <div className="text-xs opacity-60" style={{ color: '#051a1c' }}>
-              <span className="inline-flex items-center space-x-1">
-                <span>🧠 Intelligent model routing:</span>
+              <div className="inline-flex items-center space-x-1 flex-wrap justify-center">
+                <span>🧠 Intelligent routing:</span>
                 <span className="px-2 py-1 bg-purple-100/50 rounded">STEM & Coding</span>
-                <span>→ Hugging Face Pro,</span>
-                <span className="px-2 py-1 bg-gray-100/50 rounded">General Chat</span>
+                <span>→ HF Pro,</span>
+                <span className="px-2 py-1 bg-pink-100/50 rounded">Images</span>
+                <span>→ FLUX.1-dev,</span>
+                <span className="px-2 py-1 bg-gray-100/50 rounded">Chat</span>
                 <span>→ DeepSeek</span>
-              </span>
+              </div>
             </div>
           </div>
 
