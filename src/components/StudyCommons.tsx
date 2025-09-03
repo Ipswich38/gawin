@@ -55,8 +55,7 @@ interface Message {
 }
 
 export default function StudyCommons({ onClose }: StudyCommonsProps) {
-  const [nickname, setNickname] = useState("");
-  const [joined, setJoined] = useState(false);
+  const nickname = "Anonymous";
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [warnings, setWarnings] = useState<Record<string, number>>({});
@@ -96,8 +95,6 @@ export default function StudyCommons({ onClose }: StudyCommonsProps) {
   }, []);
 
   useEffect(() => {
-    if (!joined) return;
-
     const channel = supabase.channel("study-commons")
       .on("broadcast", { event: "chat" }, ({ payload }) => {
         setMessages((prev) => [...prev, payload]);
@@ -107,7 +104,7 @@ export default function StudyCommons({ onClose }: StudyCommonsProps) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [joined]);
+  }, []);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -165,63 +162,6 @@ export default function StudyCommons({ onClose }: StudyCommonsProps) {
     return colors[index];
   };
 
-  if (!joined) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        style={{ backgroundColor: 'rgba(0,0,0,0.3)' }}
-      >
-        <motion.div
-          initial={{ y: 20 }}
-          animate={{ y: 0 }}
-          className="w-full max-w-md p-6 rounded-3xl shadow-2xl backdrop-blur-xl border border-white/20"
-          style={{
-            background: 'linear-gradient(135deg, rgba(255, 237, 213, 0.95) 0%, rgba(255, 248, 235, 0.95) 100%)'
-          }}
-        >
-          <div className="text-center mb-6">
-            <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">📚</span>
-            </div>
-            <h1 className="text-xl font-bold text-gray-800 mb-2">🎟️ Enter Study Commons</h1>
-            <p className="text-gray-600 text-sm">
-              Welcome! Please enter a nickname to join our AI-powered learning space.
-            </p>
-          </div>
-          
-          <div className="space-y-4">
-            <input
-              type="text"
-              placeholder="Enter your nickname"
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              className="w-full px-4 py-3 rounded-2xl border border-orange-200 focus:outline-none focus:ring-2 focus:ring-orange-300 bg-white/70 backdrop-blur-sm text-gray-700 placeholder:text-gray-500"
-              onKeyDown={(e) => e.key === "Enter" && nickname && setJoined(true)}
-            />
-            <button
-              onClick={() => nickname && setJoined(true)}
-              disabled={!nickname}
-              className="w-full py-3 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-medium rounded-2xl hover:from-orange-500 hover:to-orange-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Join Study Commons
-            </button>
-            <button
-              onClick={onClose}
-              className="w-full py-2 text-gray-600 hover:text-gray-800 transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
-          
-          <p className="text-xs text-gray-500 mt-4 text-center">
-            By joining, you agree to keep discussions academic and respectful.
-          </p>
-        </motion.div>
-      </motion.div>
-    );
-  }
 
   return (
     <Draggable handle=".drag-handle" bounds="parent">
