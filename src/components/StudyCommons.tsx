@@ -3,6 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { motion } from "framer-motion";
+import Draggable from "react-draggable";
+import { Resizable } from "react-resizable";
+import "../styles/resizable.css";
 
 // ✅ Supabase client setup
 const supabase = createClient(
@@ -58,6 +61,7 @@ export default function StudyCommons({ onClose }: StudyCommonsProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [warnings, setWarnings] = useState<Record<string, number>>({});
+  const [size, setSize] = useState({ width: 384, height: 600 });
 
   // Initialize with sample messages
   useEffect(() => {
@@ -194,7 +198,7 @@ export default function StudyCommons({ onClose }: StudyCommonsProps) {
               placeholder="Enter your nickname"
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
-              className="w-full px-4 py-3 rounded-2xl border border-orange-200 focus:outline-none focus:ring-2 focus:ring-orange-300 bg-white/70 backdrop-blur-sm"
+              className="w-full px-4 py-3 rounded-2xl border border-orange-200 focus:outline-none focus:ring-2 focus:ring-orange-300 bg-white/70 backdrop-blur-sm text-gray-700 placeholder:text-gray-500"
               onKeyDown={(e) => e.key === "Enter" && nickname && setJoined(true)}
             />
             <button
@@ -221,17 +225,29 @@ export default function StudyCommons({ onClose }: StudyCommonsProps) {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 100 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 100 }}
-      className="fixed top-4 right-4 bottom-4 w-96 z-40 flex flex-col rounded-3xl shadow-2xl backdrop-blur-xl border border-white/20"
-      style={{
-        background: 'linear-gradient(135deg, rgba(255, 237, 213, 0.95) 0%, rgba(255, 248, 235, 0.95) 100%)'
-      }}
-    >
+    <Draggable handle=".drag-handle" bounds="parent">
+      <div className="fixed top-4 right-4 z-40">
+        <Resizable
+          width={size.width}
+          height={size.height}
+          onResize={(_, data) => setSize({ width: data.size.width, height: data.size.height })}
+          minConstraints={[300, 400]}
+          maxConstraints={[500, 800]}
+          resizeHandles={['se']}
+        >
+          <motion.div
+            initial={{ opacity: 0, x: 100 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 100 }}
+            className="flex flex-col rounded-3xl shadow-2xl backdrop-blur-xl border border-white/20"
+            style={{
+              width: size.width,
+              height: size.height,
+              background: 'linear-gradient(135deg, rgba(255, 237, 213, 0.95) 0%, rgba(255, 248, 235, 0.95) 100%)'
+            }}
+          >
       {/* Header */}
-      <div className="p-4 border-b border-orange-200/50">
+      <div className="p-4 border-b border-orange-200/50 drag-handle cursor-move">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center">
@@ -293,7 +309,7 @@ export default function StudyCommons({ onClose }: StudyCommonsProps) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            className="flex-1 px-4 py-2 rounded-2xl border border-orange-200 focus:outline-none focus:ring-2 focus:ring-orange-300 bg-white/70 backdrop-blur-sm text-sm"
+            className="flex-1 px-4 py-2 rounded-2xl border border-orange-200 focus:outline-none focus:ring-2 focus:ring-orange-300 bg-white/70 backdrop-blur-sm text-sm text-gray-700 placeholder:text-gray-500"
           />
           <button
             onClick={sendMessage}
@@ -309,6 +325,9 @@ export default function StudyCommons({ onClose }: StudyCommonsProps) {
           Logged in as <strong>{nickname}</strong>
         </p>
       </div>
-    </motion.div>
+          </motion.div>
+        </Resizable>
+      </div>
+    </Draggable>
   );
 }
