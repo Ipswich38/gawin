@@ -5,7 +5,6 @@ import { createClient } from "@supabase/supabase-js";
 import { motion } from "framer-motion";
 import Draggable from "react-draggable";
 import { Resizable } from "react-resizable";
-import "../styles/resizable.css";
 
 // ✅ Supabase client setup
 const supabase = createClient(
