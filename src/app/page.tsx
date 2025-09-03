@@ -2,6 +2,7 @@
 
 // import { Button } from "@/components/ui/Button"; // Unused import
 import { useEffect, useState } from "react";
+import StudyCommons from "@/components/StudyCommons";
 
 // ChatInterface Component
 function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: string }; onLogout: () => void }) {
@@ -14,7 +15,7 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
   const [chatHistory, setChatHistory] = useState<Array<{id: number, title: string, timestamp: string, preview: string}>>([]);
   const [cognitiveProcess, setCognitiveProcess] = useState<string>('');
   const [copiedMessageId, setCopiedMessageId] = useState<number | null>(null);
-  const [showCommunity, setShowCommunity] = useState(false);
+  const [showStudyCommons, setShowStudyCommons] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState(12); // Mock online user count
 
   // Helper function to process AI response and extract cognitive indicators
@@ -249,10 +250,10 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
             </div>
             <div className="flex items-center space-x-4">
               <button
-                onClick={() => setShowCommunity(!showCommunity)}
-                className="flex items-center space-x-2 px-4 py-2 bg-white/30 backdrop-blur-sm rounded-2xl hover:bg-white/40 transition-all shadow-lg"
+                onClick={() => setShowStudyCommons(!showStudyCommons)}
+                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-orange-200/60 to-orange-300/60 backdrop-blur-sm rounded-2xl hover:from-orange-300/70 hover:to-orange-400/70 transition-all shadow-lg"
                 style={{ color: '#051a1c' }}
-                title="Join Community Chat"
+                title="Join Study Commons"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -261,7 +262,7 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
                   <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                 </svg>
                 <div className="flex flex-col items-start">
-                  <span className="text-sm font-medium">Community</span>
+                  <span className="text-sm font-medium">Study Commons</span>
                   <span className="text-xs opacity-60">{onlineUsers} learners online</span>
                 </div>
               </button>
@@ -378,103 +379,15 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
         </>
       )}
 
-      {/* Community Panel */}
-      {showCommunity && (
-        <>
-          {/* Backdrop */}
-          <div 
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
-            onClick={() => setShowCommunity(false)}
-          />
-          
-          {/* Floating Community Panel */}
-          <aside className="fixed top-0 right-0 h-full w-96 bg-white/30 backdrop-blur-xl border-l border-white/20 z-50 px-4 py-4 shadow-2xl flex flex-col">
-            <div className="mb-4 flex-shrink-0">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-2">
-                  <h2 className="text-sm font-medium opacity-70" style={{ color: '#051a1c' }}>Gawin Community</h2>
-                  <div className="flex items-center space-x-1 px-2 py-1 bg-green-100/80 rounded-full">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-xs text-green-700">{onlineUsers} online</span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowCommunity(false)}
-                  className="p-1.5 rounded-lg hover:bg-white/40 transition-all"
-                  style={{ color: '#051a1c' }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M18 6L6 18M6 6l12 12"/>
-                  </svg>
-                </button>
-              </div>
-              <div className="text-xs opacity-60 mb-4 px-3 py-2 bg-blue-50/80 rounded-xl" style={{ color: '#051a1c' }}>
-                🌟 Welcome to the learning community! Ask questions, share knowledge, and learn together with AI assistance.
-              </div>
-            </div>
-            
-            {/* Community Messages Area */}
-            <div className="flex-1 overflow-y-auto space-y-3 mb-4">
-              {/* Sample Community Messages */}
-              <div className="p-3 bg-white/50 backdrop-blur-sm border border-white/30 rounded-xl">
-                <div className="flex items-center space-x-2 mb-2">
-                  <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">A</div>
-                  <span className="text-xs font-medium" style={{ color: '#051a1c' }}>Alex_92</span>
-                  <span className="text-xs opacity-40" style={{ color: '#051a1c' }}>2 min ago</span>
-                </div>
-                <p className="text-sm mb-2" style={{ color: '#051a1c' }}>Can someone explain how neural networks actually learn?</p>
-                <div className="text-xs opacity-60 italic border-l-2 border-emerald-300 pl-2 bg-emerald-50/50 py-1">
-                  Gawin AI: Neural networks learn through backpropagation...
-                </div>
-              </div>
 
-              <div className="p-3 bg-white/50 backdrop-blur-sm border border-white/30 rounded-xl">
-                <div className="flex items-center space-x-2 mb-2">
-                  <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold">S</div>
-                  <span className="text-xs font-medium" style={{ color: '#051a1c' }}>Sarah_learns</span>
-                  <span className="text-xs opacity-40" style={{ color: '#051a1c' }}>5 min ago</span>
-                </div>
-                <p className="text-sm mb-2" style={{ color: '#051a1c' }}>Just solved my first calculus problem! 🎉</p>
-                <div className="text-xs opacity-60 italic border-l-2 border-emerald-300 pl-2 bg-emerald-50/50 py-1">
-                  Gawin AI: Congratulations! Would you like to try a more challenging derivative problem?
-                </div>
-              </div>
-
-              <div className="p-3 bg-white/50 backdrop-blur-sm border border-white/30 rounded-xl">
-                <div className="flex items-center space-x-2 mb-2">
-                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold">M</div>
-                  <span className="text-xs font-medium" style={{ color: '#051a1c' }}>MikeCodes</span>
-                  <span className="text-xs opacity-40" style={{ color: '#051a1c' }}>8 min ago</span>
-                </div>
-                <p className="text-sm mb-2" style={{ color: '#051a1c' }}>Anyone working on React hooks? I'm struggling with useEffect dependencies</p>
-                <div className="text-xs opacity-60 italic border-l-2 border-emerald-300 pl-2 bg-emerald-50/50 py-1">
-                  Gawin AI: The key is understanding when effects should re-run. Let me explain the dependency array...
-                </div>
-              </div>
-            </div>
-
-            {/* Community Input */}
-            <div className="flex-shrink-0">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Ask the community..."
-                  className="w-full px-4 py-3 pr-12 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 backdrop-blur-md border border-white/30"
-                  style={{ 
-                    backgroundColor: 'rgba(255,255,255,0.7)',
-                    color: '#051a1c'
-                  }}
-                />
-                <button className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-emerald-500 text-white rounded-full flex items-center justify-center hover:bg-emerald-600 transition-colors">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <path d="m22 2-7 20-4-9-9-4Z"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </aside>
-        </>
+      {/* Study Commons */}
+      {showStudyCommons && (
+        <StudyCommons
+          onClose={() => setShowStudyCommons(false)}
+          currentUser={user}
+        />
       )}
+
 
       {/* Main Chat Area */}
       <main className="flex-1 flex flex-col max-w-5xl mx-auto w-full px-6">
