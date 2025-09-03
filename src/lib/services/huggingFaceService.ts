@@ -260,22 +260,36 @@ class HuggingFaceService {
       // Try multiple models in order of preference
       const modelAttempts = [
         {
-          model: 'black-forest-labs/FLUX.1-schnell',
-          name: 'FLUX.1-schnell (faster)',
-          steps: 4,
-          timeout: 30000
+          model: 'kandinsky-community/kandinsky-3',
+          name: 'Kandinsky 3.0',
+          steps: 25,
+          timeout: 35000,
+          width: options?.width || 1024,
+          height: options?.height || 1024
+        },
+        {
+          model: 'kandinsky-community/kandinsky-2-2-decoder',
+          name: 'Kandinsky 2.2',
+          steps: 50,
+          timeout: 30000,
+          width: options?.width || 768,
+          height: options?.height || 768
         },
         {
           model: 'stabilityai/stable-diffusion-xl-base-1.0',
           name: 'Stable Diffusion XL',
           steps: 20,
-          timeout: 25000
+          timeout: 25000,
+          width: options?.width || 1024,
+          height: options?.height || 1024
         },
         {
           model: 'runwayml/stable-diffusion-v1-5',
           name: 'Stable Diffusion v1.5',
           steps: 20,
-          timeout: 20000
+          timeout: 20000,
+          width: options?.width || 512,
+          height: options?.height || 512
         }
       ];
 
@@ -283,15 +297,34 @@ class HuggingFaceService {
         try {
           console.log(`🎨 Trying image generation with ${attempt.name}...`);
 
-          const payload = {
-            inputs: prompt,
-            parameters: {
-              width: options?.width || 1024,
-              height: options?.height || 1024,
-              num_inference_steps: options?.num_inference_steps || attempt.steps,
-              guidance_scale: options?.guidance_scale || 7.5
-            }
-          };
+          // Prepare payload based on model type
+          let payload;
+          
+          if (attempt.model.includes('kandinsky')) {
+            // Kandinsky models use different parameter structure
+            payload = {
+              inputs: prompt,
+              parameters: {
+                width: attempt.width,
+                height: attempt.height,
+                num_inference_steps: attempt.steps,
+                guidance_scale: options?.guidance_scale || 7.0,
+                prior_guidance_scale: 1.0,
+                prior_num_inference_steps: 10
+              }
+            };
+          } else {
+            // Standard Stable Diffusion models
+            payload = {
+              inputs: prompt,
+              parameters: {
+                width: attempt.width,
+                height: attempt.height,
+                num_inference_steps: attempt.steps,
+                guidance_scale: options?.guidance_scale || 7.5
+              }
+            };
+          }
 
           // Create abort controller for timeout
           const controller = new AbortController();

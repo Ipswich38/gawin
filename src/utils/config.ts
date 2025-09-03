@@ -30,7 +30,7 @@ export const config = {
     coding: 'deepseek-ai/DeepSeek-Coder-V2-Instruct-236B',
     writing: 'Qwen/Qwen2.5-72B-Instruct',
     analysis: 'microsoft/DeepSeek-R1-Distill-Qwen-32B',
-    imageGeneration: 'black-forest-labs/FLUX.1-dev',
+    imageGeneration: 'kandinsky-community/kandinsky-3',
     fallback: 'deepseek-chat'
   },
   

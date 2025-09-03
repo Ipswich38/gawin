@@ -106,7 +106,7 @@ export async function GET() {
           'STEM/Analysis: DeepSeek-R1-Distill-Qwen-32B',
           'Coding: DeepSeek-Coder-V2-Instruct-236B',
           'Writing: Qwen2.5-72B-Instruct', 
-          'Image Generation: FLUX.1-dev'
+          'Image Generation: Kandinsky 3.0'
         ]
       }
     });

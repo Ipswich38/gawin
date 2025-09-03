@@ -222,7 +222,7 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
 
 ![Generated Image](${imageData.data.image_url})
 
-*Generated using Hugging Face AI models with intelligent fallback system*`,
+*Generated using Kandinsky 3.0 AI with intelligent fallback system*`,
                 timestamp: new Date().toLocaleTimeString()
               };
               
@@ -634,7 +634,7 @@ The Hugging Face inference API sometimes gets busy, but it usually works better 
               🔬 Science <span className="ml-1 text-xs opacity-60">(HF STEM)</span>
             </span>
             <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-pink-100/70 to-pink-200/70 backdrop-blur-md rounded-2xl hover:from-pink-200/80 hover:to-pink-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-pink-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Draw a beautiful sunset over mountains")}>
-              🎨 Image Generation <span className="ml-1 text-xs opacity-60">(FLUX.1-dev)</span>
+              🎨 Image Generation <span className="ml-1 text-xs opacity-60">(Kandinsky 3.0)</span>
             </span>
             <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Help me learn a new topic")}>
               📚 Learning <span className="ml-1 text-xs opacity-60">(DeepSeek)</span>
@@ -649,7 +649,7 @@ The Hugging Face inference API sometimes gets busy, but it usually works better 
                 <span className="px-2 py-1 bg-purple-100/50 rounded">STEM & Coding</span>
                 <span>→ HF Pro,</span>
                 <span className="px-2 py-1 bg-pink-100/50 rounded">Images</span>
-                <span>→ FLUX.1-dev,</span>
+                <span>→ Kandinsky 3.0,</span>
                 <span className="px-2 py-1 bg-gray-100/50 rounded">Chat</span>
                 <span>→ DeepSeek</span>
               </div>
