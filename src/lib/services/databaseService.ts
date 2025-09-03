@@ -100,8 +100,12 @@ class DatabaseService {
     try {
       // Check if we can connect to the database
       const { error } = await this.supabase.from('profiles').select('count').limit(1);
-      if (error && error.code !== 'PGRST116') { // PGRST116 = table doesn't exist, which is ok
-        console.warn('Database connection issue:', error.message);
+      if (error) {
+        if (error.code === 'PGRST116' || error.message.includes('table') || error.message.includes('schema cache')) {
+          console.warn('Database tables not found, using local storage fallback:', error.message);
+        } else {
+          console.warn('Database connection issue:', error.message);
+        }
         // Fall back to local storage for development
         this.initializeLocalStorage();
       } else {
@@ -594,25 +598,73 @@ class DatabaseService {
     try {
       if (!this.isInitialized) return;
 
-      const { error } = await this.supabase
-        .from('study_commons_users')
-        .upsert([{
-          nickname: nickname,
-          last_seen: new Date().toISOString(),
-          is_active: true
-        }], { onConflict: 'nickname' });
+      // Try Supabase first if available
+      if (this.supabase) {
+        const { error } = await this.supabase
+          .from('study_commons_users')
+          .upsert([{
+            nickname: nickname,
+            last_seen: new Date().toISOString(),
+            is_active: true
+          }], { onConflict: 'nickname' });
 
-      if (error) {
-        console.error('Error updating user presence:', error);
+        if (error) {
+          console.warn('Database table not found, using localStorage fallback:', error.message);
+          // Fall through to localStorage fallback
+        } else {
+          return; // Success, no need for localStorage
+        }
+      }
+
+      // Fallback to localStorage
+      if (typeof window !== 'undefined') {
+        const activeUsersList = JSON.parse(localStorage.getItem('studyCommons_activeUsers') || '[]');
+        const existingUserIndex = activeUsersList.findIndex((user: any) => user.nickname === nickname);
+        
+        const userPresence = {
+          id: existingUserIndex >= 0 ? activeUsersList[existingUserIndex].id : `user_${Date.now()}`,
+          nickname: nickname,
+          lastSeen: Date.now(),
+          isActive: true
+        };
+
+        if (existingUserIndex >= 0) {
+          activeUsersList[existingUserIndex] = userPresence;
+        } else {
+          activeUsersList.push(userPresence);
+        }
+
+        localStorage.setItem('studyCommons_activeUsers', JSON.stringify(activeUsersList));
       }
     } catch (error) {
-      console.error('Unexpected error updating presence:', error);
+      console.warn('Error updating user presence, using localStorage fallback:', error);
+      
+      // Final localStorage fallback
+      if (typeof window !== 'undefined') {
+        const activeUsersList = JSON.parse(localStorage.getItem('studyCommons_activeUsers') || '[]');
+        const userPresence = {
+          id: `user_${Date.now()}`,
+          nickname: nickname,
+          lastSeen: Date.now(),
+          isActive: true
+        };
+        activeUsersList.push(userPresence);
+        localStorage.setItem('studyCommons_activeUsers', JSON.stringify(activeUsersList));
+      }
     }
   }
 
   async getActiveUsers(): Promise<StudyCommonsUser[]> {
     try {
       if (!this.isInitialized) return [];
+
+      // Check if we're using localStorage fallback
+      if (typeof window !== 'undefined' && !this.supabase) {
+        // Use localStorage for active users
+        const activeUsersList = JSON.parse(localStorage.getItem('studyCommons_activeUsers') || '[]');
+        const twoMinutesAgo = Date.now() - (2 * 60 * 1000);
+        return activeUsersList.filter((user: any) => user.lastSeen > twoMinutesAgo);
+      }
 
       // Users active in the last 5 minutes
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
@@ -624,13 +676,43 @@ class DatabaseService {
         .eq('is_active', true);
 
       if (error) {
-        console.error('Error fetching active users:', error);
+        console.warn('Database table not found, using localStorage fallback:', error.message);
+        
+        // Fallback to localStorage
+        if (typeof window !== 'undefined') {
+          const activeUsersList = JSON.parse(localStorage.getItem('studyCommons_activeUsers') || '[]');
+          const twoMinutesAgo = Date.now() - (2 * 60 * 1000);
+          return activeUsersList
+            .filter((user: any) => user.lastSeen > twoMinutesAgo)
+            .map((user: any) => ({
+              id: user.id,
+              nickname: user.nickname || 'Anonymous',
+              last_seen: new Date(user.lastSeen).toISOString(),
+              is_active: true,
+              current_topic: user.currentTopic || null
+            }));
+        }
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('Unexpected error fetching active users:', error);
+      console.warn('Error fetching active users, using localStorage fallback:', error);
+      
+      // Final fallback to localStorage
+      if (typeof window !== 'undefined') {
+        const activeUsersList = JSON.parse(localStorage.getItem('studyCommons_activeUsers') || '[]');
+        const twoMinutesAgo = Date.now() - (2 * 60 * 1000);
+        return activeUsersList
+          .filter((user: any) => user.lastSeen > twoMinutesAgo)
+          .map((user: any) => ({
+            id: user.id,
+            nickname: user.nickname || 'Anonymous', 
+            last_seen: new Date(user.lastSeen).toISOString(),
+            is_active: true,
+            current_topic: user.currentTopic || null
+          }));
+      }
       return [];
     }
   }
