@@ -224,21 +224,16 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
+              {/* Hamburger Menu Button */}
               <button
-                onClick={() => setShowHistory(!showHistory)}
+                onClick={() => setShowSidePanel(!showSidePanel)}
                 className="p-2.5 rounded-2xl hover:bg-white/40 transition-all backdrop-blur-sm shadow-lg"
                 style={{ color: '#051a1c' }}
-                title={showHistory ? 'Hide chat history' : 'Show chat history'}
+                title="Menu"
               >
-                {showHistory ? (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M15 18l-6-6 6-6"/>
-                  </svg>
-                ) : (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M3 6h18M3 12h18M3 18h18"/>
-                  </svg>
-                )}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M3 6h18M3 12h18M3 18h18"/>
+                </svg>
               </button>
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 rounded-2xl flex items-center justify-center shadow-lg backdrop-blur-sm" style={{ backgroundColor: '#051a1c' }}>
@@ -267,19 +262,6 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
                   <span className="text-sm font-medium">Study Commons</span>
                   <span className="text-xs opacity-60">{onlineUsers} learners online</span>
                 </div>
-              </button>
-              {/* Hamburger Menu Button */}
-              <button
-                onClick={() => setShowSidePanel(!showSidePanel)}
-                className="p-2 rounded-xl hover:bg-white/30 transition-all"
-                style={{ color: '#051a1c' }}
-                title="Menu"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="3" y1="6" x2="21" y2="6"/>
-                  <line x1="3" y1="12" x2="21" y2="12"/>
-                  <line x1="3" y1="18" x2="21" y2="18"/>
-                </svg>
               </button>
             </div>
           </div>
@@ -488,7 +470,7 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
       {/* Study Commons */}
       {showStudyCommons && (
         <StudyCommons
-          onClose={() => setShowStudyCommons(false)}
+          onMinimize={() => setShowStudyCommons(false)}
         />
       )}
 

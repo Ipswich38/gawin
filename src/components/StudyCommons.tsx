@@ -14,12 +14,21 @@ interface Message {
 }
 
 interface StudyCommonsProps {
-  onClose: () => void;
+  onMinimize: () => void;
 }
 
-export default function StudyCommons({ onClose }: StudyCommonsProps) {
+export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
   const [nickname, setNickname] = useState("");
   const [joined, setJoined] = useState(false);
+  
+  // Check for persisted nickname on component mount
+  useEffect(() => {
+    const storedNickname = localStorage.getItem('studyCommons_nickname');
+    if (storedNickname) {
+      setNickname(storedNickname);
+      setJoined(true);
+    }
+  }, []);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -436,14 +445,19 @@ export default function StudyCommons({ onClose }: StudyCommonsProps) {
             />
             <div className="flex gap-2">
               <button
-                onClick={() => nickname.trim() && setJoined(true)}
+                onClick={() => {
+                  if (nickname.trim()) {
+                    localStorage.setItem('studyCommons_nickname', nickname.trim());
+                    setJoined(true);
+                  }
+                }}
                 disabled={!nickname.trim()}
                 className="flex-1 py-2.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-medium rounded-2xl hover:from-orange-500 hover:to-orange-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               >
                 Join Chat
               </button>
               <button
-                onClick={onClose}
+                onClick={onMinimize}
                 className="px-4 py-2.5 text-gray-600 hover:text-gray-800 transition-colors text-sm"
               >
                 ✕
@@ -492,10 +506,11 @@ export default function StudyCommons({ onClose }: StudyCommonsProps) {
               </div>
             </div>
             <button
-              onClick={onClose}
+              onClick={onMinimize}
               className="p-2 hover:bg-orange-200/50 rounded-xl transition-colors"
+              title="Minimize"
             >
-              <span className="text-gray-600">✕</span>
+              <span className="text-gray-600">−</span>
             </button>
           </div>
         </div>
