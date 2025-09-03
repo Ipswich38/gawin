@@ -27,51 +27,21 @@ export default function StudyCommons({ onClose }: StudyCommonsProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [lastUserMessages, setLastUserMessages] = useState<string[]>([]);
+  const [aiCooldown, setAiCooldown] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Initialize with sample messages
+  // Initialize with welcome message from Gawin AI
   useEffect(() => {
-    const sampleMessages: Message[] = [
-      {
-        id: '1',
-        user: 'Study Bot',
-        text: '🎓 Welcome to Study Commons! This is a safe space for academic discussion and learning.',
-        timestamp: new Date().toLocaleTimeString(),
-        isAI: true
-      },
-      {
-        id: '2',
-        user: 'Alex_92',
-        text: 'Can someone help explain how to solve quadratic equations?',
-        timestamp: new Date(Date.now() - 300000).toLocaleTimeString()
-      },
-      {
-        id: '3',
-        user: 'Math_Helper',
-        text: 'Sure! For ax² + bx + c = 0, use the quadratic formula:\n\n\\[ x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a} \\]\n\nThis gives you the exact solutions for any quadratic equation.',
-        timestamp: new Date(Date.now() - 240000).toLocaleTimeString()
-      },
-      {
-        id: '4',
-        user: 'Sarah_learns',
-        text: 'That makes sense! What about when the discriminant is negative?',
-        timestamp: new Date(Date.now() - 180000).toLocaleTimeString()
-      },
-      {
-        id: '5',
-        user: 'Math_Helper',
-        text: 'Great question! When b² - 4ac < 0, we get complex solutions:\n\nSolution:\n1. Calculate the discriminant: \\[ \\Delta = b^2 - 4ac \\]\n2. If Δ < 0, the solutions are:\n   \\[ x = (-b ± i√|Δ|)/(2a) \\]\n3. These are complex conjugate pairs.\n\nFinal Answer:\n\\[ \\boxed{\\text{Complex conjugate solutions}} \\]',
-        timestamp: new Date(Date.now() - 120000).toLocaleTimeString()
-      },
-      {
-        id: '6',
-        user: 'Physics_Student',
-        text: 'Can someone help with this fraction? The velocity is v = (3x² + 5)/(2t - 1)',
-        timestamp: new Date(Date.now() - 60000).toLocaleTimeString()
-      }
-    ];
-    setMessages(sampleMessages);
+    const welcomeMessage: Message = {
+      id: 'welcome-' + Date.now(),
+      user: 'Gawin AI',
+      text: '👋 Welcome to Study Commons! I\'m here as your AI tutor and learning companion.\n\nFeel free to:\n• Ask questions about any academic topic\n• Discuss concepts with fellow learners\n• Get help with homework or research\n\nI\'ll provide gentle guidance when needed. Let\'s create an amazing learning environment together! 🎓',
+      timestamp: new Date().toLocaleTimeString(),
+      isAI: true
+    };
+    setMessages([welcomeMessage]);
   }, []);
 
   // Auto scroll to bottom
@@ -168,6 +138,119 @@ export default function StudyCommons({ onClose }: StudyCommonsProps) {
     return { allowed: true };
   };
 
+  // Context-aware AI assistant functionality
+  const analyzeConversationContext = (recentMessages: Message[]): { shouldRespond: boolean; responseType: string; topic: string } => {
+    if (aiCooldown) return { shouldRespond: false, responseType: '', topic: '' };
+    
+    const lastFewMessages = recentMessages.slice(-5);
+    const userMessages = lastFewMessages.filter(m => !m.isAI).map(m => m.text.toLowerCase());
+    
+    if (userMessages.length < 2) return { shouldRespond: false, responseType: '', topic: '' };
+    
+    const combinedText = userMessages.join(' ');
+    
+    // Detect confusion or requests for help
+    if (/help|confused|don't understand|what.*mean|explain|how.*work|stuck|lost/.test(combinedText)) {
+      return { shouldRespond: true, responseType: 'help', topic: 'general' };
+    }
+    
+    // Detect specific subject areas
+    if (/math|equation|algebra|calculus|geometry|trigonometry|statistics/.test(combinedText)) {
+      return { shouldRespond: true, responseType: 'subject_help', topic: 'mathematics' };
+    }
+    
+    if (/physics|force|energy|momentum|velocity|acceleration|newton|einstein/.test(combinedText)) {
+      return { shouldRespond: true, responseType: 'subject_help', topic: 'physics' };
+    }
+    
+    if (/chemistry|molecule|atom|element|reaction|organic|periodic/.test(combinedText)) {
+      return { shouldRespond: true, responseType: 'subject_help', topic: 'chemistry' };
+    }
+    
+    if (/biology|cell|dna|evolution|genetics|organism|photosynthesis/.test(combinedText)) {
+      return { shouldRespond: true, responseType: 'subject_help', topic: 'biology' };
+    }
+    
+    if (/history|ancient|medieval|war|civilization|culture|empire/.test(combinedText)) {
+      return { shouldRespond: true, responseType: 'subject_help', topic: 'history' };
+    }
+    
+    // Detect when students are sharing knowledge correctly
+    if (/formula|definition|solution|answer|correct|exactly|precisely/.test(combinedText) && userMessages.length >= 3) {
+      return { shouldRespond: true, responseType: 'encouragement', topic: 'learning' };
+    }
+    
+    return { shouldRespond: false, responseType: '', topic: '' };
+  };
+
+  const generateAIResponse = (responseType: string, topic: string): string => {
+    const responses: Record<string, string[]> = {
+      help: [
+        "I see you might need some guidance! Feel free to ask specific questions - I'm here to help break down complex topics step by step. 🤔",
+        "Don't worry about feeling confused - that's part of learning! What specific concept would you like me to explain? 📚",
+        "I'm here to help! Try asking your question in a different way, and I'll do my best to provide a clear explanation. ✨"
+      ],
+      mathematics: [
+        "Math can be tricky! I'd be happy to walk through the problem step by step. What specific part is giving you trouble? 🧮",
+        "Great math discussion! Remember, breaking problems into smaller steps often makes them clearer. Need help with any specific concept? 📐",
+        "I notice you're working on math - would it help if I provided some additional examples or explained the underlying concepts? 🔢"
+      ],
+      physics: [
+        "Physics concepts can be abstract! I can help explain the real-world applications or provide visual analogies. What would be most helpful? ⚛️",
+        "Interesting physics topic! Would it help if I explained the underlying principles or provided some practice problems? 🔬",
+        "Physics is all about understanding how our world works! Need me to clarify any concepts or provide additional examples? 🌟"
+      ],
+      chemistry: [
+        "Chemistry involves a lot of complex interactions! I can help break down the molecular processes or explain the reactions step by step. 🧪",
+        "Great chemistry discussion! Would you like me to provide additional context about the chemical principles involved? ⚗️",
+        "Chemistry can be challenging - I'm here to help explain the bonds, reactions, or molecular structures you're discussing! 🔬"
+      ],
+      biology: [
+        "Biology is fascinating! I can help explain the life processes or provide more details about the biological mechanisms. 🧬",
+        "Excellent biology topic! Would it be helpful if I explained how these biological systems work together? 🌱",
+        "Biology has so many interconnected concepts! Need me to clarify any processes or provide examples from nature? 🦋"
+      ],
+      history: [
+        "History provides great context for understanding our world! I can help explain the historical significance or connections to modern times. 📜",
+        "Fascinating historical topic! Would you like me to provide additional context about the time period or cultural significance? 🏛️",
+        "History is full of interesting connections! Need me to explain the causes and effects or related historical events? 📚"
+      ],
+      encouragement: [
+        "Excellent explanation! I love seeing students help each other understand complex concepts. Keep up the great collaborative learning! 🌟",
+        "That's a fantastic way to explain it! Peer learning like this is one of the most effective ways to master subjects. Well done! 👏",
+        "Beautiful explanation! You're demonstrating real mastery by being able to teach others. This is how great learning communities work! 💫"
+      ]
+    };
+
+    const responseArray = responses[responseType] || responses.help;
+    return responseArray[Math.floor(Math.random() * responseArray.length)];
+  };
+
+  // Monitor conversation and provide AI assistance when appropriate
+  useEffect(() => {
+    if (messages.length < 3) return;
+
+    const context = analyzeConversationContext(messages);
+    
+    if (context.shouldRespond && !aiCooldown) {
+      // Set cooldown to prevent AI spam
+      setAiCooldown(true);
+      setTimeout(() => setAiCooldown(false), 30000); // 30 second cooldown
+
+      // Add AI response after a natural delay
+      setTimeout(() => {
+        const aiResponse: Message = {
+          id: 'ai-' + Date.now(),
+          user: 'Gawin AI',
+          text: generateAIResponse(context.responseType, context.topic),
+          timestamp: new Date().toLocaleTimeString(),
+          isAI: true
+        };
+        setMessages(prev => [...prev, aiResponse]);
+      }, 2000 + Math.random() * 3000); // 2-5 second natural delay
+    }
+  }, [messages, aiCooldown]);
+
   const sendMessage = () => {
     if (!input.trim()) return;
     
@@ -175,8 +258,8 @@ export default function StudyCommons({ onClose }: StudyCommonsProps) {
     if (!validation.allowed) {
       const warningMsg: Message = {
         id: Date.now().toString(),
-        user: "🛡️ Study Commons Moderator",
-        text: `⚠️ ${validation.reason}\n\nThis is a safe academic space. Please keep discussions educational and respectful.`,
+        user: "🛡️ Gawin AI (Moderator)",
+        text: `⚠️ ${validation.reason}\n\nI'm here to keep our Study Commons safe and focused on learning. Please keep discussions educational and respectful. Thanks for understanding! 🎓`,
         timestamp: new Date().toLocaleTimeString(),
         isAI: true
       };
@@ -266,9 +349,9 @@ export default function StudyCommons({ onClose }: StudyCommonsProps) {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="p-6 rounded-3xl shadow-2xl backdrop-blur-xl border border-white/20 cursor-move"
+          className="p-6 rounded-3xl shadow-2xl backdrop-blur-xl border border-white/30 cursor-move"
           style={{
-            background: 'linear-gradient(135deg, rgba(255, 237, 213, 0.95) 0%, rgba(255, 248, 235, 0.95) 100%)'
+            background: 'linear-gradient(135deg, rgba(255, 237, 213, 0.85) 0%, rgba(255, 248, 235, 0.85) 100%)'
           }}
           onMouseDown={handleMouseDown}
         >
@@ -330,9 +413,9 @@ export default function StudyCommons({ onClose }: StudyCommonsProps) {
         initial={{ opacity: 0, x: 100 }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 100 }}
-        className="w-full h-full flex flex-col rounded-3xl shadow-2xl backdrop-blur-xl border border-white/20 overflow-hidden"
+        className="w-full h-full flex flex-col rounded-3xl shadow-2xl backdrop-blur-xl border border-white/30 overflow-hidden"
         style={{
-          background: 'linear-gradient(135deg, rgba(255, 237, 213, 0.95) 0%, rgba(255, 248, 235, 0.95) 100%)'
+          background: 'linear-gradient(135deg, rgba(255, 237, 213, 0.75) 0%, rgba(255, 248, 235, 0.75) 100%)'
         }}
       >
         {/* Header */}
