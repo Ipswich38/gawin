@@ -9,10 +9,12 @@ export interface AIMessage {
 // Removed GroqResponse interface - now using OpenRouter
 
 export interface ImageGenerationOptions {
-  provider?: 'pollinations' | 'deepai';
+  provider?: 'huggingface' | 'pollinations' | 'deepai';
   width?: number;
   height?: number;
   style?: string;
+  num_inference_steps?: number;
+  guidance_scale?: number;
 }
 
 export interface OCRResult {
@@ -52,7 +54,37 @@ class APIClient {
     return response.json();
   }
 
-  // Removed chatGroq - now using OpenRouter through deepseek endpoint
+  // Hugging Face Pro models
+  async chatHuggingFace(
+    messages: AIMessage[],
+    action?: 'chat' | 'code' | 'analysis' | 'writing',
+    options: any = {}
+  ): Promise<any> {
+    return this.request('/huggingface', {
+      method: 'POST',
+      body: JSON.stringify({
+        messages,
+        action,
+        ...options,
+      }),
+    });
+  }
+
+  // DeepSeek Chat (fallback)
+  async chatDeepSeek(
+    messages: AIMessage[],
+    model: string = 'deepseek-chat',
+    options: any = {}
+  ): Promise<any> {
+    return this.request('/deepseek', {
+      method: 'POST',
+      body: JSON.stringify({
+        messages,
+        model,
+        ...options,
+      }),
+    });
+  }
 
   // Perplexity AI with web search
   async chatPerplexity(
@@ -75,9 +107,18 @@ class APIClient {
     prompt: string,
     options: ImageGenerationOptions = {}
   ): Promise<any> {
-    const { provider = 'pollinations', ...otherOptions } = options;
+    const { provider = 'huggingface', ...otherOptions } = options;
 
-    if (provider === 'pollinations') {
+    if (provider === 'huggingface') {
+      // Use Hugging Face FLUX.1-dev via PUT method
+      return this.request('/huggingface', {
+        method: 'PUT',
+        body: JSON.stringify({
+          prompt,
+          options: otherOptions,
+        }),
+      });
+    } else if (provider === 'pollinations') {
       // For Pollinations, return the image directly
       const response = await fetch(`${this.baseURL}/api/image`, {
         method: 'POST',
@@ -136,7 +177,7 @@ class APIClient {
   // Health check for API endpoints
   async healthCheck(): Promise<{ status: string; endpoints: string[] }> {
     try {
-      const endpoints = ['/deepseek', '/perplexity', '/image'];
+      const endpoints = ['/huggingface', '/deepseek', '/perplexity', '/image'];
       const results = await Promise.allSettled(
         endpoints.map(endpoint => 
           fetch(`${this.baseURL}/api${endpoint}`, { method: 'GET' })

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AIModel } from '../lib/types';
-// import { groqApi } from '../lib/services/groqApi'; // REMOVED - service no longer exists
-// import { colors, typography, spacing, borderRadius } from theme - DISABLED
+import { huggingFaceService } from '../lib/services/huggingFaceService';
 
 interface ModelSelectionScreenProps {
   selectedModelId: string;
@@ -23,11 +22,21 @@ const ModelSelectionScreen: React.FC<ModelSelectionScreenProps> = ({
 
   const loadModels = async () => {
     try {
-      // TEMPORARILY DISABLED - groqApi service removed
-      const availableModels: AIModel[] = []; // Empty array for now
-      /*
-      const availableModels = await groqApi.getAvailableModels();
-      */
+      // Get available Hugging Face models
+      const hfModels = huggingFaceService.getAvailableModels();
+      
+      // Convert to AIModel format
+      const availableModels: AIModel[] = Object.entries(hfModels).map(([key, model]) => ({
+        id: model.model,
+        name: model.description,
+        provider: 'openrouter', // Keep existing format
+        type: key.includes('code') ? 'text' : key.includes('stem') ? 'reasoning' : 'text' as const,
+        description: model.description,
+        maxTokens: model.max_tokens,
+        supportsFunctionCalling: false,
+        isActive: true
+      }));
+      
       setModels(availableModels);
     } catch (error) {
       alert('Failed to load AI models');

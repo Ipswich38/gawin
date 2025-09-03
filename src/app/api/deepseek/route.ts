@@ -4,7 +4,7 @@ import { databaseService } from '@/lib/services/databaseService';
 
 export async function POST(request: NextRequest) {
   try {
-    const { messages, module, action, metadata } = await request.json();
+    const { messages, model } = await request.json();
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json(
@@ -16,69 +16,39 @@ export async function POST(request: NextRequest) {
     // Get current user (you might want to implement proper auth middleware)
     const user = await databaseService.getCurrentUser();
     
-    // Handle specific actions
-    let result;
-    
-    switch (action) {
-      case 'generate_code':
-        if (!metadata?.problem) {
-          return NextResponse.json(
-            { error: 'Problem statement is required for code generation' },
-            { status: 400 }
-          );
-        }
-        result = await deepseekService.generateCodeSolution(
-          metadata.problem,
-          metadata.language || 'python',
-          metadata.difficulty || 'beginner'
-        );
-        break;
+    // Use DeepSeek service for chat completion
+    const result = await deepseekService.createChatCompletion(
+      messages,
+      { model: model || 'deepseek-chat' }
+    );
 
-      case 'explain_ai':
-        if (!metadata?.concept) {
-          return NextResponse.json(
-            { error: 'Concept is required for AI explanation' },
-            { status: 400 }
-          );
-        }
-        result = await deepseekService.explainAIConcept(
-          metadata.concept,
-          metadata.level || 'beginner'
-        );
-        break;
-
-      case 'chat':
-      default:
-        result = await deepseekService.chat(messages, module || 'general');
-        break;
-    }
-
-    if (!result.success) {
+    if (!result.choices || result.choices.length === 0) {
       return NextResponse.json(
-        { error: result.error || 'Failed to process request' },
+        { error: 'No response generated' },
         { status: 500 }
       );
     }
 
-    // Record usage if user is logged in and usage data exists
-    if (user && 'usage' in result && result.usage) {
+    // Record usage if user is logged in
+    if (user && result.usage) {
       await databaseService.recordUsage(
         user.id,
         'chat',
         1, // credit cost - you might want to make this dynamic based on token usage
         {
-          module: module || 'general',
-          action,
-          tokens_used: result.usage.total_tokens,
-          model: 'deepseek-r1'
+          model: result.model || 'deepseek-chat',
+          tokens_used: result.usage.total_tokens
         }
       );
     }
 
     return NextResponse.json({
       success: true,
-      data: result,
-      ...('usage' in result && result.usage ? { usage: result.usage } : {})
+      data: {
+        response: result.choices[0].message.content,
+        model: result.model,
+        usage: result.usage
+      }
     });
 
   } catch (error) {

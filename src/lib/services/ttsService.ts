@@ -7,7 +7,7 @@ interface TTSResult {
 }
 
 class TTSService {
-  private readonly GROQ_API_KEY = process.env.NEXT_PUBLIC_GROQ_API_KEY;
+  private readonly HF_API_KEY = process.env.HUGGINGFACE_API_KEY;
 
   /**
    * Main TTS function that tries multiple methods
@@ -26,7 +26,7 @@ class TTSService {
     }
 
     // Method 2: Try external TTS APIs (if available)
-    if (this.GROQ_API_KEY) {
+    if (this.HF_API_KEY) {
       try {
         const result = await this.useExternalTTS(text, voice);
         if (result.success) {

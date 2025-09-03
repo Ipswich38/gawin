@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { perplexityService } from '../lib/services/perplexityService';
+import { huggingFaceService } from '../lib/services/huggingFaceService';
 
 interface ServiceStatusProps {
   onClose: () => void;
@@ -16,20 +16,19 @@ const ServiceStatus: React.FC<ServiceStatusProps> = ({ onClose }) => {
 
   const checkServiceStatus = async () => {
     try {
-      // Check if API key is configured
-      const configured = perplexityService.isConfigured();
-      setApiKeyConfigured(configured);
+      // Check Hugging Face service health
+      const healthStatus = await huggingFaceService.healthCheck();
+      setApiKeyConfigured(healthStatus.status !== 'offline');
 
-      if (!configured) {
+      if (healthStatus.status === 'offline') {
         setStatus('error');
-        setMessage('Groq API key not configured. Please add VITE_GROQ_API_KEY to your .env file.');
+        setMessage('Hugging Face API key not configured. Please add HUGGINGFACE_API_KEY to your .env file.');
         return;
       }
 
-      // Test the service
-      const serviceStatus = await perplexityService.getStatus();
-      setStatus(serviceStatus.status);
-      setMessage(serviceStatus.message);
+      // Set status based on health check
+      setStatus(healthStatus.status === 'healthy' ? 'ready' : 'error');
+      setMessage(healthStatus.message);
     } catch (error) {
       setStatus('error');
       setMessage(`Service check failed: ${error}`);
@@ -153,10 +152,11 @@ const ServiceStatus: React.FC<ServiceStatusProps> = ({ onClose }) => {
         }}>
           <h3 style={{ margin: '0 0 12px 0', color: 'rgba(255, 255, 255, 0.8)', fontSize: '14px', fontWeight: '500' }}>Configuration</h3>
           <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.6)' }}>
-            <div style={{ marginBottom: '4px' }}>• API Key: {apiKeyConfigured ? '✅ Configured' : '❌ Missing'}</div>
-            <div style={{ marginBottom: '4px' }}>• Search Service: ✅ Enabled</div>
-            <div style={{ marginBottom: '4px' }}>• Web Scraping: ✅ Ready</div>
-            <div>• Citation System: ✅ Active</div>
+            <div style={{ marginBottom: '4px' }}>• Hugging Face API Key: {apiKeyConfigured ? '✅ Configured' : '❌ Missing'}</div>
+            <div style={{ marginBottom: '4px' }}>• STEM Model: ✅ DeepSeek-R1-Distill-Qwen-32B</div>
+            <div style={{ marginBottom: '4px' }}>• Coding Model: ✅ DeepSeek-Coder-V2-Instruct-236B</div>
+            <div style={{ marginBottom: '4px' }}>• Writing Model: ✅ Qwen2.5-72B-Instruct</div>
+            <div>• Image Generation: ✅ FLUX.1-dev</div>
           </div>
         </div>
 
@@ -170,11 +170,11 @@ const ServiceStatus: React.FC<ServiceStatusProps> = ({ onClose }) => {
           }}>
             <h4 style={{ margin: '0 0 8px 0', color: 'rgba(255, 107, 53, 0.9)', fontSize: '14px', fontWeight: '500' }}>Setup Required</h4>
             <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: 'rgba(255, 255, 255, 0.7)' }}>
-              To enable web search, please:
+              To enable Hugging Face Pro models, please:
             </p>
             <ol style={{ margin: 0, paddingLeft: '20px', fontSize: '13px', color: 'rgba(255, 255, 255, 0.6)' }}>
-              <li>Get a free API key from <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255, 107, 53, 0.8)' }}>console.groq.com</a></li>
-              <li>Add it to your .env file: <code style={{ background: 'rgba(255, 255, 255, 0.1)', padding: '2px 4px', borderRadius: '4px', fontSize: '12px' }}>VITE_GROQ_API_KEY=your_key_here</code></li>
+              <li>Get your API key from <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255, 107, 53, 0.8)' }}>Hugging Face</a></li>
+              <li>Add it to your .env file: <code style={{ background: 'rgba(255, 255, 255, 0.1)', padding: '2px 4px', borderRadius: '4px', fontSize: '12px' }}>HUGGINGFACE_API_KEY=your_key_here</code></li>
               <li>Restart the development server</li>
             </ol>
           </div>

@@ -610,10 +610,13 @@ CRITICAL: Provide clean responses without any citation markers or links.`;
         }
       ];
 
-      const result = await deepseekService.chat(messages, 'general');
+      const result = await deepseekService.createChatCompletion(
+        messages, 
+        { model: 'deepseek-chat' }
+      );
       
-      if (result.success && result.response) {
-        return result.response;
+      if (result.choices && result.choices.length > 0) {
+        return result.choices[0].message.content;
       }
       
       return 'No response generated';

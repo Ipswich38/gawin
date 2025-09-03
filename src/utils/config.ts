@@ -1,9 +1,10 @@
 // Configuration and Environment Variables
-// Uses Next.js environment variable system for secure configuration
+// Now using Hugging Face Pro models with DeepSeek fallback
 
 export const config = {
   // API Configuration - from environment variables
-  groqApiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY || '',
+  huggingFaceApiKey: process.env.HUGGINGFACE_API_KEY || '',
+  deepseekApiKey: process.env.DEEPSEEK_API_KEY || '',
   
   // App Configuration
   appName: 'Gawin AI',
@@ -13,13 +14,25 @@ export const config = {
   enableAudioFeatures: true,
   enableVisionFeatures: true,
   enableFunctionCalling: true,
+  enableImageGeneration: true,
   
   // Usage Limits
   freeTierMonthlyLimit: 200,
   freeTierMaxTokensPerRequest: 4096,
   
   // API Endpoints
-  groqBaseUrl: 'https://api.groq.com/openai/v1',
+  huggingFaceBaseUrl: 'https://api-inference.huggingface.co/models',
+  deepseekBaseUrl: 'https://api.deepseek.com/v1',
+  
+  // AI Models Configuration
+  models: {
+    stem: 'microsoft/DeepSeek-R1-Distill-Qwen-32B',
+    coding: 'deepseek-ai/DeepSeek-Coder-V2-Instruct-236B',
+    writing: 'Qwen/Qwen2.5-72B-Instruct',
+    analysis: 'microsoft/DeepSeek-R1-Distill-Qwen-32B',
+    imageGeneration: 'black-forest-labs/FLUX.1-dev',
+    fallback: 'deepseek-chat'
+  },
   
   // UI Configuration
   animationDuration: 300,
@@ -35,9 +48,11 @@ export const config = {
 export const validateConfig = (): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
   
-  if (!config.groqApiKey) {
-    errors.push('NEXT_PUBLIC_GROQ_API_KEY environment variable is required');
+  if (!config.huggingFaceApiKey) {
+    errors.push('HUGGINGFACE_API_KEY environment variable is required for optimal performance');
   }
+  
+  // DeepSeek API key is optional - it will use mock responses if not available
   
   return {
     isValid: errors.length === 0,
@@ -55,7 +70,10 @@ export const logConfig = () => {
     enableAudioFeatures: config.enableAudioFeatures,
     enableVisionFeatures: config.enableVisionFeatures,
     enableFunctionCalling: config.enableFunctionCalling,
+    enableImageGeneration: config.enableImageGeneration,
     isDevelopment: config.isDevelopment,
-    hasApiKey: !!config.groqApiKey,
+    hasHuggingFaceKey: !!config.huggingFaceApiKey,
+    hasDeepSeekKey: !!config.deepseekApiKey,
+    primaryModels: config.models,
   });
 };

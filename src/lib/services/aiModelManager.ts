@@ -1,6 +1,6 @@
 /**
  * AI Model Manager - Smart model selection and fallback system
- * Automatically handles model availability, cost optimization, and failover
+ * Now using Hugging Face Pro models with intelligent routing
  */
 
 export interface AIModel {
@@ -19,7 +19,7 @@ export interface ModelConfig {
   primary: string;
   fallbacks: string[];
   maxRetries: number;
-  costThreshold: number; // Max cost per 1k tokens
+  costThreshold: number;
 }
 
 export interface FeatureModelMapping {
@@ -58,94 +58,53 @@ class AIModelManager {
 
   private initializeModels(): void {
     this.models = [
-      // STEM-focused models available on Groq (Free)
+      // STEM and Analysis Models
       {
-        id: 'deepseek-r1-distill-llama-70b',
-        name: 'DeepSeek R1 Distill (Llama 70B)',
-        provider: 'Groq',
+        id: 'microsoft/DeepSeek-R1-Distill-Qwen-32B',
+        name: 'DeepSeek R1 Distill Qwen 32B',
+        provider: 'HuggingFace',
         category: 'reasoning',
-        cost_per_1k_tokens: 0.0,
-        max_tokens: 8192,
-        strengths: ['Mathematical reasoning', 'STEM problem solving', 'Chain of thought', 'Scientific analysis'],
+        cost_per_1k_tokens: 0.002,
+        max_tokens: 4096,
+        strengths: ['Mathematical reasoning', 'STEM problem solving', 'Scientific analysis', 'Complex reasoning'],
         active: true,
         fallback_priority: 1
       },
+      // Coding Models
       {
-        id: 'llama-3.3-70b-versatile',
-        name: 'Llama 3.3 70B Versatile',
-        provider: 'Groq',
-        category: 'general',
-        cost_per_1k_tokens: 0.0,
-        max_tokens: 32768,
-        strengths: ['General reasoning', 'Problem solving', 'Multi-domain knowledge'],
-        active: true,
-        fallback_priority: 2
-      },
-      {
-        id: 'llama3-groq-70b-8192-tool-use-preview',
-        name: 'Llama 3 Groq 70B Tool Use',
-        provider: 'Groq',
+        id: 'deepseek-ai/DeepSeek-Coder-V2-Instruct-236B',
+        name: 'DeepSeek Coder V2 Instruct 236B',
+        provider: 'HuggingFace',
         category: 'coding',
-        cost_per_1k_tokens: 0.0,
+        cost_per_1k_tokens: 0.003,
         max_tokens: 8192,
-        strengths: ['Code generation', 'Tool usage', 'Function calling', 'API integration'],
+        strengths: ['Code generation', 'Programming', 'Debugging', 'Algorithm design'],
         active: true,
         fallback_priority: 1
       },
+      // Writing and Language Models
       {
-        id: 'llama-3.1-70b-versatile',
-        name: 'Llama 3.1 70B Versatile',
-        provider: 'Groq',
-        category: 'general',
-        cost_per_1k_tokens: 0.0,
-        max_tokens: 131072,
-        strengths: ['Long context', 'Complex reasoning', 'Multi-step problems'],
-        active: true,
-        fallback_priority: 3
-      },
-      {
-        id: 'mixtral-8x7b-32768',
-        name: 'Mixtral 8x7B',
-        provider: 'Groq',
+        id: 'Qwen/Qwen2.5-72B-Instruct',
+        name: 'Qwen 2.5 72B Instruct',
+        provider: 'HuggingFace',
         category: 'creative',
-        cost_per_1k_tokens: 0.0,
-        max_tokens: 32768,
-        strengths: ['Creative writing', 'Multi-language support', 'Complex reasoning'],
-        active: true,
-        fallback_priority: 2
-      },
-      {
-        id: 'llama3-8b-8192',
-        name: 'Llama 3 8B',
-        provider: 'Groq',
-        category: 'general',
-        cost_per_1k_tokens: 0.0,
-        max_tokens: 8192,
-        strengths: ['Fast responses', 'Efficient processing', 'General purpose'],
-        active: true,
-        fallback_priority: 4
-      },
-      {
-        id: 'gemma2-9b-it',
-        name: 'Gemma 2 9B',
-        provider: 'Groq',
-        category: 'translation',
-        cost_per_1k_tokens: 0.0,
-        max_tokens: 8192,
-        strengths: ['Multilingual', 'Instruction following', 'Translation tasks'],
+        cost_per_1k_tokens: 0.002,
+        max_tokens: 4096,
+        strengths: ['Creative writing', 'Language tasks', 'Translation', 'General conversation'],
         active: true,
         fallback_priority: 1
       },
+      // General Purpose Models
       {
-        id: 'llama-3.2-1b-preview',
-        name: 'Llama 3.2 1B Preview',
-        provider: 'Groq',
+        id: 'deepseek-chat',
+        name: 'DeepSeek Chat',
+        provider: 'DeepSeek',
         category: 'general',
-        cost_per_1k_tokens: 0.0,
-        max_tokens: 8192,
-        strengths: ['Ultra-fast', 'Basic tasks', 'Fallback model'],
+        cost_per_1k_tokens: 0.001,
+        max_tokens: 2048,
+        strengths: ['General chat', 'Quick responses', 'Fallback model'],
         active: true,
-        fallback_priority: 10
+        fallback_priority: 5
       }
     ];
   }
@@ -153,46 +112,46 @@ class AIModelManager {
   private initializeFeatureMapping(): void {
     this.featureMapping = {
       coding_academy: {
-        primary: 'llama3-groq-70b-8192-tool-use-preview',
-        fallbacks: ['llama-3.3-70b-versatile', 'llama-3.1-70b-versatile', 'llama3-8b-8192'],
+        primary: 'deepseek-ai/DeepSeek-Coder-V2-Instruct-236B',
+        fallbacks: ['microsoft/DeepSeek-R1-Distill-Qwen-32B', 'Qwen/Qwen2.5-72B-Instruct', 'deepseek-chat'],
         maxRetries: 3,
-        costThreshold: 0.0
+        costThreshold: 0.005
       },
       ai_academy: {
-        primary: 'deepseek-r1-distill-llama-70b',
-        fallbacks: ['llama-3.3-70b-versatile', 'llama-3.1-70b-versatile', 'mixtral-8x7b-32768'],
+        primary: 'microsoft/DeepSeek-R1-Distill-Qwen-32B',
+        fallbacks: ['Qwen/Qwen2.5-72B-Instruct', 'deepseek-chat'],
         maxRetries: 3,
-        costThreshold: 0.0
+        costThreshold: 0.005
       },
       creative_studio: {
-        primary: 'mixtral-8x7b-32768',
-        fallbacks: ['llama-3.3-70b-versatile', 'llama-3.1-70b-versatile', 'llama3-8b-8192'],
+        primary: 'Qwen/Qwen2.5-72B-Instruct',
+        fallbacks: ['microsoft/DeepSeek-R1-Distill-Qwen-32B', 'deepseek-chat'],
         maxRetries: 3,
-        costThreshold: 0.0
+        costThreshold: 0.005
       },
       translator: {
-        primary: 'gemma2-9b-it',
-        fallbacks: ['llama-3.3-70b-versatile', 'mixtral-8x7b-32768', 'llama3-8b-8192'],
+        primary: 'Qwen/Qwen2.5-72B-Instruct',
+        fallbacks: ['microsoft/DeepSeek-R1-Distill-Qwen-32B', 'deepseek-chat'],
         maxRetries: 3,
-        costThreshold: 0.0
+        costThreshold: 0.005
       },
       robotics: {
-        primary: 'deepseek-r1-distill-llama-70b',
-        fallbacks: ['llama3-groq-70b-8192-tool-use-preview', 'llama-3.3-70b-versatile', 'llama-3.1-70b-versatile'],
+        primary: 'microsoft/DeepSeek-R1-Distill-Qwen-32B',
+        fallbacks: ['deepseek-ai/DeepSeek-Coder-V2-Instruct-236B', 'deepseek-chat'],
         maxRetries: 3,
-        costThreshold: 0.0
+        costThreshold: 0.005
       },
       grammar_checker: {
-        primary: 'llama-3.3-70b-versatile',
-        fallbacks: ['mixtral-8x7b-32768', 'gemma2-9b-it', 'llama3-8b-8192'],
+        primary: 'Qwen/Qwen2.5-72B-Instruct',
+        fallbacks: ['microsoft/DeepSeek-R1-Distill-Qwen-32B', 'deepseek-chat'],
         maxRetries: 3,
-        costThreshold: 0.0
+        costThreshold: 0.005
       },
       general_chat: {
-        primary: 'deepseek-r1-distill-llama-70b',
-        fallbacks: ['llama-3.3-70b-versatile', 'llama-3.1-70b-versatile', 'mixtral-8x7b-32768'],
+        primary: 'Qwen/Qwen2.5-72B-Instruct',
+        fallbacks: ['microsoft/DeepSeek-R1-Distill-Qwen-32B', 'deepseek-chat'],
         maxRetries: 3,
-        costThreshold: 0.0
+        costThreshold: 0.005
       }
     };
   }
@@ -219,7 +178,7 @@ class AIModelManager {
 
     // Last resort - return the most reliable model
     console.warn(`⚠️ All preferred models unavailable for ${feature}, using emergency fallback`);
-    return 'deepseek/deepseek-chat';
+    return 'deepseek-chat';
   }
 
   /**

@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { AIModel, ChatMessage } from '../lib/types';
-// import { groqApi } from '../lib/services/groqApi'; // REMOVED - service no longer exists
-// import { colors, typography, spacing, borderRadius } from theme - DISABLED
+import { huggingFaceService } from '../lib/services/huggingFaceService';
 
 interface ChatScreenProps {
   selectedModel: AIModel;
@@ -37,26 +36,32 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ selectedModel, onModelSelect })
     setIsLoading(true);
 
     try {
-      // TEMPORARILY DISABLED - groqApi service removed
-      const response = { content: "ChatScreen component temporarily disabled", responseTime: 1000 };
-      /*
-      const response = await groqApi.sendChatMessage(
-        [...messages, userMessage],
-        selectedModel.id
-      );
-      */
+      // Use Hugging Face service
+      const hfMessages = [...messages, userMessage].map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
 
-      const assistantMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: response.content, // Using simplified response structure
-        timestamp: new Date(),
-        modelUsed: selectedModel.name,
-        tokens: 0, // Placeholder since groqApi is disabled
-        responseTime: response.responseTime,
-      };
+      const response = await huggingFaceService.createChatCompletion({
+        messages: hfMessages,
+        action: 'chat'
+      });
 
-      setMessages(prev => [...prev, assistantMessage]);
+      if (response.success && response.data) {
+        const assistantMessage: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: response.data.response,
+          timestamp: new Date(),
+          modelUsed: response.data.model_used,
+          tokens: response.usage?.total_tokens || 0,
+          responseTime: response.data.processing_time,
+        };
+
+        setMessages(prev => [...prev, assistantMessage]);
+      } else {
+        throw new Error(response.error || 'Failed to get response');
+      }
     } catch (error) {
       alert('Failed to get AI response. Please try again.');
       console.error('Chat error:', error);
