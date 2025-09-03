@@ -3,6 +3,7 @@
 // import { Button } from "@/components/ui/Button"; // Unused import
 import { useEffect, useState } from "react";
 import StudyCommons from "@/components/StudyCommons";
+import MessageRenderer from "@/components/MessageRenderer";
 
 // ChatInterface Component
 function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: string }; onLogout: () => void }) {
@@ -458,7 +459,13 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
                         : 'bg-white/60 backdrop-blur-md text-[#051a1c] border border-white/40 shadow-lg'
                     }`}
                   >
-                    <p className="text-base leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                    <div className="text-base leading-relaxed">
+                      {message.role === 'user' ? (
+                        <p className="whitespace-pre-wrap">{message.content}</p>
+                      ) : (
+                        <MessageRenderer text={message.content} />
+                      )}
+                    </div>
                     <div className="flex items-center justify-between mt-2">
                       <p className={`text-xs opacity-60 ${
                         message.role === 'user' ? 'text-white/70' : 'text-[#051a1c]/70'
