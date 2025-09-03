@@ -44,6 +44,22 @@ export interface UsageRecord {
   created_at: string;
 }
 
+export interface StudyCommonsMessage {
+  id: string;
+  user_nickname: string;
+  message_text: string;
+  is_ai: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StudyCommonsUser {
+  id: string;
+  nickname: string;
+  last_seen: string;
+  is_active: boolean;
+}
+
 class DatabaseService {
   private static instance: DatabaseService;
   private supabase: SupabaseClient;
@@ -492,6 +508,130 @@ class DatabaseService {
       return { status: 'degraded', message: 'Using local storage fallback' };
     } catch (error) {
       return { status: 'offline', message: 'Database unavailable' };
+    }
+  }
+
+  // Study Commons Methods
+  async addStudyCommonsMessage(message: Omit<StudyCommonsMessage, 'id' | 'created_at' | 'updated_at'>): Promise<StudyCommonsMessage | null> {
+    try {
+      if (!this.isInitialized) {
+        console.warn('Database not initialized, using local storage');
+        return null;
+      }
+
+      const { data, error } = await this.supabase
+        .from('study_commons_messages')
+        .insert([{
+          user_nickname: message.user_nickname,
+          message_text: message.message_text,
+          is_ai: message.is_ai
+        }])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error adding Study Commons message:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Unexpected error adding message:', error);
+      return null;
+    }
+  }
+
+  async getStudyCommonsMessages(limit = 50): Promise<StudyCommonsMessage[]> {
+    try {
+      if (!this.isInitialized) {
+        console.warn('Database not initialized, returning empty messages');
+        return [];
+      }
+
+      const { data, error } = await this.supabase
+        .from('study_commons_messages')
+        .select('*')
+        .order('created_at', { ascending: true })
+        .limit(limit);
+
+      if (error) {
+        console.error('Error fetching Study Commons messages:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Unexpected error fetching messages:', error);
+      return [];
+    }
+  }
+
+  subscribeToStudyCommonsMessages(callback: (message: StudyCommonsMessage) => void) {
+    if (!this.isInitialized) {
+      console.warn('Database not initialized, cannot subscribe to messages');
+      return null;
+    }
+
+    const channel = this.supabase
+      .channel('study_commons_messages')
+      .on(
+        'postgres_changes',
+        { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'study_commons_messages' 
+        },
+        (payload) => {
+          callback(payload.new as StudyCommonsMessage);
+        }
+      )
+      .subscribe();
+
+    return channel;
+  }
+
+  async updateUserPresence(nickname: string): Promise<void> {
+    try {
+      if (!this.isInitialized) return;
+
+      const { error } = await this.supabase
+        .from('study_commons_users')
+        .upsert([{
+          nickname: nickname,
+          last_seen: new Date().toISOString(),
+          is_active: true
+        }], { onConflict: 'nickname' });
+
+      if (error) {
+        console.error('Error updating user presence:', error);
+      }
+    } catch (error) {
+      console.error('Unexpected error updating presence:', error);
+    }
+  }
+
+  async getActiveUsers(): Promise<StudyCommonsUser[]> {
+    try {
+      if (!this.isInitialized) return [];
+
+      // Users active in the last 5 minutes
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+
+      const { data, error } = await this.supabase
+        .from('study_commons_users')
+        .select('*')
+        .gte('last_seen', fiveMinutesAgo)
+        .eq('is_active', true);
+
+      if (error) {
+        console.error('Error fetching active users:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Unexpected error fetching active users:', error);
+      return [];
     }
   }
 }

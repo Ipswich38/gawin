@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import MessageRenderer from "./MessageRenderer";
+import { databaseService, StudyCommonsMessage, StudyCommonsUser } from "../lib/services/databaseService";
 
 // Simple message interface
 interface Message {
@@ -30,6 +31,8 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
     }
   }, []);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [activeUsers, setActiveUsers] = useState<StudyCommonsUser[]>([]);
+  const [subscription, setSubscription] = useState<any>(null);
   const [input, setInput] = useState("");
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [size, setSize] = useState({ width: 400, height: 600 });
@@ -41,17 +44,84 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Initialize with welcome message from Gawin AI
+  // Load messages and setup real-time subscription when user joins
   useEffect(() => {
-    const welcomeMessage: Message = {
-      id: 'welcome-' + Date.now(),
-      user: 'Gawin AI',
-      text: '👋 Hey everyone! Welcome to Study Commons! I\'m Gawin - think of me as your friendly study buddy who\'s been around the academic block a few times! 😄\n\nI love:\n• Helping with tricky concepts across all subjects\n• Cheering on good collaboration between learners\n• Sharing study tips and keeping things positive\n• Being your study motivation when things get tough\n\nJust chat naturally - I\'ll jump in when I can help! Let\'s make learning fun together! 🌟📚',
-      timestamp: new Date().toLocaleTimeString(),
-      isAI: true
+    if (!joined) return;
+
+    const initializeChat = async () => {
+      // Update user presence
+      await databaseService.updateUserPresence(nickname);
+      
+      // Load existing messages
+      const existingMessages = await databaseService.getStudyCommonsMessages();
+      const convertedMessages: Message[] = existingMessages.map((msg: StudyCommonsMessage) => ({
+        id: msg.id,
+        user: msg.is_ai ? 'Gawin AI' : msg.user_nickname,
+        text: msg.message_text,
+        timestamp: new Date(msg.created_at).toLocaleTimeString(),
+        isAI: msg.is_ai
+      }));
+
+      // If no messages exist, add welcome message
+      if (convertedMessages.length === 0) {
+        const welcomeMessage: Message = {
+          id: 'welcome-' + Date.now(),
+          user: 'Gawin AI',
+          text: '👋 Hey everyone! Welcome to Study Commons! I\'m Gawin - think of me as your friendly study buddy who\'s been around the academic block a few times! 😄\n\nI love:\n• Helping with tricky concepts across all subjects\n• Cheering on good collaboration between learners\n• Sharing study tips and keeping things positive\n• Being your study motivation when things get tough\n\nJust chat naturally - I\'ll jump in when I can help! Let\'s make learning fun together! 🌟📚',
+          timestamp: new Date().toLocaleTimeString(),
+          isAI: true
+        };
+        
+        // Add welcome message to database
+        await databaseService.addStudyCommonsMessage({
+          user_nickname: 'Gawin AI',
+          message_text: welcomeMessage.text,
+          is_ai: true
+        });
+        
+        setMessages([welcomeMessage]);
+      } else {
+        setMessages(convertedMessages);
+      }
+
+      // Setup real-time subscription
+      const channel = databaseService.subscribeToStudyCommonsMessages((newMessage: StudyCommonsMessage) => {
+        const convertedMessage: Message = {
+          id: newMessage.id,
+          user: newMessage.is_ai ? 'Gawin AI' : newMessage.user_nickname,
+          text: newMessage.message_text,
+          timestamp: new Date(newMessage.created_at).toLocaleTimeString(),
+          isAI: newMessage.is_ai
+        };
+        
+        setMessages(prev => [...prev, convertedMessage]);
+      });
+      
+      setSubscription(channel);
+
+      // Load active users
+      const users = await databaseService.getActiveUsers();
+      setActiveUsers(users);
     };
-    setMessages([welcomeMessage]);
-  }, []);
+
+    initializeChat();
+
+    // Setup presence update interval
+    const presenceInterval = setInterval(() => {
+      if (joined) {
+        databaseService.updateUserPresence(nickname);
+        // Refresh active users list
+        databaseService.getActiveUsers().then(setActiveUsers);
+      }
+    }, 30000); // Update every 30 seconds
+
+    return () => {
+      clearInterval(presenceInterval);
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+    };
+  }, [joined, nickname]);
 
   // Auto scroll to bottom
   useEffect(() => {
@@ -305,44 +375,43 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
       const baseDelay = isGreeting ? 1000 : 2000;
       const randomDelay = Math.random() * (isGreeting ? 1000 : 2000);
       
-      setTimeout(() => {
-        const aiResponse: Message = {
-          id: 'ai-' + Date.now(),
-          user: 'Gawin AI',
-          text: generateAIResponse(context.responseType, context.topic),
-          timestamp: new Date().toLocaleTimeString(),
-          isAI: true
-        };
-        setMessages(prev => [...prev, aiResponse]);
+      setTimeout(async () => {
+        const aiResponseText = generateAIResponse(context.responseType, context.topic);
+        
+        // Add AI response to database - will trigger real-time update for all users
+        await databaseService.addStudyCommonsMessage({
+          user_nickname: 'Gawin AI',
+          message_text: aiResponseText,
+          is_ai: true
+        });
       }, baseDelay + randomDelay); // 1-2 seconds for greetings, 2-4 seconds for others
     }
   }, [messages, aiCooldown]);
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!input.trim()) return;
     
     const validation = isValidMessage(input);
     if (!validation.allowed) {
-      const warningMsg: Message = {
-        id: Date.now().toString(),
-        user: "🛡️ Gawin AI",
-        text: `Hey there! 😅 ${validation.reason}\n\nI know I'm being a bit protective here, but I want to keep this space awesome for learning! Think of me as that older friend who looks out for everyone. Let's keep things educational and fun! Thanks! 💙📚`,
-        timestamp: new Date().toLocaleTimeString(),
-        isAI: true
-      };
-      setMessages(prev => [...prev, warningMsg]);
+      // Add warning message to database so all users see moderation
+      const warningText = `Hey there! 😅 ${validation.reason}\n\nI know I'm being a bit protective here, but I want to keep this space awesome for learning! Think of me as that older friend who looks out for everyone. Let's keep things educational and fun! Thanks! 💙📚`;
+      
+      await databaseService.addStudyCommonsMessage({
+        user_nickname: "🛡️ Gawin AI",
+        message_text: warningText,
+        is_ai: true
+      });
       setInput("");
       return;
     }
 
-    const message: Message = {
-      id: Date.now().toString(),
-      user: nickname,
-      text: input,
-      timestamp: new Date().toLocaleTimeString()
-    };
-
-    setMessages(prev => [...prev, message]);
+    // Add message to database - will trigger real-time update for all users
+    await databaseService.addStudyCommonsMessage({
+      user_nickname: nickname,
+      message_text: input,
+      is_ai: false
+    });
+    
     setInput("");
   };
 
@@ -502,7 +571,7 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
               </div>
               <div>
                 <h2 className="text-sm font-semibold text-gray-800">Study Commons</h2>
-                <p className="text-xs text-gray-600">Learning Community</p>
+                <p className="text-xs text-gray-600">{activeUsers.length} learner{activeUsers.length !== 1 ? 's' : ''} online</p>
               </div>
             </div>
             <button
