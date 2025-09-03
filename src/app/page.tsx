@@ -384,7 +384,6 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
       {showStudyCommons && (
         <StudyCommons
           onClose={() => setShowStudyCommons(false)}
-          currentUser={user}
         />
       )}
 
