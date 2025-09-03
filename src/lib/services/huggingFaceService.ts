@@ -232,7 +232,7 @@ class HuggingFaceService {
   }
 
   /**
-   * Generate images using FLUX.1-dev
+   * Generate images using FLUX.1-dev with fallback options
    */
   async generateImage(prompt: string, options?: {
     width?: number;
@@ -257,39 +257,102 @@ class HuggingFaceService {
         };
       }
 
-      const payload = {
-        inputs: prompt,
-        parameters: {
-          width: options?.width || 1024,
-          height: options?.height || 1024,
-          num_inference_steps: options?.num_inference_steps || 28,
-          guidance_scale: options?.guidance_scale || 3.5
-        }
-      };
-
-      const response = await fetch(`${this.baseURL}/black-forest-labs/FLUX.1-dev`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
+      // Try multiple models in order of preference
+      const modelAttempts = [
+        {
+          model: 'black-forest-labs/FLUX.1-schnell',
+          name: 'FLUX.1-schnell (faster)',
+          steps: 4,
+          timeout: 30000
         },
-        body: JSON.stringify(payload)
-      });
+        {
+          model: 'stabilityai/stable-diffusion-xl-base-1.0',
+          name: 'Stable Diffusion XL',
+          steps: 20,
+          timeout: 25000
+        },
+        {
+          model: 'runwayml/stable-diffusion-v1-5',
+          name: 'Stable Diffusion v1.5',
+          steps: 20,
+          timeout: 20000
+        }
+      ];
 
-      if (!response.ok) {
-        const errorData = await response.text();
-        return {
-          success: false,
-          error: `Image generation failed: ${response.status} ${errorData}`
-        };
+      for (const attempt of modelAttempts) {
+        try {
+          console.log(`🎨 Trying image generation with ${attempt.name}...`);
+
+          const payload = {
+            inputs: prompt,
+            parameters: {
+              width: options?.width || 1024,
+              height: options?.height || 1024,
+              num_inference_steps: options?.num_inference_steps || attempt.steps,
+              guidance_scale: options?.guidance_scale || 7.5
+            }
+          };
+
+          // Create abort controller for timeout
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), attempt.timeout);
+
+          const response = await fetch(`${this.baseURL}/${attempt.model}`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${this.apiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+            signal: controller.signal
+          });
+
+          clearTimeout(timeoutId);
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.warn(`${attempt.name} failed:`, response.status, errorText.slice(0, 200));
+            
+            // If it's a 504 or 503, try the next model
+            if (response.status === 504 || response.status === 503) {
+              continue;
+            }
+            
+            // For other errors, return the error
+            return {
+              success: false,
+              error: `Image generation failed with ${attempt.name}: ${response.status}`
+            };
+          }
+
+          const blob = await response.blob();
+          const imageUrl = URL.createObjectURL(blob);
+
+          console.log(`✅ Successfully generated image with ${attempt.name}`);
+
+          return {
+            success: true,
+            data: { image_url: imageUrl }
+          };
+
+        } catch (error) {
+          console.warn(`${attempt.name} error:`, error);
+          
+          // If it's a timeout or network error, try next model
+          if (error instanceof Error && (error.name === 'AbortError' || error.message.includes('fetch'))) {
+            console.log(`⏰ ${attempt.name} timed out, trying next model...`);
+            continue;
+          }
+          
+          // For other errors, continue to next model
+          continue;
+        }
       }
 
-      const blob = await response.blob();
-      const imageUrl = URL.createObjectURL(blob);
-
+      // If all models failed, return a helpful error
       return {
-        success: true,
-        data: { image_url: imageUrl }
+        success: false,
+        error: 'All image generation models are currently unavailable. The Hugging Face inference API might be overloaded. Please try again in a few moments.'
       };
 
     } catch (error) {

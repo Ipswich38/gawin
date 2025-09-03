@@ -193,7 +193,7 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
         
         // Handle image generation requests
         if (isImageGeneration) {
-          setCognitiveProcess('🎨 FLUX.1-dev • generating image...');
+          setCognitiveProcess('🎨 AI Image Generation • trying models...');
           
           const imageResponse = await fetch('/api/huggingface', {
             method: 'PUT', // PUT method for image generation
@@ -205,15 +205,15 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
               options: {
                 width: 1024,
                 height: 1024,
-                num_inference_steps: 28,
-                guidance_scale: 3.5
+                num_inference_steps: 4,
+                guidance_scale: 7.5
               }
             }),
           });
 
           const imageData = await imageResponse.json();
           
-          if (imageData.success && imageData.data.image_url) {
+          if (imageData.success && imageData.data?.image_url) {
             setTimeout(() => {
               const assistantMessage = {
                 id: Date.now() + 1,
@@ -222,18 +222,25 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
 
 ![Generated Image](${imageData.data.image_url})
 
-*Generated using FLUX.1-dev model*`,
+*Generated using Hugging Face AI models with intelligent fallback system*`,
                 timestamp: new Date().toLocaleTimeString()
               };
               
               setMessages(prev => [...prev, assistantMessage]);
               setCognitiveProcess('');
-            }, 2000);
+            }, 1000);
           } else {
             const errorMessage = {
               id: Date.now() + 1,
               role: 'assistant' as const,
-              content: `Sorry, I had trouble generating the image. Error: ${imageData.error || 'Unknown error'}. Please try again with a different description.`,
+              content: `I apologize, but I'm having trouble generating images right now. ${imageData.error || 'The image generation service may be temporarily overloaded.'}
+
+You can try:
+• Using simpler, shorter descriptions
+• Trying again in a few minutes
+• Using different keywords like "create" or "make" instead of "draw"
+
+The Hugging Face inference API sometimes gets busy, but it usually works better during off-peak hours.`,
               timestamp: new Date().toLocaleTimeString()
             };
             setMessages(prev => [...prev, errorMessage]);
