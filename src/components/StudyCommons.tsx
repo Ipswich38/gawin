@@ -55,7 +55,8 @@ interface Message {
 }
 
 export default function StudyCommons({ onClose }: StudyCommonsProps) {
-  const nickname = "Anonymous";
+  const [nickname, setNickname] = useState("");
+  const [joined, setJoined] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [warnings, setWarnings] = useState<Record<string, number>>({});
@@ -95,16 +96,30 @@ export default function StudyCommons({ onClose }: StudyCommonsProps) {
   }, []);
 
   useEffect(() => {
-    const channel = supabase.channel("study-commons")
-      .on("broadcast", { event: "chat" }, ({ payload }) => {
-        setMessages((prev) => [...prev, payload]);
-      })
-      .subscribe();
+    if (!joined) return;
+
+    let channel: any = null;
+    
+    try {
+      channel = supabase.channel("study-commons")
+        .on("broadcast", { event: "chat" }, ({ payload }) => {
+          setMessages((prev) => [...prev, payload]);
+        })
+        .subscribe();
+    } catch (error) {
+      console.warn("Study Commons: Could not connect to real-time chat");
+    }
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        try {
+          supabase.removeChannel(channel);
+        } catch (error) {
+          console.warn("Study Commons: Error removing channel");
+        }
+      }
     };
-  }, []);
+  }, [joined]);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -143,11 +158,15 @@ export default function StudyCommons({ onClose }: StudyCommonsProps) {
     setMessages((prev) => [...prev, message]);
     
     // Broadcast to other users
-    await supabase.channel("study-commons").send({
-      type: "broadcast",
-      event: "chat",
-      payload: message
-    });
+    try {
+      await supabase.channel("study-commons").send({
+        type: "broadcast",
+        event: "chat",
+        payload: message
+      });
+    } catch (error) {
+      console.warn("Study Commons: Could not broadcast message");
+    }
 
     setInput("");
   };
@@ -162,6 +181,61 @@ export default function StudyCommons({ onClose }: StudyCommonsProps) {
     return colors[index];
   };
 
+  if (!joined) {
+    return (
+      <Draggable handle=".drag-handle" bounds="parent">
+        <div className="fixed top-4 right-4 z-40">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-80 p-6 rounded-3xl shadow-2xl backdrop-blur-xl border border-white/20"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255, 237, 213, 0.95) 0%, rgba(255, 248, 235, 0.95) 100%)'
+            }}
+          >
+            <div className="drag-handle cursor-move p-2 -m-2 mb-4">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-lg">📚</span>
+                </div>
+                <h1 className="text-lg font-bold text-gray-800 mb-1">Join Study Commons</h1>
+                <p className="text-gray-600 text-xs">
+                  Enter your nickname to join the learning community
+                </p>
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <input
+                type="text"
+                placeholder="Your nickname"
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-2xl border border-orange-200 focus:outline-none focus:ring-2 focus:ring-orange-300 bg-white/70 backdrop-blur-sm text-gray-700 placeholder:text-gray-500 text-sm"
+                onKeyDown={(e) => e.key === "Enter" && nickname.trim() && setJoined(true)}
+                autoFocus
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => nickname.trim() && setJoined(true)}
+                  disabled={!nickname.trim()}
+                  className="flex-1 py-2.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-medium rounded-2xl hover:from-orange-500 hover:to-orange-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                >
+                  Join Chat
+                </button>
+                <button
+                  onClick={onClose}
+                  className="px-4 py-2.5 text-gray-600 hover:text-gray-800 transition-colors text-sm"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </Draggable>
+    );
+  }
 
   return (
     <Draggable handle=".drag-handle" bounds="parent">
