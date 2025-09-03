@@ -34,6 +34,7 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
   const [activeUsers, setActiveUsers] = useState<StudyCommonsUser[]>([]);
   const [subscription, setSubscription] = useState<any>(null);
   const [localActiveUsers, setLocalActiveUsers] = useState<string[]>([]); // Fallback local user list
+  const [showUserList, setShowUserList] = useState(true); // Toggle for user list sidebar
   const [input, setInput] = useState("");
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [size, setSize] = useState({ width: 400, height: 600 });
@@ -55,27 +56,42 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
       const userEntry = {
         nickname: nickname,
         joinTime: Date.now(),
-        lastSeen: Date.now()
+        lastSeen: Date.now(),
+        sessionId: Date.now() + '-' + Math.random().toString(36).substr(2, 9) // Unique session ID
       };
       
       // Remove old entry if exists, add new one
-      const updatedList = activeUsersList.filter((user: any) => user.nickname !== nickname);
+      const updatedList = activeUsersList.filter((user: any) => user.nickname !== nickname || user.sessionId === userEntry.sessionId);
       updatedList.push(userEntry);
       
-      // Remove users older than 2 minutes
-      const twoMinutesAgo = Date.now() - (2 * 60 * 1000);
-      const recentUsers = updatedList.filter((user: any) => user.lastSeen > twoMinutesAgo);
+      // Remove users older than 3 minutes (longer for cross-device detection)
+      const threeMinutesAgo = Date.now() - (3 * 60 * 1000);
+      const recentUsers = updatedList.filter((user: any) => user.lastSeen > threeMinutesAgo);
+      
+      // Store with timestamp for cross-device sync
+      const storageData = {
+        users: recentUsers,
+        lastUpdated: Date.now()
+      };
       
       localStorage.setItem('studyCommons_activeUsers', JSON.stringify(recentUsers));
+      localStorage.setItem('studyCommons_sync', JSON.stringify(storageData));
+      
       setLocalActiveUsers(recentUsers.map((user: any) => user.nickname));
+      
+      // Force update the main page counter
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'studyCommons_activeUsers',
+        newValue: JSON.stringify(recentUsers)
+      }));
     };
 
     addUserToLocalList();
 
-    // Update presence every 10 seconds
+    // Update presence every 5 seconds for better cross-device detection
     const localPresenceInterval = setInterval(() => {
       addUserToLocalList();
-    }, 10000);
+    }, 5000);
 
     return () => clearInterval(localPresenceInterval);
   }, [joined, nickname]);
@@ -83,14 +99,30 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
   // Listen for localStorage changes from other tabs/users
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'studyCommons_activeUsers') {
-        const activeUsersList = JSON.parse(e.newValue || '[]');
-        setLocalActiveUsers(activeUsersList.map((user: any) => user.nickname));
+      if (e.key === 'studyCommons_activeUsers' || e.key === 'studyCommons_sync') {
+        const activeUsersList = JSON.parse(localStorage.getItem('studyCommons_activeUsers') || '[]');
+        const threeMinutesAgo = Date.now() - (3 * 60 * 1000);
+        const recentUsers = activeUsersList.filter((user: any) => user.lastSeen > threeMinutesAgo);
+        setLocalActiveUsers(recentUsers.map((user: any) => user.nickname));
+        console.log('Updated users from storage:', recentUsers.map((u: any) => u.nickname));
       }
     };
 
+    // Also poll for changes every few seconds (for cross-device detection)
+    const pollForChanges = () => {
+      const activeUsersList = JSON.parse(localStorage.getItem('studyCommons_activeUsers') || '[]');
+      const threeMinutesAgo = Date.now() - (3 * 60 * 1000);
+      const recentUsers = activeUsersList.filter((user: any) => user.lastSeen > threeMinutesAgo);
+      setLocalActiveUsers(recentUsers.map((user: any) => user.nickname));
+    };
+
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    const pollInterval = setInterval(pollForChanges, 3000); // Poll every 3 seconds
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(pollInterval);
+    };
   }, []);
 
   // Load messages and setup real-time subscription when user joins
@@ -460,50 +492,53 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
     if (!validation.allowed) {
       const warningText = `Hey there! 😅 ${validation.reason}\n\nI know I'm being a bit protective here, but I want to keep this space awesome for learning! Think of me as that older friend who looks out for everyone. Let's keep things educational and fun! Thanks! 💙📚`;
       
+      // Always add locally first for immediate feedback
+      const warningMsg: Message = {
+        id: Date.now().toString(),
+        user: "🛡️ Gawin AI",
+        text: warningText,
+        timestamp: new Date().toLocaleTimeString(),
+        isAI: true
+      };
+      setMessages(prev => [...prev, warningMsg]);
+      
+      // Also try database in background
       try {
-        // Try to add warning message to database
         await databaseService.addStudyCommonsMessage({
           user_nickname: "🛡️ Gawin AI",
           message_text: warningText,
           is_ai: true
         });
       } catch (error) {
-        // Fallback: Add warning locally if database fails
-        console.error('Database error, adding message locally:', error);
-        const warningMsg: Message = {
-          id: Date.now().toString(),
-          user: "🛡️ Gawin AI",
-          text: warningText,
-          timestamp: new Date().toLocaleTimeString(),
-          isAI: true
-        };
-        setMessages(prev => [...prev, warningMsg]);
+        console.log('Database unavailable, using local mode');
       }
       setInput("");
       return;
     }
 
+    // Always add message locally first for immediate feedback
+    const localMessage: Message = {
+      id: Date.now().toString(),
+      user: nickname,
+      text: input,
+      timestamp: new Date().toLocaleTimeString(),
+      isAI: false
+    };
+    setMessages(prev => [...prev, localMessage]);
+    
+    // Clear input immediately
+    setInput("");
+
+    // Try to add to database in background (for real-time sync)
     try {
-      // Try to add message to database - will trigger real-time update for all users
       await databaseService.addStudyCommonsMessage({
         user_nickname: nickname,
         message_text: input,
         is_ai: false
       });
     } catch (error) {
-      // Fallback: Add message locally if database fails
-      console.error('Database error, adding message locally:', error);
-      const localMessage: Message = {
-        id: Date.now().toString(),
-        user: nickname,
-        text: input,
-        timestamp: new Date().toLocaleTimeString(),
-        isAI: false
-      };
-      setMessages(prev => [...prev, localMessage]);
+      console.log('Database unavailable, message stored locally only');
     }
-    
-    setInput("");
   };
 
   // Mouse event handlers for dragging
@@ -665,13 +700,29 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
                 <p className="text-xs text-gray-600">{localActiveUsers.length} learner{localActiveUsers.length !== 1 ? 's' : ''} online</p>
               </div>
             </div>
-            <button
-              onClick={onMinimize}
-              className="p-2 hover:bg-orange-200/50 rounded-xl transition-colors"
-              title="Minimize"
-            >
-              <span className="text-gray-600">−</span>
-            </button>
+            <div className="flex items-center space-x-1">
+              {/* Toggle User List Button */}
+              <button
+                onClick={() => setShowUserList(!showUserList)}
+                className="p-2 hover:bg-orange-200/50 rounded-xl transition-colors"
+                title={showUserList ? "Hide user list" : "Show user list"}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+              </button>
+              {/* Minimize Button */}
+              <button
+                onClick={onMinimize}
+                className="p-2 hover:bg-orange-200/50 rounded-xl transition-colors"
+                title="Minimize"
+              >
+                <span className="text-gray-600">−</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -712,7 +763,7 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
           </div>
 
           {/* Discord-style User List Sidebar */}
-          {localActiveUsers.length > 0 && (
+          {showUserList && localActiveUsers.length > 0 && (
             <div className="w-48 border-l border-orange-200/50 bg-gradient-to-b from-orange-50/30 to-orange-100/20 p-3">
               <div className="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">
                 Online — {localActiveUsers.length}
