@@ -23,10 +23,24 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
 
   // Update active users count periodically
   useEffect(() => {
-    const updateActiveUsersCount = async () => {
+    const updateActiveUsersCount = () => {
       try {
-        const activeUsers = await databaseService.getActiveUsers();
-        setOnlineUsers(activeUsers.length);
+        // First try local storage (immediate detection)
+        const activeUsersList = JSON.parse(localStorage.getItem('studyCommons_activeUsers') || '[]');
+        const twoMinutesAgo = Date.now() - (2 * 60 * 1000);
+        const recentUsers = activeUsersList.filter((user: any) => user.lastSeen > twoMinutesAgo);
+        setOnlineUsers(recentUsers.length);
+        
+        // Also try database (for cross-device sync)
+        databaseService.getActiveUsers().then(dbUsers => {
+          if (dbUsers.length > recentUsers.length) {
+            setOnlineUsers(dbUsers.length);
+          }
+        }).catch(() => {
+          // Database failed, keep using local count
+          console.log('Using local user count:', recentUsers.length);
+        });
+        
       } catch (error) {
         console.error('Error fetching active users:', error);
         setOnlineUsers(0);
@@ -36,10 +50,22 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
     // Initial load
     updateActiveUsersCount();
 
-    // Update every 30 seconds
-    const interval = setInterval(updateActiveUsersCount, 30000);
+    // Update every 15 seconds for faster detection
+    const interval = setInterval(updateActiveUsersCount, 15000);
 
-    return () => clearInterval(interval);
+    // Listen for localStorage changes
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'studyCommons_activeUsers') {
+        updateActiveUsersCount();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   // Helper function to process AI response and extract cognitive indicators

@@ -33,6 +33,7 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [activeUsers, setActiveUsers] = useState<StudyCommonsUser[]>([]);
   const [subscription, setSubscription] = useState<any>(null);
+  const [localActiveUsers, setLocalActiveUsers] = useState<string[]>([]); // Fallback local user list
   const [input, setInput] = useState("");
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [size, setSize] = useState({ width: 400, height: 600 });
@@ -44,16 +45,64 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Immediate local user tracking (works without database)
+  useEffect(() => {
+    if (!joined || !nickname) return;
+
+    // Add user to local tracking immediately
+    const addUserToLocalList = () => {
+      const activeUsersList = JSON.parse(localStorage.getItem('studyCommons_activeUsers') || '[]');
+      const userEntry = {
+        nickname: nickname,
+        joinTime: Date.now(),
+        lastSeen: Date.now()
+      };
+      
+      // Remove old entry if exists, add new one
+      const updatedList = activeUsersList.filter((user: any) => user.nickname !== nickname);
+      updatedList.push(userEntry);
+      
+      // Remove users older than 2 minutes
+      const twoMinutesAgo = Date.now() - (2 * 60 * 1000);
+      const recentUsers = updatedList.filter((user: any) => user.lastSeen > twoMinutesAgo);
+      
+      localStorage.setItem('studyCommons_activeUsers', JSON.stringify(recentUsers));
+      setLocalActiveUsers(recentUsers.map((user: any) => user.nickname));
+    };
+
+    addUserToLocalList();
+
+    // Update presence every 10 seconds
+    const localPresenceInterval = setInterval(() => {
+      addUserToLocalList();
+    }, 10000);
+
+    return () => clearInterval(localPresenceInterval);
+  }, [joined, nickname]);
+
+  // Listen for localStorage changes from other tabs/users
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'studyCommons_activeUsers') {
+        const activeUsersList = JSON.parse(e.newValue || '[]');
+        setLocalActiveUsers(activeUsersList.map((user: any) => user.nickname));
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   // Load messages and setup real-time subscription when user joins
   useEffect(() => {
     if (!joined) return;
 
     const initializeChat = async () => {
       try {
-        // Update user presence
+        // Update user presence in database
         await databaseService.updateUserPresence(nickname);
         
-        // Load existing messages
+        // Load existing messages from database
         const existingMessages = await databaseService.getStudyCommonsMessages();
         const convertedMessages: Message[] = existingMessages.map((msg: StudyCommonsMessage) => ({
           id: msg.id,
@@ -613,7 +662,7 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
               </div>
               <div>
                 <h2 className="text-sm font-semibold text-gray-800">Study Commons</h2>
-                <p className="text-xs text-gray-600">{activeUsers.length} learner{activeUsers.length !== 1 ? 's' : ''} online</p>
+                <p className="text-xs text-gray-600">{localActiveUsers.length} learner{localActiveUsers.length !== 1 ? 's' : ''} online</p>
               </div>
             </div>
             <button
@@ -626,38 +675,83 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
           </div>
         </div>
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
-          <AnimatePresence>
-            {messages.map((message) => (
-              <motion.div
-                key={message.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex space-x-3"
-              >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ${
-                  message.isAI ? 'bg-emerald-500' : getAvatarColor(message.user)
-                }`}>
-                  {message.isAI ? '🤖' : getInitials(message.user)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <span className="text-xs font-medium text-gray-800 truncate">{message.user}</span>
-                    <span className="text-xs text-gray-500 flex-shrink-0">{message.timestamp}</span>
-                  </div>
-                  <div className={`text-sm leading-relaxed break-words ${
-                    message.isAI 
-                      ? 'text-emerald-800 bg-emerald-50/70 p-3 rounded-xl border-l-2 border-emerald-300' 
-                      : 'text-gray-700 bg-white/30 p-3 rounded-xl'
+        {/* Messages and User List Container */}
+        <div className="flex-1 flex min-h-0">
+          {/* Messages Area */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            <AnimatePresence>
+              {messages.map((message) => (
+                <motion.div
+                  key={message.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex space-x-3"
+                >
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ${
+                    message.isAI ? 'bg-emerald-500' : getAvatarColor(message.user)
                   }`}>
-                    <MessageRenderer text={message.text} />
+                    {message.isAI ? '🤖' : getInitials(message.user)}
                   </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <span className="text-xs font-medium text-gray-800 truncate">{message.user}</span>
+                      <span className="text-xs text-gray-500 flex-shrink-0">{message.timestamp}</span>
+                    </div>
+                    <div className={`text-sm leading-relaxed break-words ${
+                      message.isAI 
+                        ? 'text-emerald-800 bg-emerald-50/70 p-3 rounded-xl border-l-2 border-emerald-300' 
+                        : 'text-gray-700 bg-white/30 p-3 rounded-xl'
+                    }`}>
+                      <MessageRenderer text={message.text} />
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Discord-style User List Sidebar */}
+          {localActiveUsers.length > 0 && (
+            <div className="w-48 border-l border-orange-200/50 bg-gradient-to-b from-orange-50/30 to-orange-100/20 p-3">
+              <div className="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">
+                Online — {localActiveUsers.length}
+              </div>
+              <div className="space-y-1">
+                {localActiveUsers.map((username) => (
+                  <div
+                    key={username}
+                    className="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-white/30 transition-colors"
+                  >
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${getAvatarColor(username)}`}>
+                      {getInitials(username)}
+                    </div>
+                    <span className="text-xs font-medium text-gray-700 truncate">
+                      {username}
+                      {username === nickname && (
+                        <span className="ml-1 text-emerald-600">(you)</span>
+                      )}
+                    </span>
+                    <div className="w-2 h-2 bg-green-400 rounded-full flex-shrink-0" title="Online" />
+                  </div>
+                ))}
+              </div>
+              
+              {/* Show Gawin AI as always online */}
+              <div className="mt-3">
+                <div className="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">
+                  AI Assistant
                 </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-          <div ref={messagesEndRef} />
+                <div className="flex items-center space-x-2 p-1.5 rounded-lg bg-emerald-50/50">
+                  <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center">
+                    <span className="text-white text-xs">🤖</span>
+                  </div>
+                  <span className="text-xs font-medium text-emerald-700">Gawin AI</span>
+                  <div className="w-2 h-2 bg-emerald-400 rounded-full flex-shrink-0" title="Always Online" />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Input */}
