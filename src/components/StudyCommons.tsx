@@ -52,7 +52,7 @@ interface Message {
   isAI?: boolean;
 }
 
-export default function StudyCommons({ onClose, currentUser }: StudyCommonsProps) {
+export default function StudyCommons({ onClose }: StudyCommonsProps) {
   const [nickname, setNickname] = useState("");
   const [joined, setJoined] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);

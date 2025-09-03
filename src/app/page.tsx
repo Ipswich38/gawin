@@ -16,7 +16,7 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
   const [cognitiveProcess, setCognitiveProcess] = useState<string>('');
   const [copiedMessageId, setCopiedMessageId] = useState<number | null>(null);
   const [showStudyCommons, setShowStudyCommons] = useState(false);
-  const [onlineUsers, setOnlineUsers] = useState(12); // Mock online user count
+  const [onlineUsers] = useState(12); // Mock online user count
 
   // Helper function to process AI response and extract cognitive indicators
   const processAIResponse = (rawResponse: string) => {
@@ -46,7 +46,7 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
     else cognitiveHint = 'thinking...';
 
     // Remove explicit thinking blocks and verbose reasoning
-    let cleanResponse = rawResponse
+    const cleanResponse = rawResponse
       .replace(/<think>[\s\S]*?<\/think>/gi, '') // Remove <think> tags
       .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '') // Remove <thinking> tags
       .replace(/\*\*Thinking:\*\*[\s\S]*?(?=\n\n|$)/gi, '') // Remove **Thinking:** blocks
