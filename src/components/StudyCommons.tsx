@@ -61,8 +61,14 @@ export default function StudyCommons({ onClose }: StudyCommonsProps) {
       {
         id: '5',
         user: 'Math_Helper',
-        text: 'Great question! When b² - 4ac < 0, we get complex solutions:\n\nSolution:\n1. Calculate the discriminant: \\[ \\Delta = b^2 - 4ac \\]\n2. If Δ < 0, the solutions are:\n   \\[ x = \\frac{-b \\pm i\\sqrt{|\\Delta|}}{2a} \\]\n3. These are complex conjugate pairs.\n\nFinal Answer:\n\\[ \\boxed{\\text{Complex conjugate solutions}} \\]',
+        text: 'Great question! When b² - 4ac < 0, we get complex solutions:\n\nSolution:\n1. Calculate the discriminant: \\[ \\Delta = b^2 - 4ac \\]\n2. If Δ < 0, the solutions are:\n   \\[ x = (-b ± i√|Δ|)/(2a) \\]\n3. These are complex conjugate pairs.\n\nFinal Answer:\n\\[ \\boxed{\\text{Complex conjugate solutions}} \\]',
         timestamp: new Date(Date.now() - 120000).toLocaleTimeString()
+      },
+      {
+        id: '6',
+        user: 'Physics_Student',
+        text: 'Can someone help with this fraction? The velocity is v = (3x² + 5)/(2t - 1)',
+        timestamp: new Date(Date.now() - 60000).toLocaleTimeString()
       }
     ];
     setMessages(sampleMessages);
@@ -88,26 +94,89 @@ export default function StudyCommons({ onClose }: StudyCommonsProps) {
     return () => window.removeEventListener('resize', updatePosition);
   }, [size.width]);
 
-  // Simple message validation
-  const isValidMessage = (msg: string): boolean => {
+  // Comprehensive content moderation for academic safety
+  const isValidMessage = (msg: string): { allowed: boolean; reason?: string } => {
     const cleanMsg = msg.toLowerCase().trim();
     
-    // Block inappropriate content
-    if (/sex|porn|nude|drugs|scam|hack|cheat/.test(cleanMsg)) return false;
-    if (/http|www\.|\.com|\.net|\.org/.test(cleanMsg)) return false;
-    if (msg.length > 500) return false;
+    // 🚫 Illegal and inappropriate content
+    if (/porn|nude|naked|sexual|masturbat|orgasm|intercourse|blowjob|handjob|anal|vagina|penis|breast(?!feeding|cancer)|nipple|erotic|seduct|horny|kinky/.test(cleanMsg)) {
+      return { allowed: false, reason: "Sexual content is not allowed" };
+    }
     
-    return true;
+    // Academic exception for sex education, reproduction, biology
+    if (/sex/.test(cleanMsg) && !/sexual reproduction|sex education|sex chromosome|sex determination|sex-linked|biological sex|sex cell|sexual selection/.test(cleanMsg)) {
+      return { allowed: false, reason: "Sexual content not allowed unless for academic biology/health education" };
+    }
+    
+    // 🚫 Filipino profanity
+    if (/putang ina|gago|tarantado|bwisit|pakyu|tangina|ulol|bobo|tanga|hudas|kingina|pakshet|peste|yawa|piste|punyeta|anak ng puta|burat|bilat|kantot|jakol|chupa|bayag|titi|puke/.test(cleanMsg)) {
+      return { allowed: false, reason: "Filipino profanity is not allowed" };
+    }
+    
+    // 🚫 English profanity
+    if (/fuck|shit|damn|bitch|asshole|bastard|cunt|dick|pussy|cock|whore|slut|nigger|faggot|retard|motherfucker|goddamn/.test(cleanMsg)) {
+      return { allowed: false, reason: "Profanity is not allowed" };
+    }
+    
+    // 🚫 LGBTQIA+ topics (redirect to other platforms)
+    if (/lgbt|gay|lesbian|transgender|bisexual|queer|non-binary|gender identity|sexual orientation|pride month|coming out|rainbow flag/.test(cleanMsg)) {
+      return { allowed: false, reason: "LGBTQIA+ discussions belong on dedicated platforms - this is for academic learning" };
+    }
+    
+    // 🚫 Religious debates (academic study allowed)
+    if (/(islam|muslim|christian|catholic|protestant|hindu|buddhist|jewish).*(wrong|stupid|fake|lie|evil|bad)/.test(cleanMsg) || 
+        /(god|allah|jesus|muhammad|buddha).*(doesn't exist|fake|lie|stupid)/.test(cleanMsg) ||
+        /religion.*(stupid|fake|wrong|evil|bad)/.test(cleanMsg)) {
+      return { allowed: false, reason: "Religious debates are not allowed - academic study of religious texts and history is welcome" };
+    }
+    
+    // 🚫 Drugs and illegal substances
+    if (/cocaine|heroin|marijuana|weed|meth|ecstasy|lsd|molly|crack|adderall|xanax|buy drugs|sell drugs|drug dealer/.test(cleanMsg)) {
+      return { allowed: false, reason: "Discussion of illegal drugs is not allowed" };
+    }
+    
+    // 🚫 Violence and illegal activities
+    if (/kill|murder|suicide|bomb|terrorist|hack|steal|piracy|torrent|illegal download|cheat|plagiarism/.test(cleanMsg)) {
+      return { allowed: false, reason: "Violence and illegal activities are not allowed" };
+    }
+    
+    // 🚫 Scams and commercial content
+    if (/buy now|click here|make money|get rich|bitcoin|crypto|investment|forex|trading|mlm|pyramid|scheme/.test(cleanMsg)) {
+      return { allowed: false, reason: "Commercial content and potential scams are not allowed" };
+    }
+    
+    // 🚫 External links and contact sharing
+    if (/http|www\.|\.com|\.net|\.org|\.ph|@gmail|@yahoo|facebook|instagram|tiktok|whatsapp|telegram|discord|phone number|contact me/.test(cleanMsg)) {
+      return { allowed: false, reason: "External links and contact sharing are not allowed for safety" };
+    }
+    
+    // 🚫 Off-topic discussions
+    if (/dating|crush|boyfriend|girlfriend|relationship|love|romance|flirt|cute|handsome|beautiful|sexy|hot|gossip|drama|celebrity|movie|kdrama|kpop/.test(cleanMsg)) {
+      return { allowed: false, reason: "Dating, romance, and entertainment topics are off-topic - focus on academic learning" };
+    }
+    
+    // 🚫 Message length limit
+    if (msg.length > 500) {
+      return { allowed: false, reason: "Please keep messages under 500 characters" };
+    }
+    
+    // ✅ Explicitly allowed academic content
+    if (/bible|testament|scripture|theology|religious history|biblical|christian history|islamic history|religious studies|comparative religion|philosophy|ethics|morals/.test(cleanMsg)) {
+      return { allowed: true }; // Academic religious study is allowed
+    }
+    
+    return { allowed: true };
   };
 
   const sendMessage = () => {
     if (!input.trim()) return;
     
-    if (!isValidMessage(input)) {
+    const validation = isValidMessage(input);
+    if (!validation.allowed) {
       const warningMsg: Message = {
         id: Date.now().toString(),
-        user: "Moderator",
-        text: "⚠️ Please keep messages academic and appropriate. No links or inappropriate content allowed.",
+        user: "🛡️ Study Commons Moderator",
+        text: `⚠️ ${validation.reason}\n\nThis is a safe academic space. Please keep discussions educational and respectful.`,
         timestamp: new Date().toLocaleTimeString(),
         isAI: true
       };

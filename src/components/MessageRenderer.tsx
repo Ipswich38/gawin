@@ -9,8 +9,28 @@ interface MessageRendererProps {
 }
 
 export default function MessageRenderer({ text }: MessageRendererProps) {
+  // Preprocess text to handle various fraction formats
+  const preprocessText = (input: string) => {
+    return input
+      // Convert simple fractions like 1/2 to LaTeX when they appear to be mathematical
+      .replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}')
+      // Convert fractions with parentheses like (a+b)/(c+d) to LaTeX
+      .replace(/\(([^)]+)\)\/\(([^)]+)\)/g, '\\frac{$1}{$2}')
+      // Convert complex fractions with variables
+      .replace(/([a-zA-Z0-9\+\-\*]+)\/([a-zA-Z0-9\+\-\*]+)/g, '\\frac{$1}{$2}')
+      // Fix common math symbols
+      .replace(/\+\-/g, '\\pm')
+      .replace(/\-\+/g, '\\mp')
+      .replace(/sqrt\(([^)]+)\)/g, '\\sqrt{$1}')
+      // Convert degree symbol
+      .replace(/°/g, '^\\circ');
+  };
+
   // Split text by LaTeX blocks and process each part
   const renderText = (input: string) => {
+    // First preprocess the input
+    const processedInput = preprocessText(input);
+    
     const parts = [];
     let currentIndex = 0;
     
@@ -18,10 +38,10 @@ export default function MessageRenderer({ text }: MessageRendererProps) {
     const displayMathRegex = /\$\$([^$]+)\$\$/g;
     let match;
     
-    while ((match = displayMathRegex.exec(input)) !== null) {
+    while ((match = displayMathRegex.exec(processedInput)) !== null) {
       // Add text before the math
       if (match.index > currentIndex) {
-        const beforeText = input.slice(currentIndex, match.index);
+        const beforeText = processedInput.slice(currentIndex, match.index);
         parts.push(processInlineText(beforeText, parts.length));
       }
       
@@ -45,39 +65,55 @@ export default function MessageRenderer({ text }: MessageRendererProps) {
     }
     
     // Add remaining text
-    if (currentIndex < input.length) {
-      const remainingText = input.slice(currentIndex);
+    if (currentIndex < processedInput.length) {
+      const remainingText = processedInput.slice(currentIndex);
       parts.push(processInlineText(remainingText, parts.length));
     }
     
-    return parts.length > 0 ? parts : [processInlineText(input, 0)];
+    return parts.length > 0 ? parts : [processInlineText(processedInput, 0)];
   };
 
   const processInlineText = (text: string, keyOffset: number) => {
     const parts = [];
     let currentIndex = 0;
     
-    // Find inline math (\[...\])
-    const inlineMathRegex = /\\?\[([^\]]+)\\?\]/g;
+    // Enhanced regex for various math formats
+    const mathRegex = /\\?\[([^\]]+)\\?\]|\\?\(([^)]+)\\?\)|\\frac\{([^}]+)\}\{([^}]+)\}|\$([^$]+)\$/g;
     let match;
     
-    while ((match = inlineMathRegex.exec(text)) !== null) {
+    while ((match = mathRegex.exec(text)) !== null) {
       // Add text before the math
       if (match.index > currentIndex) {
         const beforeText = text.slice(currentIndex, match.index);
         parts.push(formatText(beforeText, keyOffset + parts.length));
       }
       
-      // Add inline math
+      // Determine which type of math was matched and process accordingly
+      let mathContent = '';
+      if (match[1]) {
+        // \[...\] display math
+        mathContent = match[1].trim();
+      } else if (match[2]) {
+        // \(...\) inline math
+        mathContent = match[2].trim();
+      } else if (match[3] && match[4]) {
+        // \frac{numerator}{denominator}
+        mathContent = `\\frac{${match[3].trim()}}{${match[4].trim()}}`;
+      } else if (match[5]) {
+        // $...$ inline math
+        mathContent = match[5].trim();
+      }
+      
+      // Add the processed math
       try {
         parts.push(
-          <InlineMath key={keyOffset + parts.length} math={match[1].trim()} />
+          <InlineMath key={keyOffset + parts.length} math={mathContent} />
         );
       } catch (error) {
         // Fallback for invalid LaTeX
         parts.push(
           <span key={keyOffset + parts.length} className="bg-red-50 text-red-700 px-1 rounded text-xs">
-            Invalid LaTeX: {match[1].trim()}
+            Invalid LaTeX: {mathContent}
           </span>
         );
       }

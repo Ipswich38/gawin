@@ -17,6 +17,7 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
   const [cognitiveProcess, setCognitiveProcess] = useState<string>('');
   const [copiedMessageId, setCopiedMessageId] = useState<number | null>(null);
   const [showStudyCommons, setShowStudyCommons] = useState(false);
+  const [showSidePanel, setShowSidePanel] = useState(false);
   const [onlineUsers] = useState(12); // Mock online user count
 
   // Helper function to process AI response and extract cognitive indicators
@@ -267,22 +268,125 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
                   <span className="text-xs opacity-60">{onlineUsers} learners online</span>
                 </div>
               </button>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm opacity-60 px-3 py-1.5 bg-white/30 backdrop-blur-sm rounded-xl" style={{ color: '#051a1c' }}>
-                  {user.full_name || user.email}
-                </span>
-                <button 
-                  onClick={onLogout}
-                  className="text-sm opacity-60 hover:opacity-80 transition-all px-3 py-1.5 rounded-xl hover:bg-white/30"
-                  style={{ color: '#051a1c' }}
+              {/* Hamburger Menu Button */}
+              <button
+                onClick={() => setShowSidePanel(!showSidePanel)}
+                className="p-2 rounded-xl hover:bg-white/30 transition-all"
+                style={{ color: '#051a1c' }}
+                title="Menu"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="3" y1="6" x2="21" y2="6"/>
+                  <line x1="3" y1="12" x2="21" y2="12"/>
+                  <line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Side Panel Overlay */}
+      {showSidePanel && (
+        <div className="fixed inset-0 z-50 flex">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm"
+            onClick={() => setShowSidePanel(false)}
+          />
+          
+          {/* Side Panel */}
+          <div className="relative w-80 h-full bg-white/95 backdrop-blur-xl border-r border-gray-200/50 shadow-2xl">
+            <div className="p-6">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 rounded-2xl flex items-center justify-center" style={{ backgroundColor: '#051a1c' }}>
+                    <span className="text-white font-semibold text-sm">G</span>
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-800">Menu</h2>
+                    <p className="text-xs text-gray-600">Account & Settings</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowSidePanel(false)}
+                  className="p-2 hover:bg-gray-200/50 rounded-xl transition-all"
                 >
-                  Sign out
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+
+              {/* User Info */}
+              <div className="bg-gradient-to-r from-orange-50 to-orange-100/50 p-4 rounded-2xl mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">
+                      {(user.full_name || user.email).charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-800">{user.full_name || 'Gawin User'}</p>
+                    <p className="text-xs text-gray-600">{user.email}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Menu Items */}
+              <div className="space-y-2 mb-8">
+                <button 
+                  onClick={() => setShowHistory(!showHistory)}
+                  className="w-full flex items-center space-x-3 p-3 hover:bg-gray-100/50 rounded-xl transition-all text-left"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 3h18v18H3V3z"/>
+                    <path d="M8 7h8"/>
+                    <path d="M8 11h8"/>
+                    <path d="M8 15h5"/>
+                  </svg>
+                  <span className="text-gray-700">Chat History</span>
+                </button>
+                
+                <button 
+                  onClick={() => setShowStudyCommons(!showStudyCommons)}
+                  className="w-full flex items-center space-x-3 p-3 hover:bg-gray-100/50 rounded-xl transition-all text-left"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                  </svg>
+                  <div>
+                    <div className="text-gray-700 font-medium">Study Commons</div>
+                    <div className="text-xs text-gray-500">{onlineUsers} learners online</div>
+                  </div>
+                </button>
+              </div>
+
+              {/* Logout Button */}
+              <div className="border-t border-gray-200 pt-6">
+                <button 
+                  onClick={() => {
+                    onLogout();
+                    setShowSidePanel(false);
+                  }}
+                  className="w-full flex items-center justify-center space-x-2 p-3 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-all"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16,17 21,12 16,7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                  </svg>
+                  <span className="font-medium">Sign Out</span>
                 </button>
               </div>
             </div>
           </div>
         </div>
-      </header>
+      )}
 
       {/* Floating History Panel Overlay */}
       {showHistory && (
