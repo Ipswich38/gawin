@@ -185,8 +185,16 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
       setInput('');
       
       try {
-        // Call the AI service
-        const response = await fetch('/api/deepseek', {
+        // Determine which AI service to use based on content
+        const isSTEM = /math|physics|chemistry|biology|calculus|algebra|equation|formula|scientific|theorem/.test(currentInput.toLowerCase());
+        const isCoding = /code|program|function|class|variable|debug|algorithm|javascript|python|react|typescript|css|html/.test(currentInput.toLowerCase());
+        const isWriting = /write|essay|story|letter|email|article|blog|creative|compose|grammar|spelling/.test(currentInput.toLowerCase());
+        
+        // Use Hugging Face Pro for specialized tasks, DeepSeek for general chat
+        const apiEndpoint = (isSTEM || isCoding || isWriting) ? '/api/huggingface' : '/api/deepseek';
+        
+        // Call the appropriate AI service
+        const response = await fetch(apiEndpoint, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -195,7 +203,7 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
             messages: [
               { role: 'user', content: currentInput }
             ],
-            action: 'chat',
+            action: isCoding ? 'code' : isWriting ? 'writing' : isSTEM ? 'analysis' : 'chat',
             module: 'general'
           }),
         });
@@ -206,8 +214,14 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
           // Process the AI response to extract cognitive indicators and clean content
           const { cleanResponse, cognitiveHint } = processAIResponse(data.data.response);
           
-          // Show cognitive process briefly
-          setCognitiveProcess(cognitiveHint);
+          // Show model info and cognitive process briefly
+          const modelUsed = data.data.model_used || 'DeepSeek';
+          const taskType = data.data.task_type || 'general';
+          const modelHint = apiEndpoint.includes('huggingface') 
+            ? `🧠 ${taskType.toUpperCase()} • ${modelUsed.split('/').pop() || 'HF Pro'}`
+            : '🤖 DeepSeek';
+          
+          setCognitiveProcess(`${modelHint} • ${cognitiveHint}`);
           
           setTimeout(() => {
             const assistantMessage = {
@@ -537,32 +551,45 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
             </p>
           </div>
 
-          {/* Tool Chips - Smaller Premium Glassmorphism */}
-          <div className="flex flex-wrap justify-center gap-2 mb-12">
+          {/* Tool Chips - Enhanced with Model Indicators */}
+          <div className="flex flex-wrap justify-center gap-2 mb-8">
             <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Explain artificial intelligence concepts")}>
-              🤖 AI Concepts
+              🤖 AI Concepts <span className="ml-1 text-xs opacity-60">(DeepSeek)</span>
             </span>
-            <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Help me with coding problems")}>
-              💻 Coding Help
+            <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-purple-100/70 to-purple-200/70 backdrop-blur-md rounded-2xl hover:from-purple-200/80 hover:to-purple-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-purple-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Help me write Python code")}>
+              💻 Coding Help <span className="ml-1 text-xs opacity-60">(HF Pro)</span>
             </span>
-            <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Solve this math problem")}>
-              🔢 Math Problems
+            <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-blue-100/70 to-blue-200/70 backdrop-blur-md rounded-2xl hover:from-blue-200/80 hover:to-blue-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-blue-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Solve this calculus problem")}>
+              🔢 Math Problems <span className="ml-1 text-xs opacity-60">(HF STEM)</span>
             </span>
-            <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Help me write creative content")}>
-              🎨 Creative Writing
+            <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-green-100/70 to-green-200/70 backdrop-blur-md rounded-2xl hover:from-green-200/80 hover:to-green-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-green-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Write a creative story")}>
+              🎨 Creative Writing <span className="ml-1 text-xs opacity-60">(HF Write)</span>
             </span>
-            <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Check my grammar and writing")}>
-              📝 Grammar & Writing
+            <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-green-100/70 to-green-200/70 backdrop-blur-md rounded-2xl hover:from-green-200/80 hover:to-green-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-green-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Check my grammar and improve this essay")}>
+              📝 Grammar & Writing <span className="ml-1 text-xs opacity-60">(HF Write)</span>
             </span>
             <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Translate text to another language")}>
-              🌍 Translation
+              🌍 Translation <span className="ml-1 text-xs opacity-60">(DeepSeek)</span>
             </span>
-            <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Explain scientific concepts")}>
-              🔬 Science
+            <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-blue-100/70 to-blue-200/70 backdrop-blur-md rounded-2xl hover:from-blue-200/80 hover:to-blue-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-blue-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Explain quantum physics concepts")}>
+              🔬 Science <span className="ml-1 text-xs opacity-60">(HF STEM)</span>
             </span>
             <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Help me learn a new topic")}>
-              📚 Learning
+              📚 Learning <span className="ml-1 text-xs opacity-60">(DeepSeek)</span>
             </span>
+          </div>
+
+          {/* Model Info */}
+          <div className="text-center mb-6">
+            <div className="text-xs opacity-60" style={{ color: '#051a1c' }}>
+              <span className="inline-flex items-center space-x-1">
+                <span>🧠 Intelligent model routing:</span>
+                <span className="px-2 py-1 bg-purple-100/50 rounded">STEM & Coding</span>
+                <span>→ Hugging Face Pro,</span>
+                <span className="px-2 py-1 bg-gray-100/50 rounded">General Chat</span>
+                <span>→ DeepSeek</span>
+              </span>
+            </div>
           </div>
 
           {/* Typing Prompt Display */}
