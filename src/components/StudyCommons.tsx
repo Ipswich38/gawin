@@ -49,21 +49,22 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
     if (!joined) return;
 
     const initializeChat = async () => {
-      // Update user presence
-      await databaseService.updateUserPresence(nickname);
-      
-      // Load existing messages
-      const existingMessages = await databaseService.getStudyCommonsMessages();
-      const convertedMessages: Message[] = existingMessages.map((msg: StudyCommonsMessage) => ({
-        id: msg.id,
-        user: msg.is_ai ? 'Gawin AI' : msg.user_nickname,
-        text: msg.message_text,
-        timestamp: new Date(msg.created_at).toLocaleTimeString(),
-        isAI: msg.is_ai
-      }));
+      try {
+        // Update user presence
+        await databaseService.updateUserPresence(nickname);
+        
+        // Load existing messages
+        const existingMessages = await databaseService.getStudyCommonsMessages();
+        const convertedMessages: Message[] = existingMessages.map((msg: StudyCommonsMessage) => ({
+          id: msg.id,
+          user: msg.is_ai ? 'Gawin AI' : msg.user_nickname,
+          text: msg.message_text,
+          timestamp: new Date(msg.created_at).toLocaleTimeString(),
+          isAI: msg.is_ai
+        }));
 
-      // If no messages exist, add welcome message
-      if (convertedMessages.length === 0) {
+        // If no messages exist, add welcome message
+        if (convertedMessages.length === 0) {
         const welcomeMessage: Message = {
           id: 'welcome-' + Date.now(),
           user: 'Gawin AI',
@@ -99,9 +100,24 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
       
       setSubscription(channel);
 
-      // Load active users
-      const users = await databaseService.getActiveUsers();
-      setActiveUsers(users);
+        // Load active users
+        const users = await databaseService.getActiveUsers();
+        setActiveUsers(users);
+      } catch (error) {
+        console.error('Database error, falling back to local mode:', error);
+        
+        // Fallback: Show welcome message locally
+        const welcomeMessage: Message = {
+          id: 'welcome-' + Date.now(),
+          user: 'Gawin AI',
+          text: '👋 Hey everyone! Welcome to Study Commons! I\'m Gawin - think of me as your friendly study buddy who\'s been around the academic block a few times! 😄\n\n⚠️ Note: Currently running in offline mode. Messages won\'t sync between users until database is connected.\n\nI love:\n• Helping with tricky concepts across all subjects\n• Cheering on good collaboration between learners\n• Sharing study tips and keeping things positive\n• Being your study motivation when things get tough\n\nJust chat naturally - I\'ll jump in when I can help! Let\'s make learning fun together! 🌟📚',
+          timestamp: new Date().toLocaleTimeString(),
+          isAI: true
+        };
+        
+        setMessages([welcomeMessage]);
+        setActiveUsers([]); // No real users in offline mode
+      }
     };
 
     initializeChat();
@@ -393,24 +409,50 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
     
     const validation = isValidMessage(input);
     if (!validation.allowed) {
-      // Add warning message to database so all users see moderation
       const warningText = `Hey there! 😅 ${validation.reason}\n\nI know I'm being a bit protective here, but I want to keep this space awesome for learning! Think of me as that older friend who looks out for everyone. Let's keep things educational and fun! Thanks! 💙📚`;
       
-      await databaseService.addStudyCommonsMessage({
-        user_nickname: "🛡️ Gawin AI",
-        message_text: warningText,
-        is_ai: true
-      });
+      try {
+        // Try to add warning message to database
+        await databaseService.addStudyCommonsMessage({
+          user_nickname: "🛡️ Gawin AI",
+          message_text: warningText,
+          is_ai: true
+        });
+      } catch (error) {
+        // Fallback: Add warning locally if database fails
+        console.error('Database error, adding message locally:', error);
+        const warningMsg: Message = {
+          id: Date.now().toString(),
+          user: "🛡️ Gawin AI",
+          text: warningText,
+          timestamp: new Date().toLocaleTimeString(),
+          isAI: true
+        };
+        setMessages(prev => [...prev, warningMsg]);
+      }
       setInput("");
       return;
     }
 
-    // Add message to database - will trigger real-time update for all users
-    await databaseService.addStudyCommonsMessage({
-      user_nickname: nickname,
-      message_text: input,
-      is_ai: false
-    });
+    try {
+      // Try to add message to database - will trigger real-time update for all users
+      await databaseService.addStudyCommonsMessage({
+        user_nickname: nickname,
+        message_text: input,
+        is_ai: false
+      });
+    } catch (error) {
+      // Fallback: Add message locally if database fails
+      console.error('Database error, adding message locally:', error);
+      const localMessage: Message = {
+        id: Date.now().toString(),
+        user: nickname,
+        text: input,
+        timestamp: new Date().toLocaleTimeString(),
+        isAI: false
+      };
+      setMessages(prev => [...prev, localMessage]);
+    }
     
     setInput("");
   };

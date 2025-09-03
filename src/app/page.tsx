@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import StudyCommons from "@/components/StudyCommons";
 import MessageRenderer from "@/components/MessageRenderer";
+import { databaseService } from "@/lib/services/databaseService";
 
 // ChatInterface Component
 function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: string }; onLogout: () => void }) {
@@ -18,7 +19,28 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
   const [copiedMessageId, setCopiedMessageId] = useState<number | null>(null);
   const [showStudyCommons, setShowStudyCommons] = useState(false);
   const [showSidePanel, setShowSidePanel] = useState(false);
-  const [onlineUsers] = useState(12); // Mock online user count
+  const [onlineUsers, setOnlineUsers] = useState(0); // Real online user count
+
+  // Update active users count periodically
+  useEffect(() => {
+    const updateActiveUsersCount = async () => {
+      try {
+        const activeUsers = await databaseService.getActiveUsers();
+        setOnlineUsers(activeUsers.length);
+      } catch (error) {
+        console.error('Error fetching active users:', error);
+        setOnlineUsers(0);
+      }
+    };
+
+    // Initial load
+    updateActiveUsersCount();
+
+    // Update every 30 seconds
+    const interval = setInterval(updateActiveUsersCount, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Helper function to process AI response and extract cognitive indicators
   const processAIResponse = (rawResponse: string) => {
