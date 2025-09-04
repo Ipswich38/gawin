@@ -6,6 +6,7 @@ import StudyCommons from "@/components/StudyCommons";
 import CodingMentor from "@/components/AICodeEditor";
 import QuizGenerator from "@/components/QuizGenerator";
 import MessageRenderer from "@/components/MessageRenderer";
+import FileUpload from "@/components/FileUpload";
 import { databaseService } from "@/lib/services/databaseService";
 
 // ChatInterface Component
@@ -24,6 +25,9 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
   const [showQuizGenerator, setShowQuizGenerator] = useState(false);
   const [showSidePanel, setShowSidePanel] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState(0); // Real online user count
+  const [showFileUpload, setShowFileUpload] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
+  const [isProcessingFiles, setIsProcessingFiles] = useState(false);
 
   // Update active users count periodically
   useEffect(() => {
@@ -178,30 +182,144 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (input.trim() && !isLoading) {
-      const userMessage = {
-        id: Date.now(),
-        role: 'user' as const,
-        content: input.trim(),
-        timestamp: new Date().toLocaleTimeString()
-      };
-      
-      // Add user message to chat
-      setMessages(prev => [...prev, userMessage]);
-      setIsLoading(true);
-      
-      const currentInput = input.trim();
-      setInput('');
+    
+    // Check if we have content (text or files)
+    const hasText = input.trim().length > 0;
+    const hasFiles = uploadedFiles.length > 0;
+    
+    if ((!hasText && !hasFiles) || isLoading || isProcessingFiles) {
+      return;
+    }
+
+    // Create user message with file context if present
+    let userContent = input.trim();
+    if (hasFiles && !hasText) {
+      userContent = "Please analyze the uploaded files.";
+    } else if (hasFiles && hasText) {
+      userContent = `${input.trim()}\n\n📎 ${uploadedFiles.length} file${uploadedFiles.length > 1 ? 's' : ''} attached`;
+    }
+
+    const userMessage = {
+      id: Date.now(),
+      role: 'user' as const,
+      content: userContent,
+      timestamp: new Date().toLocaleTimeString()
+    };
+    
+    // Add user message to chat
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
+    
+    const currentInput = input.trim();
+    const currentFiles = [...uploadedFiles];
+    setInput('');
+    setUploadedFiles([]);
+    setShowFileUpload(false);
       
       try {
-        // Determine which AI service to use based on content
+        // Handle file upload and OCR processing
+        if (hasFiles) {
+          setIsProcessingFiles(true);
+          setCognitiveProcess('🔍 Gawin AI • scanning and analyzing your documents...');
+          
+          try {
+            const formData = new FormData();
+            currentFiles.forEach(uploadedFile => {
+              formData.append('files', uploadedFile.file);
+            });
+            formData.append('query', currentInput || 'Please analyze these files');
+
+            const ocrResponse = await fetch('/api/ocr', {
+              method: 'POST',
+              body: formData
+            });
+
+            const ocrData = await ocrResponse.json();
+            
+            setIsProcessingFiles(false);
+            
+            if (ocrData.success && ocrData.data) {
+              // Show AI analysis if available
+              if (ocrData.data.aiAnalysis) {
+                setTimeout(() => {
+                  const assistantMessage = {
+                    id: Date.now() + 1,
+                    role: 'assistant' as const,
+                    content: ocrData.data.aiAnalysis,
+                    timestamp: new Date().toLocaleTimeString()
+                  };
+                  
+                  setMessages(prev => [...prev, assistantMessage]);
+                  setCognitiveProcess('');
+                }, 1000);
+              } else if (ocrData.data.extractedText) {
+                // Show extracted text if no AI analysis
+                setTimeout(() => {
+                  const assistantMessage = {
+                    id: Date.now() + 1,
+                    role: 'assistant' as const,
+                    content: `I've successfully extracted text from your ${ocrData.data.filesProcessed} file${ocrData.data.filesProcessed > 1 ? 's' : ''}:\n\n${ocrData.data.extractedText}\n\n*Would you like me to analyze this content or answer any questions about it?*`,
+                    timestamp: new Date().toLocaleTimeString()
+                  };
+                  
+                  setMessages(prev => [...prev, assistantMessage]);
+                  setCognitiveProcess('');
+                }, 1000);
+              } else {
+                // Show processing results
+                const results = ocrData.data.analysisResults.map(result => {
+                  if (result.status === 'success') {
+                    return `✅ ${result.filename}: Text extracted successfully`;
+                  } else if (result.status === 'error') {
+                    return `❌ ${result.filename}: ${result.error}`;
+                  } else {
+                    return `ℹ️ ${result.filename}: ${result.message}`;
+                  }
+                }).join('\n');
+                
+                setTimeout(() => {
+                  const assistantMessage = {
+                    id: Date.now() + 1,
+                    role: 'assistant' as const,
+                    content: `File Processing Results:\n\n${results}`,
+                    timestamp: new Date().toLocaleTimeString()
+                  };
+                  
+                  setMessages(prev => [...prev, assistantMessage]);
+                  setCognitiveProcess('');
+                }, 1000);
+              }
+            } else {
+              throw new Error(ocrData.error || 'File processing failed');
+            }
+            
+            return; // Exit early for file processing
+            
+          } catch (fileError) {
+            console.error('File processing error:', fileError);
+            setIsProcessingFiles(false);
+            
+            const errorMessage = {
+              id: Date.now() + 1,
+              role: 'assistant' as const,
+              content: `I encountered an issue processing your files: ${fileError instanceof Error ? fileError.message : 'Unknown error'}\n\nPlease try:\n• Checking file formats (Images: JPG, PNG, WebP; Documents: PDF)\n• Reducing file size (max 10MB each)\n• Uploading fewer files at once`,
+              timestamp: new Date().toLocaleTimeString()
+            };
+            
+            setMessages(prev => [...prev, errorMessage]);
+            setCognitiveProcess('');
+            return;
+          }
+        }
+        
+        // Regular text processing (no files)
         const isSTEM = /math|physics|chemistry|biology|calculus|algebra|equation|formula|scientific|theorem/.test(currentInput.toLowerCase());
         const isCoding = /code|program|function|class|variable|debug|algorithm|javascript|python|react|typescript|css|html/.test(currentInput.toLowerCase());
         const isWriting = /write|essay|story|letter|email|article|blog|creative|compose|grammar|spelling/.test(currentInput.toLowerCase());
         const isImageGeneration = /draw|create.*image|generate.*image|make.*image|paint|sketch|illustrate|picture|photo|artwork|visual/.test(currentInput.toLowerCase());
         
         // Handle image generation requests
-        if (isImageGeneration) {
+        if (isImageGeneration && !hasFiles) {
           setCognitiveProcess('🎨 Gawin AI • creating your image...');
           
           const imageResponse = await fetch('/api/images', {
@@ -337,6 +455,8 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
         setMessages(prev => [...prev, errorMessage]);
       } finally {
         setIsLoading(false);
+        setIsProcessingFiles(false);
+        setCognitiveProcess('');
       }
     }
   };
@@ -1005,39 +1125,137 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
           </div>
         )}
 
-        {/* Input Area - Premium Glassmorphism */}
+        {/* Enhanced Input Area with File Upload */}
         <div className="pb-8">
-          <form onSubmit={handleSubmit} className="relative max-w-3xl mx-auto">
-            <div className="relative">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Message Gawin..."
-                className="w-full px-6 py-5 pr-16 text-white placeholder-white/70 transition-all resize-none text-lg focus:outline-none focus:ring-2 focus:ring-white/40 shadow-2xl backdrop-blur-md hover:shadow-3xl"
-                style={{ 
-                  backgroundColor: '#051a1c',
-                  borderRadius: '32px',
-                  border: '1px solid rgba(255,255,255,0.2)',
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.1)'
-                }}
-              />
-              <button
-                type="submit"
-                disabled={!input.trim() || isLoading}
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 backdrop-blur-sm text-black rounded-full flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105 transition-all shadow-lg"
-                style={{
-                  backgroundColor: (input.trim() && !isLoading) ? '#00FFEF' : 'rgba(255,255,255,0.9)'
-                }}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="m22 2-7 20-4-9-9-4Z"/>
-                  <path d="M22 2 11 13"/>
-                </svg>
-              </button>
-            </div>
-          </form>
+          <div className="max-w-3xl mx-auto">
+            {/* File Upload Section */}
+            {showFileUpload && (
+              <div className="mb-4 p-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-medium text-white">Upload Files for Analysis</h3>
+                  <button
+                    onClick={() => {
+                      setShowFileUpload(false);
+                      setUploadedFiles([]);
+                    }}
+                    className="text-white/70 hover:text-white text-sm"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <FileUpload
+                  onFilesReady={(files) => setUploadedFiles(files)}
+                  maxFiles={5}
+                  maxFileSize={10 * 1024 * 1024}
+                />
+                {uploadedFiles.length > 0 && (
+                  <div className="mt-4 p-3 bg-emerald-50/10 border border-emerald-200/20 rounded-lg">
+                    <div className="text-sm text-white/80">
+                      📄 {uploadedFiles.length} file{uploadedFiles.length > 1 ? 's' : ''} ready for analysis
+                    </div>
+                    <div className="text-xs text-white/60 mt-1">
+                      💡 Ask questions about the content or request analysis in your message
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="relative">
+              <div className="relative">
+                {/* File Upload Toggle Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowFileUpload(!showFileUpload)}
+                  className={`absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 backdrop-blur-sm rounded-full flex items-center justify-center transition-all shadow-md hover:scale-105 z-10 ${
+                    showFileUpload || uploadedFiles.length > 0 
+                      ? 'bg-emerald-400 text-black' 
+                      : 'bg-white/20 text-white/70 hover:bg-white/30 hover:text-white'
+                  }`}
+                  title={showFileUpload ? 'Hide file upload' : 'Upload files, images, or documents'}
+                >
+                  {showFileUpload ? (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  ) : uploadedFiles.length > 0 ? (
+                    <span className="text-xs font-bold">{uploadedFiles.length}</span>
+                  ) : (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                  )}
+                </button>
+
+                {/* Enhanced Input Field */}
+                <textarea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSubmit(e as any);
+                    }
+                  }}
+                  placeholder={uploadedFiles.length > 0 
+                    ? "Ask questions about your uploaded files..." 
+                    : "Message Gawin... (Shift+Enter for new line)"
+                  }
+                  className="w-full pl-16 pr-16 py-5 text-white placeholder-white/70 transition-all resize-none text-lg focus:outline-none focus:ring-2 focus:ring-white/40 shadow-2xl backdrop-blur-md hover:shadow-3xl min-h-[60px] max-h-[200px]"
+                  style={{ 
+                    backgroundColor: '#051a1c',
+                    borderRadius: '32px',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.1)'
+                  }}
+                  rows={1}
+                />
+
+                {/* Send Button */}
+                <button
+                  type="submit"
+                  disabled={(!input.trim() && uploadedFiles.length === 0) || isLoading || isProcessingFiles}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 backdrop-blur-sm text-black rounded-full flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105 transition-all shadow-lg"
+                  style={{
+                    backgroundColor: ((input.trim() || uploadedFiles.length > 0) && !isLoading && !isProcessingFiles) 
+                      ? '#00FFEF' 
+                      : 'rgba(255,255,255,0.9)'
+                  }}
+                >
+                  {isLoading || isProcessingFiles ? (
+                    <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
+                  ) : (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="m22 2-7 20-4-9-9-4Z"/>
+                      <path d="M22 2 11 13"/>
+                    </svg>
+                  )}
+                </button>
+              </div>
+            </form>
+
+            {/* File Processing Status */}
+            {isProcessingFiles && (
+              <div className="mt-4 p-4 bg-blue-50/10 border border-blue-200/20 rounded-2xl">
+                <div className="flex items-center space-x-3">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  </div>
+                  <span className="text-sm text-white/80">
+                    🔍 Gawin is scanning and analyzing your documents...
+                  </span>
+                </div>
+                <div className="text-xs text-white/60 mt-2">
+                  This may take a moment for complex documents or images
+                </div>
+              </div>
+            )}
           </div>
+        </div>
         </main>
     </div>
   );

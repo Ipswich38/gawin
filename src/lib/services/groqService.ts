@@ -2,12 +2,19 @@ import { validationService } from './validationService';
 
 export interface GroqMessage {
   role: 'system' | 'user' | 'assistant';
-  content: string;
+  content: string | Array<{
+    type: 'text' | 'image_url';
+    text?: string;
+    image_url?: {
+      url: string;
+    };
+  }>;
 }
 
 export interface GroqRequest {
   messages: GroqMessage[];
-  action?: 'chat' | 'code' | 'analysis' | 'writing' | 'deepseek';
+  action?: 'chat' | 'code' | 'analysis' | 'writing' | 'deepseek' | 'vision' | 'ocr';
+  module?: string;
   max_tokens?: number;
   temperature?: number;
 }
@@ -65,6 +72,12 @@ const MODEL_CONFIG = {
     description: 'DeepSeek model for fallback',
     max_tokens: 4096,
     temperature: 0.7
+  },
+  vision: {
+    model: 'llama-3.2-11b-vision-preview',
+    description: 'Vision model for image analysis and OCR',
+    max_tokens: 4096,
+    temperature: 0.3
   }
 };
 
@@ -109,25 +122,43 @@ class GroqService {
         case 'code': return 'coding';
         case 'analysis': return 'analysis';
         case 'writing': return 'writing';
+        case 'vision':
+        case 'ocr': return 'vision';
+        case 'deepseek': return 'deepseek';
         default: break;
       }
     }
+    
+    // Check if any message contains images
+    const hasImages = messages.some(msg => 
+      Array.isArray(msg.content) && 
+      msg.content.some(item => item.type === 'image_url')
+    );
+    
+    if (hasImages) {
+      return 'vision';
+    }
 
     // Analyze message content
-    const lastMessage = messages[messages.length - 1]?.content?.toLowerCase() || '';
+    const lastMessage = messages[messages.length - 1]?.content;
+    const lastMessageText = typeof lastMessage === 'string' 
+      ? lastMessage.toLowerCase() 
+      : Array.isArray(lastMessage)
+      ? lastMessage.find(item => item.type === 'text')?.text?.toLowerCase() || ''
+      : '';
     
     // Coding detection
-    if (/code|program|function|class|variable|debug|algorithm|javascript|python|react|typescript|css|html/.test(lastMessage)) {
+    if (/code|program|function|class|variable|debug|algorithm|javascript|python|react|typescript|css|html/.test(lastMessageText)) {
       return 'coding';
     }
     
     // Analysis/Research detection
-    if (/analyze|research|compare|evaluate|investigate|study|examine|explain.*why|what.*causes|how.*works/.test(lastMessage)) {
+    if (/analyze|research|compare|evaluate|investigate|study|examine|explain.*why|what.*causes|how.*works/.test(lastMessageText)) {
       return 'analysis';
     }
     
     // Writing detection
-    if (/write|essay|story|letter|email|article|blog|creative|compose|grammar|spelling/.test(lastMessage)) {
+    if (/write|essay|story|letter|email|article|blog|creative|compose|grammar|spelling/.test(lastMessageText)) {
       return 'writing';
     }
     
