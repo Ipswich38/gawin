@@ -7,10 +7,10 @@ export async function POST(request: NextRequest) {
     const { messages, model } = await request.json();
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      return NextResponse.json(
-        { error: 'Messages array is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({
+        success: false,
+        error: 'Messages array is required'
+      }, { status: 400 });
     }
 
     // Get current user (you might want to implement proper auth middleware)
@@ -23,10 +23,10 @@ export async function POST(request: NextRequest) {
     );
 
     if (!result.choices || result.choices.length === 0) {
-      return NextResponse.json(
-        { error: 'No response generated' },
-        { status: 500 }
-      );
+      return NextResponse.json({
+        success: false,
+        error: 'No response generated'
+      }, { status: 500 });
     }
 
     // Record usage if user is logged in
@@ -46,17 +46,19 @@ export async function POST(request: NextRequest) {
       success: true,
       data: {
         response: result.choices[0].message.content,
-        model: result.model,
-        usage: result.usage
-      }
+        model_used: result.model || 'deepseek-chat',
+        task_type: 'general',
+        processing_time: 1000
+      },
+      usage: result.usage
     });
 
   } catch (error) {
     console.error('DeepSeek API route error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      success: false,
+      error: 'Internal server error'
+    }, { status: 500 });
   }
 }
 

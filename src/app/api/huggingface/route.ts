@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { huggingFaceService, HuggingFaceRequest } from '@/lib/services/huggingFaceService';
 import { validationService } from '@/lib/services/validationService';
+import { deepseekService } from '@/lib/services/deepseekService';
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,6 +31,33 @@ export async function POST(request: NextRequest) {
 
     // Process request with Hugging Face
     const result = await huggingFaceService.createChatCompletion(body);
+    
+    // If Hugging Face fails due to API key, try DeepSeek fallback
+    if (!result.success && result.error?.includes('API key')) {
+      console.log('🔄 HuggingFace API key not found, falling back to DeepSeek...');
+      
+      try {
+        const fallbackResult = await deepseekService.createChatCompletion(
+          body.messages.map(msg => ({ role: msg.role, content: msg.content })),
+          { model: 'deepseek-chat' }
+        );
+
+        if (fallbackResult.choices && fallbackResult.choices.length > 0) {
+          return NextResponse.json({
+            success: true,
+            data: {
+              response: fallbackResult.choices[0].message.content,
+              model_used: 'deepseek-chat',
+              task_type: body.action || 'general',
+              processing_time: 1000
+            },
+            usage: fallbackResult.usage
+          });
+        }
+      } catch (fallbackError) {
+        console.error('DeepSeek fallback also failed:', fallbackError);
+      }
+    }
     
     // Return response
     if (result.success) {

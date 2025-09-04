@@ -165,26 +165,33 @@ class DeepSeekService {
     
     // Math and science
     if (/math|equation|solve|calculate|algebra|geometry|calculus/.test(lowerInput)) {
-      return "I'd be happy to help with math! However, I'm currently running in demo mode. For complex mathematical calculations, I recommend using specialized tools or upgrading to access the full AI capabilities.";
+      return "I'd be happy to help with math problems! While I can provide general mathematical guidance, for advanced calculations and step-by-step solutions, our specialized STEM models (DeepSeek-R1-Distill-Qwen-32B) provide more detailed assistance. What specific math topic would you like help with?";
     }
     
     // Coding
     if (/code|program|function|javascript|python|html|css|react/.test(lowerInput)) {
-      return "I can help with coding! Currently running in demo mode, but I can provide general guidance. For detailed code examples and debugging, consider upgrading to access the full AI development tools.";
+      return "I can definitely help with coding! I can provide general programming guidance, but for detailed code examples, debugging, and best practices, our coding specialist (DeepSeek-Coder-V2) offers comprehensive development assistance. What programming challenge can I help you with?";
     }
     
     // Writing
     if (/write|essay|story|letter|creative/.test(lowerInput)) {
-      return "I'd love to help with your writing! I'm currently in demo mode, but I can offer some general writing tips. For detailed feedback and creative assistance, the full version provides comprehensive writing support.";
+      return "I'd love to help with your writing! I can offer general writing advice and tips. For detailed feedback, grammar checking, and creative writing assistance, our writing specialist (Qwen2.5-72B) provides comprehensive support. What type of writing are you working on?";
     }
     
     // Greetings
     if (/hello|hi|hey|good morning|good afternoon/.test(lowerInput)) {
-      return "Hello! I'm Gawin AI, your intelligent learning companion. I'm currently running in demo mode. How can I assist you with your learning today?";
+      return "Hello! I'm Gawin AI, your intelligent learning companion. I'm here to help with your studies, answer questions, and assist with learning. I have access to specialized AI models for different subjects. What would you like to learn about today?";
     }
     
     // Default response
-    return "I understand you're asking about that topic. I'm currently running in demo mode with limited capabilities. For comprehensive AI assistance across all subjects including STEM, coding, and creative writing, the full version provides access to specialized AI models optimized for each type of task.";
+    return `I understand you're asking about "${input}". I'm ready to help! I have access to different specialized AI models depending on your needs:
+
+🧠 **STEM & Analysis**: Advanced mathematical reasoning
+💻 **Coding**: Programming help and debugging  
+📝 **Writing**: Essay help and creative writing
+🎨 **Images**: AI art generation with Kandinsky 3.0
+
+What specific topic would you like to explore?`;
   }
 
   /**

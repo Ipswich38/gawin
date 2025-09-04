@@ -269,7 +269,9 @@ The Hugging Face inference API sometimes gets busy, but it usually works better 
 
         const data = await response.json();
         
-        if (data.success && data.data.response) {
+        console.log('API Response:', data); // Debug logging
+        
+        if (data.success && data.data && data.data.response) {
           // Process the AI response to extract cognitive indicators and clean content
           const { cleanResponse, cognitiveHint } = processAIResponse(data.data.response);
           
@@ -303,11 +305,22 @@ The Hugging Face inference API sometimes gets busy, but it usually works better 
           };
           setChatHistory(prev => [newChat, ...prev]);
         } else {
-          // Handle error
+          // Handle error or unexpected response format
+          console.warn('Unexpected response format:', data);
+          
+          let errorContent;
+          if (data.error) {
+            errorContent = `I encountered an issue: ${data.error}. Please try again.`;
+          } else if (!data.success) {
+            errorContent = "I'm having trouble processing your request right now. Please try again in a moment.";
+          } else {
+            errorContent = "I received an unexpected response format. Please try rephrasing your question.";
+          }
+          
           const errorMessage = {
             id: Date.now() + 1,
             role: 'assistant' as const,
-            content: `Sorry, I encountered an error: ${data.error || 'Unknown error'}. Please try again.`,
+            content: errorContent,
             timestamp: new Date().toLocaleTimeString()
           };
           setMessages(prev => [...prev, errorMessage]);
