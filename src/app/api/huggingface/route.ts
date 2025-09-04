@@ -32,9 +32,9 @@ export async function POST(request: NextRequest) {
     // Process request with Hugging Face
     const result = await huggingFaceService.createChatCompletion(body);
     
-    // If Hugging Face fails due to API key, try DeepSeek fallback
-    if (!result.success && result.error?.includes('API key')) {
-      console.log('🔄 HuggingFace API key not found, falling back to DeepSeek...');
+    // If Hugging Face fails for any reason, try DeepSeek fallback
+    if (!result.success) {
+      console.log(`🔄 HuggingFace failed: ${result.error}, falling back to DeepSeek...`);
       
       try {
         const fallbackResult = await deepseekService.createChatCompletion(
