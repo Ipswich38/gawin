@@ -16,8 +16,11 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
   const [size, setSize] = useState({ width: 400, height: 600 });
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
+  const [resizeDirection, setResizeDirection] = useState<string>('');
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isMobile, setIsMobile] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [preFullScreenState, setPreFullScreenState] = useState({ position: { x: 0, y: 0 }, size: { width: 400, height: 600 } });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -58,25 +61,57 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
   };
 
   const handleMouseMove = (e: MouseEvent) => {
-    if (isDragging) {
+    if (isDragging && !isFullScreen) {
       const newX = Math.max(0, Math.min(window.innerWidth - size.width, e.clientX - dragOffset.x));
       const newY = Math.max(0, Math.min(window.innerHeight - size.height, e.clientY - dragOffset.y));
       setPosition({ x: newX, y: newY });
     }
     
-    if (isResizing) {
-      const rect = containerRef.current?.getBoundingClientRect();
-      if (rect) {
-        const newWidth = Math.max(300, Math.min(600, e.clientX - rect.left));
-        const newHeight = Math.max(400, Math.min(800, e.clientY - rect.top));
-        setSize({ width: newWidth, height: newHeight });
+    if (isResizing && !isFullScreen) {
+      let newSize = { ...size };
+      let newPosition = { ...position };
+      
+      if (resizeDirection.includes('right')) {
+        newSize.width = Math.max(300, Math.min(800, e.clientX - position.x));
       }
+      if (resizeDirection.includes('left')) {
+        const newWidth = Math.max(300, Math.min(800, position.x + size.width - e.clientX));
+        newPosition.x = Math.max(0, e.clientX);
+        newSize.width = newWidth;
+      }
+      if (resizeDirection.includes('bottom')) {
+        newSize.height = Math.max(400, Math.min(900, e.clientY - position.y));
+      }
+      if (resizeDirection.includes('top')) {
+        const newHeight = Math.max(400, Math.min(900, position.y + size.height - e.clientY));
+        newPosition.y = Math.max(0, e.clientY);
+        newSize.height = newHeight;
+      }
+      
+      setSize(newSize);
+      setPosition(newPosition);
     }
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
     setIsResizing(false);
+    setResizeDirection('');
+  };
+
+  const toggleFullScreen = () => {
+    if (isFullScreen) {
+      // Exit full screen
+      setPosition(preFullScreenState.position);
+      setSize(preFullScreenState.size);
+      setIsFullScreen(false);
+    } else {
+      // Enter full screen
+      setPreFullScreenState({ position, size });
+      setPosition({ x: 20, y: 20 });
+      setSize({ width: window.innerWidth - 40, height: window.innerHeight - 40 });
+      setIsFullScreen(true);
+    }
   };
 
   // Add global mouse event listeners
@@ -198,7 +233,7 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
         onMouseDown={isMobile ? undefined : handleMouseDown}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-white/10" style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}>
+        <div className="flex items-center justify-between p-4 border-b border-white/10" style={{ backgroundColor: 'rgba(147, 51, 234, 0.15)' }}>
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-lg">
               <span className="text-white font-bold text-lg">👨‍💻</span>
@@ -210,6 +245,25 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
           </div>
           
           <div className="flex items-center space-x-2">
+            {!isMobile && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={toggleFullScreen}
+                className="text-white/70 hover:text-white"
+                title={isFullScreen ? "Exit Full Screen" : "Full Screen"}
+              >
+                {isFullScreen ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3M16 21v-3a2 2 0 0 1 2-2h3"/>
+                  </svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                  </svg>
+                )}
+              </Button>
+            )}
             {!isMobile && onMinimize && (
               <Button 
                 variant="ghost" 
@@ -346,20 +400,113 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
           </div>
         </div>
         
-        {/* Resize Handle - Desktop only */}
-        {!isMobile && (
-          <div 
-            className="resize-handle absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
-            onMouseDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setIsResizing(true);
-            }}
-            style={{
-              background: 'linear-gradient(-45deg, transparent 30%, rgba(147, 51, 234, 0.3) 30%, rgba(147, 51, 234, 0.3) 70%, transparent 70%)',
-              backgroundSize: '6px 6px'
-            }}
-          />
+        {/* Resize Handles - Desktop only */}
+        {!isMobile && !isFullScreen && (
+          <>
+            {/* Corner Handles */}
+            <div 
+              className="resize-handle absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsResizing(true);
+                setResizeDirection('bottom-right');
+              }}
+              style={{
+                background: 'linear-gradient(-45deg, transparent 30%, rgba(147, 51, 234, 0.3) 30%, rgba(147, 51, 234, 0.3) 70%, transparent 70%)',
+                backgroundSize: '6px 6px'
+              }}
+            />
+            <div 
+              className="resize-handle absolute bottom-0 left-0 w-4 h-4 cursor-sw-resize"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsResizing(true);
+                setResizeDirection('bottom-left');
+              }}
+              style={{
+                background: 'linear-gradient(45deg, transparent 30%, rgba(147, 51, 234, 0.3) 30%, rgba(147, 51, 234, 0.3) 70%, transparent 70%)',
+                backgroundSize: '6px 6px'
+              }}
+            />
+            <div 
+              className="resize-handle absolute top-0 right-0 w-4 h-4 cursor-ne-resize"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsResizing(true);
+                setResizeDirection('top-right');
+              }}
+              style={{
+                background: 'linear-gradient(45deg, transparent 30%, rgba(147, 51, 234, 0.3) 30%, rgba(147, 51, 234, 0.3) 70%, transparent 70%)',
+                backgroundSize: '6px 6px'
+              }}
+            />
+            <div 
+              className="resize-handle absolute top-0 left-0 w-4 h-4 cursor-nw-resize"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsResizing(true);
+                setResizeDirection('top-left');
+              }}
+              style={{
+                background: 'linear-gradient(-45deg, transparent 30%, rgba(147, 51, 234, 0.3) 30%, rgba(147, 51, 234, 0.3) 70%, transparent 70%)',
+                backgroundSize: '6px 6px'
+              }}
+            />
+            
+            {/* Edge Handles */}
+            <div 
+              className="resize-handle absolute top-0 left-4 right-4 h-2 cursor-n-resize"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsResizing(true);
+                setResizeDirection('top');
+              }}
+              style={{
+                background: 'linear-gradient(to bottom, rgba(147, 51, 234, 0.3) 0%, transparent 100%)'
+              }}
+            />
+            <div 
+              className="resize-handle absolute bottom-0 left-4 right-4 h-2 cursor-s-resize"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsResizing(true);
+                setResizeDirection('bottom');
+              }}
+              style={{
+                background: 'linear-gradient(to top, rgba(147, 51, 234, 0.3) 0%, transparent 100%)'
+              }}
+            />
+            <div 
+              className="resize-handle absolute left-0 top-4 bottom-4 w-2 cursor-w-resize"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsResizing(true);
+                setResizeDirection('left');
+              }}
+              style={{
+                background: 'linear-gradient(to right, rgba(147, 51, 234, 0.3) 0%, transparent 100%)'
+              }}
+            />
+            <div 
+              className="resize-handle absolute right-0 top-4 bottom-4 w-2 cursor-e-resize"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsResizing(true);
+                setResizeDirection('right');
+              }}
+              style={{
+                background: 'linear-gradient(to left, rgba(147, 51, 234, 0.3) 0%, transparent 100%)'
+              }}
+            />
+          </>
         )}
       </div>
     </div>
