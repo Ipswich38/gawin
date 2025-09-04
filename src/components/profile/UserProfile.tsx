@@ -339,8 +339,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ onBack }) => {
                     }}
                   >
                     <option value="gawin-search">Gawin AI - Advanced Reasoning</option>
-                    <option value="llama-3.3-70b-versatile">Llama 3.3 70B</option>
-                    <option value="qwen-2.5-coder-32b">Qwen 2.5 Coder</option>
+                    <option value="gawin-advanced">Gawin AI - Advanced</option>
+                    <option value="gawin-coder">Gawin AI - Coding</option>
                   </select>
                 </div>
 

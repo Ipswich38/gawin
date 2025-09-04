@@ -204,7 +204,7 @@ Focus on creating questions that develop critical thinking and real-world proble
         role: 'user',
         content: prompt,
         timestamp: new Date()
-      }], 'llama-3.3-70b-versatile');
+      }], 'gawin-ai');
 
       // Extract JSON from response content
       const jsonMatch = response.content.match(/\{[\s\S]*\}/);
@@ -373,7 +373,7 @@ Provide comprehensive tutoring explanations that help the student understand the
           role: 'user',
           content: tutorPrompt,
           timestamp: new Date()
-        }], 'llama-3.3-70b-versatile');
+        }], 'gawin-ai');
 
         // Store detailed feedback for wrong answers
         wrongAnswers.forEach((result, index) => {

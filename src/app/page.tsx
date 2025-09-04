@@ -105,6 +105,11 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
       .replace(/First, let me analyze[\s\S]*?(?=\n\n|$)/gi, '') // Remove analysis blocks
       .replace(/I'm DeepSeek-R1/gi, 'I\'m Gawin AI') // Replace DeepSeek identity
       .replace(/DeepSeek-R1/gi, 'Gawin AI') // Replace any DeepSeek references
+      .replace(/DeepSeek/gi, 'Gawin AI') // Replace DeepSeek mentions
+      .replace(/Mixtral/gi, 'Gawin AI') // Replace Mixtral mentions
+      .replace(/Llama/gi, 'Gawin AI') // Replace Llama mentions
+      .replace(/Qwen/gi, 'Gawin AI') // Replace Qwen mentions
+      .replace(/Groq/gi, 'Gawin AI') // Replace Groq mentions
       // Clean up formatting for better readability
       .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold asterisks but keep content
       .replace(/\*(.*?)\*/g, '$1') // Remove italic asterisks but keep content
@@ -276,11 +281,9 @@ The Hugging Face inference API sometimes gets busy, but it usually works better 
           const { cleanResponse, cognitiveHint } = processAIResponse(data.data.response);
           
           // Show model info and cognitive process briefly
-          const modelUsed = data.data.model_used || 'DeepSeek';
+          const modelUsed = data.data.model_used || 'Gawin AI';
           const taskType = data.data.task_type || 'general';
-          const modelHint = apiEndpoint.includes('huggingface') 
-            ? `🧠 ${taskType.toUpperCase()} • ${modelUsed.split('/').pop() || 'HF Pro'}`
-            : '🤖 DeepSeek';
+          const modelHint = '🤖 Gawin AI';
           
           setCognitiveProcess(`${modelHint} • ${cognitiveHint}`);
           
@@ -667,7 +670,7 @@ The Hugging Face inference API sometimes gets busy, but it usually works better 
           {/* Tool Chips - Enhanced with Model Indicators */}
           <div className="flex flex-wrap justify-center gap-2 mb-8">
             <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Explain artificial intelligence concepts")}>
-              🤖 AI Concepts <span className="ml-1 text-xs opacity-60">(DeepSeek)</span>
+              🤖 AI Concepts
             </span>
             <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-purple-100/70 to-purple-200/70 backdrop-blur-md rounded-2xl hover:from-purple-200/80 hover:to-purple-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-purple-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Help me write Python code")}>
               💻 Coding Help <span className="ml-1 text-xs opacity-60">(HF Pro)</span>
@@ -682,7 +685,7 @@ The Hugging Face inference API sometimes gets busy, but it usually works better 
               📝 Grammar & Writing <span className="ml-1 text-xs opacity-60">(HF Write)</span>
             </span>
             <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Translate text to another language")}>
-              🌍 Translation <span className="ml-1 text-xs opacity-60">(DeepSeek)</span>
+              🌍 Translation
             </span>
             <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-blue-100/70 to-blue-200/70 backdrop-blur-md rounded-2xl hover:from-blue-200/80 hover:to-blue-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-blue-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Explain quantum physics concepts")}>
               🔬 Science <span className="ml-1 text-xs opacity-60">(HF STEM)</span>
@@ -691,7 +694,7 @@ The Hugging Face inference API sometimes gets busy, but it usually works better 
               🎨 Image Generation <span className="ml-1 text-xs opacity-60">(Kandinsky 3.0)</span>
             </span>
             <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Help me learn a new topic")}>
-              📚 Learning <span className="ml-1 text-xs opacity-60">(DeepSeek)</span>
+              📚 Learning
             </span>
           </div>
 
@@ -705,7 +708,7 @@ The Hugging Face inference API sometimes gets busy, but it usually works better 
                 <span className="px-2 py-1 bg-pink-100/50 rounded">Images</span>
                 <span>→ Kandinsky 3.0,</span>
                 <span className="px-2 py-1 bg-gray-100/50 rounded">Chat</span>
-                <span>→ DeepSeek</span>
+                <span>→ Gawin AI</span>
               </div>
             </div>
           </div>
@@ -862,7 +865,7 @@ function AccessCodeModal({ onClose }: { onClose: () => void }) {
           theme: 'auto',
           language: 'en',
           notifications_enabled: true,
-          ai_model_preference: 'deepseek-r1',
+          ai_model_preference: 'gawin-ai',
           tutor_mode_default: false
         }
       };

@@ -152,11 +152,11 @@ const ServiceStatus: React.FC<ServiceStatusProps> = ({ onClose }) => {
         }}>
           <h3 style={{ margin: '0 0 12px 0', color: 'rgba(255, 255, 255, 0.8)', fontSize: '14px', fontWeight: '500' }}>Configuration</h3>
           <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.6)' }}>
-            <div style={{ marginBottom: '4px' }}>• Hugging Face API Key: {apiKeyConfigured ? '✅ Configured' : '❌ Missing'}</div>
-            <div style={{ marginBottom: '4px' }}>• STEM Model: ✅ DeepSeek-R1-Distill-Qwen-32B</div>
-            <div style={{ marginBottom: '4px' }}>• Coding Model: ✅ DeepSeek-Coder-V2-Instruct-236B</div>
-            <div style={{ marginBottom: '4px' }}>• Writing Model: ✅ Qwen2.5-72B-Instruct</div>
-            <div>• Image Generation: ✅ FLUX.1-dev</div>
+            <div style={{ marginBottom: '4px' }}>• AI Service: {apiKeyConfigured ? '✅ Connected' : '❌ Offline'}</div>
+            <div style={{ marginBottom: '4px' }}>• STEM & Analysis: ✅ Gawin AI</div>
+            <div style={{ marginBottom: '4px' }}>• Coding Support: ✅ Gawin AI</div>
+            <div style={{ marginBottom: '4px' }}>• Writing Assistant: ✅ Gawin AI</div>
+            <div>• Image Generation: ✅ Gawin AI</div>
           </div>
         </div>
 
@@ -170,11 +170,11 @@ const ServiceStatus: React.FC<ServiceStatusProps> = ({ onClose }) => {
           }}>
             <h4 style={{ margin: '0 0 8px 0', color: 'rgba(255, 107, 53, 0.9)', fontSize: '14px', fontWeight: '500' }}>Setup Required</h4>
             <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: 'rgba(255, 255, 255, 0.7)' }}>
-              To enable Hugging Face Pro models, please:
+              To enable full AI capabilities, please:
             </p>
             <ol style={{ margin: 0, paddingLeft: '20px', fontSize: '13px', color: 'rgba(255, 255, 255, 0.6)' }}>
-              <li>Get your API key from <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255, 107, 53, 0.8)' }}>Hugging Face</a></li>
-              <li>Add it to your .env file: <code style={{ background: 'rgba(255, 255, 255, 0.1)', padding: '2px 4px', borderRadius: '4px', fontSize: '12px' }}>HUGGINGFACE_API_KEY=your_key_here</code></li>
+              <li>Configure your AI service connection</li>
+              <li>Add API keys to your .env file</li>
               <li>Restart the development server</li>
             </ol>
           </div>
