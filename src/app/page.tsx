@@ -130,7 +130,7 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
     "Create a study plan for machine learning",
     "Translate this text to Spanish",
     "Check my grammar and improve this essay",
-    "Generate a business plan for an AI startup"
+    "Generate a business plan for a startup"
   ];
 
   useEffect(() => {
@@ -369,7 +369,19 @@ The Hugging Face inference API sometimes gets busy, but it usually works better 
                   <path d="M3 6h18M3 12h18M3 18h18"/>
                 </svg>
               </button>
-              <div className="flex items-center space-x-3">
+              <button 
+                onClick={() => {
+                  // Reset to landing page state
+                  setMessages([]);
+                  setInput('');
+                  setCurrentPrompt('');
+                  setIsLoading(false);
+                  setCognitiveProcess('');
+                  setShowHistory(false);
+                  setShowStudyCommons(false);
+                }}
+                className="flex items-center space-x-3 hover:opacity-80 transition-opacity cursor-pointer"
+              >
                 <div className="w-8 h-8 rounded-2xl flex items-center justify-center shadow-lg backdrop-blur-sm" style={{ backgroundColor: '#051a1c' }}>
                   <span className="text-white font-semibold text-sm">G</span>
                 </div>
@@ -377,9 +389,29 @@ The Hugging Face inference API sometimes gets busy, but it usually works better 
                   <span className="text-base font-medium leading-tight" style={{ color: '#051a1c' }}>Gawin</span>
                   <span className="text-xs opacity-50 leading-tight" style={{ color: '#051a1c' }}>Community Learning</span>
                 </div>
-              </div>
+              </button>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
+              {/* New Chat Button */}
+              <button
+                onClick={() => {
+                  // Start a new chat
+                  setMessages([]);
+                  setInput('');
+                  setCurrentPrompt('');
+                  setIsLoading(false);
+                  setCognitiveProcess('');
+                }}
+                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-emerald-200/60 to-teal-300/60 backdrop-blur-sm rounded-2xl hover:from-emerald-300/70 hover:to-teal-400/70 transition-all shadow-lg"
+                style={{ color: '#051a1c' }}
+                title="Start New Chat"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 5v14M5 12h14"/>
+                </svg>
+                <span className="text-sm font-medium">New Chat</span>
+              </button>
+              
               <button
                 onClick={() => setShowStudyCommons(!showStudyCommons)}
                 className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-orange-200/60 to-orange-300/60 backdrop-blur-sm rounded-2xl hover:from-orange-300/70 hover:to-orange-400/70 transition-all shadow-lg"
@@ -529,6 +561,15 @@ The Hugging Face inference API sometimes gets busy, but it usually works better 
                 </button>
               </div>
               <button
+                onClick={() => {
+                  // Start a new chat
+                  setMessages([]);
+                  setInput('');
+                  setCurrentPrompt('');
+                  setIsLoading(false);
+                  setCognitiveProcess('');
+                  setShowHistory(false); // Close history panel
+                }}
                 className="w-full px-3 py-2.5 rounded-2xl hover:opacity-90 transition-all text-xs font-medium shadow-md backdrop-blur-sm hover:scale-105 active:scale-95"
                 style={{ backgroundColor: '#051a1c', color: 'white' }}
                 onMouseEnter={(e) => {
