@@ -26,7 +26,7 @@ export default function MessageRenderer({ text }: MessageRendererProps) {
       .replace(/°/g, '^\\circ');
   };
 
-  // Split text by LaTeX blocks and process each part
+  // Split text by LaTeX blocks and images, process each part
   const renderText = (input: string) => {
     // First preprocess the input
     const processedInput = preprocessText(input);
@@ -34,28 +34,79 @@ export default function MessageRenderer({ text }: MessageRendererProps) {
     const parts = [];
     let currentIndex = 0;
     
+    // Find markdown images first (![alt](url))
+    const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
+    let imageMatch;
+    
+    while ((imageMatch = imageRegex.exec(processedInput)) !== null) {
+      // Add text before the image
+      if (imageMatch.index > currentIndex) {
+        const beforeText = processedInput.slice(currentIndex, imageMatch.index);
+        parts.push(processDisplayMathAndInline(beforeText, parts.length));
+      }
+      
+      // Add the image
+      const altText = imageMatch[1] || 'Generated Image';
+      const imageUrl = imageMatch[2];
+      
+      parts.push(
+        <div key={parts.length} className="my-4 flex justify-center">
+          <img 
+            src={imageUrl} 
+            alt={altText}
+            className="max-w-full h-auto rounded-lg shadow-lg border border-gray-200"
+            style={{ maxHeight: '500px' }}
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              const errorDiv = document.createElement('div');
+              errorDiv.className = 'p-4 bg-red-50 border border-red-200 rounded text-red-700 text-center';
+              errorDiv.textContent = `Failed to load image: ${altText}`;
+              target.parentNode?.appendChild(errorDiv);
+            }}
+          />
+        </div>
+      );
+      
+      currentIndex = imageMatch.index + imageMatch[0].length;
+    }
+    
+    // Add remaining text (process for display math)
+    if (currentIndex < processedInput.length) {
+      const remainingText = processedInput.slice(currentIndex);
+      parts.push(processDisplayMathAndInline(remainingText, parts.length));
+    }
+    
+    return parts.length > 0 ? parts : [processDisplayMathAndInline(processedInput, 0)];
+  };
+
+  // Separate function to handle display math blocks
+  const processDisplayMathAndInline = (input: string, keyOffset: number) => {
+    const parts = [];
+    let currentIndex = 0;
+    
     // Find display math blocks ($$...$$)
     const displayMathRegex = /\$\$([^$]+)\$\$/g;
     let match;
     
-    while ((match = displayMathRegex.exec(processedInput)) !== null) {
+    while ((match = displayMathRegex.exec(input)) !== null) {
       // Add text before the math
       if (match.index > currentIndex) {
-        const beforeText = processedInput.slice(currentIndex, match.index);
-        parts.push(processInlineText(beforeText, parts.length));
+        const beforeText = input.slice(currentIndex, match.index);
+        parts.push(processInlineText(beforeText, keyOffset + parts.length));
       }
       
       // Add the display math
       try {
         parts.push(
-          <div key={parts.length} className="my-4">
+          <div key={keyOffset + parts.length} className="my-4">
             <BlockMath math={match[1].trim()} />
           </div>
         );
       } catch (error) {
         // Fallback if LaTeX is invalid
         parts.push(
-          <div key={parts.length} className="my-2 p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+          <div key={keyOffset + parts.length} className="my-2 p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
             Invalid LaTeX: ${match[1].trim()}$
           </div>
         );
@@ -65,12 +116,12 @@ export default function MessageRenderer({ text }: MessageRendererProps) {
     }
     
     // Add remaining text
-    if (currentIndex < processedInput.length) {
-      const remainingText = processedInput.slice(currentIndex);
-      parts.push(processInlineText(remainingText, parts.length));
+    if (currentIndex < input.length) {
+      const remainingText = input.slice(currentIndex);
+      parts.push(processInlineText(remainingText, keyOffset + parts.length));
     }
     
-    return parts.length > 0 ? parts : [processInlineText(processedInput, 0)];
+    return parts.length > 0 ? parts : [processInlineText(input, keyOffset)];
   };
 
   const processInlineText = (text: string, keyOffset: number) => {

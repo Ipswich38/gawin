@@ -99,9 +99,9 @@ class PollinationsService {
         };
       }
 
-      // Convert response to blob and create object URL
-      const imageBlob = await response.blob();
-      const imageUrl = URL.createObjectURL(imageBlob);
+      // Return the direct URL instead of creating a blob URL
+      // The Pollinations API returns the image directly at the URL we constructed
+      const imageUrl = url.toString();
 
       const processingTime = Date.now() - startTime;
       
