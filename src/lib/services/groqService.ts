@@ -31,25 +31,25 @@ export interface GroqResponse {
 // Model configurations for different tasks
 const MODEL_CONFIG = {
   general: {
-    model: 'llama-3.1-70b-versatile',
+    model: 'llama-3.3-70b-versatile',
     description: 'General conversation and mixed tasks',
     max_tokens: 4096,
     temperature: 0.7
   },
   coding: {
-    model: 'llama-3.1-70b-versatile',
+    model: 'llama-3.3-70b-versatile',
     description: 'Programming and code generation',
     max_tokens: 8192,
     temperature: 0.3
   },
   analysis: {
-    model: 'mixtral-8x7b-32768',
+    model: 'llama-3.3-70b-versatile',
     description: 'Research and complex analysis',
     max_tokens: 6144,
     temperature: 0.4
   },
   writing: {
-    model: 'llama-3.1-70b-versatile',
+    model: 'llama-3.3-70b-versatile',
     description: 'Language and writing tasks',
     max_tokens: 4096,
     temperature: 0.8
