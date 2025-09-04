@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from './ui/Button';
 
 interface QuizQuestion {
@@ -14,10 +14,10 @@ interface QuizQuestion {
 }
 
 interface QuizGeneratorProps {
-  onClose?: () => void;
+  onMinimize?: () => void;
 }
 
-const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onClose }) => {
+const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
   const [currentScreen, setCurrentScreen] = useState<'setup' | 'quiz' | 'results'>('setup');
   const [selectedTopic, setSelectedTopic] = useState('mathematics');
   const [selectedQuestions, setSelectedQuestions] = useState(10);
@@ -29,6 +29,84 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onClose }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [score, setScore] = useState(0);
   const [showExplanations, setShowExplanations] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [size, setSize] = useState({ width: 700, height: 800 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [isMobile, setIsMobile] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Initialize position (center of screen)
+  useEffect(() => {
+    const updatePosition = () => {
+      const padding = 20;
+      setPosition({
+        x: Math.max(padding, (window.innerWidth - size.width) / 2),
+        y: Math.max(padding, (window.innerHeight - size.height) / 2)
+      });
+    };
+    
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    return () => window.removeEventListener('resize', updatePosition);
+  }, [size.width, size.height]);
+
+  // Mouse event handlers for dragging
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('.resize-handle')) return;
+    
+    setIsDragging(true);
+    setDragOffset({
+      x: e.clientX - position.x,
+      y: e.clientY - position.y
+    });
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (isDragging) {
+      const newX = Math.max(0, Math.min(window.innerWidth - size.width, e.clientX - dragOffset.x));
+      const newY = Math.max(0, Math.min(window.innerHeight - size.height, e.clientY - dragOffset.y));
+      setPosition({ x: newX, y: newY });
+    }
+    
+    if (isResizing) {
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (rect) {
+        const newWidth = Math.max(500, Math.min(900, e.clientX - rect.left));
+        const newHeight = Math.max(600, Math.min(1000, e.clientY - rect.top));
+        setSize({ width: newWidth, height: newHeight });
+      }
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    setIsResizing(false);
+  };
+
+  // Add global mouse event listeners
+  useEffect(() => {
+    if (isDragging || isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, isResizing, dragOffset, size]);
 
   const topics = [
     { id: 'mathematics', name: 'Mathematics', icon: '📐', description: 'Algebra, Calculus, Geometry, Statistics' },
@@ -199,23 +277,64 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onClose }) => {
 
   if (currentScreen === 'setup') {
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl" style={{ backgroundColor: '#051a1c' }}>
+      <div 
+        className="fixed z-50"
+        style={isMobile ? {
+          // Mobile: Fixed full screen overlay
+          inset: 0,
+          width: '100%',
+          height: '100%'
+        } : {
+          // Desktop: Draggable and resizable
+          left: position.x,
+          top: position.y,
+          width: size.width,
+          height: size.height
+        }}
+      >
+        {isMobile && <div className="fixed inset-0 bg-black/50" />}
+        
+        <div 
+          ref={containerRef}
+          className={`w-full h-full flex flex-col rounded-2xl shadow-2xl backdrop-blur-xl border border-white/20 overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
+          style={{ backgroundColor: '#051a1c' }}
+          onMouseDown={isMobile ? undefined : handleMouseDown}
+        >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-white/10 rounded-t-2xl" style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}>
+          <div className="flex items-center justify-between p-6 border-b border-white/10" style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}>
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center">
-                <span className="text-white font-bold text-lg">🧠</span>
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center shadow-lg">
+                <span className="text-white font-bold text-xl">🧠</span>
               </div>
               <div>
-                <h2 className="text-xl font-bold text-white">Gawin AI Quiz Generator</h2>
+                <h2 className="text-2xl font-bold text-white">Gawin AI Quiz Generator</h2>
                 <p className="text-sm text-white/70">Test your knowledge with AI-generated questions</p>
               </div>
             </div>
             
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              ✕
-            </Button>
+            <div className="flex items-center space-x-2">
+              {!isMobile && onMinimize && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={onMinimize}
+                  className="text-white/70 hover:text-white"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="9,11 12,14 15,11"></polyline>
+                  </svg>
+                </Button>
+              )}
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={isMobile ? onMinimize : onMinimize}
+                className="text-white/70 hover:text-white"
+              >
+                ✕
+              </Button>
+            </div>
           </div>
 
           {/* Setup Content */}
@@ -300,6 +419,22 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onClose }) => {
               </Button>
             </div>
           </div>
+          
+          {/* Resize Handle - Desktop only */}
+          {!isMobile && (
+            <div 
+              className="resize-handle absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsResizing(true);
+              }}
+              style={{
+                background: 'linear-gradient(-45deg, transparent 30%, rgba(34, 197, 94, 0.3) 30%, rgba(34, 197, 94, 0.3) 70%, transparent 70%)',
+                backgroundSize: '6px 6px'
+              }}
+            />
+          )}
         </div>
       </div>
     );
@@ -310,10 +445,31 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onClose }) => {
     if (!currentQ) return null;
 
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="rounded-2xl w-full max-w-4xl h-[90vh] flex flex-col shadow-2xl" style={{ backgroundColor: '#051a1c' }}>
+      <div 
+        className="fixed z-50"
+        style={isMobile ? {
+          // Mobile: Fixed full screen overlay
+          inset: 0,
+          width: '100%',
+          height: '100%'
+        } : {
+          // Desktop: Draggable and resizable
+          left: position.x,
+          top: position.y,
+          width: size.width,
+          height: size.height
+        }}
+      >
+        {isMobile && <div className="fixed inset-0 bg-black/50" />}
+        
+        <div 
+          ref={containerRef}
+          className={`w-full h-full flex flex-col rounded-2xl shadow-2xl backdrop-blur-xl border border-white/20 overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
+          style={{ backgroundColor: '#051a1c' }}
+          onMouseDown={isMobile ? undefined : handleMouseDown}
+        >
           {/* Quiz Header */}
-          <div className="flex items-center justify-between p-4 border-b border-white/10 rounded-t-2xl" style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}>
+          <div className="flex items-center justify-between p-4 border-b border-white/10" style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}>
             <div className="flex items-center space-x-4">
               <div className="text-white/70 text-sm">
                 Question {currentQuestion + 1} of {questions.length}
@@ -330,7 +486,26 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onClose }) => {
               }`}>
                 ⏰ {formatTime(timeRemaining)}
               </div>
-              <Button variant="ghost" size="sm" onClick={restartQuiz}>
+              
+              {!isMobile && onMinimize && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={onMinimize}
+                  className="text-white/70 hover:text-white"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="9,11 12,14 15,11"></polyline>
+                  </svg>
+                </Button>
+              )}
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={restartQuiz}
+                className="text-white/70 hover:text-white"
+              >
                 Exit Quiz
               </Button>
             </div>
@@ -402,6 +577,22 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onClose }) => {
               </Button>
             )}
           </div>
+          
+          {/* Resize Handle - Desktop only */}
+          {!isMobile && (
+            <div 
+              className="resize-handle absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsResizing(true);
+              }}
+              style={{
+                background: 'linear-gradient(-45deg, transparent 30%, rgba(34, 197, 94, 0.3) 30%, rgba(34, 197, 94, 0.3) 70%, transparent 70%)',
+                backgroundSize: '6px 6px'
+              }}
+            />
+          )}
         </div>
       </div>
     );
@@ -413,17 +604,75 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onClose }) => {
     ).length;
 
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl" style={{ backgroundColor: '#051a1c' }}>
+      <div 
+        className="fixed z-50"
+        style={isMobile ? {
+          // Mobile: Fixed full screen overlay
+          inset: 0,
+          width: '100%',
+          height: '100%'
+        } : {
+          // Desktop: Draggable and resizable
+          left: position.x,
+          top: position.y,
+          width: size.width,
+          height: size.height
+        }}
+      >
+        {isMobile && <div className="fixed inset-0 bg-black/50" />}
+        
+        <div 
+          ref={containerRef}
+          className={`w-full h-full flex flex-col rounded-2xl shadow-2xl backdrop-blur-xl border border-white/20 overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
+          style={{ backgroundColor: '#051a1c' }}
+          onMouseDown={isMobile ? undefined : handleMouseDown}
+        >
           {/* Results Header */}
           <div className="p-6 border-b border-white/10 text-center" style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}>
-            <div className="text-4xl mb-4">
-              {score >= 80 ? '🎉' : score >= 60 ? '👍' : '📚'}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center shadow-lg">
+                  <span className="text-white font-bold text-xl">🏆</span>
+                </div>
+                <div className="text-left">
+                  <h2 className="text-2xl font-bold text-white">Quiz Complete!</h2>
+                  <p className="text-sm text-white/70">Your results are ready</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                {!isMobile && onMinimize && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={onMinimize}
+                    className="text-white/70 hover:text-white"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="9,11 12,14 15,11"></polyline>
+                    </svg>
+                  </Button>
+                )}
+                
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={isMobile ? onMinimize : onMinimize}
+                  className="text-white/70 hover:text-white"
+                >
+                  ✕
+                </Button>
+              </div>
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">Quiz Complete!</h2>
-            <div className="text-3xl font-bold text-green-400 mb-2">{score}%</div>
-            <div className="text-white/70">
-              {correctAnswers} out of {questions.length} correct answers
+            
+            <div className="text-center">
+              <div className="text-4xl mb-4">
+                {score >= 80 ? '🎉' : score >= 60 ? '👍' : '📚'}
+              </div>
+              <div className="text-3xl font-bold text-green-400 mb-2">{score}%</div>
+              <div className="text-white/70">
+                {correctAnswers} out of {questions.length} correct answers
+              </div>
             </div>
           </div>
 
@@ -504,10 +753,26 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onClose }) => {
             <Button variant="outline" onClick={restartQuiz}>
               Take Another Quiz
             </Button>
-            <Button variant="primary" onClick={onClose}>
+            <Button variant="primary" onClick={isMobile ? onMinimize : onMinimize}>
               Close
             </Button>
           </div>
+          
+          {/* Resize Handle - Desktop only */}
+          {!isMobile && (
+            <div 
+              className="resize-handle absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsResizing(true);
+              }}
+              style={{
+                background: 'linear-gradient(-45deg, transparent 30%, rgba(34, 197, 94, 0.3) 30%, rgba(34, 197, 94, 0.3) 70%, transparent 70%)',
+                backgroundSize: '6px 6px'
+              }}
+            />
+          )}
         </div>
       </div>
     );

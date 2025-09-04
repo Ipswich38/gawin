@@ -3,7 +3,7 @@
 // import { Button } from "@/components/ui/Button"; // Unused import
 import { useEffect, useState } from "react";
 import StudyCommons from "@/components/StudyCommons";
-import AICodeEditor from "@/components/AICodeEditor";
+import CodingMentor from "@/components/AICodeEditor";
 import QuizGenerator from "@/components/QuizGenerator";
 import MessageRenderer from "@/components/MessageRenderer";
 import { databaseService } from "@/lib/services/databaseService";
@@ -442,8 +442,8 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                   <polyline points="8,6 2,12 8,18"/>
                 </svg>
                 <div className="flex flex-col items-start">
-                  <span className="text-sm font-medium">Code Editor</span>
-                  <span className="text-xs opacity-60">AI-powered coding</span>
+                  <span className="text-sm font-medium">Coding Mentor</span>
+                  <span className="text-xs opacity-60">AI-powered coding tutor</span>
                 </div>
               </button>
               
@@ -569,7 +569,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                       <polyline points="16,18 22,12 16,6"/>
                       <polyline points="8,6 2,12 8,18"/>
                     </svg>
-                    <div className="text-xs font-medium text-purple-700">Code Editor</div>
+                    <div className="text-xs font-medium text-purple-700">Coding Mentor</div>
                   </button>
                   
                   <button
@@ -862,17 +862,17 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
         />
       )}
 
-      {/* AI Code Editor */}
+      {/* Coding Mentor */}
       {showCodeEditor && (
-        <AICodeEditor
-          onClose={() => setShowCodeEditor(false)}
+        <CodingMentor
+          onMinimize={() => setShowCodeEditor(false)}
         />
       )}
 
       {/* Quiz Generator */}
       {showQuizGenerator && (
         <QuizGenerator
-          onClose={() => setShowQuizGenerator(false)}
+          onMinimize={() => setShowQuizGenerator(false)}
         />
       )}
 
