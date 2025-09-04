@@ -786,52 +786,76 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
           onMouseDown={isMobile ? undefined : handleMouseDown}
         >
           <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-lg">
                 <span className="text-white text-sm">💬</span>
               </div>
-              <div>
-                <h2 className="text-sm font-semibold text-white">Study Commons</h2>
-                <p className="text-xs text-white/70">{localActiveUsers.length + 1} learner{localActiveUsers.length !== 0 ? 's' : ''} online</p>
+              <div className="flex flex-col">
+                <h2 className="text-sm font-bold text-white leading-tight">Study Commons</h2>
+                <span className="text-xs text-white/60 leading-tight">{localActiveUsers.length + 1} online</span>
               </div>
             </div>
+            
             <div className="flex items-center space-x-1">
-              {/* Full Screen Button */}
+              {/* Full Screen Icon */}
               {!isMobile && (
-                <button
-                  onClick={toggleFullScreen}
-                  className="p-2 hover:bg-white/10 rounded-xl transition-colors"
-                  title={isFullScreen ? "Exit Full Screen" : "Full Screen"}
-                >
-                  {isFullScreen ? (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-white/70">
-                      <path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3M16 21v-3a2 2 0 0 1 2-2h3"/>
-                    </svg>
-                  ) : (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-white/70">
-                      <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
-                    </svg>
-                  )}
-                </button>
+                <div className="group relative">
+                  <button
+                    onClick={toggleFullScreen}
+                    className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:scale-110 transition-all hover:bg-white/20"
+                    aria-label={isFullScreen ? "Exit Full Screen" : "Full Screen"}
+                  >
+                    {isFullScreen ? (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3M16 21v-3a2 2 0 0 1 2-2h3"/>
+                      </svg>
+                    ) : (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                      </svg>
+                    )}
+                  </button>
+                  <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-white/70 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                    {isFullScreen ? 'Exit' : 'Focus'}
+                  </div>
+                </div>
               )}
-              {/* Toggle User List Button */}
-              <button
-                onClick={() => setShowUserList(!showUserList)}
-                className="p-2 hover:bg-white/10 rounded-xl transition-colors"
-                title={showUserList ? "Hide online users" : "Show online users"}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`text-white/70 transition-transform ${showUserList ? 'rotate-180' : ''}`}>
-                  <path d="M6 9l6 6 6-6"/>
-                </svg>
-              </button>
-              {/* Minimize Button */}
-              <button
-                onClick={onMinimize}
-                className="p-2 hover:bg-white/10 rounded-xl transition-colors"
-                title="Minimize"
-              >
-                <span className="text-white/70">−</span>
-              </button>
+              
+              {/* Toggle User List Icon */}
+              <div className="group relative">
+                <button
+                  onClick={() => setShowUserList(!showUserList)}
+                  className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:scale-110 transition-all hover:bg-white/20"
+                  aria-label={showUserList ? "Hide Users" : "Show Users"}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`transition-transform ${showUserList ? 'rotate-180' : ''}`}>
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                </button>
+                <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-white/70 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                  {showUserList ? 'Hide' : 'Users'}
+                </div>
+              </div>
+              
+              {/* Close Icon */}
+              <div className="group relative">
+                <button
+                  onClick={onMinimize}
+                  className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:scale-110 transition-all hover:bg-white/20"
+                  aria-label="Close Panel"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+                <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-white/70 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                  Close
+                </div>
+              </div>
             </div>
           </div>
 
