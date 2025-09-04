@@ -198,21 +198,18 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
         
         // Handle image generation requests
         if (isImageGeneration) {
-          setCognitiveProcess('🎨 AI Image Generation • trying models...');
+          setCognitiveProcess('🎨 Gawin AI • creating your image...');
           
-          const imageResponse = await fetch('/api/huggingface', {
-            method: 'PUT', // PUT method for image generation
+          const imageResponse = await fetch('/api/images', {
+            method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
               prompt: currentInput.replace(/draw|create.*image|generate.*image|make.*image|paint|sketch|illustrate/gi, '').trim(),
-              options: {
-                width: 1024,
-                height: 1024,
-                num_inference_steps: 4,
-                guidance_scale: 7.5
-              }
+              width: 1024,
+              height: 1024,
+              model: 'flux'
             }),
           });
 
@@ -227,7 +224,7 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
 
 ![Generated Image](${imageData.data.image_url})
 
-*Generated using Kandinsky 3.0 AI with intelligent fallback system*`,
+*Generated using Gawin AI with advanced image processing*`,
                 timestamp: new Date().toLocaleTimeString()
               };
               
@@ -245,7 +242,7 @@ You can try:
 • Trying again in a few minutes
 • Using different keywords like "create" or "make" instead of "draw"
 
-The Hugging Face inference API sometimes gets busy, but it usually works better during off-peak hours.`,
+Gawin AI image generation sometimes experiences high demand, but usually works better after a brief wait.`,
               timestamp: new Date().toLocaleTimeString()
             };
             setMessages(prev => [...prev, errorMessage]);
@@ -673,25 +670,25 @@ The Hugging Face inference API sometimes gets busy, but it usually works better 
               🤖 AI Concepts
             </span>
             <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-purple-100/70 to-purple-200/70 backdrop-blur-md rounded-2xl hover:from-purple-200/80 hover:to-purple-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-purple-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Help me write Python code")}>
-              💻 Coding Help <span className="ml-1 text-xs opacity-60">(HF Pro)</span>
+              💻 Coding Help
             </span>
             <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-blue-100/70 to-blue-200/70 backdrop-blur-md rounded-2xl hover:from-blue-200/80 hover:to-blue-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-blue-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Solve this calculus problem")}>
-              🔢 Math Problems <span className="ml-1 text-xs opacity-60">(HF STEM)</span>
+              🔢 Math Problems
             </span>
             <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-green-100/70 to-green-200/70 backdrop-blur-md rounded-2xl hover:from-green-200/80 hover:to-green-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-green-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Write a creative story")}>
-              🎨 Creative Writing <span className="ml-1 text-xs opacity-60">(HF Write)</span>
+              🎨 Creative Writing
             </span>
             <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-green-100/70 to-green-200/70 backdrop-blur-md rounded-2xl hover:from-green-200/80 hover:to-green-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-green-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Check my grammar and improve this essay")}>
-              📝 Grammar & Writing <span className="ml-1 text-xs opacity-60">(HF Write)</span>
+              📝 Grammar & Writing
             </span>
             <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Translate text to another language")}>
               🌍 Translation
             </span>
             <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-blue-100/70 to-blue-200/70 backdrop-blur-md rounded-2xl hover:from-blue-200/80 hover:to-blue-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-blue-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Explain quantum physics concepts")}>
-              🔬 Science <span className="ml-1 text-xs opacity-60">(HF STEM)</span>
+              🔬 Science
             </span>
             <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-pink-100/70 to-pink-200/70 backdrop-blur-md rounded-2xl hover:from-pink-200/80 hover:to-pink-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-pink-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Draw a beautiful sunset over mountains")}>
-              🎨 Image Generation <span className="ml-1 text-xs opacity-60">(Kandinsky 3.0)</span>
+              🎨 Image Generation
             </span>
             <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Help me learn a new topic")}>
               📚 Learning
@@ -704,9 +701,9 @@ The Hugging Face inference API sometimes gets busy, but it usually works better 
               <div className="inline-flex items-center space-x-1 flex-wrap justify-center">
                 <span>🧠 Intelligent routing:</span>
                 <span className="px-2 py-1 bg-purple-100/50 rounded">STEM & Coding</span>
-                <span>→ HF Pro,</span>
+                <span>→ Gawin AI,</span>
                 <span className="px-2 py-1 bg-pink-100/50 rounded">Images</span>
-                <span>→ Kandinsky 3.0,</span>
+                <span>→ Image AI,</span>
                 <span className="px-2 py-1 bg-gray-100/50 rounded">Chat</span>
                 <span>→ Gawin AI</span>
               </div>
