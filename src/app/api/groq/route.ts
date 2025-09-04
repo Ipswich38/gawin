@@ -19,7 +19,12 @@ export async function POST(request: NextRequest) {
     // Validation pre-check
     const lastMessage = body.messages[body.messages.length - 1];
     if (lastMessage?.role === 'user') {
-      const validation = validationService.validateTextInput(lastMessage.content);
+      const messageContent = typeof lastMessage.content === 'string' 
+        ? lastMessage.content 
+        : Array.isArray(lastMessage.content)
+        ? lastMessage.content.find(item => item.type === 'text')?.text || ''
+        : '';
+      const validation = validationService.validateTextInput(messageContent);
       
       if (!validation.isValid) {
         return NextResponse.json({
@@ -67,7 +72,12 @@ export async function POST(request: NextRequest) {
     console.log('🎓 Using educational fallback template...');
     const finalUserMessage = body.messages[body.messages.length - 1];
     if (finalUserMessage?.role === 'user') {
-      const educationalResponse = deepseekService.getEducationalResponse(finalUserMessage.content);
+      const messageContent = typeof finalUserMessage.content === 'string' 
+        ? finalUserMessage.content 
+        : Array.isArray(finalUserMessage.content)
+        ? finalUserMessage.content.find(item => item.type === 'text')?.text || ''
+        : '';
+      const educationalResponse = deepseekService.getEducationalResponse(messageContent);
       
       return NextResponse.json({
         success: true,

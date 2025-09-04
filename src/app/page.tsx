@@ -267,7 +267,7 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
                 }, 1000);
               } else {
                 // Show processing results
-                const results = ocrData.data.analysisResults.map(result => {
+                const results = ocrData.data.analysisResults.map((result: any) => {
                   if (result.status === 'success') {
                     return `✅ ${result.filename}: Text extracted successfully`;
                   } else if (result.status === 'error') {
@@ -458,7 +458,6 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
         setIsProcessingFiles(false);
         setCognitiveProcess('');
       }
-    }
   };
 
   // Copy function for AI responses
