@@ -193,7 +193,9 @@ Would you like me to explore any specific aspect of biomechanics in more detail?
     }
     
     // Check for specific calculus problems requests
-    if (/calculus.*problem|sample.*calculus|calculus.*example/i.test(input)) {
+    console.log('🎓 Educational fallback input:', input);
+    if (/calculus.*problem|sample.*calculus|calculus.*example|give.*calculus|calculus.*give|problem.*calculus/i.test(input)) {
+      console.log('✅ Matched calculus problem pattern');
       return `**Sample Calculus Problem**
 
 Here's a classic calculus problem for you to work on:

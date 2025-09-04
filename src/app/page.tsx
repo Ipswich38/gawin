@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import StudyCommons from "@/components/StudyCommons";
 import AICodeEditor from "@/components/AICodeEditor";
+import QuizGenerator from "@/components/QuizGenerator";
 import MessageRenderer from "@/components/MessageRenderer";
 import { databaseService } from "@/lib/services/databaseService";
 
@@ -20,6 +21,7 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
   const [copiedMessageId, setCopiedMessageId] = useState<number | null>(null);
   const [showStudyCommons, setShowStudyCommons] = useState(false);
   const [showCodeEditor, setShowCodeEditor] = useState(false);
+  const [showQuizGenerator, setShowQuizGenerator] = useState(false);
   const [showSidePanel, setShowSidePanel] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState(0); // Real online user count
 
@@ -444,6 +446,22 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                   <span className="text-xs opacity-60">AI-powered coding</span>
                 </div>
               </button>
+              
+              <button
+                onClick={() => setShowQuizGenerator(true)}
+                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-200/60 to-emerald-300/60 backdrop-blur-sm rounded-2xl hover:from-green-300/70 hover:to-emerald-400/70 transition-all shadow-lg"
+                style={{ color: '#051a1c' }}
+                title="AI Quiz Generator"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24"/>
+                </svg>
+                <div className="flex flex-col items-start">
+                  <span className="text-sm font-medium">Quiz Generator</span>
+                  <span className="text-xs opacity-60">STEM practice tests</span>
+                </div>
+              </button>
             </div>
           </div>
         </div>
@@ -671,6 +689,12 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
         />
       )}
 
+      {/* Quiz Generator */}
+      {showQuizGenerator && (
+        <QuizGenerator
+          onClose={() => setShowQuizGenerator(false)}
+        />
+      )}
 
       {/* Main Chat Area */}
       <main className="flex-1 flex flex-col max-w-5xl mx-auto w-full px-6">

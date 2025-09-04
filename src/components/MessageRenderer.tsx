@@ -209,6 +209,30 @@ export default function MessageRenderer({ text }: MessageRendererProps) {
   };
 
   const formatInlineElements = (text: string) => {
+    // Handle Step headings (Step 1:, Step 2:, etc.)
+    if (/^Step \d+:/i.test(text)) {
+      const [, stepNum, content] = text.match(/^Step (\d+):\s*(.*)$/i) || [];
+      if (stepNum && content) {
+        return (
+          <div className="mt-6 mb-4">
+            <h3 className="text-lg font-bold text-blue-800 mb-2">Step {stepNum}: {content}</h3>
+          </div>
+        );
+      }
+    }
+    
+    // Handle ### Step headings (### Step 1:, etc.)
+    if (/^#{1,3}\s*Step \d+:/i.test(text)) {
+      const [, stepNum, content] = text.match(/^#{1,3}\s*Step (\d+):\s*(.*)$/i) || [];
+      if (stepNum && content) {
+        return (
+          <div className="mt-6 mb-4">
+            <h3 className="text-lg font-bold text-blue-800 mb-2">Step {stepNum}: {content}</h3>
+          </div>
+        );
+      }
+    }
+    
     // Handle numbered lists
     if (/^\d+\./.test(text)) {
       const [, number, content] = text.match(/^(\d+)\.\s*(.*)$/) || [];
@@ -233,15 +257,30 @@ export default function MessageRenderer({ text }: MessageRendererProps) {
       );
     }
     
-    // Handle "Final Answer:" specially
-    if (text.includes('Final Answer:')) {
-      const parts = text.split('Final Answer:');
+    // Handle "✅ Final Answer" specially
+    if (text.includes('✅ Final Answer') || text.includes('Final Answer:')) {
+      const delimiter = text.includes('✅ Final Answer') ? '✅ Final Answer' : 'Final Answer:';
+      const parts = text.split(delimiter);
       return (
         <div>
           {parts[0] && <span>{parts[0]}</span>}
-          <div className="mt-4 p-3 bg-green-50 border-l-4 border-green-400 rounded-r">
-            <div className="font-semibold text-green-800 mb-1">Final Answer:</div>
-            <div className="text-green-700">{parts[1]}</div>
+          <div className="mt-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-r shadow-sm">
+            <div className="font-bold text-green-800 mb-2 text-lg">✅ Final Answer</div>
+            <div className="text-green-700 font-medium">{parts[1]}</div>
+          </div>
+        </div>
+      );
+    }
+    
+    // Handle "### ✅ Final Answer" specially
+    if (text.includes('### ✅ Final Answer')) {
+      const parts = text.split('### ✅ Final Answer');
+      return (
+        <div>
+          {parts[0] && <span>{parts[0]}</span>}
+          <div className="mt-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-r shadow-sm">
+            <div className="font-bold text-green-800 mb-2 text-lg">✅ Final Answer</div>
+            <div className="text-green-700 font-medium">{parts[1]}</div>
           </div>
         </div>
       );

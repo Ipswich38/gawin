@@ -135,6 +135,47 @@ class GroqService {
   }
 
   /**
+   * Add system prompts based on task type
+   */
+  private addSystemPrompts(messages: GroqMessage[], taskType: keyof typeof MODEL_CONFIG): GroqMessage[] {
+    let systemPrompt = '';
+    
+    if (taskType === 'coding') {
+      systemPrompt = `You are an expert code assistant. When providing code solutions:
+1. If the request is vague or unclear, ask follow-up questions for clarification before generating code
+2. Generate clean, well-commented code with explanations
+3. Use proper formatting and best practices
+4. Include error handling where appropriate
+5. Ask for clarification on framework/library preferences when not specified`;
+    }
+    
+    if (taskType === 'analysis' || messages.some(m => /math|calculus|algebra|equation|solve|formula|derivative|integral/.test(m.content.toLowerCase()))) {
+      systemPrompt = `You are a math explanation formatter. Your task is to present AI-generated math solutions in a way that is clean, structured, and visually easy to read, like a textbook.
+
+Formatting Rules:
+1. Use clear sectioning with headings: "Step 1", "Step 2", etc.
+2. Keep each step short and precise. No long paragraphs.
+3. Use bullet points when listing items.
+4. Always format math with LaTeX style:
+   - Inline math: \\( f(x) = 3x^2 \\sin(x) \\)
+   - Block math for key formulas:
+     \\[
+     f'(x) = 6x \\sin(x) + 3x^2 \\cos(x)
+     \\]
+5. Highlight the **Final Answer** in its own block at the end.
+6. Never mix text and formulas in the same long sentence — keep text and formulas separated for clarity.
+7. Use bold for important words like "Conclusion", "Final Answer".
+8. If the request is vague or unclear, ask follow-up questions for clarification before solving`;
+    }
+    
+    if (systemPrompt) {
+      return [{ role: 'system', content: systemPrompt }, ...messages];
+    }
+    
+    return messages;
+  }
+
+  /**
    * Main chat completion method
    */
   async createChatCompletion(request: GroqRequest): Promise<GroqResponse> {
@@ -163,10 +204,13 @@ class GroqService {
       
       console.log(`🚀 Using Groq ${taskType} model: ${modelConfig.model}`);
 
+      // Add system prompts for specialized tasks
+      const messagesWithSystem = this.addSystemPrompts(validatedMessages, taskType);
+
       // Prepare the request
       const payload = {
         model: modelConfig.model,
-        messages: validatedMessages,
+        messages: messagesWithSystem,
         max_tokens: request.max_tokens || modelConfig.max_tokens,
         temperature: request.temperature || modelConfig.temperature,
         stream: false
