@@ -566,6 +566,7 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
               </div>
             </div>
           </div>
+          </div>
 
           {/* Navigation */}
           <div className="p-4 border-t border-white/10 flex justify-between items-center" 
