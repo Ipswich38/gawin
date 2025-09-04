@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       // Try Groq's DeepSeek model as fallback
       const groqDeepSeekResult = await groqService.createChatCompletion({
         ...body,
-        model: 'deepseek-r1-distill-llama-70b' // Use Groq's DeepSeek model
+        action: 'deepseek' // Use Groq's DeepSeek model configuration
       });
 
       if (groqDeepSeekResult.success) {

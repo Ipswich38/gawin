@@ -7,7 +7,7 @@ export interface GroqMessage {
 
 export interface GroqRequest {
   messages: GroqMessage[];
-  action?: 'chat' | 'code' | 'analysis' | 'writing';
+  action?: 'chat' | 'code' | 'analysis' | 'writing' | 'deepseek';
   max_tokens?: number;
   temperature?: number;
 }
@@ -58,6 +58,12 @@ const MODEL_CONFIG = {
     model: 'llama-3.1-8b-instant',
     description: 'Quick responses',
     max_tokens: 2048,
+    temperature: 0.7
+  },
+  deepseek: {
+    model: 'deepseek-r1-distill-llama-70b',
+    description: 'DeepSeek model for fallback',
+    max_tokens: 4096,
     temperature: 0.7
   }
 };
