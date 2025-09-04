@@ -39,6 +39,10 @@ export default function MessageRenderer({ text }: MessageRendererProps) {
     let imageMatch;
     
     while ((imageMatch = imageRegex.exec(processedInput)) !== null) {
+      console.log('🖼️ Found image match:', imageMatch);
+      console.log('🖼️ Alt text:', imageMatch[1]);
+      console.log('🖼️ Image URL:', imageMatch[2]);
+      
       // Add text before the image
       if (imageMatch.index > currentIndex) {
         const beforeText = processedInput.slice(currentIndex, imageMatch.index);
@@ -58,11 +62,24 @@ export default function MessageRenderer({ text }: MessageRendererProps) {
             style={{ maxHeight: '500px' }}
             onError={(e) => {
               const target = e.target as HTMLImageElement;
+              console.error('🖼️ Image failed to load:', imageUrl);
+              console.error('🖼️ Error event:', e);
               target.style.display = 'none';
               const errorDiv = document.createElement('div');
               errorDiv.className = 'p-4 bg-red-50 border border-red-200 rounded text-red-700 text-center';
-              errorDiv.textContent = `Failed to load image: ${altText}`;
+              errorDiv.innerHTML = `
+                <div>Failed to load image: ${altText}</div>
+                <div class="text-xs mt-1 opacity-75">URL: ${imageUrl}</div>
+                <div class="text-xs mt-1">
+                  <a href="${imageUrl}" target="_blank" class="text-blue-600 hover:underline">
+                    Try opening in new tab
+                  </a>
+                </div>
+              `;
               target.parentNode?.appendChild(errorDiv);
+            }}
+            onLoad={() => {
+              console.log('✅ Image loaded successfully:', imageUrl);
             }}
           />
         </div>
