@@ -13,7 +13,7 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
   const [prompt, setPrompt] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('python');
   const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [size, setSize] = useState({ width: 600, height: 700 });
+  const [size, setSize] = useState({ width: 400, height: 600 });
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -67,8 +67,8 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
     if (isResizing) {
       const rect = containerRef.current?.getBoundingClientRect();
       if (rect) {
-        const newWidth = Math.max(400, Math.min(800, e.clientX - rect.left));
-        const newHeight = Math.max(500, Math.min(900, e.clientY - rect.top));
+        const newWidth = Math.max(300, Math.min(600, e.clientX - rect.left));
+        const newHeight = Math.max(400, Math.min(800, e.clientY - rect.top));
         setSize({ width: newWidth, height: newHeight });
       }
     }
@@ -194,7 +194,7 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
       <div 
         ref={containerRef}
         className={`w-full h-full flex flex-col rounded-2xl shadow-2xl backdrop-blur-xl border border-white/20 overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
-        style={{ backgroundColor: '#051a1c' }}
+        style={{ backgroundColor: 'rgba(5, 26, 28, 0.95)' }}
         onMouseDown={isMobile ? undefined : handleMouseDown}
       >
         {/* Header */}
@@ -233,7 +233,7 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
               }}
             >
               {languages.map(lang => (
-                <option key={lang.id} value={lang.id} style={{ backgroundColor: '#051a1c', color: 'white' }}>
+                <option key={lang.id} value={lang.id} style={{ backgroundColor: 'rgba(5, 26, 28, 0.95)', color: 'white' }}>
                   {lang.icon} {lang.name}
                 </option>
               ))}
@@ -262,7 +262,7 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
                 placeholder={`Ask AI to generate ${selectedLanguage} code...`}
                 className="w-full px-6 py-3 text-white placeholder-white/70 transition-all focus:outline-none focus:ring-2 focus:ring-white/40 shadow-lg backdrop-blur-md"
                 style={{ 
-                  backgroundColor: '#051a1c',
+                  backgroundColor: 'rgba(5, 26, 28, 0.95)',
                   borderRadius: '32px',
                   border: '1px solid rgba(255,255,255,0.2)',
                   boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.1)'

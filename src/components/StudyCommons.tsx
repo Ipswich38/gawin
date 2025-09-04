@@ -661,18 +661,18 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="p-6 rounded-3xl shadow-2xl backdrop-blur-xl border border-white/30 cursor-move"
+          className="p-6 rounded-2xl shadow-2xl backdrop-blur-xl border border-white/20 cursor-move"
           style={{
-            background: 'linear-gradient(135deg, rgba(255, 237, 213, 0.85) 0%, rgba(255, 248, 235, 0.85) 100%)'
+            backgroundColor: 'rgba(5, 26, 28, 0.95)'
           }}
           onMouseDown={handleMouseDown}
         >
           <div className="text-center">
-            <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-3">
               <span className="text-lg">💬</span>
             </div>
-            <h1 className="text-lg font-bold text-gray-800 mb-1">Join Study Commons</h1>
-            <p className="text-gray-600 text-xs mb-4">
+            <h1 className="text-lg font-bold text-white mb-1">Join Study Commons</h1>
+            <p className="text-white/70 text-xs mb-4">
               Enter your nickname to join the learning community
             </p>
           </div>
@@ -683,7 +683,7 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
               placeholder="Your nickname"
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-2xl border border-orange-200 focus:outline-none focus:ring-2 focus:ring-orange-300 bg-white/70 backdrop-blur-sm text-gray-700 placeholder:text-gray-500 text-sm"
+              className="w-full px-4 py-2.5 rounded-2xl border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/40 bg-white/10 backdrop-blur-sm text-white placeholder:text-white/70 text-sm"
               onKeyDown={(e) => e.key === "Enter" && nickname.trim() && setJoined(true)}
               autoFocus
               maxLength={20}
@@ -697,7 +697,7 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
                   }
                 }}
                 disabled={!nickname.trim()}
-                className="flex-1 py-2.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-medium rounded-2xl hover:from-orange-500 hover:to-orange-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                className="flex-1 py-2.5 bg-gradient-to-r from-green-500 to-blue-500 text-white font-medium rounded-2xl hover:from-green-600 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               >
                 Join Chat
               </button>
@@ -739,44 +739,44 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
         initial={{ opacity: 0, x: 100 }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 100 }}
-        className="w-full h-full flex flex-col rounded-3xl shadow-2xl backdrop-blur-xl border border-white/30 overflow-hidden"
+        className="w-full h-full flex flex-col rounded-2xl shadow-2xl backdrop-blur-xl border border-white/20 overflow-hidden"
         style={{
-          background: 'linear-gradient(135deg, rgba(255, 237, 213, 0.75) 0%, rgba(255, 248, 235, 0.75) 100%)'
+          backgroundColor: 'rgba(5, 26, 28, 0.95)'
         }}
       >
         {/* Header */}
         <div 
-          className={`p-4 border-b border-orange-200/50 flex-shrink-0 ${isMobile ? 'cursor-default' : 'cursor-move'}`}
+          className={`p-4 border-b border-white/10 flex-shrink-0 ${isMobile ? 'cursor-default' : 'cursor-move'}`}
           onMouseDown={isMobile ? undefined : handleMouseDown}
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center">
                 <span className="text-white text-sm">💬</span>
               </div>
               <div>
-                <h2 className="text-sm font-semibold text-gray-800">Study Commons</h2>
-                <p className="text-xs text-gray-600">{localActiveUsers.length + 1} learner{localActiveUsers.length !== 0 ? 's' : ''} online</p>
+                <h2 className="text-sm font-semibold text-white">Study Commons</h2>
+                <p className="text-xs text-white/70">{localActiveUsers.length + 1} learner{localActiveUsers.length !== 0 ? 's' : ''} online</p>
               </div>
             </div>
             <div className="flex items-center space-x-1">
               {/* Toggle User List Button */}
               <button
                 onClick={() => setShowUserList(!showUserList)}
-                className="p-2 hover:bg-orange-200/50 rounded-xl transition-colors"
+                className="p-2 hover:bg-white/10 rounded-xl transition-colors"
                 title={showUserList ? "Hide online users" : "Show online users"}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`text-gray-600 transition-transform ${showUserList ? 'rotate-180' : ''}`}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`text-white/70 transition-transform ${showUserList ? 'rotate-180' : ''}`}>
                   <path d="M6 9l6 6 6-6"/>
                 </svg>
               </button>
               {/* Minimize Button */}
               <button
                 onClick={onMinimize}
-                className="p-2 hover:bg-orange-200/50 rounded-xl transition-colors"
+                className="p-2 hover:bg-white/10 rounded-xl transition-colors"
                 title="Minimize"
               >
-                <span className="text-gray-600">−</span>
+                <span className="text-white/70">−</span>
               </button>
             </div>
           </div>
@@ -799,8 +799,8 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
                       disabled={!canScrollLeft}
                       className={`p-1 rounded-lg transition-colors flex-shrink-0 mr-2 ${
                         canScrollLeft 
-                          ? 'hover:bg-orange-200/50 text-gray-600' 
-                          : 'text-gray-300 cursor-not-allowed'
+                          ? 'hover:bg-white/10 text-white/70' 
+                          : 'text-white/30 cursor-not-allowed'
                       }`}
                     >
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -816,11 +816,11 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
                     >
                       <div className="flex space-x-2 py-1">
                         {/* Gawin AI Chip */}
-                        <div className="flex-shrink-0 flex items-center space-x-1.5 bg-emerald-100/80 rounded-full px-2.5 py-1 border border-emerald-200/50">
+                        <div className="flex-shrink-0 flex items-center space-x-1.5 bg-emerald-500/20 rounded-full px-2.5 py-1 border border-emerald-500/30">
                           <div className="w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center">
                             <span className="text-white text-xs">🤖</span>
                           </div>
-                          <span className="text-xs font-medium text-emerald-700">Gawin AI</span>
+                          <span className="text-xs font-medium text-emerald-400">Gawin AI</span>
                           <div className="w-1.5 h-1.5 bg-green-400 rounded-full" title="Online" />
                         </div>
 
@@ -828,12 +828,12 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
                         {localActiveUsers.map((username) => (
                           <div
                             key={username}
-                            className="flex-shrink-0 flex items-center space-x-1.5 bg-white/60 backdrop-blur-sm rounded-full px-2.5 py-1 border border-orange-200/30 hover:bg-white/80 transition-colors"
+                            className="flex-shrink-0 flex items-center space-x-1.5 bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1 border border-white/20 hover:bg-white/20 transition-colors"
                           >
                             <div className={`w-4 h-4 rounded-full flex items-center justify-center text-white text-xs font-bold ${getAvatarColor(username)}`}>
                               {getInitials(username)}
                             </div>
-                            <span className="text-xs font-medium text-gray-700">
+                            <span className="text-xs font-medium text-white/90">
                               {username === nickname ? 'You' : username}
                             </span>
                             <div className="w-1.5 h-1.5 bg-green-400 rounded-full" title="Online" />
@@ -848,8 +848,8 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
                       disabled={!canScrollRight}
                       className={`p-1 rounded-lg transition-colors flex-shrink-0 ml-2 ${
                         canScrollRight 
-                          ? 'hover:bg-orange-200/50 text-gray-600' 
-                          : 'text-gray-300 cursor-not-allowed'
+                          ? 'hover:bg-white/10 text-white/70' 
+                          : 'text-white/30 cursor-not-allowed'
                       }`}
                     >
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -882,13 +882,13 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2 mb-1">
-                      <span className="text-xs font-medium text-gray-800 truncate">{message.user}</span>
-                      <span className="text-xs text-gray-500 flex-shrink-0">{message.timestamp}</span>
+                      <span className="text-xs font-medium text-white truncate">{message.user}</span>
+                      <span className="text-xs text-white/70 flex-shrink-0">{message.timestamp}</span>
                     </div>
                     <div className={`text-sm leading-relaxed break-words ${
                       message.isAI 
-                        ? 'text-emerald-800 bg-emerald-50/70 p-3 rounded-xl border-l-2 border-emerald-300' 
-                        : 'text-gray-700 bg-white/30 p-3 rounded-xl'
+                        ? 'text-emerald-300 bg-emerald-500/20 p-3 rounded-xl border-l-2 border-emerald-400' 
+                        : 'text-white/90 bg-white/10 p-3 rounded-xl'
                     }`}>
                       <MessageRenderer text={message.text} />
                     </div>
@@ -902,7 +902,7 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
         </div>
 
         {/* Input */}
-        <div className="p-4 border-t border-orange-200/50 flex-shrink-0">
+        <div className="p-4 border-t border-white/10 flex-shrink-0">
           <div className="flex space-x-2">
             <input
               type="text"
@@ -910,18 +910,18 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              className="flex-1 px-4 py-2 rounded-2xl border border-orange-200 focus:outline-none focus:ring-2 focus:ring-orange-300 bg-white/70 backdrop-blur-sm text-sm text-gray-700 placeholder:text-gray-500"
+              className="flex-1 px-4 py-2 rounded-2xl border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/40 bg-white/10 backdrop-blur-sm text-sm text-white placeholder:text-white/70"
               maxLength={500}
             />
             <button
               onClick={sendMessage}
               disabled={!input.trim()}
-              className="px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-medium rounded-2xl hover:from-orange-500 hover:to-orange-600 transition-all disabled:opacity-50 flex-shrink-0"
+              className="px-4 py-2 bg-gradient-to-r from-green-500 to-blue-500 text-white font-medium rounded-2xl hover:from-green-600 hover:to-blue-600 transition-all disabled:opacity-50 flex-shrink-0"
             >
               <span>→</span>
             </button>
           </div>
-          <p className="text-xs text-gray-500 mt-2 text-center">
+          <p className="text-xs text-white/70 mt-2 text-center">
             Chatting as <strong>{nickname}</strong>
           </p>
         </div>

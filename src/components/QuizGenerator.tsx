@@ -30,12 +30,32 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
   const [score, setScore] = useState(0);
   const [showExplanations, setShowExplanations] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [size, setSize] = useState({ width: 700, height: 800 });
+  const [size, setSize] = useState({ width: 400, height: 600 });
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Add CSS to hide scrollbars
+  React.useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+    `;
+    document.head.appendChild(style);
+    return () => {
+      if (document.head.contains(style)) {
+        document.head.removeChild(style);
+      }
+    };
+  }, []);
 
   // Detect mobile device
   useEffect(() => {
@@ -83,8 +103,8 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
     if (isResizing) {
       const rect = containerRef.current?.getBoundingClientRect();
       if (rect) {
-        const newWidth = Math.max(500, Math.min(900, e.clientX - rect.left));
-        const newHeight = Math.max(600, Math.min(1000, e.clientY - rect.top));
+        const newWidth = Math.max(300, Math.min(600, e.clientX - rect.left));
+        const newHeight = Math.max(400, Math.min(800, e.clientY - rect.top));
         setSize({ width: newWidth, height: newHeight });
       }
     }
@@ -297,7 +317,7 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
         <div 
           ref={containerRef}
           className={`w-full h-full flex flex-col rounded-2xl shadow-2xl backdrop-blur-xl border border-white/20 overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
-          style={{ backgroundColor: '#051a1c' }}
+          style={{ backgroundColor: 'rgba(5, 26, 28, 0.95)' }}
           onMouseDown={isMobile ? undefined : handleMouseDown}
         >
           {/* Header */}
@@ -338,7 +358,8 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
           </div>
 
           {/* Setup Content */}
-          <div className="p-6 space-y-8">
+          <div className="flex-1 overflow-y-auto scrollbar-hide">
+            <div className="p-6 space-y-8">
             {/* Topic Selection */}
             <div>
               <h3 className="text-lg font-semibold text-white mb-4">Choose Your Topic</h3>
@@ -418,6 +439,7 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
                 {isGenerating ? 'Generating Quiz...' : '🚀 Start Quiz'}
               </Button>
             </div>
+            </div>
           </div>
           
           {/* Resize Handle - Desktop only */}
@@ -465,7 +487,7 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
         <div 
           ref={containerRef}
           className={`w-full h-full flex flex-col rounded-2xl shadow-2xl backdrop-blur-xl border border-white/20 overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
-          style={{ backgroundColor: '#051a1c' }}
+          style={{ backgroundColor: 'rgba(5, 26, 28, 0.95)' }}
           onMouseDown={isMobile ? undefined : handleMouseDown}
         >
           {/* Quiz Header */}
@@ -520,7 +542,8 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
           </div>
 
           {/* Question Content */}
-          <div className="flex-1 p-6 flex flex-col justify-center">
+          <div className="flex-1 overflow-y-auto scrollbar-hide">
+            <div className="p-6 flex flex-col justify-center">
             <div className="max-w-3xl mx-auto w-full">
               <h2 className="text-xl font-semibold text-white mb-8 leading-relaxed">
                 {currentQ.question}
@@ -624,7 +647,7 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
         <div 
           ref={containerRef}
           className={`w-full h-full flex flex-col rounded-2xl shadow-2xl backdrop-blur-xl border border-white/20 overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
-          style={{ backgroundColor: '#051a1c' }}
+          style={{ backgroundColor: 'rgba(5, 26, 28, 0.95)' }}
           onMouseDown={isMobile ? undefined : handleMouseDown}
         >
           {/* Results Header */}
@@ -695,20 +718,21 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
           </div>
 
           {/* Review Section */}
-          <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-semibold text-white">Review Questions</h3>
-              <Button 
-                variant="outline"
-                size="sm"
-                onClick={() => setShowExplanations(!showExplanations)}
-              >
-                {showExplanations ? 'Hide' : 'Show'} Explanations
-              </Button>
-            </div>
+          <div className="flex-1 overflow-y-auto scrollbar-hide">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-semibold text-white">Review Questions</h3>
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowExplanations(!showExplanations)}
+                >
+                  {showExplanations ? 'Hide' : 'Show'} Explanations
+                </Button>
+              </div>
 
-            <div className="space-y-4">
-              {questions.map((question, index) => {
+              <div className="space-y-4">
+                {questions.map((question, index) => {
                 const userAnswer = userAnswers[index];
                 const isCorrect = userAnswer === question.correctAnswer;
                 
@@ -745,6 +769,7 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
                   </div>
                 );
               })}
+              </div>
             </div>
           </div>
 
