@@ -19,6 +19,23 @@ interface StudyCommonsProps {
 }
 
 export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
+  // Add CSS to hide scrollbars
+  React.useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+    `;
+    document.head.appendChild(style);
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
   const [nickname, setNickname] = useState("");
   const [joined, setJoined] = useState(false);
   
@@ -34,7 +51,8 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
   const [activeUsers, setActiveUsers] = useState<StudyCommonsUser[]>([]);
   const [subscription, setSubscription] = useState<any>(null);
   const [localActiveUsers, setLocalActiveUsers] = useState<string[]>([]); // Fallback local user list
-  const [showUserList, setShowUserList] = useState(true); // Toggle for user list sidebar
+  const [showUserList, setShowUserList] = useState(false); // Toggle for user list horizontal section
+  const [userScrollPosition, setUserScrollPosition] = useState(0);
   const [input, setInput] = useState("");
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [size, setSize] = useState({ width: 400, height: 600 });
@@ -45,6 +63,38 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
   const [aiCooldown, setAiCooldown] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const userScrollRef = useRef<HTMLDivElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // User scroll navigation functions
+  const scrollUsers = (direction: 'left' | 'right') => {
+    if (!userScrollRef.current) return;
+    const scrollAmount = 200;
+    const newPosition = direction === 'left' 
+      ? Math.max(0, userScrollPosition - scrollAmount)
+      : userScrollPosition + scrollAmount;
+    
+    userScrollRef.current.scrollTo({
+      left: newPosition,
+      behavior: 'smooth'
+    });
+    setUserScrollPosition(newPosition);
+  };
+
+  const canScrollLeft = userScrollPosition > 0;
+  const canScrollRight = userScrollRef.current 
+    ? userScrollPosition < (userScrollRef.current.scrollWidth - userScrollRef.current.clientWidth)
+    : false;
 
   // Immediate local user tracking (works without database)
   useEffect(() => {
@@ -668,8 +718,17 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
   return (
     <div 
       ref={containerRef}
-      className="fixed z-50 select-none"
-      style={{
+      className={`fixed z-50 select-none ${isMobile ? 'inset-4' : ''}`}
+      style={isMobile ? {
+        // Mobile: Full screen with margins
+        left: '1rem',
+        top: '1rem',
+        right: '1rem',
+        bottom: '1rem',
+        width: 'auto',
+        height: 'auto'
+      } : {
+        // Desktop: Draggable and resizable
         left: position.x,
         top: position.y,
         width: size.width,
@@ -687,17 +746,17 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
       >
         {/* Header */}
         <div 
-          className="p-4 border-b border-orange-200/50 flex-shrink-0 cursor-move"
-          onMouseDown={handleMouseDown}
+          className={`p-4 border-b border-orange-200/50 flex-shrink-0 ${isMobile ? 'cursor-default' : 'cursor-move'}`}
+          onMouseDown={isMobile ? undefined : handleMouseDown}
         >
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center">
                 <span className="text-white text-sm">💬</span>
               </div>
               <div>
                 <h2 className="text-sm font-semibold text-gray-800">Study Commons</h2>
-                <p className="text-xs text-gray-600">{localActiveUsers.length} learner{localActiveUsers.length !== 1 ? 's' : ''} online</p>
+                <p className="text-xs text-gray-600">{localActiveUsers.length + 1} learner{localActiveUsers.length !== 0 ? 's' : ''} online</p>
               </div>
             </div>
             <div className="flex items-center space-x-1">
@@ -705,13 +764,10 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
               <button
                 onClick={() => setShowUserList(!showUserList)}
                 className="p-2 hover:bg-orange-200/50 rounded-xl transition-colors"
-                title={showUserList ? "Hide user list" : "Show user list"}
+                title={showUserList ? "Hide online users" : "Show online users"}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                  <circle cx="9" cy="7" r="4"/>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`text-gray-600 transition-transform ${showUserList ? 'rotate-180' : ''}`}>
+                  <path d="M6 9l6 6 6-6"/>
                 </svg>
               </button>
               {/* Minimize Button */}
@@ -724,11 +780,92 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
               </button>
             </div>
           </div>
+
+          {/* Collapsible Who's Online Section */}
+          <AnimatePresence>
+            {showUserList && (localActiveUsers.length > 0 || true) && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="relative">
+                  {/* Navigation Arrows and User Chips */}
+                  <div className="flex items-center">
+                    {/* Left Arrow */}
+                    <button
+                      onClick={() => scrollUsers('left')}
+                      disabled={!canScrollLeft}
+                      className={`p-1 rounded-lg transition-colors flex-shrink-0 mr-2 ${
+                        canScrollLeft 
+                          ? 'hover:bg-orange-200/50 text-gray-600' 
+                          : 'text-gray-300 cursor-not-allowed'
+                      }`}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M15 18l-6-6 6-6"/>
+                      </svg>
+                    </button>
+
+                    {/* Scrollable User Chips Container */}
+                    <div 
+                      ref={userScrollRef}
+                      className="flex-1 overflow-x-auto scrollbar-hide"
+                      onScroll={(e) => setUserScrollPosition(e.currentTarget.scrollLeft)}
+                    >
+                      <div className="flex space-x-2 py-1">
+                        {/* Gawin AI Chip */}
+                        <div className="flex-shrink-0 flex items-center space-x-1.5 bg-emerald-100/80 rounded-full px-2.5 py-1 border border-emerald-200/50">
+                          <div className="w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center">
+                            <span className="text-white text-xs">🤖</span>
+                          </div>
+                          <span className="text-xs font-medium text-emerald-700">Gawin AI</span>
+                          <div className="w-1.5 h-1.5 bg-green-400 rounded-full" title="Online" />
+                        </div>
+
+                        {/* User Chips */}
+                        {localActiveUsers.map((username) => (
+                          <div
+                            key={username}
+                            className="flex-shrink-0 flex items-center space-x-1.5 bg-white/60 backdrop-blur-sm rounded-full px-2.5 py-1 border border-orange-200/30 hover:bg-white/80 transition-colors"
+                          >
+                            <div className={`w-4 h-4 rounded-full flex items-center justify-center text-white text-xs font-bold ${getAvatarColor(username)}`}>
+                              {getInitials(username)}
+                            </div>
+                            <span className="text-xs font-medium text-gray-700">
+                              {username === nickname ? 'You' : username}
+                            </span>
+                            <div className="w-1.5 h-1.5 bg-green-400 rounded-full" title="Online" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Right Arrow */}
+                    <button
+                      onClick={() => scrollUsers('right')}
+                      disabled={!canScrollRight}
+                      className={`p-1 rounded-lg transition-colors flex-shrink-0 ml-2 ${
+                        canScrollRight 
+                          ? 'hover:bg-orange-200/50 text-gray-600' 
+                          : 'text-gray-300 cursor-not-allowed'
+                      }`}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M9 18l6-6-6-6"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        {/* Messages and User List Container */}
+        {/* Messages Container - Full Width */}
         <div className="flex-1 flex min-h-0">
-          {/* Messages Area */}
+          {/* Messages Area - Now Takes Full Width */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             <AnimatePresence>
               {messages.map((message) => (
@@ -762,47 +899,6 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Discord-style User List Sidebar */}
-          {showUserList && localActiveUsers.length > 0 && (
-            <div className="w-48 border-l border-orange-200/50 bg-gradient-to-b from-orange-50/30 to-orange-100/20 p-3">
-              <div className="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">
-                Online — {localActiveUsers.length}
-              </div>
-              <div className="space-y-1">
-                {localActiveUsers.map((username) => (
-                  <div
-                    key={username}
-                    className="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-white/30 transition-colors"
-                  >
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${getAvatarColor(username)}`}>
-                      {getInitials(username)}
-                    </div>
-                    <span className="text-xs font-medium text-gray-700 truncate">
-                      {username}
-                      {username === nickname && (
-                        <span className="ml-1 text-emerald-600">(you)</span>
-                      )}
-                    </span>
-                    <div className="w-2 h-2 bg-green-400 rounded-full flex-shrink-0" title="Online" />
-                  </div>
-                ))}
-              </div>
-              
-              {/* Show Gawin AI as always online */}
-              <div className="mt-3">
-                <div className="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">
-                  AI Assistant
-                </div>
-                <div className="flex items-center space-x-2 p-1.5 rounded-lg bg-emerald-50/50">
-                  <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center">
-                    <span className="text-white text-xs">🤖</span>
-                  </div>
-                  <span className="text-xs font-medium text-emerald-700">Gawin AI</span>
-                  <div className="w-2 h-2 bg-emerald-400 rounded-full flex-shrink-0" title="Always Online" />
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Input */}
