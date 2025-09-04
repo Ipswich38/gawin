@@ -65,9 +65,9 @@ export async function POST(request: NextRequest) {
     
     // Final fallback: Educational templates
     console.log('🎓 Using educational fallback template...');
-    const userMessage = body.messages[body.messages.length - 1];
-    if (userMessage?.role === 'user') {
-      const educationalResponse = deepseekService.getEducationalResponse(userMessage.content);
+    const finalUserMessage = body.messages[body.messages.length - 1];
+    if (finalUserMessage?.role === 'user') {
+      const educationalResponse = deepseekService.getEducationalResponse(finalUserMessage.content);
       
       return NextResponse.json({
         success: true,
