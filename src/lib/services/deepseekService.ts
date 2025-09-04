@@ -192,7 +192,32 @@ Biomechanics is the study of the mechanical laws relating to the movement and st
 Would you like me to explore any specific aspect of biomechanics in more detail?`;
     }
     
-    // Mathematics and physics
+    // Check for specific calculus problems requests
+    if (/calculus.*problem|sample.*calculus|calculus.*example/i.test(input)) {
+      return `**Sample Calculus Problem**
+
+Here's a classic calculus problem for you to work on:
+
+**Problem:** Find the derivative of f(x) = 3x⁴ - 2x³ + 5x² - 7x + 2
+
+**Solution Steps:**
+1. Apply the power rule: d/dx[xⁿ] = n·xⁿ⁻¹
+2. Apply the constant multiple rule: d/dx[c·f(x)] = c·f'(x)
+3. Apply the sum/difference rule: d/dx[f(x) ± g(x)] = f'(x) ± g'(x)
+
+**Step-by-step:**
+- d/dx[3x⁴] = 3 × 4x³ = 12x³
+- d/dx[-2x³] = -2 × 3x² = -6x²
+- d/dx[5x²] = 5 × 2x = 10x
+- d/dx[-7x] = -7
+- d/dx[2] = 0
+
+**Final Answer:** f'(x) = 12x³ - 6x² + 10x - 7
+
+Try this related problem: Find f'(x) if f(x) = 2x⁵ - 4x³ + 6x - 1`;
+    }
+    
+    // Mathematics and physics general
     if (/math|physics|equation|solve|calculate|algebra|geometry|calculus|mechanics|dynamics|statics/.test(lowerInput)) {
       return `**Mathematics & Physics Learning Guide**
 

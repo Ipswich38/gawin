@@ -251,11 +251,8 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
           return;
         }
         
-        // Use Hugging Face Pro for specialized tasks, DeepSeek for general chat
-        const apiEndpoint = (isSTEM || isCoding || isWriting) ? '/api/huggingface' : '/api/deepseek';
-        
-        // Call the appropriate AI service
-        const response = await fetch(apiEndpoint, {
+        // Use Groq API with intelligent fallback system (Groq -> HuggingFace -> DeepSeek -> Educational)
+        const response = await fetch('/api/groq', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
