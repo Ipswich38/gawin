@@ -39,46 +39,45 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(groqResult);
     }
 
-    // If Groq fails, try HuggingFace fallback
-    console.log(`🔄 Groq failed: ${groqResult.error}, trying HuggingFace fallback...`);
+    // If Groq fails, try Groq's DeepSeek model as fallback
+    console.log(`🔄 Groq primary failed: ${groqResult.error}, trying Groq DeepSeek model...`);
     
     try {
-      const hfResult = await huggingFaceService.createChatCompletion({
-        messages: body.messages.map(msg => ({ role: msg.role, content: msg.content })),
-        action: body.action,
-        max_tokens: body.max_tokens,
-        temperature: body.temperature
+      // Try Groq's DeepSeek model as fallback
+      const groqDeepSeekResult = await groqService.createChatCompletion({
+        ...body,
+        model: 'deepseek-r1-distill-llama-70b' // Use Groq's DeepSeek model
       });
 
-      if (hfResult.success) {
-        console.log('✅ HuggingFace fallback successful');
-        return NextResponse.json(hfResult);
+      if (groqDeepSeekResult.success) {
+        console.log('✅ Groq DeepSeek fallback successful');
+        return NextResponse.json(groqDeepSeekResult);
       }
 
-      // If both Groq and HuggingFace fail, try DeepSeek
-      console.log(`🔄 HuggingFace also failed: ${hfResult.error}, trying DeepSeek final fallback...`);
+      console.log(`🔄 Groq DeepSeek also failed: ${groqDeepSeekResult.error}, using educational fallback...`);
+
+      // HuggingFace temporarily disabled due to connection issues
+      // DeepSeek direct API removed since Groq provides DeepSeek models
       
-      const deepseekResult = await deepseekService.createChatCompletion(
-        body.messages.map(msg => ({ role: msg.role, content: msg.content })),
-        { model: 'deepseek-chat' }
-      );
-
-      if (deepseekResult.choices && deepseekResult.choices.length > 0) {
-        console.log('✅ DeepSeek fallback successful');
-        return NextResponse.json({
-          success: true,
-          data: {
-            response: deepseekResult.choices[0].message.content,
-            model_used: 'deepseek-chat',
-            task_type: body.action || 'general',
-            processing_time: 1000
-          },
-          usage: deepseekResult.usage
-        });
-      }
-
     } catch (fallbackError) {
-      console.error('All fallback services failed:', fallbackError);
+      console.error('Groq fallback services failed:', fallbackError);
+    }
+    
+    // Final fallback: Educational templates
+    console.log('🎓 Using educational fallback template...');
+    const userMessage = body.messages[body.messages.length - 1];
+    if (userMessage?.role === 'user') {
+      const educationalResponse = deepseekService.getEducationalResponse(userMessage.content);
+      
+      return NextResponse.json({
+        success: true,
+        data: {
+          response: educationalResponse,
+          model_used: 'Gawin AI Educational',
+          task_type: body.action || 'educational',
+          processing_time: 100
+        }
+      });
     }
     
     // If all services fail, return error

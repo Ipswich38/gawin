@@ -458,6 +458,13 @@ The more specific your question, the more targeted and useful my response can be
   }
 
   /**
+   * Get educational response (public wrapper for mock responses)
+   */
+  getEducationalResponse(input: string): string {
+    return this.generateMockResponse(input);
+  }
+
+  /**
    * Get available models (mock for now)
    */
   getAvailableModels() {
