@@ -28,25 +28,19 @@ export default function MessageRenderer({ text }: MessageRendererProps) {
 
   // Split text by LaTeX blocks and images, process each part
   const renderText = (input: string) => {
-    // First preprocess the input
-    const processedInput = preprocessText(input);
-    
     const parts = [];
     let currentIndex = 0;
     
-    // Find markdown images first (![alt](url))
+    // Find markdown images FIRST (before preprocessing) to avoid LaTeX interference
     const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
     let imageMatch;
     
-    while ((imageMatch = imageRegex.exec(processedInput)) !== null) {
-      console.log('🖼️ Found image match:', imageMatch);
-      console.log('🖼️ Alt text:', imageMatch[1]);
-      console.log('🖼️ Image URL:', imageMatch[2]);
-      
-      // Add text before the image
+    while ((imageMatch = imageRegex.exec(input)) !== null) {
+      // Add text before the image (apply preprocessing to non-image text)
       if (imageMatch.index > currentIndex) {
-        const beforeText = processedInput.slice(currentIndex, imageMatch.index);
-        parts.push(processDisplayMathAndInline(beforeText, parts.length));
+        const beforeText = input.slice(currentIndex, imageMatch.index);
+        const processedBeforeText = preprocessText(beforeText);
+        parts.push(processDisplayMathAndInline(processedBeforeText, parts.length));
       }
       
       // Add the image
@@ -62,8 +56,6 @@ export default function MessageRenderer({ text }: MessageRendererProps) {
             style={{ maxHeight: '500px' }}
             onError={(e) => {
               const target = e.target as HTMLImageElement;
-              console.error('🖼️ Image failed to load:', imageUrl);
-              console.error('🖼️ Error event:', e);
               target.style.display = 'none';
               const errorDiv = document.createElement('div');
               errorDiv.className = 'p-4 bg-red-50 border border-red-200 rounded text-red-700 text-center';
@@ -78,9 +70,6 @@ export default function MessageRenderer({ text }: MessageRendererProps) {
               `;
               target.parentNode?.appendChild(errorDiv);
             }}
-            onLoad={() => {
-              console.log('✅ Image loaded successfully:', imageUrl);
-            }}
           />
         </div>
       );
@@ -88,13 +77,15 @@ export default function MessageRenderer({ text }: MessageRendererProps) {
       currentIndex = imageMatch.index + imageMatch[0].length;
     }
     
-    // Add remaining text (process for display math)
-    if (currentIndex < processedInput.length) {
-      const remainingText = processedInput.slice(currentIndex);
-      parts.push(processDisplayMathAndInline(remainingText, parts.length));
+    // Add remaining text (apply preprocessing to remaining non-image text)
+    if (currentIndex < input.length) {
+      const remainingText = input.slice(currentIndex);
+      const processedRemainingText = preprocessText(remainingText);
+      parts.push(processDisplayMathAndInline(processedRemainingText, parts.length));
     }
     
-    return parts.length > 0 ? parts : [processDisplayMathAndInline(processedInput, 0)];
+    // If no images were found, process the entire input with preprocessing
+    return parts.length > 0 ? parts : [processDisplayMathAndInline(preprocessText(input), 0)];
   };
 
   // Separate function to handle display math blocks
