@@ -377,8 +377,8 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
                     onClick={() => setSelectedTopic(topic.id)}
                     className={`p-2 rounded border cursor-pointer text-sm ${
                       selectedTopic === topic.id 
-                        ? 'border-orange-300 bg-orange-50' 
-                        : 'border-gray-400 hover:border-orange-400'
+                        ? 'border-orange-300 bg-orange-500 text-white' 
+                        : 'border-gray-400 hover:border-orange-400 bg-gray-600 text-white'
                     }`}
                   >
                     {topic.name}
@@ -398,8 +398,8 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
                       onClick={() => setSelectedQuestions(count)}
                       className={`p-2 rounded border text-sm ${
                         selectedQuestions === count
-                          ? 'border-green-300 bg-green-50'
-                          : 'border-gray-200 hover:border-green-200'
+                          ? 'border-green-300 bg-green-500 text-white'
+                          : 'border-gray-400 hover:border-green-400 bg-gray-600 text-white'
                       }`}
                     >
                       {count}
@@ -417,8 +417,8 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
                       onClick={() => setTimeLimit(minutes)}
                       className={`p-2 rounded border text-sm ${
                         timeLimit === minutes
-                          ? 'border-orange-300 bg-orange-50'
-                          : 'border-gray-400 hover:border-orange-400'
+                          ? 'border-orange-300 bg-orange-500 text-white'
+                          : 'border-gray-400 hover:border-orange-400 bg-gray-600 text-white'
                       }`}
                     >
                       {minutes}m

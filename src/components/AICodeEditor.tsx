@@ -199,12 +199,12 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
       
       <div 
         ref={containerRef}
-        className={`w-full h-full flex flex-col border border-gray-200 rounded-lg overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
+        className={`w-full h-full flex flex-col border border-gray-200 rounded-3xl overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
         style={{ backgroundColor: '#435b67' }}
         onMouseDown={isMobile ? undefined : handleMouseDown}
       >
         {/* Header */}
-        <div className="px-3 py-2 border-b border-gray-400">
+        <div className="px-3 py-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <div className="w-4 h-4 bg-gray-900 rounded-sm flex items-center justify-center">
@@ -212,7 +212,6 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
               </div>
               <div>
                 <div className="font-medium text-white text-sm">Coding Mentor</div>
-                <div className="text-xs text-gray-300">Programming tutor</div>
               </div>
             </div>
             
@@ -242,7 +241,7 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
         </div>
 
         {/* Language Selector */}
-        <div className="px-3 py-2 border-b border-gray-400 bg-gray-600">
+        <div className="px-3 py-2 bg-gray-600">
           <select
             value={selectedLanguage}
             onChange={(e) => setSelectedLanguage(e.target.value)}
@@ -255,7 +254,7 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
         </div>
 
         {/* Prompt Input */}
-        <div className="px-3 py-2 border-b border-gray-400">
+        <div className="px-3 py-2">
           <div className="flex space-x-2">
             <input
               type="text"
@@ -276,7 +275,7 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
         </div>
 
         {/* Action Buttons */}
-        <div className="px-3 py-2 border-b border-gray-400">
+        <div className="px-3 py-2">
           <div className="flex space-x-2">
             <button
               onClick={copyToClipboard}
