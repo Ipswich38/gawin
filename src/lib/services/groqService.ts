@@ -180,7 +180,14 @@ class GroqService {
 5. Ask for clarification on framework/library preferences when not specified`;
     }
     
-    if (taskType === 'analysis' || messages.some(m => /math|calculus|algebra|equation|solve|formula|derivative|integral/.test(m.content.toLowerCase()))) {
+    if (taskType === 'analysis' || messages.some(m => {
+      const messageText = typeof m.content === 'string' 
+        ? m.content 
+        : Array.isArray(m.content)
+        ? m.content.find(item => item.type === 'text')?.text || ''
+        : '';
+      return /math|calculus|algebra|equation|solve|formula|derivative|integral/.test(messageText.toLowerCase());
+    })) {
       systemPrompt = `You are a math explanation formatter. Your task is to present AI-generated math solutions in a way that is clean, structured, and visually easy to read, like a textbook.
 
 Formatting Rules:
