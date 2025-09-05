@@ -228,99 +228,82 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
       
       <div 
         ref={containerRef}
-        className={`w-full h-full flex flex-col rounded-2xl shadow-2xl backdrop-blur-xl border border-white/20 overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
-        style={{ backgroundColor: 'rgba(5, 26, 28, 0.95)' }}
+        className={`w-full h-full flex flex-col rounded-xl shadow-lg border border-gray-200 overflow-hidden bg-white ${isMobile ? '' : 'cursor-move'}`}
+        style={{ boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}
         onMouseDown={isMobile ? undefined : handleMouseDown}
       >
-        {/* Header - Mobile First Design */}
-        <div className="flex items-center justify-between p-3 border-b border-white/10" style={{ backgroundColor: 'rgba(147, 51, 234, 0.15)' }}>
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-lg">
-              <span className="text-white text-sm">👨‍💻</span>
+        {/* Header - Paper Card Design */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-indigo-50">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-sm">
+              <span className="text-white text-lg">👨‍💻</span>
             </div>
             <div className="flex flex-col">
-              <h2 className="text-sm font-bold text-white leading-tight">Coding Mentor</h2>
-              <span className="text-xs text-white/60 leading-tight">AI Assistant</span>
+              <h2 className="text-lg font-bold text-gray-800 leading-tight">Coding Mentor</h2>
+              <span className="text-sm text-gray-500 leading-tight">AI Programming Assistant</span>
             </div>
           </div>
           
-          <div className="flex items-center space-x-1">
-            {/* Language Selector - Compact */}
+          <div className="flex items-center space-x-2">
+            {/* Language Selector */}
             <div className="group relative">
               <select
                 value={selectedLanguage}
                 onChange={(e) => setSelectedLanguage(e.target.value)}
-                className="w-8 h-8 rounded-lg text-xs text-white bg-white/10 border border-white/20 focus:ring-1 focus:ring-white/40 focus:outline-none cursor-pointer appearance-none flex items-center justify-center text-center hover:scale-110 transition-transform"
+                className="h-8 px-3 rounded-lg text-sm text-gray-700 bg-white border border-gray-200 focus:ring-2 focus:ring-purple-200 focus:border-purple-400 focus:outline-none cursor-pointer hover:border-purple-300 transition-colors shadow-sm"
               >
                 {languages.map(lang => (
-                  <option key={lang.id} value={lang.id} style={{ backgroundColor: 'rgba(147, 51, 234, 0.95)', color: 'white' }}>
-                    {lang.icon}
+                  <option key={lang.id} value={lang.id}>
+                    {lang.icon} {lang.name}
                   </option>
                 ))}
               </select>
-              <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-white/70 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                {languages.find(l => l.id === selectedLanguage)?.name}
-              </div>
             </div>
 
-            {/* Full Screen Icon */}
+            {/* Control Buttons */}
             {!isMobile && (
-              <div className="group relative">
-                <button 
-                  onClick={toggleFullScreen}
-                  className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:scale-110 transition-all hover:bg-white/20"
-                  aria-label={isFullScreen ? "Exit Full Screen" : "Full Screen"}
-                >
-                  {isFullScreen ? (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3M16 21v-3a2 2 0 0 1 2-2h3"/>
-                    </svg>
-                  ) : (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
-                    </svg>
-                  )}
-                </button>
-                <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-white/70 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                  {isFullScreen ? 'Exit' : 'Focus'}
-                </div>
-              </div>
+              <button 
+                onClick={toggleFullScreen}
+                className="p-2 rounded-lg text-gray-500 hover:text-purple-600 hover:bg-purple-50 transition-colors"
+                aria-label={isFullScreen ? "Exit Full Screen" : "Full Screen"}
+                title={isFullScreen ? "Exit Full Screen" : "Full Screen"}
+              >
+                {isFullScreen ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3M16 21v-3a2 2 0 0 1 2-2h3"/>
+                  </svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                  </svg>
+                )}
+              </button>
             )}
 
-            {/* Minimize Icon */}
             {!isMobile && onMinimize && (
-              <div className="group relative">
-                <button 
-                  onClick={onMinimize}
-                  className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:scale-110 transition-all hover:bg-white/20"
-                  aria-label="Minimize Panel"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="9,11 12,14 15,11"></polyline>
-                  </svg>
-                </button>
-                <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-white/70 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                  Hide
-                </div>
-              </div>
-            )}
-            
-            {/* Close Icon */}
-            <div className="group relative">
               <button 
                 onClick={onMinimize}
-                className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:scale-110 transition-all hover:bg-white/20"
-                aria-label="Close Panel"
+                className="p-2 rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+                aria-label="Minimize Panel"
+                title="Hide Panel"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="9,11 12,14 15,11"></polyline>
                 </svg>
               </button>
-              <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-white/70 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                Close
-              </div>
-            </div>
+            )}
+            
+            <button 
+              onClick={onMinimize}
+              className="p-2 rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+              aria-label="Close Panel"
+              title="Close Panel"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
           </div>
         </div>
 
