@@ -375,7 +375,7 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
                   <div
                     key={topic.id}
                     onClick={() => setSelectedTopic(topic.id)}
-                    className={`p-2 rounded-2xl border cursor-pointer text-sm ${
+                    className={`p-2 rounded-full border cursor-pointer text-sm ${
                       selectedTopic === topic.id 
                         ? 'border-orange-300 bg-orange-500 text-white' 
                         : 'border-gray-400 hover:border-orange-400 bg-gray-600 text-white'
@@ -396,7 +396,7 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
                     <button
                       key={count}
                       onClick={() => setSelectedQuestions(count)}
-                      className={`p-2 rounded-2xl border text-sm ${
+                      className={`p-2 rounded-full border text-sm ${
                         selectedQuestions === count
                           ? 'border-green-300 bg-green-500 text-white'
                           : 'border-gray-400 hover:border-green-400 bg-gray-600 text-white'
@@ -415,7 +415,7 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
                     <button
                       key={minutes}
                       onClick={() => setTimeLimit(minutes)}
-                      className={`p-2 rounded-2xl border text-sm ${
+                      className={`p-2 rounded-full border text-sm ${
                         timeLimit === minutes
                           ? 'border-orange-300 bg-orange-500 text-white'
                           : 'border-gray-400 hover:border-orange-400 bg-gray-600 text-white'
@@ -639,7 +639,7 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
               <button 
                 onClick={finishQuiz}
                 disabled={userAnswers[currentQuestion] === -1}
-                className="px-3 py-1 bg-orange-500 text-white text-sm rounded-2xl disabled:opacity-50"
+                className="px-3 py-1 bg-orange-500 text-white text-sm rounded-full disabled:opacity-50"
               >
                 Finish
               </button>
@@ -647,7 +647,7 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
               <button 
                 onClick={nextQuestion}
                 disabled={userAnswers[currentQuestion] === -1}
-                className="px-3 py-1 bg-orange-500 text-white text-sm rounded-2xl disabled:opacity-50"
+                className="px-3 py-1 bg-orange-500 text-white text-sm rounded-full disabled:opacity-50"
               >
                 Next →
               </button>

@@ -28,6 +28,7 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
   const [isProcessingFiles, setIsProcessingFiles] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [showSpacesDropdown, setShowSpacesDropdown] = useState(false);
+  const [showUploadDropdown, setShowUploadDropdown] = useState(false);
 
   // Update active users count periodically
   useEffect(() => {
@@ -500,6 +501,47 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
           return;
         }
         
+        // Process uploaded files for API
+        let messageContent: any = currentInput;
+        let apiAction = isCoding ? 'code' : isWriting ? 'writing' : isSTEM ? 'analysis' : 'chat';
+
+        // Handle file uploads (especially images for OCR/vision)
+        if (uploadedFiles.length > 0) {
+          const imageFiles = uploadedFiles.filter(file => file.file.type.startsWith('image/'));
+          
+          if (imageFiles.length > 0) {
+            // Convert images to base64 and create multimodal content
+            const imagePromises = imageFiles.map(fileObj => {
+              return new Promise<string>((resolve) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                  const base64 = reader.result as string;
+                  resolve(base64);
+                };
+                reader.readAsDataURL(fileObj.file);
+              });
+            });
+
+            const base64Images = await Promise.all(imagePromises);
+            
+            // Create multimodal message content
+            messageContent = [
+              { type: 'text', text: currentInput || 'Please analyze this image and extract any text using OCR.' }
+            ];
+
+            // Add each image to the content
+            base64Images.forEach((base64Image) => {
+              messageContent.push({
+                type: 'image_url',
+                image_url: { url: base64Image }
+              });
+            });
+
+            // Use vision/OCR action for images
+            apiAction = 'vision';
+          }
+        }
+
         // Use Groq API with intelligent fallback system (Groq -> HuggingFace -> DeepSeek -> Educational)
         const response = await fetch('/api/groq', {
           method: 'POST',
@@ -508,9 +550,9 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
           },
           body: JSON.stringify({
             messages: [
-              { role: 'user', content: currentInput }
+              { role: 'user', content: messageContent }
             ],
-            action: isCoding ? 'code' : isWriting ? 'writing' : isSTEM ? 'analysis' : 'chat',
+            action: apiAction,
             module: 'general'
           }),
         });
@@ -1333,24 +1375,46 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                 onDrop={handleDrop}
               >
                 {/* File Upload Button */}
-                <button
-                  type="button"
-                  onClick={handleFileClick}
-                  className={`absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 backdrop-blur-sm rounded-full flex items-center justify-center transition-all shadow-md hover:scale-105 z-10 ${
-                    uploadedFiles.length > 0 
-                      ? 'bg-emerald-400 text-black' 
-                      : 'bg-white/20 text-white/70 hover:bg-white/30 hover:text-white'
-                  }`}
-                  title="upload file"
-                >
-                  {uploadedFiles.length > 0 ? (
-                    <span className="text-xs font-bold">{uploadedFiles.length}</span>
-                  ) : (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M12 5v14M5 12h14"/>
-                    </svg>
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
+                  <button
+                    type="button"
+                    onClick={() => setShowUploadDropdown(!showUploadDropdown)}
+                    className={`w-8 h-8 backdrop-blur-sm rounded-md flex items-center justify-center transition-all shadow-md z-10 ${
+                      uploadedFiles.length > 0 
+                        ? 'bg-emerald-400 text-black' 
+                        : 'bg-white/20 text-white/70 hover:bg-orange-500 hover:text-white'
+                    }`}
+                    title="File upload"
+                  >
+                    {uploadedFiles.length > 0 ? (
+                      <span className="text-xs font-bold">{uploadedFiles.length}</span>
+                    ) : (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M12 5v14M5 12h14"/>
+                      </svg>
+                    )}
+                  </button>
+
+                  {/* Upload Options Dropdown */}
+                  {showUploadDropdown && (
+                    <div className="absolute bottom-full mb-2 left-0 w-32 bg-white rounded-2xl shadow-xl border border-gray-200/50 overflow-hidden z-50">
+                      <button
+                        onClick={() => {
+                          handleFileClick();
+                          setShowUploadDropdown(false);
+                        }}
+                        className="w-full flex items-center space-x-2 px-3 py-2 hover:bg-gray-50 transition-colors text-left text-sm text-gray-700"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                          <polyline points="7,10 12,15 17,10"/>
+                          <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        <span>File upload</span>
+                      </button>
+                    </div>
                   )}
-                </button>
+                </div>
 
                 {/* Enhanced Input Field */}
                 <textarea

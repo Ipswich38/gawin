@@ -143,24 +143,46 @@ Be thorough and accurate in your text extraction.`
       }
     }
 
-    // If user provided a query along with files, analyze the extracted content
+    // Generate AI analysis of the extracted content
     let aiAnalysis = '';
-    if (extractedText.trim() && userQuery.trim()) {
+    
+    if (extractedText.trim()) {
+      // We have extracted text content
       try {
-        const analysisResult = await groqService.createChatCompletion({
-          messages: [
-            {
-              role: 'system',
-              content: `You are Gawin AI, an intelligent document analyst. The user has uploaded files and extracted the following text content. Analyze this content in relation to their question and provide helpful, accurate responses.`
-            },
-            {
-              role: 'user',
-              content: `User Question: ${userQuery}
+        let analysisPrompt = '';
+        
+        if (userQuery.trim()) {
+          // User has a specific query
+          analysisPrompt = `User Question: ${userQuery}
 
 Extracted Content from Files:
 ${extractedText}
 
-Please analyze this content and provide a comprehensive response to the user's question based on the extracted text.`
+Please analyze this content and provide a comprehensive response to the user's question based on the extracted text.`;
+        } else {
+          // No specific query, provide general analysis
+          analysisPrompt = `I've extracted the following text content from the uploaded files:
+
+${extractedText}
+
+Please provide a helpful analysis of this content, including:
+- A summary of what the content contains
+- Key information or data points found
+- Any important details that stand out
+- Suggestions for how this information might be useful
+
+Make your response informative and engaging.`;
+        }
+        
+        const analysisResult = await groqService.createChatCompletion({
+          messages: [
+            {
+              role: 'system',
+              content: `You are Gawin AI, an intelligent document analyst. The user has uploaded files and you have successfully extracted text content. Provide helpful, accurate analysis of the extracted content.`
+            },
+            {
+              role: 'user',
+              content: analysisPrompt
             }
           ],
           action: 'analysis',
@@ -169,9 +191,58 @@ Please analyze this content and provide a comprehensive response to the user's q
 
         if (analysisResult.success && analysisResult.data) {
           aiAnalysis = analysisResult.data.response;
+        } else {
+          // Fallback if analysis fails
+          aiAnalysis = `I've successfully extracted text from your uploaded files. Here's what I found:
+
+${extractedText}
+
+*Feel free to ask me any questions about this content!*`;
         }
       } catch (error) {
         console.error('AI analysis error:', error);
+        // Fallback to showing extracted text with a helpful message
+        aiAnalysis = `I've successfully extracted text from your uploaded files. Here's what I found:
+
+${extractedText}
+
+*Feel free to ask me any questions about this content!*`;
+      }
+    } else {
+      // No text was extracted, but we processed images
+      const successfulImageProcessing = analysisResults.some(result => 
+        result.type === 'image' && result.status === 'success'
+      );
+      
+      if (successfulImageProcessing && hasImages) {
+        // Images were processed but no text was found
+        if (userQuery.trim()) {
+          aiAnalysis = `I've analyzed your uploaded images, but I wasn't able to extract any readable text content from them. 
+
+Regarding your question: "${userQuery}"
+
+The images appear to contain visual content that doesn't include text elements, or the text might not be clear enough for OCR processing. If you believe there should be text in these images, you could try:
+
+• Ensuring the images are high resolution and clear
+• Checking that any text is not too small or blurry
+• Re-uploading with better lighting or contrast
+
+Is there anything else I can help you with regarding these images?`;
+        } else {
+          aiAnalysis = `I've successfully processed your uploaded images, but I wasn't able to extract any readable text content from them.
+
+This could be because:
+• The images don't contain text elements
+• The text is too small, blurry, or low contrast
+• The text is in a format that's difficult to recognize
+
+If you have any questions about these images or need help with something specific, feel free to ask! I can still analyze visual content and answer questions about what I see in the images.`;
+        }
+      } else if (hasPDFs && !hasImages) {
+        // Only PDFs were uploaded
+        aiAnalysis = `I see you've uploaded PDF files. For the best OCR and text extraction results, I recommend converting your PDF pages to high-quality images (PNG or JPG) and re-uploading them.
+
+This approach typically provides more accurate text extraction than processing PDFs directly. Would you like me to guide you on how to convert your PDFs to images?`;
       }
     }
 
