@@ -228,25 +228,23 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
       
       <div 
         ref={containerRef}
-        className={`w-full h-full flex flex-col bg-white border border-gray-200 overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
+        className={`w-full h-full flex flex-col bg-white overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
         style={{ 
-          borderRadius: '8px',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)'
+          borderRadius: '32px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)'
         }}
         onMouseDown={isMobile ? undefined : handleMouseDown}
       >
-        {/* Compact Header */}
-        <div className="flex items-center justify-between p-3 border-b border-gray-100 bg-gray-50/50">
-          <div className="flex items-center space-x-2">
-            <div className="w-6 h-6 rounded-md bg-purple-100 flex items-center justify-center">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-purple-600">
-                <polyline points="16,18 22,12 16,6"/>
-                <polyline points="8,6 2,12 8,18"/>
-              </svg>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xs font-medium text-gray-700">Mentor</span>
-              <span className="text-xs text-gray-500">AI coding tutor</span>
+        {/* Simple Header */}
+        <div className="flex items-center justify-between p-4 bg-white">
+          <div className="flex items-center space-x-3">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-purple-500">
+              <polyline points="16,18 22,12 16,6"/>
+              <polyline points="8,6 2,12 8,18"/>
+            </svg>
+            <div>
+              <div className="font-medium text-gray-900 text-sm">Coding Mentor</div>
+              <div className="text-xs text-gray-500">AI-powered programming tutor</div>
             </div>
           </div>
           
