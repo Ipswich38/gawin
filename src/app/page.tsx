@@ -1260,7 +1260,6 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
   );
 }
 
-
 // AccessCodeModal Component
 function AccessCodeModal({ onClose }: { onClose: () => void }) {
   const [isLoading, setIsLoading] = useState(false);
