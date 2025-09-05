@@ -9,7 +9,7 @@ import MessageRenderer from "@/components/MessageRenderer";
 import FileUpload from "@/components/FileUpload";
 import { databaseService } from "@/lib/services/databaseService";
 
-// ChatInterface Component
+// ChatInterface Component - Fixed syntax error
 function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: string }; onLogout: () => void }) {
   const [input, setInput] = useState('');
   const [currentPrompt, setCurrentPrompt] = useState('');
