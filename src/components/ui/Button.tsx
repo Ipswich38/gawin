@@ -26,7 +26,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       alignItems: 'center',
       justifyContent: 'center',
       gap: '0.5rem',
-      borderRadius: '12px',
+      borderRadius: '20px',
       fontWeight: '500',
       transition: 'all 0.2s ease-in-out',
       border: 'none',
@@ -127,26 +127,26 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={disabled || isLoading}
         className={cn(
-          "relative inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-offset-2",
+          "relative inline-flex items-center justify-center gap-2 rounded-full font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-offset-2",
           {
             // Primary variant
-            "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg hover:from-orange-600 hover:to-orange-700 hover:shadow-xl hover:-translate-y-0.5": 
+            "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg hover:from-orange-600 hover:to-orange-700 hover:shadow-xl hover:-translate-y-0.5 rounded-full": 
               variant === 'primary' && !disabled && !isLoading,
             
             // Secondary variant  
-            "bg-white/95 text-orange-600 border border-orange-200 hover:border-orange-300 hover:shadow-lg hover:-translate-y-0.5": 
+            "bg-white/95 text-orange-600 border border-orange-200 hover:border-orange-300 hover:shadow-lg hover:-translate-y-0.5 rounded-full": 
               variant === 'secondary' && !disabled && !isLoading,
             
             // Outline variant
-            "border-2 border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white hover:-translate-y-0.5": 
+            "border-2 border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white hover:-translate-y-0.5 rounded-full": 
               variant === 'outline' && !disabled && !isLoading,
             
             // Ghost variant
-            "text-blue-500 hover:bg-blue-50 hover:text-blue-600": 
+            "text-blue-500 hover:bg-blue-50 hover:text-blue-600 rounded-full": 
               variant === 'ghost' && !disabled && !isLoading,
             
             // Danger variant
-            "bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg hover:from-red-600 hover:to-red-700 hover:shadow-xl hover:-translate-y-0.5": 
+            "bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg hover:from-red-600 hover:to-red-700 hover:shadow-xl hover:-translate-y-0.5 rounded-full": 
               variant === 'danger' && !disabled && !isLoading,
             
             // Size variants

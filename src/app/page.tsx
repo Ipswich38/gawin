@@ -608,7 +608,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
               {/* Hamburger Menu Button */}
               <button
                 onClick={() => setShowSidePanel(!showSidePanel)}
-                className="p-2.5 rounded-2xl hover:bg-white/40 transition-all backdrop-blur-sm shadow-lg"
+                className="p-2.5 rounded-full hover:bg-white/40 transition-all backdrop-blur-sm shadow-lg"
                 style={{ color: '#051a1c' }}
                 title="Menu"
               >
@@ -649,7 +649,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                   setIsLoading(false);
                   setCognitiveProcess('');
                 }}
-                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-emerald-200/60 to-teal-300/60 backdrop-blur-sm rounded-2xl hover:from-emerald-300/70 hover:to-teal-400/70 transition-all shadow-lg"
+                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-emerald-200/60 to-teal-300/60 backdrop-blur-sm rounded-full hover:from-emerald-300/70 hover:to-teal-400/70 transition-all shadow-lg"
                 style={{ color: '#051a1c' }}
                 title="Start New Chat"
               >
@@ -663,7 +663,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
               <div className="relative" data-spaces-dropdown>
                 <button
                   onClick={() => setShowSpacesDropdown(!showSpacesDropdown)}
-                  className="flex items-center space-x-2 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-2xl hover:bg-white/95 transition-all shadow-lg border border-gray-200/50"
+                  className="flex items-center space-x-2 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white/95 transition-all shadow-lg border border-gray-200/50"
                   style={{ color: '#051a1c' }}
                   title="Open Spaces"
                 >
@@ -692,16 +692,17 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
 
                 {/* Dropdown Menu */}
                 {showSpacesDropdown && (
-                  <div className="absolute top-full left-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-200/50 overflow-hidden z-50">
+                  <div className="absolute top-full left-0 mt-2 w-72 bg-white rounded-3xl shadow-xl border border-gray-200/50 overflow-hidden z-50">
                     {/* Study Commons */}
                     <button
                       onClick={() => {
                         setShowStudyCommons(!showStudyCommons);
                         setShowSpacesDropdown(false);
                       }}
-                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left border-b border-gray-100"
+                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left border-b border-gray-100 rounded-2xl"
+                      style={{ backgroundColor: '#435b67' }}
                     >
-                      <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <div className="w-10 h-10 bg-orange-100 rounded-2xl flex items-center justify-center flex-shrink-0">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-orange-600">
                           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                           <circle cx="9" cy="7" r="4"/>
@@ -710,8 +711,8 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                         </svg>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-gray-900">Study Commons</div>
-                        <div className="text-xs text-gray-500">{onlineUsers} learners online</div>
+                        <div className="text-sm font-medium text-white">Study Commons</div>
+                        <div className="text-xs text-gray-300">{onlineUsers} learners online</div>
                       </div>
                     </button>
 
@@ -721,17 +722,18 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                         setShowCodeEditor(true);
                         setShowSpacesDropdown(false);
                       }}
-                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left border-b border-gray-100"
+                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left border-b border-gray-100 rounded-2xl"
+                      style={{ backgroundColor: '#435b67' }}
                     >
-                      <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <div className="w-10 h-10 bg-purple-100 rounded-2xl flex items-center justify-center flex-shrink-0">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-purple-600">
                           <polyline points="16,18 22,12 16,6"/>
                           <polyline points="8,6 2,12 8,18"/>
                         </svg>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-gray-900">Coding Mentor</div>
-                        <div className="text-xs text-gray-500">AI-powered coding tutor</div>
+                        <div className="text-sm font-medium text-white">Coding Mentor</div>
+                        <div className="text-xs text-gray-300">AI-powered coding tutor</div>
                       </div>
                     </button>
 
@@ -741,17 +743,18 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                         setShowQuizGenerator(true);
                         setShowSpacesDropdown(false);
                       }}
-                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
+                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left rounded-2xl"
+                      style={{ backgroundColor: '#435b67' }}
                     >
-                      <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <div className="w-10 h-10 bg-green-100 rounded-2xl flex items-center justify-center flex-shrink-0">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-600">
                           <circle cx="12" cy="12" r="3"/>
                           <path d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24"/>
                         </svg>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-gray-900">Quiz Generator</div>
-                        <div className="text-xs text-gray-500">STEM practice tests</div>
+                        <div className="text-sm font-medium text-white">Quiz Generator</div>
+                        <div className="text-xs text-gray-300">STEM practice tests</div>
                       </div>
                     </button>
                   </div>
@@ -787,7 +790,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                 </div>
                 <button
                   onClick={() => setShowSidePanel(false)}
-                  className="p-2 hover:bg-gray-200/70 rounded-xl transition-all group"
+                  className="p-2 hover:bg-gray-200/70 rounded-full transition-all group"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="group-hover:rotate-90 transition-transform">
                     <path d="M18 6L6 18M6 6l12 12"/>
@@ -845,7 +848,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                       setCognitiveProcess('');
                       setShowSidePanel(false);
                     }}
-                    className="p-3 bg-gradient-to-r from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 rounded-xl transition-all border border-emerald-200/50 group"
+                    className="p-3 bg-gradient-to-r from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 rounded-2xl transition-all border border-emerald-200/50 group"
                   >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mx-auto mb-2 text-emerald-600 group-hover:scale-110 transition-transform">
                       <path d="M12 5v14M5 12h14"/>
@@ -858,7 +861,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                       setShowCodeEditor(true);
                       setShowSidePanel(false);
                     }}
-                    className="p-3 bg-gradient-to-r from-purple-50 to-indigo-50 hover:from-purple-100 hover:to-indigo-100 rounded-xl transition-all border border-purple-200/50 group"
+                    className="p-3 bg-gradient-to-r from-purple-50 to-indigo-50 hover:from-purple-100 hover:to-indigo-100 rounded-2xl transition-all border border-purple-200/50 group"
                   >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mx-auto mb-2 text-purple-600 group-hover:scale-110 transition-transform">
                       <polyline points="16,18 22,12 16,6"/>
@@ -872,7 +875,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                       setShowQuizGenerator(true);
                       setShowSidePanel(false);
                     }}
-                    className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 rounded-xl transition-all border border-green-200/50 group"
+                    className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 rounded-2xl transition-all border border-green-200/50 group"
                   >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mx-auto mb-2 text-green-600 group-hover:scale-110 transition-transform">
                       <circle cx="12" cy="12" r="3"/>
@@ -886,7 +889,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                       setShowStudyCommons(true);
                       setShowSidePanel(false);
                     }}
-                    className="p-3 bg-gradient-to-r from-orange-50 to-yellow-50 hover:from-orange-100 hover:to-yellow-100 rounded-xl transition-all border border-orange-200/50 group"
+                    className="p-3 bg-gradient-to-r from-orange-50 to-yellow-50 hover:from-orange-100 hover:to-yellow-100 rounded-2xl transition-all border border-orange-200/50 group"
                   >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mx-auto mb-2 text-orange-600 group-hover:scale-110 transition-transform">
                       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -911,7 +914,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                 <div className="space-y-2">
                   <button 
                     onClick={() => setShowHistory(!showHistory)}
-                    className="w-full flex items-center space-x-3 p-3 hover:bg-blue-50 rounded-xl transition-all text-left border border-transparent hover:border-blue-200"
+                    className="w-full flex items-center space-x-3 p-3 hover:bg-blue-50 rounded-2xl transition-all text-left border border-transparent hover:border-blue-200"
                   >
                     <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-600">
@@ -928,7 +931,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                   </button>
                   
                   <button 
-                    className="w-full flex items-center space-x-3 p-3 hover:bg-purple-50 rounded-xl transition-all text-left border border-transparent hover:border-purple-200"
+                    className="w-full flex items-center space-x-3 p-3 hover:bg-purple-50 rounded-2xl transition-all text-left border border-transparent hover:border-purple-200"
                   >
                     <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-purple-600">
@@ -943,7 +946,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                   </button>
                   
                   <button 
-                    className="w-full flex items-center space-x-3 p-3 hover:bg-green-50 rounded-xl transition-all text-left border border-transparent hover:border-green-200"
+                    className="w-full flex items-center space-x-3 p-3 hover:bg-green-50 rounded-2xl transition-all text-left border border-transparent hover:border-green-200"
                   >
                     <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-600">
@@ -1029,7 +1032,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                     onLogout();
                     setShowSidePanel(false);
                   }}
-                  className="w-full flex items-center justify-center space-x-3 p-4 bg-gradient-to-r from-red-50 to-pink-50 hover:from-red-100 hover:to-pink-100 text-red-600 rounded-xl transition-all border border-red-200/50 group"
+                  className="w-full flex items-center justify-center space-x-3 p-4 bg-gradient-to-r from-red-50 to-pink-50 hover:from-red-100 hover:to-pink-100 text-red-600 rounded-2xl transition-all border border-red-200/50 group"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="group-hover:translate-x-1 transition-transform">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -1060,7 +1063,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                 <h2 className="text-sm font-medium opacity-70" style={{ color: '#051a1c' }}>Chat History</h2>
                 <button
                   onClick={() => setShowHistory(false)}
-                  className="p-1.5 rounded-lg hover:bg-white/40 transition-all"
+                  className="p-1.5 rounded-full hover:bg-white/40 transition-all"
                   style={{ color: '#051a1c' }}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1078,7 +1081,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                   setCognitiveProcess('');
                   setShowHistory(false); // Close history panel
                 }}
-                className="w-full px-3 py-2.5 rounded-2xl hover:opacity-90 transition-all text-xs font-medium shadow-md backdrop-blur-sm hover:scale-105 active:scale-95"
+                className="w-full px-3 py-2.5 rounded-full hover:opacity-90 transition-all text-xs font-medium shadow-md backdrop-blur-sm hover:scale-105 active:scale-95"
                 style={{ backgroundColor: '#051a1c', color: 'white' }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = '#00FFEF';
@@ -1105,7 +1108,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
               {chatHistory.map((chat) => (
                 <div
                   key={chat.id}
-                  className="group p-3 bg-white/40 backdrop-blur-sm border border-white/30 rounded-xl hover:bg-white/60 transition-all cursor-pointer shadow-sm relative"
+                  className="group p-3 bg-white/40 backdrop-blur-sm border border-white/30 rounded-2xl hover:bg-white/60 transition-all cursor-pointer shadow-sm relative"
                 >
                   <div className="font-medium text-xs mb-1" style={{ color: '#051a1c' }}>
                     {chat.title}
@@ -1187,31 +1190,31 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
 
           {/* Tool Chips - Enhanced with Model Indicators */}
           <div className="flex flex-wrap justify-center gap-2 mb-8">
-            <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Explain artificial intelligence concepts")}>
+            <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-full hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Explain artificial intelligence concepts")}>
               🤖 AI Concepts
             </span>
-            <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-purple-100/70 to-purple-200/70 backdrop-blur-md rounded-2xl hover:from-purple-200/80 hover:to-purple-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-purple-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Help me write Python code")}>
+            <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-purple-100/70 to-purple-200/70 backdrop-blur-md rounded-full hover:from-purple-200/80 hover:to-purple-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-purple-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Help me write Python code")}>
               💻 Coding Help
             </span>
-            <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-blue-100/70 to-blue-200/70 backdrop-blur-md rounded-2xl hover:from-blue-200/80 hover:to-blue-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-blue-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Solve this calculus problem")}>
+            <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-blue-100/70 to-blue-200/70 backdrop-blur-md rounded-full hover:from-blue-200/80 hover:to-blue-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-blue-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Solve this calculus problem")}>
               🔢 Math Problems
             </span>
-            <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-green-100/70 to-green-200/70 backdrop-blur-md rounded-2xl hover:from-green-200/80 hover:to-green-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-green-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Write a creative story")}>
+            <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-green-100/70 to-green-200/70 backdrop-blur-md rounded-full hover:from-green-200/80 hover:to-green-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-green-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Write a creative story")}>
               🎨 Creative Writing
             </span>
-            <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-green-100/70 to-green-200/70 backdrop-blur-md rounded-2xl hover:from-green-200/80 hover:to-green-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-green-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Check my grammar and improve this essay")}>
+            <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-green-100/70 to-green-200/70 backdrop-blur-md rounded-full hover:from-green-200/80 hover:to-green-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-green-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Check my grammar and improve this essay")}>
               📝 Grammar & Writing
             </span>
-            <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Translate text to another language")}>
+            <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-full hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Translate text to another language")}>
               🌍 Translation
             </span>
-            <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-blue-100/70 to-blue-200/70 backdrop-blur-md rounded-2xl hover:from-blue-200/80 hover:to-blue-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-blue-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Explain quantum physics concepts")}>
+            <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-blue-100/70 to-blue-200/70 backdrop-blur-md rounded-full hover:from-blue-200/80 hover:to-blue-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-blue-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Explain quantum physics concepts")}>
               🔬 Science
             </span>
-            <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-pink-100/70 to-pink-200/70 backdrop-blur-md rounded-2xl hover:from-pink-200/80 hover:to-pink-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-pink-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Draw a beautiful sunset over mountains")}>
+            <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-pink-100/70 to-pink-200/70 backdrop-blur-md rounded-full hover:from-pink-200/80 hover:to-pink-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-pink-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Draw a beautiful sunset over mountains")}>
               🎨 Image Generation
             </span>
-            <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-2xl hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Help me learn a new topic")}>
+            <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-full hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Help me learn a new topic")}>
               📚 Learning
             </span>
           </div>
@@ -1305,7 +1308,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
           <div className="max-w-3xl mx-auto">
             {/* File Previews */}
             {uploadedFiles.length > 0 && (
-              <div className="mb-4 p-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl">
+              <div className="mb-4 p-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl">
                 <div className="flex flex-wrap gap-2">
                   {uploadedFiles.map((file) => (
                     <div
@@ -1351,16 +1354,13 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                       ? 'bg-emerald-400 text-black' 
                       : 'bg-white/20 text-white/70 hover:bg-white/30 hover:text-white'
                   }`}
-                  title="Upload files, images, or documents"
+                  title="upload file"
                 >
                   {uploadedFiles.length > 0 ? (
                     <span className="text-xs font-bold">{uploadedFiles.length}</span>
                   ) : (
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-                      <polyline points="14,2 14,8 20,8"/>
-                      <line x1="12" y1="12" x2="12" y2="18"/>
-                      <line x1="9" y1="15" x2="15" y2="15"/>
+                      <path d="M12 5v14M5 12h14"/>
                     </svg>
                   )}
                 </button>
@@ -1419,7 +1419,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
 
             {/* File Processing Status */}
             {isProcessingFiles && (
-              <div className="mt-4 p-4 bg-blue-50/10 border border-blue-200/20 rounded-2xl">
+              <div className="mt-4 p-4 bg-blue-50/10 border border-blue-200/20 rounded-3xl">
                 <div className="flex items-center space-x-3">
                   <div className="flex space-x-1">
                     <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
@@ -1542,7 +1542,7 @@ function AccessCodeModal({ onClose }: { onClose: () => void }) {
                   setError('');
                 }}
                 required
-                className="w-full p-3 rounded-xl border border-gray-300 focus:border-[#00A3A3] focus:outline-none transition-colors text-center font-mono tracking-wider"
+                className="w-full p-3 rounded-2xl border border-gray-300 focus:border-[#00A3A3] focus:outline-none transition-colors text-center font-mono tracking-wider"
                 style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }}
                 autoComplete="off"
               />
@@ -1551,7 +1551,7 @@ function AccessCodeModal({ onClose }: { onClose: () => void }) {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full text-white py-3 rounded-xl transition-all font-medium shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full text-white py-3 rounded-2xl transition-all font-medium shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ backgroundColor: isLoading ? '#666' : '#00A3A3' }}
               onMouseEnter={(e) => {
                 if (!isLoading) e.currentTarget.style.backgroundColor = '#051a1c';
@@ -1701,7 +1701,7 @@ export default function Home() {
             <div className="flex items-center space-x-4">
               <button 
                 onClick={() => setShowAuthModal(true)}
-                className="text-white text-sm px-5 py-2.5 rounded-2xl hover:opacity-90 transition-all shadow-sm" 
+                className="text-white text-sm px-5 py-2.5 rounded-full hover:opacity-90 transition-all shadow-sm" 
                 style={{ backgroundColor: '#00A3A3' }}
               >
                 Enter Access Code
@@ -1735,7 +1735,7 @@ export default function Home() {
         <div className="text-center mt-12">
           <button 
             onClick={() => setShowAuthModal(true)}
-            className="text-white text-lg px-8 py-4 rounded-2xl hover:scale-105 transition-all font-medium shadow-lg mb-6"
+            className="text-white text-lg px-8 py-4 rounded-full hover:scale-105 transition-all font-medium shadow-lg mb-6"
             style={{ backgroundColor: '#00A3A3' }}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = '#051a1c';
