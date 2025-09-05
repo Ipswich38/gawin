@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Button } from './ui/Button';
 
 interface CodingMentorProps {
   onMinimize?: () => void;
@@ -101,12 +100,10 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
 
   const toggleFullScreen = () => {
     if (isFullScreen) {
-      // Exit full screen
       setPosition(preFullScreenState.position);
       setSize(preFullScreenState.size);
       setIsFullScreen(false);
     } else {
-      // Enter full screen
       setPreFullScreenState({ position, size });
       setPosition({ x: 20, y: 20 });
       setSize({ width: window.innerWidth - 40, height: window.innerHeight - 40 });
@@ -128,28 +125,19 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
   }, [isDragging, isResizing, dragOffset, size]);
 
   const languages = [
-    { id: 'python', name: 'Python', icon: '🐍' },
-    { id: 'javascript', name: 'JavaScript', icon: '🟨' },
-    { id: 'typescript', name: 'TypeScript', icon: '🔷' },
-    { id: 'java', name: 'Java', icon: '☕' },
-    { id: 'cpp', name: 'C++', icon: '⚡' },
-    { id: 'html', name: 'HTML', icon: '🌐' },
-    { id: 'css', name: 'CSS', icon: '🎨' },
-    { id: 'sql', name: 'SQL', icon: '🗃️' }
+    { id: 'python', name: 'Python' },
+    { id: 'javascript', name: 'JavaScript' },
+    { id: 'typescript', name: 'TypeScript' },
+    { id: 'java', name: 'Java' },
+    { id: 'cpp', name: 'C++' },
+    { id: 'html', name: 'HTML' },
+    { id: 'css', name: 'CSS' },
+    { id: 'sql', name: 'SQL' }
   ];
 
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(generatedCode);
-      // Show a brief success feedback
-      const button = document.querySelector('.copy-button');
-      if (button) {
-        const originalText = button.textContent;
-        button.textContent = '✅ Copied!';
-        setTimeout(() => {
-          button.textContent = originalText;
-        }, 2000);
-      }
     } catch (err) {
       console.error('Failed to copy: ', err);
     }
@@ -193,31 +181,14 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
     setIsGenerating(false);
   };
 
-
-  const getLanguageColor = (lang: string) => {
-    const colors: Record<string, string> = {
-      python: '#3776ab',
-      javascript: '#f7df1e',
-      typescript: '#3178c6',
-      java: '#ed8b00',
-      cpp: '#00599c',
-      html: '#e34f26',
-      css: '#1572b6',
-      sql: '#336791'
-    };
-    return colors[lang] || '#666';
-  };
-
   return (
     <div 
       className="fixed z-50"
       style={isMobile ? {
-        // Mobile: Fixed full screen overlay
         inset: 0,
         width: '100%',
         height: '100%'
       } : {
-        // Desktop: Draggable and resizable
         left: position.x,
         top: position.y,
         width: size.width,
@@ -228,289 +199,189 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
       
       <div 
         ref={containerRef}
-        className={`w-full h-full flex flex-col bg-white overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
-        style={{ 
-          borderRadius: '32px',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)'
-        }}
+        className={`w-full h-full flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
         onMouseDown={isMobile ? undefined : handleMouseDown}
       >
-        {/* Simple Header */}
-        <div className="flex items-center justify-between p-4 bg-white">
-          <div className="flex items-center space-x-3">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-purple-500">
-              <polyline points="16,18 22,12 16,6"/>
-              <polyline points="8,6 2,12 8,18"/>
-            </svg>
-            <div>
-              <div className="font-medium text-gray-900 text-sm">Coding Mentor</div>
-              <div className="text-xs text-gray-500">AI-powered programming tutor</div>
+        {/* Header */}
+        <div className="px-3 py-2 border-b border-gray-100">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 bg-gray-900 rounded-sm flex items-center justify-center">
+                <span className="text-white text-xs">{'</>'}</span>
+              </div>
+              <div>
+                <div className="font-medium text-gray-900 text-sm">Coding Mentor</div>
+                <div className="text-xs text-gray-500">Programming tutor</div>
+              </div>
             </div>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            {/* Language Selector */}
-            <div className="group relative">
-              <select
-                value={selectedLanguage}
-                onChange={(e) => setSelectedLanguage(e.target.value)}
-                className="h-8 px-3 rounded-lg text-sm text-gray-700 bg-white border border-gray-200 focus:ring-2 focus:ring-purple-200 focus:border-purple-400 focus:outline-none cursor-pointer hover:border-purple-300 transition-colors shadow-sm"
-              >
-                {languages.map(lang => (
-                  <option key={lang.id} value={lang.id}>
-                    {lang.icon} {lang.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Control Buttons */}
-            {!isMobile && (
-              <button 
-                onClick={toggleFullScreen}
-                className="p-2 rounded-lg text-gray-500 hover:text-purple-600 hover:bg-purple-50 transition-colors"
-                aria-label={isFullScreen ? "Exit Full Screen" : "Full Screen"}
-                title={isFullScreen ? "Exit Full Screen" : "Full Screen"}
-              >
-                {isFullScreen ? (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3M16 21v-3a2 2 0 0 1 2-2h3"/>
-                  </svg>
-                ) : (
+            
+            <div className="flex items-center space-x-1">
+              {!isMobile && (
+                <button
+                  onClick={toggleFullScreen}
+                  className="w-6 h-6 text-gray-400 hover:text-gray-600"
+                >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
                   </svg>
-                )}
-              </button>
-            )}
-
-            {!isMobile && onMinimize && (
-              <button 
+                </button>
+              )}
+              
+              <button
                 onClick={onMinimize}
-                className="p-2 rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors"
-                aria-label="Minimize Panel"
-                title="Hide Panel"
+                className="w-6 h-6 text-gray-400 hover:text-gray-600"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="9,11 12,14 15,11"></polyline>
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
               </button>
-            )}
-            
-            <button 
-              onClick={onMinimize}
-              className="p-2 rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors"
-              aria-label="Close Panel"
-              title="Close Panel"
+            </div>
+          </div>
+        </div>
+
+        {/* Language Selector */}
+        <div className="px-3 py-2 border-b border-gray-100 bg-gray-50">
+          <select
+            value={selectedLanguage}
+            onChange={(e) => setSelectedLanguage(e.target.value)}
+            className="w-full px-2 py-1 text-sm border-0 bg-transparent text-gray-700 focus:outline-none"
+          >
+            {languages.map(lang => (
+              <option key={lang.id} value={lang.id}>{lang.name}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Prompt Input */}
+        <div className="px-3 py-2 border-b border-gray-100">
+          <div className="flex space-x-2">
+            <input
+              type="text"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && generateCode()}
+              placeholder="Ask AI to generate code..."
+              className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+            <button
+              onClick={generateCode}
+              disabled={!prompt.trim() || isGenerating}
+              className="px-3 py-1.5 text-sm bg-gray-900 text-white rounded disabled:opacity-50"
+            >
+              {isGenerating ? 'Generating...' : 'Generate'}
+            </button>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="px-3 py-2 border-b border-gray-100">
+          <div className="flex space-x-2">
+            <button
+              onClick={copyToClipboard}
+              className="px-2 py-1.5 text-gray-400 hover:text-gray-600"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+            </button>
+            <button
+              onClick={clearCode}
+              className="px-2 py-1.5 text-gray-400 hover:text-gray-600"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/>
               </svg>
             </button>
           </div>
         </div>
 
-        {/* AI Prompt Bar */}
-        <div className="p-4 border-b border-white/10" style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
-          <div className="flex space-x-3">
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && generateCode()}
-                placeholder={`Ask AI to generate ${selectedLanguage} code...`}
-                className="w-full px-6 py-3 text-white placeholder-white/70 transition-all focus:outline-none focus:ring-2 focus:ring-white/40 shadow-lg backdrop-blur-md"
-                style={{ 
-                  backgroundColor: 'rgba(5, 26, 28, 0.95)',
-                  borderRadius: '32px',
-                  border: '1px solid rgba(255,255,255,0.2)',
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.1)'
-                }}
-              />
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-white/40">
-                Press Enter ↵
-              </div>
-            </div>
-            <Button 
-              variant="primary" 
-              onClick={generateCode}
-              disabled={!prompt.trim() || isGenerating}
-              isLoading={isGenerating}
-            >
-              {isGenerating ? 'Generating...' : '🤖 Generate'}
-            </Button>
-          </div>
+        {/* Code Editor */}
+        <div className="flex-1">
+          <textarea
+            ref={textareaRef}
+            value={generatedCode}
+            onChange={(e) => setGeneratedCode(e.target.value)}
+            placeholder="Your code will appear here..."
+            className="w-full h-full p-3 font-mono text-sm resize-none border-0 bg-gray-900 text-gray-100 focus:outline-none"
+            spellCheck={false}
+          />
         </div>
 
-        {/* Code Editor Area */}
-        <div className="flex-1 flex flex-col" style={{ backgroundColor: 'rgba(255,255,255,0.02)' }}>
-          {/* Editor Header */}
-          <div className="flex items-center justify-between px-4 py-2 border-b border-white/10" style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}>
-            <div className="flex items-center space-x-2">
-              <span 
-                className="px-2 py-1 rounded text-xs font-medium text-white"
-                style={{ backgroundColor: getLanguageColor(selectedLanguage) }}
-              >
-                {selectedLanguage.toUpperCase()}
-              </span>
-              <span className="text-xs text-white/70">Code Workspace</span>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={clearCode}
-                className="text-white/70 hover:text-white"
-              >
-                🗑️ Clear
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={copyToClipboard}
-                className="copy-button text-white border-white/20 hover:bg-white/10"
-              >
-                📋 Copy Code
-              </Button>
-            </div>
-          </div>
-          
-          {/* Code Textarea */}
-          <div className="flex-1 relative">
-            <textarea
-              ref={textareaRef}
-              value={generatedCode}
-              onChange={(e) => setGeneratedCode(e.target.value)}
-              className="w-full h-full p-6 font-mono text-sm border-none resize-none focus:outline-none text-green-400"
-              placeholder={`Your ${selectedLanguage} code will appear here...\n\nYou can edit it directly and copy when ready.`}
-              spellCheck={false}
-              style={{
-                backgroundColor: '#2d2d2d',
-                fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
-                lineHeight: '1.6',
-                tabSize: 2
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="px-4 py-3 border-t flex justify-between items-center" style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-          <div className="text-xs text-white/60">
-            Generate code with AI, edit as needed, then copy to your project
-          </div>
-          <div className="flex items-center space-x-4 text-xs text-white/70">
-            <span>🤖 AI-Powered Coding Mentor</span>
-          </div>
-        </div>
-        
-        {/* Resize Handles - Desktop only */}
+        {/* Resize Handles */}
         {!isMobile && !isFullScreen && (
           <>
-            {/* Corner Handles */}
             <div 
-              className="resize-handle absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
+              className="resize-handle absolute bottom-0 right-0 w-3 h-3 cursor-se-resize"
               onMouseDown={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 setIsResizing(true);
                 setResizeDirection('bottom-right');
               }}
-              style={{
-                background: 'linear-gradient(-45deg, transparent 30%, rgba(147, 51, 234, 0.3) 30%, rgba(147, 51, 234, 0.3) 70%, transparent 70%)',
-                backgroundSize: '6px 6px'
-              }}
             />
             <div 
-              className="resize-handle absolute bottom-0 left-0 w-4 h-4 cursor-sw-resize"
+              className="resize-handle absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize"
               onMouseDown={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 setIsResizing(true);
                 setResizeDirection('bottom-left');
               }}
-              style={{
-                background: 'linear-gradient(45deg, transparent 30%, rgba(147, 51, 234, 0.3) 30%, rgba(147, 51, 234, 0.3) 70%, transparent 70%)',
-                backgroundSize: '6px 6px'
-              }}
             />
             <div 
-              className="resize-handle absolute top-0 right-0 w-4 h-4 cursor-ne-resize"
+              className="resize-handle absolute top-0 right-0 w-3 h-3 cursor-ne-resize"
               onMouseDown={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 setIsResizing(true);
                 setResizeDirection('top-right');
               }}
-              style={{
-                background: 'linear-gradient(45deg, transparent 30%, rgba(147, 51, 234, 0.3) 30%, rgba(147, 51, 234, 0.3) 70%, transparent 70%)',
-                backgroundSize: '6px 6px'
-              }}
             />
             <div 
-              className="resize-handle absolute top-0 left-0 w-4 h-4 cursor-nw-resize"
+              className="resize-handle absolute top-0 left-0 w-3 h-3 cursor-nw-resize"
               onMouseDown={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 setIsResizing(true);
                 setResizeDirection('top-left');
               }}
-              style={{
-                background: 'linear-gradient(-45deg, transparent 30%, rgba(147, 51, 234, 0.3) 30%, rgba(147, 51, 234, 0.3) 70%, transparent 70%)',
-                backgroundSize: '6px 6px'
-              }}
             />
-            
-            {/* Edge Handles */}
             <div 
-              className="resize-handle absolute top-0 left-4 right-4 h-2 cursor-n-resize"
+              className="resize-handle absolute top-0 left-3 right-3 h-1 cursor-n-resize"
               onMouseDown={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 setIsResizing(true);
                 setResizeDirection('top');
               }}
-              style={{
-                background: 'linear-gradient(to bottom, rgba(147, 51, 234, 0.3) 0%, transparent 100%)'
-              }}
             />
             <div 
-              className="resize-handle absolute bottom-0 left-4 right-4 h-2 cursor-s-resize"
+              className="resize-handle absolute bottom-0 left-3 right-3 h-1 cursor-s-resize"
               onMouseDown={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 setIsResizing(true);
                 setResizeDirection('bottom');
               }}
-              style={{
-                background: 'linear-gradient(to top, rgba(147, 51, 234, 0.3) 0%, transparent 100%)'
-              }}
             />
             <div 
-              className="resize-handle absolute left-0 top-4 bottom-4 w-2 cursor-w-resize"
+              className="resize-handle absolute left-0 top-3 bottom-3 w-1 cursor-w-resize"
               onMouseDown={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 setIsResizing(true);
                 setResizeDirection('left');
               }}
-              style={{
-                background: 'linear-gradient(to right, rgba(147, 51, 234, 0.3) 0%, transparent 100%)'
-              }}
             />
             <div 
-              className="resize-handle absolute right-0 top-4 bottom-4 w-2 cursor-e-resize"
+              className="resize-handle absolute right-0 top-3 bottom-3 w-1 cursor-e-resize"
               onMouseDown={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 setIsResizing(true);
                 setResizeDirection('right');
-              }}
-              style={{
-                background: 'linear-gradient(to left, rgba(147, 51, 234, 0.3) 0%, transparent 100%)'
               }}
             />
           </>

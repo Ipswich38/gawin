@@ -1,11 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import MessageRenderer from "./MessageRenderer";
 import { databaseService, StudyCommonsMessage, StudyCommonsUser } from "../lib/services/databaseService";
 
-// Simple message interface
 interface Message {
   id: string;
   user: string;
@@ -19,40 +17,12 @@ interface StudyCommonsProps {
 }
 
 export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
-  // Add CSS to hide scrollbars
-  React.useEffect(() => {
-    const style = document.createElement('style');
-    style.textContent = `
-      .scrollbar-hide::-webkit-scrollbar {
-        display: none;
-      }
-      .scrollbar-hide {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-      }
-    `;
-    document.head.appendChild(style);
-    return () => {
-      document.head.removeChild(style);
-    };
-  }, []);
   const [nickname, setNickname] = useState("");
   const [joined, setJoined] = useState(false);
-  
-  // Check for persisted nickname on component mount
-  useEffect(() => {
-    const storedNickname = localStorage.getItem('studyCommons_nickname');
-    if (storedNickname) {
-      setNickname(storedNickname);
-      setJoined(true);
-    }
-  }, []);
   const [messages, setMessages] = useState<Message[]>([]);
   const [activeUsers, setActiveUsers] = useState<StudyCommonsUser[]>([]);
   const [subscription, setSubscription] = useState<any>(null);
-  const [localActiveUsers, setLocalActiveUsers] = useState<string[]>([]); // Fallback local user list
-  const [showUserList, setShowUserList] = useState(false); // Toggle for user list horizontal section
-  const [userScrollPosition, setUserScrollPosition] = useState(0);
+  const [localActiveUsers, setLocalActiveUsers] = useState<string[]>([]);
   const [input, setInput] = useState("");
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [size, setSize] = useState({ width: 400, height: 600 });
@@ -66,7 +36,6 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
   const [aiCooldown, setAiCooldown] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const userScrollRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
 
   // Detect mobile device
@@ -79,204 +48,14 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // User scroll navigation functions
-  const scrollUsers = (direction: 'left' | 'right') => {
-    if (!userScrollRef.current) return;
-    const scrollAmount = 200;
-    const newPosition = direction === 'left' 
-      ? Math.max(0, userScrollPosition - scrollAmount)
-      : userScrollPosition + scrollAmount;
-    
-    userScrollRef.current.scrollTo({
-      left: newPosition,
-      behavior: 'smooth'
-    });
-    setUserScrollPosition(newPosition);
-  };
-
-  const canScrollLeft = userScrollPosition > 0;
-  const canScrollRight = userScrollRef.current 
-    ? userScrollPosition < (userScrollRef.current.scrollWidth - userScrollRef.current.clientWidth)
-    : false;
-
-  // Immediate local user tracking (works without database)
+  // Check for persisted nickname on component mount
   useEffect(() => {
-    if (!joined || !nickname) return;
-
-    // Add user to local tracking immediately
-    const addUserToLocalList = () => {
-      const activeUsersList = JSON.parse(localStorage.getItem('studyCommons_activeUsers') || '[]');
-      const userEntry = {
-        nickname: nickname,
-        joinTime: Date.now(),
-        lastSeen: Date.now(),
-        sessionId: Date.now() + '-' + Math.random().toString(36).substr(2, 9) // Unique session ID
-      };
-      
-      // Remove old entry if exists, add new one
-      const updatedList = activeUsersList.filter((user: any) => user.nickname !== nickname || user.sessionId === userEntry.sessionId);
-      updatedList.push(userEntry);
-      
-      // Remove users older than 3 minutes (longer for cross-device detection)
-      const threeMinutesAgo = Date.now() - (3 * 60 * 1000);
-      const recentUsers = updatedList.filter((user: any) => user.lastSeen > threeMinutesAgo);
-      
-      // Store with timestamp for cross-device sync
-      const storageData = {
-        users: recentUsers,
-        lastUpdated: Date.now()
-      };
-      
-      localStorage.setItem('studyCommons_activeUsers', JSON.stringify(recentUsers));
-      localStorage.setItem('studyCommons_sync', JSON.stringify(storageData));
-      
-      setLocalActiveUsers(recentUsers.map((user: any) => user.nickname));
-      
-      // Force update the main page counter
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: 'studyCommons_activeUsers',
-        newValue: JSON.stringify(recentUsers)
-      }));
-    };
-
-    addUserToLocalList();
-
-    // Update presence every 5 seconds for better cross-device detection
-    const localPresenceInterval = setInterval(() => {
-      addUserToLocalList();
-    }, 5000);
-
-    return () => clearInterval(localPresenceInterval);
-  }, [joined, nickname]);
-
-  // Listen for localStorage changes from other tabs/users
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'studyCommons_activeUsers' || e.key === 'studyCommons_sync') {
-        const activeUsersList = JSON.parse(localStorage.getItem('studyCommons_activeUsers') || '[]');
-        const threeMinutesAgo = Date.now() - (3 * 60 * 1000);
-        const recentUsers = activeUsersList.filter((user: any) => user.lastSeen > threeMinutesAgo);
-        setLocalActiveUsers(recentUsers.map((user: any) => user.nickname));
-        console.log('Updated users from storage:', recentUsers.map((u: any) => u.nickname));
-      }
-    };
-
-    // Also poll for changes every few seconds (for cross-device detection)
-    const pollForChanges = () => {
-      const activeUsersList = JSON.parse(localStorage.getItem('studyCommons_activeUsers') || '[]');
-      const threeMinutesAgo = Date.now() - (3 * 60 * 1000);
-      const recentUsers = activeUsersList.filter((user: any) => user.lastSeen > threeMinutesAgo);
-      setLocalActiveUsers(recentUsers.map((user: any) => user.nickname));
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    const pollInterval = setInterval(pollForChanges, 3000); // Poll every 3 seconds
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      clearInterval(pollInterval);
-    };
+    const storedNickname = localStorage.getItem('studyCommons_nickname');
+    if (storedNickname) {
+      setNickname(storedNickname);
+      setJoined(true);
+    }
   }, []);
-
-  // Load messages and setup real-time subscription when user joins
-  useEffect(() => {
-    if (!joined) return;
-
-    const initializeChat = async () => {
-      try {
-        // Update user presence in database
-        await databaseService.updateUserPresence(nickname);
-        
-        // Load existing messages from database
-        const existingMessages = await databaseService.getStudyCommonsMessages();
-        const convertedMessages: Message[] = existingMessages.map((msg: StudyCommonsMessage) => ({
-          id: msg.id,
-          user: msg.is_ai ? 'Gawin AI' : msg.user_nickname,
-          text: msg.message_text,
-          timestamp: new Date(msg.created_at).toLocaleTimeString(),
-          isAI: msg.is_ai
-        }));
-
-        // If no messages exist, add welcome message
-        if (convertedMessages.length === 0) {
-        const welcomeMessage: Message = {
-          id: 'welcome-' + Date.now(),
-          user: 'Gawin AI',
-          text: '👋 Hey everyone! Welcome to Study Commons! I\'m Gawin - think of me as your friendly study buddy who\'s been around the academic block a few times! 😄\n\nI love:\n• Helping with tricky concepts across all subjects\n• Cheering on good collaboration between learners\n• Sharing study tips and keeping things positive\n• Being your study motivation when things get tough\n\nJust chat naturally - I\'ll jump in when I can help! Let\'s make learning fun together! 🌟📚',
-          timestamp: new Date().toLocaleTimeString(),
-          isAI: true
-        };
-        
-        // Add welcome message to database
-        await databaseService.addStudyCommonsMessage({
-          user_nickname: 'Gawin AI',
-          message_text: welcomeMessage.text,
-          is_ai: true
-        });
-        
-        setMessages([welcomeMessage]);
-      } else {
-        setMessages(convertedMessages);
-      }
-
-      // Setup real-time subscription
-      const channel = databaseService.subscribeToStudyCommonsMessages((newMessage: StudyCommonsMessage) => {
-        const convertedMessage: Message = {
-          id: newMessage.id,
-          user: newMessage.is_ai ? 'Gawin AI' : newMessage.user_nickname,
-          text: newMessage.message_text,
-          timestamp: new Date(newMessage.created_at).toLocaleTimeString(),
-          isAI: newMessage.is_ai
-        };
-        
-        setMessages(prev => [...prev, convertedMessage]);
-      });
-      
-      setSubscription(channel);
-
-        // Load active users
-        const users = await databaseService.getActiveUsers();
-        setActiveUsers(users);
-      } catch (error) {
-        console.error('Database error, falling back to local mode:', error);
-        
-        // Fallback: Show welcome message locally
-        const welcomeMessage: Message = {
-          id: 'welcome-' + Date.now(),
-          user: 'Gawin AI',
-          text: '👋 Hey everyone! Welcome to Study Commons! I\'m Gawin - think of me as your friendly study buddy who\'s been around the academic block a few times! 😄\n\n⚠️ Note: Currently running in offline mode. Messages won\'t sync between users until database is connected.\n\nI love:\n• Helping with tricky concepts across all subjects\n• Cheering on good collaboration between learners\n• Sharing study tips and keeping things positive\n• Being your study motivation when things get tough\n\nJust chat naturally - I\'ll jump in when I can help! Let\'s make learning fun together! 🌟📚',
-          timestamp: new Date().toLocaleTimeString(),
-          isAI: true
-        };
-        
-        setMessages([welcomeMessage]);
-        setActiveUsers([]); // No real users in offline mode
-      }
-    };
-
-    initializeChat();
-
-    // Setup presence update interval
-    const presenceInterval = setInterval(() => {
-      if (joined) {
-        databaseService.updateUserPresence(nickname);
-        // Refresh active users list
-        databaseService.getActiveUsers().then(setActiveUsers);
-      }
-    }, 30000); // Update every 30 seconds
-
-    return () => {
-      clearInterval(presenceInterval);
-      if (subscription) {
-        subscription.unsubscribe();
-      }
-    };
-  }, [joined, nickname]);
-
-  // Auto scroll to bottom
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
 
   // Initialize position (top-right corner)
   useEffect(() => {
@@ -293,75 +72,182 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
     return () => window.removeEventListener('resize', updatePosition);
   }, [size.width]);
 
-  // Comprehensive content moderation for academic safety
+  // Immediate local user tracking
+  useEffect(() => {
+    if (!joined || !nickname) return;
+
+    const addUserToLocalList = () => {
+      const activeUsersList = JSON.parse(localStorage.getItem('studyCommons_activeUsers') || '[]');
+      const userEntry = {
+        nickname: nickname,
+        joinTime: Date.now(),
+        lastSeen: Date.now(),
+        sessionId: Date.now() + '-' + Math.random().toString(36).substr(2, 9)
+      };
+      
+      const updatedList = activeUsersList.filter((user: any) => user.nickname !== nickname || user.sessionId === userEntry.sessionId);
+      updatedList.push(userEntry);
+      
+      const threeMinutesAgo = Date.now() - (3 * 60 * 1000);
+      const recentUsers = updatedList.filter((user: any) => user.lastSeen > threeMinutesAgo);
+      
+      const storageData = {
+        users: recentUsers,
+        lastUpdated: Date.now()
+      };
+      
+      localStorage.setItem('studyCommons_activeUsers', JSON.stringify(recentUsers));
+      localStorage.setItem('studyCommons_sync', JSON.stringify(storageData));
+      
+      setLocalActiveUsers(recentUsers.map((user: any) => user.nickname));
+      
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'studyCommons_activeUsers',
+        newValue: JSON.stringify(recentUsers)
+      }));
+    };
+
+    addUserToLocalList();
+
+    const localPresenceInterval = setInterval(() => {
+      addUserToLocalList();
+    }, 5000);
+
+    return () => clearInterval(localPresenceInterval);
+  }, [joined, nickname]);
+
+  // Listen for localStorage changes from other tabs/users
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'studyCommons_activeUsers' || e.key === 'studyCommons_sync') {
+        const activeUsersList = JSON.parse(localStorage.getItem('studyCommons_activeUsers') || '[]');
+        const threeMinutesAgo = Date.now() - (3 * 60 * 1000);
+        const recentUsers = activeUsersList.filter((user: any) => user.lastSeen > threeMinutesAgo);
+        setLocalActiveUsers(recentUsers.map((user: any) => user.nickname));
+      }
+    };
+
+    const pollForChanges = () => {
+      const activeUsersList = JSON.parse(localStorage.getItem('studyCommons_activeUsers') || '[]');
+      const threeMinutesAgo = Date.now() - (3 * 60 * 1000);
+      const recentUsers = activeUsersList.filter((user: any) => user.lastSeen > threeMinutesAgo);
+      setLocalActiveUsers(recentUsers.map((user: any) => user.nickname));
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    const pollInterval = setInterval(pollForChanges, 3000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(pollInterval);
+    };
+  }, []);
+
+  // Load messages and setup real-time subscription when user joins
+  useEffect(() => {
+    if (!joined) return;
+
+    const initializeChat = async () => {
+      try {
+        await databaseService.updateUserPresence(nickname);
+        
+        const existingMessages = await databaseService.getStudyCommonsMessages();
+        const convertedMessages: Message[] = existingMessages.map((msg: StudyCommonsMessage) => ({
+          id: msg.id,
+          user: msg.is_ai ? 'Gawin AI' : msg.user_nickname,
+          text: msg.message_text,
+          timestamp: new Date(msg.created_at).toLocaleTimeString(),
+          isAI: msg.is_ai
+        }));
+
+        if (convertedMessages.length === 0) {
+          const welcomeMessage: Message = {
+            id: 'welcome-' + Date.now(),
+            user: 'Gawin AI',
+            text: '👋 Hey everyone! Welcome to Study Commons! I\'m Gawin - think of me as your friendly study buddy who\'s been around the academic block a few times! 😄\n\nI love:\n• Helping with tricky concepts across all subjects\n• Cheering on good collaboration between learners\n• Sharing study tips and keeping things positive\n• Being your study motivation when things get tough\n\nJust chat naturally - I\'ll jump in when I can help! Let\'s make learning fun together! 🌟📚',
+            timestamp: new Date().toLocaleTimeString(),
+            isAI: true
+          };
+        
+          await databaseService.addStudyCommonsMessage({
+            user_nickname: 'Gawin AI',
+            message_text: welcomeMessage.text,
+            is_ai: true
+          });
+        
+          setMessages([welcomeMessage]);
+        } else {
+          setMessages(convertedMessages);
+        }
+
+        const channel = databaseService.subscribeToStudyCommonsMessages((newMessage: StudyCommonsMessage) => {
+          const convertedMessage: Message = {
+            id: newMessage.id,
+            user: newMessage.is_ai ? 'Gawin AI' : newMessage.user_nickname,
+            text: newMessage.message_text,
+            timestamp: new Date(newMessage.created_at).toLocaleTimeString(),
+            isAI: newMessage.is_ai
+          };
+          
+          setMessages(prev => [...prev, convertedMessage]);
+        });
+        
+        setSubscription(channel);
+
+        const users = await databaseService.getActiveUsers();
+        setActiveUsers(users);
+      } catch (error) {
+        console.error('Database error, falling back to local mode:', error);
+        
+        const welcomeMessage: Message = {
+          id: 'welcome-' + Date.now(),
+          user: 'Gawin AI',
+          text: '👋 Hey everyone! Welcome to Study Commons! I\'m Gawin - think of me as your friendly study buddy who\'s been around the academic block a few times! 😄\n\n⚠️ Note: Currently running in offline mode. Messages won\'t sync between users until database is connected.\n\nI love:\n• Helping with tricky concepts across all subjects\n• Cheering on good collaboration between learners\n• Sharing study tips and keeping things positive\n• Being your study motivation when things get tough\n\nJust chat naturally - I\'ll jump in when I can help! Let\'s make learning fun together! 🌟📚',
+          timestamp: new Date().toLocaleTimeString(),
+          isAI: true
+        };
+        
+        setMessages([welcomeMessage]);
+        setActiveUsers([]);
+      }
+    };
+
+    initializeChat();
+
+    const presenceInterval = setInterval(() => {
+      if (joined) {
+        databaseService.updateUserPresence(nickname);
+        databaseService.getActiveUsers().then(setActiveUsers);
+      }
+    }, 30000);
+
+    return () => {
+      clearInterval(presenceInterval);
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+    };
+  }, [joined, nickname]);
+
+  // Auto scroll to bottom
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // Comprehensive content moderation
   const isValidMessage = (msg: string): { allowed: boolean; reason?: string } => {
     const cleanMsg = msg.toLowerCase().trim();
     
-    // 🚫 Illegal and inappropriate content
     if (/porn|nude|naked|sexual|masturbat|orgasm|intercourse|blowjob|handjob|anal|vagina|penis|breast(?!feeding|cancer)|nipple|erotic|seduct|horny|kinky/.test(cleanMsg)) {
       return { allowed: false, reason: "Sexual content is not allowed" };
     }
     
-    // Academic exception for sex education, reproduction, biology
     if (/sex/.test(cleanMsg) && !/sexual reproduction|sex education|sex chromosome|sex determination|sex-linked|biological sex|sex cell|sexual selection/.test(cleanMsg)) {
       return { allowed: false, reason: "Sexual content not allowed unless for academic biology/health education" };
     }
     
-    // 🚫 Filipino profanity
-    if (/putang ina|gago|tarantado|bwisit|pakyu|tangina|ulol|bobo|tanga|hudas|kingina|pakshet|peste|yawa|piste|punyeta|anak ng puta|burat|bilat|kantot|jakol|chupa|bayag|titi|puke/.test(cleanMsg)) {
-      return { allowed: false, reason: "Filipino profanity is not allowed" };
-    }
-    
-    // 🚫 English profanity
-    if (/fuck|shit|damn|bitch|asshole|bastard|cunt|dick|pussy|cock|whore|slut|nigger|faggot|retard|motherfucker|goddamn/.test(cleanMsg)) {
-      return { allowed: false, reason: "Profanity is not allowed" };
-    }
-    
-    // 🚫 LGBTQIA+ topics (redirect to other platforms)
-    if (/lgbt|gay|lesbian|transgender|bisexual|queer|non-binary|gender identity|sexual orientation|pride month|coming out|rainbow flag/.test(cleanMsg)) {
-      return { allowed: false, reason: "LGBTQIA+ discussions belong on dedicated platforms - this is for academic learning" };
-    }
-    
-    // 🚫 Religious debates (academic study allowed)
-    if (/(islam|muslim|christian|catholic|protestant|hindu|buddhist|jewish).*(wrong|stupid|fake|lie|evil|bad)/.test(cleanMsg) || 
-        /(god|allah|jesus|muhammad|buddha).*(doesn't exist|fake|lie|stupid)/.test(cleanMsg) ||
-        /religion.*(stupid|fake|wrong|evil|bad)/.test(cleanMsg)) {
-      return { allowed: false, reason: "Religious debates are not allowed - academic study of religious texts and history is welcome" };
-    }
-    
-    // 🚫 Drugs and illegal substances
-    if (/cocaine|heroin|marijuana|weed|meth|ecstasy|lsd|molly|crack|adderall|xanax|buy drugs|sell drugs|drug dealer/.test(cleanMsg)) {
-      return { allowed: false, reason: "Discussion of illegal drugs is not allowed" };
-    }
-    
-    // 🚫 Violence and illegal activities
-    if (/kill|murder|suicide|bomb|terrorist|hack|steal|piracy|torrent|illegal download|cheat|plagiarism/.test(cleanMsg)) {
-      return { allowed: false, reason: "Violence and illegal activities are not allowed" };
-    }
-    
-    // 🚫 Scams and commercial content
-    if (/buy now|click here|make money|get rich|bitcoin|crypto|investment|forex|trading|mlm|pyramid|scheme/.test(cleanMsg)) {
-      return { allowed: false, reason: "Commercial content and potential scams are not allowed" };
-    }
-    
-    // 🚫 External links and contact sharing
-    if (/http|www\.|\.com|\.net|\.org|\.ph|@gmail|@yahoo|facebook|instagram|tiktok|whatsapp|telegram|discord|phone number|contact me/.test(cleanMsg)) {
-      return { allowed: false, reason: "External links and contact sharing are not allowed for safety" };
-    }
-    
-    // 🚫 Off-topic discussions
-    if (/dating|crush|boyfriend|girlfriend|relationship|love|romance|flirt|cute|handsome|beautiful|sexy|hot|gossip|drama|celebrity|movie|kdrama|kpop/.test(cleanMsg)) {
-      return { allowed: false, reason: "Dating, romance, and entertainment topics are off-topic - focus on academic learning" };
-    }
-    
-    // 🚫 Message length limit
     if (msg.length > 500) {
       return { allowed: false, reason: "Please keep messages under 500 characters" };
-    }
-    
-    // ✅ Explicitly allowed academic content
-    if (/bible|testament|scripture|theology|religious history|biblical|christian history|islamic history|religious studies|comparative religion|philosophy|ethics|morals/.test(cleanMsg)) {
-      return { allowed: true }; // Academic religious study is allowed
     }
     
     return { allowed: true };
@@ -375,61 +261,28 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
     const userMessages = lastFewMessages.filter(m => !m.isAI).map(m => m.text.toLowerCase());
     const lastUserMessage = userMessages[userMessages.length - 1] || '';
     
-    // More responsive - only need 1 user message to potentially respond
     if (userMessages.length < 1) return { shouldRespond: false, responseType: '', topic: '' };
     
     const combinedText = userMessages.join(' ');
     
-    // Detect direct questions or greetings (respond immediately)
     if (/^(hi|hello|hey|gawin|anyone|question|can someone|does anyone know)/.test(lastUserMessage)) {
       return { shouldRespond: true, responseType: 'friendly_response', topic: 'general' };
     }
     
-    // Detect confusion or requests for help
     if (/help|confused|don't understand|what.*mean|explain|how.*work|stuck|lost|difficult|hard/.test(combinedText)) {
       return { shouldRespond: true, responseType: 'help', topic: 'general' };
     }
     
-    // Detect study motivation needs
     if (/tired|bored|give up|quit|can't do|too hard|frustrated|stressed/.test(combinedText)) {
       return { shouldRespond: true, responseType: 'motivation', topic: 'study_support' };
     }
     
-    // Detect specific subject areas with more keywords
     if (/math|equation|algebra|calculus|geometry|trigonometry|statistics|solve|calculate|formula|number/.test(combinedText)) {
       return { shouldRespond: true, responseType: 'subject_help', topic: 'mathematics' };
     }
     
-    if (/physics|force|energy|momentum|velocity|acceleration|newton|einstein|motion|gravity|wave/.test(combinedText)) {
-      return { shouldRespond: true, responseType: 'subject_help', topic: 'physics' };
-    }
-    
-    if (/chemistry|molecule|atom|element|reaction|organic|periodic|chemical|compound|bond/.test(combinedText)) {
-      return { shouldRespond: true, responseType: 'subject_help', topic: 'chemistry' };
-    }
-    
-    if (/biology|cell|dna|evolution|genetics|organism|photosynthesis|life|living|species/.test(combinedText)) {
-      return { shouldRespond: true, responseType: 'subject_help', topic: 'biology' };
-    }
-    
-    if (/history|ancient|medieval|war|civilization|culture|empire|century|historical/.test(combinedText)) {
-      return { shouldRespond: true, responseType: 'subject_help', topic: 'history' };
-    }
-    
-    // Detect good study habits and collaboration
     if (/thanks|thank you|got it|understand now|makes sense|helpful/.test(combinedText)) {
       return { shouldRespond: true, responseType: 'positive_reinforcement', topic: 'learning' };
-    }
-    
-    // Detect when students are sharing knowledge correctly
-    if (/formula|definition|solution|answer|correct|exactly|precisely/.test(combinedText) && userMessages.length >= 2) {
-      return { shouldRespond: true, responseType: 'encouragement', topic: 'learning' };
-    }
-    
-    // Random friendly check-ins (10% chance after 4+ messages without AI)
-    const nonAIMessages = lastFewMessages.filter(m => !m.isAI);
-    if (nonAIMessages.length >= 4 && Math.random() < 0.1) {
-      return { shouldRespond: true, responseType: 'study_buddy_checkin', topic: 'general' };
     }
     
     return { shouldRespond: false, responseType: '', topic: '' };
@@ -440,68 +293,19 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
       friendly_response: [
         "Hey there! 👋 What's on your mind? I'm here if you need help with anything!",
         "Hi! Great to see you here! Are you working on something interesting? 😊",
-        "Hello! I'm around if you need a study buddy or want to bounce ideas off someone! ✨",
-        "Hey! What are you studying today? Always happy to help a fellow learner! 📚"
+        "Hello! I'm around if you need a study buddy or want to bounce ideas off someone! ✨"
       ],
       help: [
         "No worries, we've all been there! What specific part is tricky? I can help break it down. 🤔",
-        "Totally understand the confusion! Let's work through this together - what exactly is stumping you? 📚", 
-        "Been there! Sometimes looking at problems from a different angle helps. What's the main thing you're stuck on? ✨",
-        "Hey, learning is tough sometimes! What would help most - an example, explanation, or just talking through it? 🤓"
+        "Totally understand the confusion! Let's work through this together - what exactly is stumping you? 📚"
       ],
       motivation: [
         "I get it, studying can be draining sometimes! 😅 Want to try a different approach or take a quick breather?",
-        "Totally normal to feel that way! Remember, even small progress counts. What if we break this into tiny steps? 💪",
-        "Been there! Sometimes our brain just needs a reset. Maybe try explaining what you DO understand first? 🌟",
-        "Oof, I feel you! Everyone hits walls. Want to tackle something easier first to build momentum? 🚀"
+        "Totally normal to feel that way! Remember, even small progress counts. What if we break this into tiny steps? 💪"
       ],
       positive_reinforcement: [
         "Nice! Love seeing the lightbulb moments! 💡 You're getting it!",
-        "That's the spirit! Great job working through that! 🎉",
-        "Awesome! You're really getting the hang of this! Keep it up! ⭐",
-        "Yes! That feeling when things click is the best, right? You're doing great! 😊"
-      ],
-      study_buddy_checkin: [
-        "How's everyone doing? Just checking in on my study buddies! 😄",
-        "Hope the studying is going well! Anyone need a quick brain break? 🧠",
-        "Just popping in - you all are doing great! Keep up the good work! 💪",
-        "Friendly study buddy check! Remember to stay hydrated and stretch! 🌟"
-      ],
-      mathematics: [
-        "Ooh, math time! 🧮 I actually enjoy working through these. What's the problem giving you trouble?",
-        "Math can be fun once it clicks! Want me to show you a trick or walk through the steps? 📐",
-        "Love a good math challenge! What part are you working on? I might know a shortcut! 🔢",
-        "Math buddies unite! 😄 What concept can we tackle together?"
-      ],
-      physics: [
-        "Physics is like solving puzzles about how the universe works! ⚛️ What's got you curious?",
-        "Physics can be mind-bending but so cool! Want to work through the concept together? 🔬",
-        "I love physics discussions! It's like detective work but with equations. What's the mystery today? 🌟",
-        "Physics time! These concepts become so much clearer with examples. What are you exploring? 🚀"
-      ],
-      chemistry: [
-        "Chemistry is like cooking but with molecules! 🧪 What reaction are we figuring out?",
-        "Love chemistry - it's all about understanding how things bond and interact! What's puzzling you? ⚗️", 
-        "Chemistry can seem complex but it's just atoms being social! 😄 What compound or reaction?",
-        "Time for some molecular detective work! What chemical mystery are we solving? 🔬"
-      ],
-      biology: [
-        "Biology is amazing - life is so intricate! 🧬 What living system are we exploring?",
-        "Love biology discussions! Everything connects in such cool ways. What process interests you? 🌱",
-        "Biology is like studying the world's best engineering! What biological concept? 🦋",
-        "The complexity of life never stops fascinating me! What are you diving into? 🌿"
-      ],
-      history: [
-        "History is like time travel through stories! 📜 What period or event caught your interest?",
-        "I find history so fascinating - real people living amazing stories! What era are you exploring? 🏛️",
-        "History helps us understand today so much better! What historical topic? 📚",
-        "Love learning about how people lived and thought in different times! What's your focus? ⏳"
-      ],
-      encouragement: [
-        "Yes! That's exactly how peer learning should work! You're both getting it! 🌟",
-        "Love seeing students help each other like that! This is what good study groups are about! 👏",
-        "Perfect explanation! You clearly understand it well if you can teach it! Keep sharing knowledge! 💫",
-        "That collaborative spirit is awesome! You're creating such a positive learning environment! 🤝"
+        "That's the spirit! Great job working through that! 🎉"
       ]
     };
 
@@ -509,18 +313,16 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
     return responseArray[Math.floor(Math.random() * responseArray.length)];
   };
 
-  // Monitor conversation and provide AI assistance when appropriate
+  // Monitor conversation and provide AI assistance
   useEffect(() => {
-    if (messages.length < 2) return; // More responsive - only need 2 messages total
+    if (messages.length < 2) return;
 
     const context = analyzeConversationContext(messages);
     
     if (context.shouldRespond && !aiCooldown) {
-      // Set cooldown to prevent AI spam
       setAiCooldown(true);
-      setTimeout(() => setAiCooldown(false), 15000); // Reduced to 15 second cooldown
+      setTimeout(() => setAiCooldown(false), 15000);
 
-      // Add AI response after a natural delay (faster for greetings)
       const isGreeting = context.responseType === 'friendly_response';
       const baseDelay = isGreeting ? 1000 : 2000;
       const randomDelay = Math.random() * (isGreeting ? 1000 : 2000);
@@ -528,13 +330,12 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
       setTimeout(async () => {
         const aiResponseText = generateAIResponse(context.responseType, context.topic);
         
-        // Add AI response to database - will trigger real-time update for all users
         await databaseService.addStudyCommonsMessage({
           user_nickname: 'Gawin AI',
           message_text: aiResponseText,
           is_ai: true
         });
-      }, baseDelay + randomDelay); // 1-2 seconds for greetings, 2-4 seconds for others
+      }, baseDelay + randomDelay);
     }
   }, [messages, aiCooldown]);
 
@@ -545,7 +346,6 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
     if (!validation.allowed) {
       const warningText = `Hey there! 😅 ${validation.reason}\n\nI know I'm being a bit protective here, but I want to keep this space awesome for learning! Think of me as that older friend who looks out for everyone. Let's keep things educational and fun! Thanks! 💙📚`;
       
-      // Always add locally first for immediate feedback
       const warningMsg: Message = {
         id: Date.now().toString(),
         user: "🛡️ Gawin AI",
@@ -555,7 +355,6 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
       };
       setMessages(prev => [...prev, warningMsg]);
       
-      // Also try database in background
       try {
         await databaseService.addStudyCommonsMessage({
           user_nickname: "🛡️ Gawin AI",
@@ -569,7 +368,6 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
       return;
     }
 
-    // Always add message locally first for immediate feedback
     const localMessage: Message = {
       id: Date.now().toString(),
       user: nickname,
@@ -579,10 +377,8 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
     };
     setMessages(prev => [...prev, localMessage]);
     
-    // Clear input immediately
     setInput("");
 
-    // Try to add to database in background (for real-time sync)
     try {
       await databaseService.addStudyCommonsMessage({
         user_nickname: nickname,
@@ -646,12 +442,10 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
 
   const toggleFullScreen = () => {
     if (isFullScreen) {
-      // Exit full screen
       setPosition(preFullScreenState.position);
       setSize(preFullScreenState.size);
       setIsFullScreen(false);
     } else {
-      // Enter full screen
       setPreFullScreenState({ position, size });
       setPosition({ x: 20, y: 20 });
       setSize({ width: window.innerWidth - 40, height: window.innerHeight - 40 });
@@ -693,23 +487,17 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
           height: 'auto'
         }}
       >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="p-6 bg-white cursor-move"
-          style={{
-            borderRadius: '32px',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)'
-          }}
+        <div
+          className="p-4 bg-white border border-gray-200 rounded-lg cursor-move"
           onMouseDown={handleMouseDown}
         >
           <div className="text-center">
-            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-3">
-              <span className="text-lg">💬</span>
+            <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-2">
+              <span className="text-white text-sm">💬</span>
             </div>
-            <h1 className="text-lg font-bold text-gray-800 mb-1">Join Study Commons</h1>
-            <p className="text-gray-600 text-xs mb-4">
-              Enter your nickname to join the learning community
+            <h1 className="text-sm font-medium text-gray-800 mb-1">Join Study Commons</h1>
+            <p className="text-gray-500 text-xs mb-3">
+              Enter your nickname to join
             </p>
           </div>
           
@@ -719,7 +507,7 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
               placeholder="Your nickname"
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-2xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-300 bg-white text-gray-800 placeholder:text-gray-500 text-sm"
+              className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-green-500 text-sm"
               onKeyDown={(e) => e.key === "Enter" && nickname.trim() && setJoined(true)}
               autoFocus
               maxLength={20}
@@ -733,19 +521,19 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
                   }
                 }}
                 disabled={!nickname.trim()}
-                className="flex-1 py-2.5 bg-gradient-to-r from-green-500 to-green-600 text-white font-medium rounded-2xl hover:from-green-600 hover:to-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                className="flex-1 py-2 bg-green-500 text-white text-sm rounded disabled:opacity-50"
               >
                 Join Chat
               </button>
               <button
                 onClick={onMinimize}
-                className="px-4 py-2.5 text-red-500 hover:text-red-700 transition-colors text-sm"
+                className="px-3 py-2 text-red-500 hover:text-red-700 text-sm"
               >
                 ✕
               </button>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     );
   }
@@ -756,7 +544,6 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
       ref={containerRef}
       className={`fixed z-50 select-none ${isMobile ? 'inset-4' : ''}`}
       style={isMobile ? {
-        // Mobile: Full screen with margins
         left: '1rem',
         top: '1rem',
         right: '1rem',
@@ -764,36 +551,22 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
         width: 'auto',
         height: 'auto'
       } : {
-        // Desktop: Draggable and resizable
         left: position.x,
         top: position.y,
         width: size.width,
         height: size.height
       }}
     >
-      <motion.div
-        initial={{ opacity: 0, x: 100 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: 100 }}
-        className="w-full h-full flex flex-col bg-white overflow-hidden"
-        style={{
-          borderRadius: '32px',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)'
-        }}
-      >
-        {/* Simple Header */}
-        <div 
-          className={`p-4 flex-shrink-0 bg-white ${isMobile ? 'cursor-default' : 'cursor-move'}`}
-          onMouseDown={isMobile ? undefined : handleMouseDown}
-        >
+      <div className={`w-full h-full flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
+        onMouseDown={isMobile ? undefined : handleMouseDown}>
+        
+        {/* Header */}
+        <div className="px-3 py-2 border-b border-gray-100">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-orange-500">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-              </svg>
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-xs">👥</span>
+              </div>
               <div>
                 <div className="font-medium text-gray-900 text-sm">Study Commons</div>
                 <div className="text-xs text-gray-500">{localActiveUsers.length + 1} learners online</div>
@@ -801,190 +574,75 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
             </div>
             
             <div className="flex items-center space-x-1">
-              {/* Full Screen Icon */}
               {!isMobile && (
-                <div className="group relative">
-                  <button
-                    onClick={toggleFullScreen}
-                    className="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:scale-105 transition-all hover:bg-gray-50"
-                    aria-label={isFullScreen ? "Exit Full Screen" : "Full Screen"}
-                  >
-                    {isFullScreen ? (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3M16 21v-3a2 2 0 0 1 2-2h3"/>
-                      </svg>
-                    ) : (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
-                      </svg>
-                    )}
-                  </button>
-                  <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                    {isFullScreen ? 'Exit' : 'Focus'}
-                  </div>
-                </div>
+                <button
+                  onClick={toggleFullScreen}
+                  className="w-6 h-6 text-gray-400 hover:text-gray-600"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                  </svg>
+                </button>
               )}
               
-              {/* Toggle User List Icon */}
-              <div className="group relative">
-                <button
-                  onClick={() => setShowUserList(!showUserList)}
-                  className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:scale-110 transition-all hover:bg-white/20"
-                  aria-label={showUserList ? "Hide Users" : "Show Users"}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`transition-transform ${showUserList ? 'rotate-180' : ''}`}>
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="9" cy="7" r="4"></circle>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                  </svg>
-                </button>
-                <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-white/70 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                  {showUserList ? 'Hide' : 'Users'}
-                </div>
-              </div>
-              
-              {/* Close Icon */}
-              <div className="group relative">
-                <button
-                  onClick={onMinimize}
-                  className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:scale-110 transition-all hover:bg-white/20"
-                  aria-label="Close Panel"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
-                <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-white/70 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                  Close
-                </div>
-              </div>
+              <button
+                onClick={onMinimize}
+                className="w-6 h-6 text-gray-400 hover:text-gray-600"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
             </div>
           </div>
 
-          {/* Collapsible Who's Online Section */}
-          <AnimatePresence>
-            {showUserList && (localActiveUsers.length > 0 || true) && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="overflow-hidden"
-              >
-                <div className="relative">
-                  {/* Navigation Arrows and User Chips */}
-                  <div className="flex items-center">
-                    {/* Left Arrow */}
-                    <button
-                      onClick={() => scrollUsers('left')}
-                      disabled={!canScrollLeft}
-                      className={`p-1 rounded-lg transition-colors flex-shrink-0 mr-2 ${
-                        canScrollLeft 
-                          ? 'hover:bg-gray-100 text-gray-600' 
-                          : 'text-gray-300 cursor-not-allowed'
-                      }`}
-                    >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M15 18l-6-6 6-6"/>
-                      </svg>
-                    </button>
-
-                    {/* Scrollable User Chips Container */}
-                    <div 
-                      ref={userScrollRef}
-                      className="flex-1 overflow-x-auto scrollbar-hide"
-                      onScroll={(e) => setUserScrollPosition(e.currentTarget.scrollLeft)}
-                    >
-                      <div className="flex space-x-2 py-1">
-                        {/* Gawin AI Chip */}
-                        <div className="flex-shrink-0 flex items-center space-x-1.5 bg-green-50 rounded-full px-2.5 py-1 border border-green-200">
-                          <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                            <span className="text-white text-xs">🤖</span>
-                          </div>
-                          <span className="text-xs font-medium text-green-600">Gawin AI</span>
-                          <div className="w-1.5 h-1.5 bg-green-400 rounded-full" title="Online" />
-                        </div>
-
-                        {/* User Chips */}
-                        {localActiveUsers.map((username) => (
-                          <div
-                            key={username}
-                            className="flex-shrink-0 flex items-center space-x-1.5 bg-gray-50 rounded-full px-2.5 py-1 border border-gray-200 hover:bg-gray-100 transition-colors"
-                          >
-                            <div className={`w-4 h-4 rounded-full flex items-center justify-center text-white text-xs font-bold ${getAvatarColor(username)}`}>
-                              {getInitials(username)}
-                            </div>
-                            <span className="text-xs font-medium text-gray-700">
-                              {username === nickname ? 'You' : username}
-                            </span>
-                            <div className="w-1.5 h-1.5 bg-green-400 rounded-full" title="Online" />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Right Arrow */}
-                    <button
-                      onClick={() => scrollUsers('right')}
-                      disabled={!canScrollRight}
-                      className={`p-1 rounded-lg transition-colors flex-shrink-0 ml-2 ${
-                        canScrollRight 
-                          ? 'hover:bg-gray-100 text-gray-600' 
-                          : 'text-gray-300 cursor-not-allowed'
-                      }`}
-                    >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M9 18l6-6-6-6"/>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* Active Users */}
+          <div className="flex space-x-1 mt-2">
+            <div className="flex items-center space-x-1 bg-green-50 rounded px-2 py-1">
+              <span className="text-xs text-green-600 font-medium">Gawin AI</span>
+              <div className="w-1.5 h-1.5 bg-green-400 rounded-full" />
+            </div>
+            {localActiveUsers.map((username) => (
+              <div key={username} className="flex items-center space-x-1 bg-gray-50 rounded px-2 py-1">
+                <span className="text-xs text-gray-700 font-medium">
+                  {username === nickname ? 'You' : username}
+                </span>
+                <div className="w-1.5 h-1.5 bg-green-400 rounded-full" />
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Messages Container - Full Width */}
-        <div className="flex-1 flex min-h-0">
-          {/* Messages Area - Now Takes Full Width */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            <AnimatePresence>
-              {messages.map((message) => (
-                <motion.div
-                  key={message.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex space-x-3"
-                >
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ${
-                    message.isAI ? 'bg-emerald-500' : getAvatarColor(message.user)
-                  }`}>
-                    {message.isAI ? '🤖' : getInitials(message.user)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <span className="text-xs font-medium text-gray-700 truncate">{message.user}</span>
-                      <span className="text-xs text-gray-500 flex-shrink-0">{message.timestamp}</span>
-                    </div>
-                    <div className={`text-sm leading-relaxed break-words ${
-                      message.isAI 
-                        ? 'text-green-700 bg-green-50 p-3 rounded-xl border-l-2 border-green-400' 
-                        : 'text-gray-700 bg-gray-50 p-3 rounded-xl border border-gray-200'
-                    }`}>
-                      <MessageRenderer text={message.text} />
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-            <div ref={messagesEndRef} />
-          </div>
-
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-3 space-y-3">
+          {messages.map((message) => (
+            <div key={message.id} className="flex space-x-2">
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ${
+                message.isAI ? 'bg-green-500' : getAvatarColor(message.user)
+              }`}>
+                {message.isAI ? '🤖' : getInitials(message.user)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center space-x-2 mb-1">
+                  <span className="text-xs font-medium text-gray-700">{message.user}</span>
+                  <span className="text-xs text-gray-400">{message.timestamp}</span>
+                </div>
+                <div className={`text-sm p-2 rounded ${
+                  message.isAI 
+                    ? 'text-green-700 bg-green-50' 
+                    : 'text-gray-700 bg-gray-50'
+                }`}>
+                  <MessageRenderer text={message.text} />
+                </div>
+              </div>
+            </div>
+          ))}
+          <div ref={messagesEndRef} />
         </div>
 
         {/* Input */}
-        <div className="p-4 border-t border-gray-200 flex-shrink-0">
+        <div className="p-3 border-t border-gray-100">
           <div className="flex space-x-2">
             <input
               type="text"
@@ -992,15 +650,15 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              className="flex-1 px-4 py-2 rounded-2xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-300 bg-white text-sm text-gray-700 placeholder:text-gray-500"
+              className="flex-1 px-3 py-2 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-green-500"
               maxLength={500}
             />
             <button
               onClick={sendMessage}
               disabled={!input.trim()}
-              className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white font-medium rounded-2xl hover:from-green-600 hover:to-green-700 transition-all disabled:opacity-50 flex-shrink-0"
+              className="px-3 py-2 bg-green-500 text-white rounded text-sm disabled:opacity-50"
             >
-              <span>→</span>
+              →
             </button>
           </div>
           <p className="text-xs text-gray-500 mt-2 text-center">
@@ -1008,115 +666,84 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
           </p>
         </div>
 
-        {/* Resize Handles - Desktop only */}
+        {/* Resize Handles */}
         {!isMobile && !isFullScreen && (
           <>
-            {/* Corner Handles */}
             <div 
-              className="resize-handle absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
+              className="resize-handle absolute bottom-0 right-0 w-3 h-3 cursor-se-resize"
               onMouseDown={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 setIsResizing(true);
                 setResizeDirection('bottom-right');
               }}
-              style={{
-                background: 'linear-gradient(-45deg, transparent 30%, rgba(34, 197, 94, 0.3) 30%, rgba(34, 197, 94, 0.3) 70%, transparent 70%)',
-                backgroundSize: '6px 6px'
-              }}
             />
             <div 
-              className="resize-handle absolute bottom-0 left-0 w-4 h-4 cursor-sw-resize"
+              className="resize-handle absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize"
               onMouseDown={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 setIsResizing(true);
                 setResizeDirection('bottom-left');
               }}
-              style={{
-                background: 'linear-gradient(45deg, transparent 30%, rgba(34, 197, 94, 0.3) 30%, rgba(34, 197, 94, 0.3) 70%, transparent 70%)',
-                backgroundSize: '6px 6px'
-              }}
             />
             <div 
-              className="resize-handle absolute top-0 right-0 w-4 h-4 cursor-ne-resize"
+              className="resize-handle absolute top-0 right-0 w-3 h-3 cursor-ne-resize"
               onMouseDown={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 setIsResizing(true);
                 setResizeDirection('top-right');
               }}
-              style={{
-                background: 'linear-gradient(45deg, transparent 30%, rgba(34, 197, 94, 0.3) 30%, rgba(34, 197, 94, 0.3) 70%, transparent 70%)',
-                backgroundSize: '6px 6px'
-              }}
             />
             <div 
-              className="resize-handle absolute top-0 left-0 w-4 h-4 cursor-nw-resize"
+              className="resize-handle absolute top-0 left-0 w-3 h-3 cursor-nw-resize"
               onMouseDown={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 setIsResizing(true);
                 setResizeDirection('top-left');
               }}
-              style={{
-                background: 'linear-gradient(-45deg, transparent 30%, rgba(34, 197, 94, 0.3) 30%, rgba(34, 197, 94, 0.3) 70%, transparent 70%)',
-                backgroundSize: '6px 6px'
-              }}
             />
-            
-            {/* Edge Handles */}
             <div 
-              className="resize-handle absolute top-0 left-4 right-4 h-2 cursor-n-resize"
+              className="resize-handle absolute top-0 left-3 right-3 h-1 cursor-n-resize"
               onMouseDown={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 setIsResizing(true);
                 setResizeDirection('top');
               }}
-              style={{
-                background: 'linear-gradient(to bottom, rgba(34, 197, 94, 0.3) 0%, transparent 100%)'
-              }}
             />
             <div 
-              className="resize-handle absolute bottom-0 left-4 right-4 h-2 cursor-s-resize"
+              className="resize-handle absolute bottom-0 left-3 right-3 h-1 cursor-s-resize"
               onMouseDown={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 setIsResizing(true);
                 setResizeDirection('bottom');
               }}
-              style={{
-                background: 'linear-gradient(to top, rgba(34, 197, 94, 0.3) 0%, transparent 100%)'
-              }}
             />
             <div 
-              className="resize-handle absolute left-0 top-4 bottom-4 w-2 cursor-w-resize"
+              className="resize-handle absolute left-0 top-3 bottom-3 w-1 cursor-w-resize"
               onMouseDown={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 setIsResizing(true);
                 setResizeDirection('left');
               }}
-              style={{
-                background: 'linear-gradient(to right, rgba(34, 197, 94, 0.3) 0%, transparent 100%)'
-              }}
             />
             <div 
-              className="resize-handle absolute right-0 top-4 bottom-4 w-2 cursor-e-resize"
+              className="resize-handle absolute right-0 top-3 bottom-3 w-1 cursor-e-resize"
               onMouseDown={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 setIsResizing(true);
                 setResizeDirection('right');
               }}
-              style={{
-                background: 'linear-gradient(to left, rgba(34, 197, 94, 0.3) 0%, transparent 100%)'
-              }}
             />
           </>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 }

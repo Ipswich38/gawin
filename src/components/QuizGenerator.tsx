@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Button } from './ui/Button';
 
 interface QuizQuestion {
   id: string;
@@ -21,7 +20,7 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
   const [currentScreen, setCurrentScreen] = useState<'setup' | 'quiz' | 'results'>('setup');
   const [selectedTopic, setSelectedTopic] = useState('mathematics');
   const [selectedQuestions, setSelectedQuestions] = useState(10);
-  const [timeLimit, setTimeLimit] = useState(15); // minutes
+  const [timeLimit, setTimeLimit] = useState(15);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [userAnswers, setUserAnswers] = useState<number[]>([]);
@@ -39,26 +38,6 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [preFullScreenState, setPreFullScreenState] = useState({ position: { x: 0, y: 0 }, size: { width: 400, height: 600 } });
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // Add CSS to hide scrollbars
-  React.useEffect(() => {
-    const style = document.createElement('style');
-    style.textContent = `
-      .scrollbar-hide::-webkit-scrollbar {
-        display: none;
-      }
-      .scrollbar-hide {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-      }
-    `;
-    document.head.appendChild(style);
-    return () => {
-      if (document.head.contains(style)) {
-        document.head.removeChild(style);
-      }
-    };
-  }, []);
 
   // Detect mobile device
   useEffect(() => {
@@ -137,12 +116,10 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
 
   const toggleFullScreen = () => {
     if (isFullScreen) {
-      // Exit full screen
       setPosition(preFullScreenState.position);
       setSize(preFullScreenState.size);
       setIsFullScreen(false);
     } else {
-      // Enter full screen
       setPreFullScreenState({ position, size });
       setPosition({ x: 20, y: 20 });
       setSize({ width: window.innerWidth - 40, height: window.innerHeight - 40 });
@@ -164,12 +141,12 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
   }, [isDragging, isResizing, dragOffset, size]);
 
   const topics = [
-    { id: 'mathematics', name: 'Mathematics', icon: '📐', description: 'Algebra, Calculus, Geometry, Statistics' },
-    { id: 'physics', name: 'Physics', icon: '⚛️', description: 'Mechanics, Thermodynamics, Electromagnetism' },
-    { id: 'chemistry', name: 'Chemistry', icon: '🧪', description: 'Organic, Inorganic, Physical Chemistry' },
-    { id: 'biology', name: 'Biology', icon: '🧬', description: 'Cell Biology, Genetics, Ecology, Physiology' },
-    { id: 'computer_science', name: 'Computer Science', icon: '💻', description: 'Programming, Algorithms, Data Structures' },
-    { id: 'engineering', name: 'Engineering', icon: '⚙️', description: 'Mechanical, Electrical, Civil Engineering' }
+    { id: 'mathematics', name: 'Mathematics' },
+    { id: 'physics', name: 'Physics' },
+    { id: 'chemistry', name: 'Chemistry' },
+    { id: 'biology', name: 'Biology' },
+    { id: 'computer_science', name: 'Computer Science' },
+    { id: 'engineering', name: 'Engineering' }
   ];
 
   const questionCounts = [5, 10, 15, 20];
@@ -182,7 +159,6 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
       }, 1000);
       return () => clearTimeout(timer);
     } else if (timeRemaining === 0 && currentScreen === 'quiz') {
-      // Time's up - finish quiz
       finishQuiz();
     }
   }, [timeRemaining, currentScreen]);
@@ -228,7 +204,6 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
       
       if (data.success && data.data?.response) {
         try {
-          // Try to parse the JSON response
           const jsonResponse = JSON.parse(data.data.response);
           const generatedQuestions = jsonResponse.questions.map((q: any, index: number) => ({
             id: `q_${index}`,
@@ -242,11 +217,10 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
           
           setQuestions(generatedQuestions);
           setUserAnswers(new Array(generatedQuestions.length).fill(-1));
-          setTimeRemaining(timeLimit * 60); // Convert minutes to seconds
+          setTimeRemaining(timeLimit * 60);
           setCurrentScreen('quiz');
         } catch (parseError) {
           console.error('Failed to parse quiz questions:', parseError);
-          // Fallback to sample questions
           generateSampleQuestions();
         }
       } else {
@@ -335,12 +309,10 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
       <div 
         className="fixed z-50"
         style={isMobile ? {
-          // Mobile: Fixed full screen overlay
           inset: 0,
           width: '100%',
           height: '100%'
         } : {
-          // Desktop: Draggable and resizable
           left: position.x,
           top: position.y,
           width: size.width,
@@ -351,152 +323,104 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
         
         <div 
           ref={containerRef}
-          className={`w-full h-full flex flex-col bg-white overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
-          style={{ 
-            borderRadius: '32px',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)'
-          }}
+          className={`w-full h-full flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
           onMouseDown={isMobile ? undefined : handleMouseDown}
         >
-          {/* Simple Header */}
-          <div className="flex items-center justify-between p-4 bg-white">
-            <div className="flex items-center space-x-3">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-500">
-                <circle cx="12" cy="12" r="3"/>
-                <path d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24"/>
-              </svg>
-              <div>
-                <div className="font-medium text-gray-900 text-sm">Quiz Generator</div>
-                <div className="text-xs text-gray-500">STEM practice tests</div>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-1">
-              {/* Full Screen Icon */}
-              {!isMobile && (
-                <div className="group relative">
-                  <button 
-                    onClick={toggleFullScreen}
-                    className="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:scale-105 transition-all hover:bg-gray-50"
-                    aria-label={isFullScreen ? "Exit Full Screen" : "Full Screen"}
-                  >
-                    {isFullScreen ? (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3M16 21v-3a2 2 0 0 1 2-2h3"/>
-                      </svg>
-                    ) : (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
-                      </svg>
-                    )}
-                  </button>
-                  <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                    {isFullScreen ? 'Exit' : 'Focus'}
-                  </div>
+          {/* Header */}
+          <div className="px-3 py-2 border-b border-gray-100">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 bg-orange-500 rounded-sm flex items-center justify-center">
+                  <span className="text-white text-xs">?</span>
                 </div>
-              )}
+                <div>
+                  <div className="font-medium text-gray-900 text-sm">Quiz Generator</div>
+                  <div className="text-xs text-gray-500">STEM practice tests</div>
+                </div>
+              </div>
               
-              {/* Minimize Icon */}
-              {!isMobile && onMinimize && (
-                <div className="group relative">
-                  <button 
-                    onClick={onMinimize}
-                    className="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:scale-105 transition-all hover:bg-gray-50"
-                    aria-label="Minimize Panel"
+              <div className="flex items-center space-x-1">
+                {!isMobile && (
+                  <button
+                    onClick={toggleFullScreen}
+                    className="w-6 h-6 text-gray-400 hover:text-gray-600"
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="9,11 12,14 15,11"></polyline>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
                     </svg>
                   </button>
-                  <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                    Hide
-                  </div>
-                </div>
-              )}
-              
-              {/* Close Icon */}
-              <div className="group relative">
-                <button 
+                )}
+                
+                <button
                   onClick={onMinimize}
-                  className="w-8 h-8 rounded-lg bg-white border border-red-200 flex items-center justify-center text-red-500 hover:text-red-700 hover:scale-105 transition-all hover:bg-red-50"
-                  aria-label="Close Panel"
+                  className="w-6 h-6 text-gray-400 hover:text-gray-600"
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
                   </svg>
                 </button>
-                <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-white/70 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                  Close
-                </div>
               </div>
             </div>
           </div>
 
           {/* Setup Content */}
-          <div className="flex-1 overflow-y-auto scrollbar-hide">
-            <div className="p-6 space-y-8">
+          <div className="flex-1 overflow-y-auto p-3 space-y-4">
             {/* Topic Selection */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Choose Your Topic</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <h3 className="text-sm font-medium text-gray-800 mb-2">Choose Your Topic</h3>
+              <div className="grid grid-cols-2 gap-2">
                 {topics.map(topic => (
                   <div
                     key={topic.id}
                     onClick={() => setSelectedTopic(topic.id)}
-                    className={`p-4 rounded-xl border cursor-pointer transition-all ${
+                    className={`p-2 rounded border cursor-pointer text-sm ${
                       selectedTopic === topic.id 
-                        ? 'border-orange-300 bg-orange-50 shadow-sm' 
-                        : 'border-gray-200 hover:border-orange-200 hover:bg-orange-25 hover:shadow-sm'
+                        ? 'border-orange-300 bg-orange-50' 
+                        : 'border-gray-200 hover:border-orange-200'
                     }`}
                   >
-                    <div className="flex items-center space-x-3">
-                      <span className="text-2xl">{topic.icon}</span>
-                      <div>
-                        <div className="font-semibold text-gray-800">{topic.name}</div>
-                        <div className="text-xs text-gray-600">{topic.description}</div>
-                      </div>
-                    </div>
+                    {topic.name}
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Quiz Settings */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Number of Questions</h3>
-                <div className="grid grid-cols-2 gap-3">
+                <h3 className="text-sm font-medium text-gray-800 mb-2">Questions</h3>
+                <div className="grid grid-cols-2 gap-2">
                   {questionCounts.map(count => (
                     <button
                       key={count}
                       onClick={() => setSelectedQuestions(count)}
-                      className={`p-3 rounded-lg border transition-all ${
+                      className={`p-2 rounded border text-sm ${
                         selectedQuestions === count
-                          ? 'border-green-300 bg-green-50 text-gray-800 shadow-sm'
-                          : 'border-gray-200 text-gray-700 hover:border-green-200 hover:bg-green-25 hover:shadow-sm'
+                          ? 'border-green-300 bg-green-50'
+                          : 'border-gray-200 hover:border-green-200'
                       }`}
                     >
-                      {count} Questions
+                      {count}
                     </button>
                   ))}
                 </div>
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Time Limit</h3>
-                <div className="grid grid-cols-2 gap-3">
+                <h3 className="text-sm font-medium text-gray-800 mb-2">Time Limit</h3>
+                <div className="grid grid-cols-2 gap-2">
                   {[10, 15, 20, 30].map(minutes => (
                     <button
                       key={minutes}
                       onClick={() => setTimeLimit(minutes)}
-                      className={`p-3 rounded-lg border transition-all ${
+                      className={`p-2 rounded border text-sm ${
                         timeLimit === minutes
-                          ? 'border-orange-300 bg-orange-50 text-gray-800 shadow-sm'
-                          : 'border-gray-200 text-gray-700 hover:border-orange-200 hover:bg-orange-25 hover:shadow-sm'
+                          ? 'border-orange-300 bg-orange-50'
+                          : 'border-gray-200 hover:border-orange-200'
                       }`}
                     >
-                      {minutes} min
+                      {minutes}m
                     </button>
                   ))}
                 </div>
@@ -504,124 +428,90 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
             </div>
 
             {/* Start Button */}
-            <div className="flex justify-center pt-4">
-              <Button 
-                variant="primary"
+            <div className="pt-2">
+              <button 
                 onClick={generateQuiz}
                 disabled={isGenerating}
-                isLoading={isGenerating}
-                className="px-8 py-4 text-lg"
+                className="w-full px-4 py-3 bg-orange-500 text-white rounded disabled:opacity-50 font-medium"
               >
-                {isGenerating ? 'Generating Quiz...' : '🚀 Start Quiz'}
-              </Button>
-            </div>
+                {isGenerating ? 'Generating Quiz...' : 'Start Quiz'}
+              </button>
             </div>
           </div>
           
-          {/* Resize Handles - Desktop only */}
+          {/* Resize Handles */}
           {!isMobile && !isFullScreen && (
             <>
-              {/* Corner Handles */}
               <div 
-                className="resize-handle absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
+                className="resize-handle absolute bottom-0 right-0 w-3 h-3 cursor-se-resize"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setIsResizing(true);
                   setResizeDirection('bottom-right');
                 }}
-                style={{
-                  background: 'linear-gradient(-45deg, transparent 30%, rgba(251, 146, 60, 0.3) 30%, rgba(251, 146, 60, 0.3) 70%, transparent 70%)',
-                  backgroundSize: '6px 6px'
-                }}
               />
               <div 
-                className="resize-handle absolute bottom-0 left-0 w-4 h-4 cursor-sw-resize"
+                className="resize-handle absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setIsResizing(true);
                   setResizeDirection('bottom-left');
                 }}
-                style={{
-                  background: 'linear-gradient(45deg, transparent 30%, rgba(251, 146, 60, 0.3) 30%, rgba(251, 146, 60, 0.3) 70%, transparent 70%)',
-                  backgroundSize: '6px 6px'
-                }}
               />
               <div 
-                className="resize-handle absolute top-0 right-0 w-4 h-4 cursor-ne-resize"
+                className="resize-handle absolute top-0 right-0 w-3 h-3 cursor-ne-resize"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setIsResizing(true);
                   setResizeDirection('top-right');
                 }}
-                style={{
-                  background: 'linear-gradient(45deg, transparent 30%, rgba(251, 146, 60, 0.3) 30%, rgba(251, 146, 60, 0.3) 70%, transparent 70%)',
-                  backgroundSize: '6px 6px'
-                }}
               />
               <div 
-                className="resize-handle absolute top-0 left-0 w-4 h-4 cursor-nw-resize"
+                className="resize-handle absolute top-0 left-0 w-3 h-3 cursor-nw-resize"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setIsResizing(true);
                   setResizeDirection('top-left');
                 }}
-                style={{
-                  background: 'linear-gradient(-45deg, transparent 30%, rgba(251, 146, 60, 0.3) 30%, rgba(251, 146, 60, 0.3) 70%, transparent 70%)',
-                  backgroundSize: '6px 6px'
-                }}
               />
-              
-              {/* Edge Handles */}
               <div 
-                className="resize-handle absolute top-0 left-4 right-4 h-2 cursor-n-resize"
+                className="resize-handle absolute top-0 left-3 right-3 h-1 cursor-n-resize"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setIsResizing(true);
                   setResizeDirection('top');
                 }}
-                style={{
-                  background: 'linear-gradient(to bottom, rgba(251, 146, 60, 0.3) 0%, transparent 100%)'
-                }}
               />
               <div 
-                className="resize-handle absolute bottom-0 left-4 right-4 h-2 cursor-s-resize"
+                className="resize-handle absolute bottom-0 left-3 right-3 h-1 cursor-s-resize"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setIsResizing(true);
                   setResizeDirection('bottom');
                 }}
-                style={{
-                  background: 'linear-gradient(to top, rgba(251, 146, 60, 0.3) 0%, transparent 100%)'
-                }}
               />
               <div 
-                className="resize-handle absolute left-0 top-4 bottom-4 w-2 cursor-w-resize"
+                className="resize-handle absolute left-0 top-3 bottom-3 w-1 cursor-w-resize"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setIsResizing(true);
                   setResizeDirection('left');
                 }}
-                style={{
-                  background: 'linear-gradient(to right, rgba(251, 146, 60, 0.3) 0%, transparent 100%)'
-                }}
               />
               <div 
-                className="resize-handle absolute right-0 top-4 bottom-4 w-2 cursor-e-resize"
+                className="resize-handle absolute right-0 top-3 bottom-3 w-1 cursor-e-resize"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setIsResizing(true);
                   setResizeDirection('right');
-                }}
-                style={{
-                  background: 'linear-gradient(to left, rgba(251, 146, 60, 0.3) 0%, transparent 100%)'
                 }}
               />
             </>
@@ -639,12 +529,10 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
       <div 
         className="fixed z-50"
         style={isMobile ? {
-          // Mobile: Fixed full screen overlay
           inset: 0,
           width: '100%',
           height: '100%'
         } : {
-          // Desktop: Draggable and resizable
           left: position.x,
           top: position.y,
           width: size.width,
@@ -655,91 +543,45 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
         
         <div 
           ref={containerRef}
-          className={`w-full h-full flex flex-col bg-white overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
-          style={{ 
-            borderRadius: '32px',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)'
-          }}
+          className={`w-full h-full flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
           onMouseDown={isMobile ? undefined : handleMouseDown}
         >
-          {/* Quiz Header - Mobile First Design */}
-          <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-amber-50">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg">
-                <span className="text-white text-sm">🧠</span>
-              </div>
-              <div className="flex flex-col">
-                <div className="text-xs font-bold text-gray-800 leading-tight">
-                  Q{currentQuestion + 1}/{questions.length}
+          {/* Quiz Header */}
+          <div className="px-3 py-2 border-b border-gray-100">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 bg-orange-500 rounded-sm flex items-center justify-center">
+                  <span className="text-white text-xs">?</span>
                 </div>
-                <div className="text-xs text-gray-500 leading-tight">{currentQ.difficulty}</div>
-              </div>
-              <div className={`px-2 py-1 rounded text-xs font-mono ${
-                timeRemaining < 120 ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-gray-50 text-gray-700 border border-gray-200'
-              }`}>
-                {formatTime(timeRemaining)}
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-1">
-              {/* Full Screen Icon */}
-              {!isMobile && (
-                <div className="group relative">
-                  <button 
-                    onClick={toggleFullScreen}
-                    className="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:scale-105 transition-all hover:bg-gray-50"
-                    aria-label={isFullScreen ? "Exit Full Screen" : "Full Screen"}
-                  >
-                    {isFullScreen ? (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3M16 21v-3a2 2 0 0 1 2-2h3"/>
-                      </svg>
-                    ) : (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
-                      </svg>
-                    )}
-                  </button>
-                  <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                    {isFullScreen ? 'Exit' : 'Focus'}
+                <div>
+                  <div className="text-sm font-medium text-gray-800">
+                    Q{currentQuestion + 1}/{questions.length}
                   </div>
+                  <div className="text-xs text-gray-500">{formatTime(timeRemaining)}</div>
                 </div>
-              )}
+              </div>
               
-              {/* Minimize Icon */}
-              {!isMobile && onMinimize && (
-                <div className="group relative">
-                  <button 
-                    onClick={onMinimize}
-                    className="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:scale-105 transition-all hover:bg-gray-50"
-                    aria-label="Minimize Panel"
+              <div className="flex items-center space-x-1">
+                {!isMobile && (
+                  <button
+                    onClick={toggleFullScreen}
+                    className="w-6 h-6 text-gray-400 hover:text-gray-600"
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="9,11 12,14 15,11"></polyline>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
                     </svg>
                   </button>
-                  <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                    Hide
-                  </div>
-                </div>
-              )}
-              
-              {/* Exit Quiz Icon */}
-              <div className="group relative">
-                <button 
+                )}
+                
+                <button
                   onClick={restartQuiz}
-                  className="w-8 h-8 rounded-lg bg-white border border-red-200 flex items-center justify-center text-red-500 hover:text-red-700 hover:scale-105 transition-all hover:bg-red-50"
-                  aria-label="Exit Quiz"
+                  className="w-6 h-6 text-gray-400 hover:text-gray-600"
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                    <polyline points="16,17 21,12 16,7"></polyline>
-                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
                   </svg>
                 </button>
-                <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-white/70 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                  Exit
-                </div>
               </div>
             </div>
           </div>
@@ -747,28 +589,27 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
           {/* Progress Bar */}
           <div className="w-full bg-gray-200 h-1">
             <div 
-              className="bg-gradient-to-r from-green-400 to-blue-400 h-1 transition-all duration-300"
+              className="bg-orange-500 h-1 transition-all"
               style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
             />
           </div>
 
           {/* Question Content */}
-          <div className="flex-1 overflow-y-auto scrollbar-hide">
-            <div className="p-6 flex flex-col justify-center">
-            <div className="max-w-3xl mx-auto w-full">
-              <h2 className="text-xl font-semibold text-gray-800 mb-8 leading-relaxed">
+          <div className="flex-1 overflow-y-auto p-3">
+            <div className="mb-4">
+              <h2 className="text-sm font-medium text-gray-800 mb-3">
                 {currentQ.question}
               </h2>
               
-              <div className="space-y-4">
+              <div className="space-y-2">
                 {currentQ.options.map((option, index) => (
                   <button
                     key={index}
                     onClick={() => handleAnswerSelect(index)}
-                    className={`w-full p-4 rounded-xl border transition-all text-left ${
+                    className={`w-full p-3 rounded border text-left text-sm ${
                       userAnswers[currentQuestion] === index
-                        ? 'border-blue-300 bg-blue-50 text-gray-800 shadow-sm'
-                        : 'border-gray-200 text-gray-700 hover:border-blue-200 hover:bg-blue-25 hover:shadow-sm'
+                        ? 'border-blue-300 bg-blue-50'
+                        : 'border-gray-200 hover:border-blue-200'
                     }`}
                   >
                     {option}
@@ -777,145 +618,113 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
               </div>
             </div>
           </div>
-          </div>
 
           {/* Navigation */}
-          <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
-            <Button 
-              variant="ghost" 
+          <div className="p-3 border-t border-gray-100 flex justify-between items-center">
+            <button 
               onClick={previousQuestion}
               disabled={currentQuestion === 0}
+              className="px-3 py-1 text-sm text-gray-400 disabled:opacity-50"
             >
               ← Previous
-            </Button>
+            </button>
             
-            <div className="text-gray-600 text-sm">
-              {userAnswers.filter(a => a !== -1).length} of {questions.length} answered
+            <div className="text-xs text-gray-500">
+              {userAnswers.filter(a => a !== -1).length}/{questions.length}
             </div>
             
             {currentQuestion === questions.length - 1 ? (
-              <Button 
-                variant="primary" 
+              <button 
                 onClick={finishQuiz}
                 disabled={userAnswers[currentQuestion] === -1}
+                className="px-3 py-1 bg-orange-500 text-white text-sm rounded disabled:opacity-50"
               >
-                Finish Quiz
-              </Button>
+                Finish
+              </button>
             ) : (
-              <Button 
-                variant="primary" 
+              <button 
                 onClick={nextQuestion}
                 disabled={userAnswers[currentQuestion] === -1}
+                className="px-3 py-1 bg-orange-500 text-white text-sm rounded disabled:opacity-50"
               >
                 Next →
-              </Button>
+              </button>
             )}
           </div>
           
-          {/* Resize Handles - Desktop only */}
+          {/* Resize Handles */}
           {!isMobile && !isFullScreen && (
             <>
-              {/* Corner Handles */}
               <div 
-                className="resize-handle absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
+                className="resize-handle absolute bottom-0 right-0 w-3 h-3 cursor-se-resize"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setIsResizing(true);
                   setResizeDirection('bottom-right');
                 }}
-                style={{
-                  background: 'linear-gradient(-45deg, transparent 30%, rgba(251, 146, 60, 0.3) 30%, rgba(251, 146, 60, 0.3) 70%, transparent 70%)',
-                  backgroundSize: '6px 6px'
-                }}
               />
               <div 
-                className="resize-handle absolute bottom-0 left-0 w-4 h-4 cursor-sw-resize"
+                className="resize-handle absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setIsResizing(true);
                   setResizeDirection('bottom-left');
                 }}
-                style={{
-                  background: 'linear-gradient(45deg, transparent 30%, rgba(251, 146, 60, 0.3) 30%, rgba(251, 146, 60, 0.3) 70%, transparent 70%)',
-                  backgroundSize: '6px 6px'
-                }}
               />
               <div 
-                className="resize-handle absolute top-0 right-0 w-4 h-4 cursor-ne-resize"
+                className="resize-handle absolute top-0 right-0 w-3 h-3 cursor-ne-resize"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setIsResizing(true);
                   setResizeDirection('top-right');
                 }}
-                style={{
-                  background: 'linear-gradient(45deg, transparent 30%, rgba(251, 146, 60, 0.3) 30%, rgba(251, 146, 60, 0.3) 70%, transparent 70%)',
-                  backgroundSize: '6px 6px'
-                }}
               />
               <div 
-                className="resize-handle absolute top-0 left-0 w-4 h-4 cursor-nw-resize"
+                className="resize-handle absolute top-0 left-0 w-3 h-3 cursor-nw-resize"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setIsResizing(true);
                   setResizeDirection('top-left');
                 }}
-                style={{
-                  background: 'linear-gradient(-45deg, transparent 30%, rgba(251, 146, 60, 0.3) 30%, rgba(251, 146, 60, 0.3) 70%, transparent 70%)',
-                  backgroundSize: '6px 6px'
-                }}
               />
-              
-              {/* Edge Handles */}
               <div 
-                className="resize-handle absolute top-0 left-4 right-4 h-2 cursor-n-resize"
+                className="resize-handle absolute top-0 left-3 right-3 h-1 cursor-n-resize"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setIsResizing(true);
                   setResizeDirection('top');
                 }}
-                style={{
-                  background: 'linear-gradient(to bottom, rgba(251, 146, 60, 0.3) 0%, transparent 100%)'
-                }}
               />
               <div 
-                className="resize-handle absolute bottom-0 left-4 right-4 h-2 cursor-s-resize"
+                className="resize-handle absolute bottom-0 left-3 right-3 h-1 cursor-s-resize"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setIsResizing(true);
                   setResizeDirection('bottom');
                 }}
-                style={{
-                  background: 'linear-gradient(to top, rgba(251, 146, 60, 0.3) 0%, transparent 100%)'
-                }}
               />
               <div 
-                className="resize-handle absolute left-0 top-4 bottom-4 w-2 cursor-w-resize"
+                className="resize-handle absolute left-0 top-3 bottom-3 w-1 cursor-w-resize"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setIsResizing(true);
                   setResizeDirection('left');
                 }}
-                style={{
-                  background: 'linear-gradient(to right, rgba(251, 146, 60, 0.3) 0%, transparent 100%)'
-                }}
               />
               <div 
-                className="resize-handle absolute right-0 top-4 bottom-4 w-2 cursor-e-resize"
+                className="resize-handle absolute right-0 top-3 bottom-3 w-1 cursor-e-resize"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setIsResizing(true);
                   setResizeDirection('right');
-                }}
-                style={{
-                  background: 'linear-gradient(to left, rgba(251, 146, 60, 0.3) 0%, transparent 100%)'
                 }}
               />
             </>
@@ -934,12 +743,10 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
       <div 
         className="fixed z-50"
         style={isMobile ? {
-          // Mobile: Fixed full screen overlay
           inset: 0,
           width: '100%',
           height: '100%'
         } : {
-          // Desktop: Draggable and resizable
           left: position.x,
           top: position.y,
           width: size.width,
@@ -950,161 +757,116 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
         
         <div 
           ref={containerRef}
-          className={`w-full h-full flex flex-col bg-white overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
-          style={{ 
-            borderRadius: '32px',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)'
-          }}
+          className={`w-full h-full flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
           onMouseDown={isMobile ? undefined : handleMouseDown}
         >
-          {/* Results Header - Mobile First Design */}
-          <div className="p-3 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-amber-50">
-            <div className="flex items-center justify-between mb-4">
+          {/* Results Header */}
+          <div className="px-3 py-2 border-b border-gray-100">
+            <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg">
-                  <span className="text-white text-sm">🏆</span>
+                <div className="w-4 h-4 bg-orange-500 rounded-sm flex items-center justify-center">
+                  <span className="text-white text-xs">🏆</span>
                 </div>
-                <div className="flex flex-col">
-                  <h2 className="text-sm font-bold text-gray-800 leading-tight">Quiz Complete</h2>
-                  <span className="text-xs text-gray-500 leading-tight">Results Ready</span>
+                <div>
+                  <div className="text-sm font-medium text-gray-800">Quiz Complete</div>
+                  <div className="text-xs text-gray-500">Results Ready</div>
                 </div>
               </div>
               
               <div className="flex items-center space-x-1">
-                {/* Full Screen Icon */}
                 {!isMobile && (
-                  <div className="group relative">
-                    <button 
-                      onClick={toggleFullScreen}
-                      className="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:scale-105 transition-all hover:bg-gray-50"
-                      aria-label={isFullScreen ? "Exit Full Screen" : "Full Screen"}
-                    >
-                      {isFullScreen ? (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3M16 21v-3a2 2 0 0 1 2-2h3"/>
-                        </svg>
-                      ) : (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
-                        </svg>
-                      )}
-                    </button>
-                    <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                      {isFullScreen ? 'Exit' : 'Focus'}
-                    </div>
-                  </div>
-                )}
-                
-                {/* Minimize Icon */}
-                {!isMobile && onMinimize && (
-                  <div className="group relative">
-                    <button 
-                      onClick={onMinimize}
-                      className="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:scale-105 transition-all hover:bg-gray-50"
-                      aria-label="Minimize Panel"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <polyline points="9,11 12,14 15,11"></polyline>
-                      </svg>
-                    </button>
-                    <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                      Hide
-                    </div>
-                  </div>
-                )}
-                
-                {/* Close Icon */}
-                <div className="group relative">
-                  <button 
-                    onClick={onMinimize}
-                    className="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:scale-105 transition-all hover:bg-gray-50"
-                    aria-label="Close Panel"
+                  <button
+                    onClick={toggleFullScreen}
+                    className="w-6 h-6 text-gray-400 hover:text-gray-600"
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
                     </svg>
                   </button>
-                  <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                    Close
-                  </div>
-                </div>
+                )}
+                
+                <button
+                  onClick={onMinimize}
+                  className="w-6 h-6 text-gray-400 hover:text-gray-600"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
               </div>
             </div>
             
-            <div className="text-center">
-              <div className="text-4xl mb-4">
+            <div className="text-center mt-3">
+              <div className="text-3xl mb-2">
                 {score >= 80 ? '🎉' : score >= 60 ? '👍' : '📚'}
               </div>
-              <div className="text-3xl font-bold text-green-400 mb-2">{score}%</div>
-              <div className="text-gray-600">
-                {correctAnswers} out of {questions.length} correct answers
+              <div className="text-2xl font-bold text-green-500 mb-1">{score}%</div>
+              <div className="text-sm text-gray-600">
+                {correctAnswers} out of {questions.length} correct
               </div>
             </div>
           </div>
 
           {/* Performance Analysis */}
-          <div className="p-6 border-b border-gray-200">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-              <div className="p-4 rounded-lg bg-green-50 border border-green-200">
-                <div className="text-2xl font-bold text-green-600">{correctAnswers}</div>
-                <div className="text-gray-600 text-sm">Correct</div>
+          <div className="p-3 border-b border-gray-100">
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div className="p-2 rounded bg-green-50 border border-green-200">
+                <div className="text-lg font-bold text-green-600">{correctAnswers}</div>
+                <div className="text-xs text-gray-600">Correct</div>
               </div>
-              <div className="p-4 rounded-lg bg-red-50 border border-red-200">
-                <div className="text-2xl font-bold text-red-600">{questions.length - correctAnswers}</div>
-                <div className="text-gray-600 text-sm">Incorrect</div>
+              <div className="p-2 rounded bg-red-50 border border-red-200">
+                <div className="text-lg font-bold text-red-600">{questions.length - correctAnswers}</div>
+                <div className="text-xs text-gray-600">Wrong</div>
               </div>
-              <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
-                <div className="text-2xl font-bold text-blue-600">{Math.round((timeLimit * 60 - timeRemaining) / 60)}</div>
-                <div className="text-gray-600 text-sm">Minutes Used</div>
+              <div className="p-2 rounded bg-blue-50 border border-blue-200">
+                <div className="text-lg font-bold text-blue-600">{Math.round((timeLimit * 60 - timeRemaining) / 60)}</div>
+                <div className="text-xs text-gray-600">Min Used</div>
               </div>
             </div>
           </div>
 
           {/* Review Section */}
-          <div className="flex-1 overflow-y-auto scrollbar-hide">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-semibold text-gray-800">Review Questions</h3>
-                <Button 
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowExplanations(!showExplanations)}
-                >
-                  {showExplanations ? 'Hide' : 'Show'} Explanations
-                </Button>
-              </div>
+          <div className="flex-1 overflow-y-auto p-3">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-sm font-medium text-gray-800">Review</h3>
+              <button 
+                onClick={() => setShowExplanations(!showExplanations)}
+                className="px-2 py-1 text-xs border border-gray-200 rounded"
+              >
+                {showExplanations ? 'Hide' : 'Show'} Explanations
+              </button>
+            </div>
 
-              <div className="space-y-4">
-                {questions.map((question, index) => {
+            <div className="space-y-3">
+              {questions.map((question, index) => {
                 const userAnswer = userAnswers[index];
                 const isCorrect = userAnswer === question.correctAnswer;
                 
                 return (
-                  <div key={question.id} className="p-4 rounded-lg border border-gray-200 bg-gray-50">
-                    <div className="flex items-start space-x-3">
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                  <div key={question.id} className="p-3 rounded border border-gray-200 bg-gray-50">
+                    <div className="flex items-start space-x-2">
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
                         isCorrect ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
                       }`}>
                         {isCorrect ? '✓' : '✗'}
                       </div>
                       <div className="flex-1">
-                        <div className="text-gray-800 font-medium mb-2">
+                        <div className="text-sm text-gray-800 font-medium mb-1">
                           {index + 1}. {question.question}
                         </div>
-                        <div className="text-sm text-gray-600 mb-2">
+                        <div className="text-xs text-gray-600 mb-1">
                           Your answer: {userAnswer !== -1 ? question.options[userAnswer] : 'Not answered'}
                         </div>
                         {!isCorrect && (
-                          <div className="text-sm text-green-600 mb-2">
-                            Correct answer: {question.options[question.correctAnswer]}
+                          <div className="text-xs text-green-600 mb-1">
+                            Correct: {question.options[question.correctAnswer]}
                           </div>
                         )}
                         
                         {showExplanations && (
-                          <div className="mt-3 p-3 rounded-lg bg-blue-50 border border-blue-200">
-                            <div className="text-sm font-medium text-blue-600 mb-1">Explanation:</div>
-                            <div className="text-sm text-gray-700">{question.explanation}</div>
+                          <div className="mt-2 p-2 rounded bg-blue-50 border border-blue-200">
+                            <div className="text-xs text-gray-700">{question.explanation}</div>
                           </div>
                         )}
                       </div>
@@ -1112,124 +874,98 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
                   </div>
                 );
               })}
-              </div>
             </div>
           </div>
 
           {/* Actions */}
-          <div className="p-6 border-t border-gray-200 bg-gray-50 flex justify-center space-x-4">
-            <Button variant="outline" onClick={restartQuiz}>
-              Take Another Quiz
-            </Button>
-            <Button variant="primary" onClick={isMobile ? onMinimize : onMinimize}>
+          <div className="p-3 border-t border-gray-100 flex justify-center space-x-2">
+            <button 
+              onClick={restartQuiz}
+              className="px-4 py-2 border border-gray-200 text-gray-700 rounded text-sm"
+            >
+              New Quiz
+            </button>
+            <button 
+              onClick={onMinimize}
+              className="px-4 py-2 bg-orange-500 text-white rounded text-sm"
+            >
               Close
-            </Button>
+            </button>
           </div>
           
-          {/* Resize Handles - Desktop only */}
+          {/* Resize Handles */}
           {!isMobile && !isFullScreen && (
             <>
-              {/* Corner Handles */}
               <div 
-                className="resize-handle absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
+                className="resize-handle absolute bottom-0 right-0 w-3 h-3 cursor-se-resize"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setIsResizing(true);
                   setResizeDirection('bottom-right');
                 }}
-                style={{
-                  background: 'linear-gradient(-45deg, transparent 30%, rgba(251, 146, 60, 0.3) 30%, rgba(251, 146, 60, 0.3) 70%, transparent 70%)',
-                  backgroundSize: '6px 6px'
-                }}
               />
               <div 
-                className="resize-handle absolute bottom-0 left-0 w-4 h-4 cursor-sw-resize"
+                className="resize-handle absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setIsResizing(true);
                   setResizeDirection('bottom-left');
                 }}
-                style={{
-                  background: 'linear-gradient(45deg, transparent 30%, rgba(251, 146, 60, 0.3) 30%, rgba(251, 146, 60, 0.3) 70%, transparent 70%)',
-                  backgroundSize: '6px 6px'
-                }}
               />
               <div 
-                className="resize-handle absolute top-0 right-0 w-4 h-4 cursor-ne-resize"
+                className="resize-handle absolute top-0 right-0 w-3 h-3 cursor-ne-resize"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setIsResizing(true);
                   setResizeDirection('top-right');
                 }}
-                style={{
-                  background: 'linear-gradient(45deg, transparent 30%, rgba(251, 146, 60, 0.3) 30%, rgba(251, 146, 60, 0.3) 70%, transparent 70%)',
-                  backgroundSize: '6px 6px'
-                }}
               />
               <div 
-                className="resize-handle absolute top-0 left-0 w-4 h-4 cursor-nw-resize"
+                className="resize-handle absolute top-0 left-0 w-3 h-3 cursor-nw-resize"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setIsResizing(true);
                   setResizeDirection('top-left');
                 }}
-                style={{
-                  background: 'linear-gradient(-45deg, transparent 30%, rgba(251, 146, 60, 0.3) 30%, rgba(251, 146, 60, 0.3) 70%, transparent 70%)',
-                  backgroundSize: '6px 6px'
-                }}
               />
-              
-              {/* Edge Handles */}
               <div 
-                className="resize-handle absolute top-0 left-4 right-4 h-2 cursor-n-resize"
+                className="resize-handle absolute top-0 left-3 right-3 h-1 cursor-n-resize"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setIsResizing(true);
                   setResizeDirection('top');
                 }}
-                style={{
-                  background: 'linear-gradient(to bottom, rgba(251, 146, 60, 0.3) 0%, transparent 100%)'
-                }}
               />
               <div 
-                className="resize-handle absolute bottom-0 left-4 right-4 h-2 cursor-s-resize"
+                className="resize-handle absolute bottom-0 left-3 right-3 h-1 cursor-s-resize"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setIsResizing(true);
                   setResizeDirection('bottom');
                 }}
-                style={{
-                  background: 'linear-gradient(to top, rgba(251, 146, 60, 0.3) 0%, transparent 100%)'
-                }}
               />
               <div 
-                className="resize-handle absolute left-0 top-4 bottom-4 w-2 cursor-w-resize"
+                className="resize-handle absolute left-0 top-3 bottom-3 w-1 cursor-w-resize"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setIsResizing(true);
                   setResizeDirection('left');
                 }}
-                style={{
-                  background: 'linear-gradient(to right, rgba(251, 146, 60, 0.3) 0%, transparent 100%)'
-                }}
               />
               <div 
-                className="resize-handle absolute right-0 top-4 bottom-4 w-2 cursor-e-resize"
+                className="resize-handle absolute right-0 top-3 bottom-3 w-1 cursor-e-resize"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setIsResizing(true);
                   setResizeDirection('right');
-                }}
-                style={{
-                  background: 'linear-gradient(to left, rgba(251, 146, 60, 0.3) 0%, transparent 100%)'
                 }}
               />
             </>
