@@ -341,7 +341,12 @@ Formatting Rules:
   private validateMessages(messages: GroqMessage[]): GroqMessage[] {
     return messages.filter(message => {
       try {
-        const validation = validationService.validateTextInput(message.content);
+        const messageText = typeof message.content === 'string' 
+          ? message.content 
+          : Array.isArray(message.content)
+          ? message.content.find(item => item.type === 'text')?.text || ''
+          : '';
+        const validation = validationService.validateTextInput(messageText);
         return validation.isValid;
       } catch (error) {
         console.warn('Message validation failed:', error);
