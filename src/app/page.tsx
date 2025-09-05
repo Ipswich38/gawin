@@ -692,14 +692,14 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
 
                 {/* Dropdown Menu */}
                 {showSpacesDropdown && (
-                  <div className="absolute top-full left-0 mt-2 w-72 bg-white rounded-3xl shadow-xl border border-gray-200/50 overflow-hidden z-50">
+                  <div className="absolute top-full right-0 mt-2 w-72 max-w-[calc(100vw-2rem)] bg-white rounded-3xl shadow-xl border border-gray-200/50 overflow-hidden z-50">
                     {/* Study Commons */}
                     <button
                       onClick={() => {
                         setShowStudyCommons(!showStudyCommons);
                         setShowSpacesDropdown(false);
                       }}
-                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left border-b border-gray-100 rounded-2xl"
+                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-600 transition-colors text-left border-b border-gray-100 rounded-2xl"
                       style={{ backgroundColor: '#435b67' }}
                     >
                       <div className="w-10 h-10 bg-orange-100 rounded-2xl flex items-center justify-center flex-shrink-0">
@@ -722,7 +722,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                         setShowCodeEditor(true);
                         setShowSpacesDropdown(false);
                       }}
-                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left border-b border-gray-100 rounded-2xl"
+                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-600 transition-colors text-left border-b border-gray-100 rounded-2xl"
                       style={{ backgroundColor: '#435b67' }}
                     >
                       <div className="w-10 h-10 bg-purple-100 rounded-2xl flex items-center justify-center flex-shrink-0">
@@ -743,7 +743,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                         setShowQuizGenerator(true);
                         setShowSpacesDropdown(false);
                       }}
-                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left rounded-2xl"
+                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-600 transition-colors text-left rounded-2xl"
                       style={{ backgroundColor: '#435b67' }}
                     >
                       <div className="w-10 h-10 bg-green-100 rounded-2xl flex items-center justify-center flex-shrink-0">

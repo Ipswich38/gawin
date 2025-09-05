@@ -199,19 +199,20 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
       
       <div 
         ref={containerRef}
-        className={`w-full h-full flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
+        className={`w-full h-full flex flex-col border border-gray-200 rounded-lg overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
+        style={{ backgroundColor: '#435b67' }}
         onMouseDown={isMobile ? undefined : handleMouseDown}
       >
         {/* Header */}
-        <div className="px-3 py-2 border-b border-gray-100">
+        <div className="px-3 py-2 border-b border-gray-400">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <div className="w-4 h-4 bg-gray-900 rounded-sm flex items-center justify-center">
                 <span className="text-white text-xs">{'</>'}</span>
               </div>
               <div>
-                <div className="font-medium text-gray-900 text-sm">Coding Mentor</div>
-                <div className="text-xs text-gray-500">Programming tutor</div>
+                <div className="font-medium text-white text-sm">Coding Mentor</div>
+                <div className="text-xs text-gray-300">Programming tutor</div>
               </div>
             </div>
             
@@ -219,7 +220,7 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
               {!isMobile && (
                 <button
                   onClick={toggleFullScreen}
-                  className="w-6 h-6 text-gray-400 hover:text-gray-600"
+                  className="w-6 h-6 text-gray-300 hover:text-white"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
@@ -229,7 +230,7 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
               
               <button
                 onClick={onMinimize}
-                className="w-6 h-6 text-gray-400 hover:text-gray-600"
+                className="w-6 h-6 text-gray-300 hover:text-white"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -241,11 +242,11 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
         </div>
 
         {/* Language Selector */}
-        <div className="px-3 py-2 border-b border-gray-100 bg-gray-50">
+        <div className="px-3 py-2 border-b border-gray-400 bg-gray-600">
           <select
             value={selectedLanguage}
             onChange={(e) => setSelectedLanguage(e.target.value)}
-            className="w-full px-2 py-1 text-sm border-0 bg-transparent text-gray-700 focus:outline-none"
+            className="w-full px-2 py-1 text-sm border-0 bg-transparent text-gray-200 focus:outline-none"
           >
             {languages.map(lang => (
               <option key={lang.id} value={lang.id}>{lang.name}</option>
@@ -254,7 +255,7 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
         </div>
 
         {/* Prompt Input */}
-        <div className="px-3 py-2 border-b border-gray-100">
+        <div className="px-3 py-2 border-b border-gray-400">
           <div className="flex space-x-2">
             <input
               type="text"
@@ -262,12 +263,12 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
               onChange={(e) => setPrompt(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && generateCode()}
               placeholder="Ask AI to generate code..."
-              className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="flex-1 px-3 py-1.5 text-sm border border-gray-400 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-gray-700 text-white placeholder-gray-300"
             />
             <button
               onClick={generateCode}
               disabled={!prompt.trim() || isGenerating}
-              className="px-3 py-1.5 text-sm bg-gray-900 text-white rounded disabled:opacity-50"
+              className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded disabled:opacity-50 hover:bg-blue-700"
             >
               {isGenerating ? 'Generating...' : 'Generate'}
             </button>
@@ -275,11 +276,11 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
         </div>
 
         {/* Action Buttons */}
-        <div className="px-3 py-2 border-b border-gray-100">
+        <div className="px-3 py-2 border-b border-gray-400">
           <div className="flex space-x-2">
             <button
               onClick={copyToClipboard}
-              className="px-2 py-1.5 text-gray-400 hover:text-gray-600"
+              className="px-2 py-1.5 text-gray-300 hover:text-white"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
@@ -288,7 +289,7 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
             </button>
             <button
               onClick={clearCode}
-              className="px-2 py-1.5 text-gray-400 hover:text-gray-600"
+              className="px-2 py-1.5 text-gray-300 hover:text-white"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/>

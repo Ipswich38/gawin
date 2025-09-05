@@ -323,19 +323,20 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
         
         <div 
           ref={containerRef}
-          className={`w-full h-full flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
+          className={`w-full h-full flex flex-col border border-gray-200 rounded-lg overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
+          style={{ backgroundColor: '#435b67' }}
           onMouseDown={isMobile ? undefined : handleMouseDown}
         >
           {/* Header */}
-          <div className="px-3 py-2 border-b border-gray-100">
+          <div className="px-3 py-2 border-b border-gray-400">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <div className="w-4 h-4 bg-orange-500 rounded-sm flex items-center justify-center">
                   <span className="text-white text-xs">?</span>
                 </div>
                 <div>
-                  <div className="font-medium text-gray-900 text-sm">Quiz Generator</div>
-                  <div className="text-xs text-gray-500">STEM practice tests</div>
+                  <div className="font-medium text-white text-sm">Quiz Generator</div>
+                  <div className="text-xs text-gray-300">STEM practice tests</div>
                 </div>
               </div>
               
@@ -343,7 +344,7 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
                 {!isMobile && (
                   <button
                     onClick={toggleFullScreen}
-                    className="w-6 h-6 text-gray-400 hover:text-gray-600"
+                    className="w-6 h-6 text-gray-300 hover:text-white"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
@@ -368,7 +369,7 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
           <div className="flex-1 overflow-y-auto p-3 space-y-4">
             {/* Topic Selection */}
             <div>
-              <h3 className="text-sm font-medium text-gray-800 mb-2">Choose Your Topic</h3>
+              <h3 className="text-sm font-medium text-white mb-2">Choose Your Topic</h3>
               <div className="grid grid-cols-2 gap-2">
                 {topics.map(topic => (
                   <div
@@ -377,7 +378,7 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
                     className={`p-2 rounded border cursor-pointer text-sm ${
                       selectedTopic === topic.id 
                         ? 'border-orange-300 bg-orange-50' 
-                        : 'border-gray-200 hover:border-orange-200'
+                        : 'border-gray-400 hover:border-orange-400'
                     }`}
                   >
                     {topic.name}
@@ -389,7 +390,7 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
             {/* Quiz Settings */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <h3 className="text-sm font-medium text-gray-800 mb-2">Questions</h3>
+                <h3 className="text-sm font-medium text-white mb-2">Questions</h3>
                 <div className="grid grid-cols-2 gap-2">
                   {questionCounts.map(count => (
                     <button
@@ -408,7 +409,7 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
               </div>
 
               <div>
-                <h3 className="text-sm font-medium text-gray-800 mb-2">Time Limit</h3>
+                <h3 className="text-sm font-medium text-white mb-2">Time Limit</h3>
                 <div className="grid grid-cols-2 gap-2">
                   {[10, 15, 20, 30].map(minutes => (
                     <button
@@ -417,7 +418,7 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
                       className={`p-2 rounded border text-sm ${
                         timeLimit === minutes
                           ? 'border-orange-300 bg-orange-50'
-                          : 'border-gray-200 hover:border-orange-200'
+                          : 'border-gray-400 hover:border-orange-400'
                       }`}
                     >
                       {minutes}m
@@ -543,18 +544,19 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
         
         <div 
           ref={containerRef}
-          className={`w-full h-full flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
+          className={`w-full h-full flex flex-col border border-gray-200 rounded-lg overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
+          style={{ backgroundColor: '#435b67' }}
           onMouseDown={isMobile ? undefined : handleMouseDown}
         >
           {/* Quiz Header */}
-          <div className="px-3 py-2 border-b border-gray-100">
+          <div className="px-3 py-2 border-b border-gray-400">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <div className="w-4 h-4 bg-orange-500 rounded-sm flex items-center justify-center">
                   <span className="text-white text-xs">?</span>
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-gray-800">
+                  <div className="text-sm font-medium text-white">
                     Q{currentQuestion + 1}/{questions.length}
                   </div>
                   <div className="text-xs text-gray-500">{formatTime(timeRemaining)}</div>
@@ -565,7 +567,7 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
                 {!isMobile && (
                   <button
                     onClick={toggleFullScreen}
-                    className="w-6 h-6 text-gray-400 hover:text-gray-600"
+                    className="w-6 h-6 text-gray-300 hover:text-white"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
@@ -597,7 +599,7 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
           {/* Question Content */}
           <div className="flex-1 overflow-y-auto p-3">
             <div className="mb-4">
-              <h2 className="text-sm font-medium text-gray-800 mb-3">
+              <h2 className="text-sm font-medium text-white mb-3">
                 {currentQ.question}
               </h2>
               
@@ -757,18 +759,19 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
         
         <div 
           ref={containerRef}
-          className={`w-full h-full flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
+          className={`w-full h-full flex flex-col border border-gray-200 rounded-lg overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
+          style={{ backgroundColor: '#435b67' }}
           onMouseDown={isMobile ? undefined : handleMouseDown}
         >
           {/* Results Header */}
-          <div className="px-3 py-2 border-b border-gray-100">
+          <div className="px-3 py-2 border-b border-gray-400">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <div className="w-4 h-4 bg-orange-500 rounded-sm flex items-center justify-center">
                   <span className="text-white text-xs">🏆</span>
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-gray-800">Quiz Complete</div>
+                  <div className="text-sm font-medium text-white">Quiz Complete</div>
                   <div className="text-xs text-gray-500">Results Ready</div>
                 </div>
               </div>
@@ -777,7 +780,7 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
                 {!isMobile && (
                   <button
                     onClick={toggleFullScreen}
-                    className="w-6 h-6 text-gray-400 hover:text-gray-600"
+                    className="w-6 h-6 text-gray-300 hover:text-white"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
@@ -829,7 +832,7 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
           {/* Review Section */}
           <div className="flex-1 overflow-y-auto p-3">
             <div className="flex justify-between items-center mb-3">
-              <h3 className="text-sm font-medium text-gray-800">Review</h3>
+              <h3 className="text-sm font-medium text-white">Review</h3>
               <button 
                 onClick={() => setShowExplanations(!showExplanations)}
                 className="px-2 py-1 text-xs border border-gray-200 rounded"
@@ -852,7 +855,7 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
                         {isCorrect ? '✓' : '✗'}
                       </div>
                       <div className="flex-1">
-                        <div className="text-sm text-gray-800 font-medium mb-1">
+                        <div className="text-sm text-white font-medium mb-1">
                           {index + 1}. {question.question}
                         </div>
                         <div className="text-xs text-gray-600 mb-1">

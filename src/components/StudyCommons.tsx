@@ -557,19 +557,20 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
         height: size.height
       }}
     >
-      <div className={`w-full h-full flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
+      <div className={`w-full h-full flex flex-col border border-gray-200 rounded-lg overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
+        style={{ backgroundColor: '#435b67' }}
         onMouseDown={isMobile ? undefined : handleMouseDown}>
         
         {/* Header */}
-        <div className="px-3 py-2 border-b border-gray-100">
+        <div className="px-3 py-2 border-b border-gray-400">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
                 <span className="text-white text-xs">👥</span>
               </div>
               <div>
-                <div className="font-medium text-gray-900 text-sm">Study Commons</div>
-                <div className="text-xs text-gray-500">{localActiveUsers.length + 1} learners online</div>
+                <div className="font-medium text-white text-sm">Study Commons</div>
+                <div className="text-xs text-gray-300">{localActiveUsers.length + 1} learners online</div>
               </div>
             </div>
             
@@ -577,7 +578,7 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
               {!isMobile && (
                 <button
                   onClick={toggleFullScreen}
-                  className="w-6 h-6 text-gray-400 hover:text-gray-600"
+                  className="w-6 h-6 text-gray-300 hover:text-white"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
@@ -587,7 +588,7 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
               
               <button
                 onClick={onMinimize}
-                className="w-6 h-6 text-gray-400 hover:text-gray-600"
+                className="w-6 h-6 text-gray-300 hover:text-white"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -604,8 +605,8 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
               <div className="w-1.5 h-1.5 bg-green-400 rounded-full" />
             </div>
             {localActiveUsers.map((username) => (
-              <div key={username} className="flex items-center space-x-1 bg-gray-50 rounded px-2 py-1">
-                <span className="text-xs text-gray-700 font-medium">
+              <div key={username} className="flex items-center space-x-1 bg-gray-600 rounded px-2 py-1">
+                <span className="text-xs text-gray-200 font-medium">
                   {username === nickname ? 'You' : username}
                 </span>
                 <div className="w-1.5 h-1.5 bg-green-400 rounded-full" />
@@ -625,13 +626,13 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2 mb-1">
-                  <span className="text-xs font-medium text-gray-700">{message.user}</span>
+                  <span className="text-xs font-medium text-gray-200">{message.user}</span>
                   <span className="text-xs text-gray-400">{message.timestamp}</span>
                 </div>
                 <div className={`text-sm p-2 rounded ${
                   message.isAI 
-                    ? 'text-green-700 bg-green-50' 
-                    : 'text-gray-700 bg-gray-50'
+                    ? 'text-green-200 bg-green-800' 
+                    : 'text-gray-200 bg-gray-600'
                 }`}>
                   <MessageRenderer text={message.text} />
                 </div>
@@ -642,7 +643,7 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
         </div>
 
         {/* Input */}
-        <div className="p-3 border-t border-gray-100">
+        <div className="p-3 border-t border-gray-400">
           <div className="flex space-x-2">
             <input
               type="text"
@@ -650,7 +651,7 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              className="flex-1 px-3 py-2 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-green-500"
+              className="flex-1 px-3 py-2 border border-gray-400 rounded text-sm focus:outline-none focus:ring-1 focus:ring-green-500 bg-gray-700 text-white placeholder-gray-300"
               maxLength={500}
             />
             <button
@@ -661,7 +662,7 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
               →
             </button>
           </div>
-          <p className="text-xs text-gray-500 mt-2 text-center">
+          <p className="text-xs text-gray-300 mt-2 text-center">
             Chatting as <strong>{nickname}</strong>
           </p>
         </div>
