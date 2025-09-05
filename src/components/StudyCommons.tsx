@@ -507,7 +507,7 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
               placeholder="Your nickname"
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-green-500 text-sm"
+              className="w-full px-3 py-2 border border-gray-200 rounded-2xl focus:outline-none focus:ring-1 focus:ring-green-500 text-sm"
               onKeyDown={(e) => e.key === "Enter" && nickname.trim() && setJoined(true)}
               autoFocus
               maxLength={20}
@@ -521,7 +521,7 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
                   }
                 }}
                 disabled={!nickname.trim()}
-                className="flex-1 py-2 bg-green-500 text-white text-sm rounded disabled:opacity-50"
+                className="flex-1 py-2 bg-green-500 text-white text-sm rounded-2xl disabled:opacity-50"
               >
                 Join Chat
               </button>
@@ -599,12 +599,12 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
 
           {/* Active Users */}
           <div className="flex space-x-1 mt-2">
-            <div className="flex items-center space-x-1 bg-green-50 rounded px-2 py-1">
+            <div className="flex items-center space-x-1 bg-green-50 rounded-2xl px-2 py-1">
               <span className="text-xs text-green-600 font-medium">Gawin AI</span>
               <div className="w-1.5 h-1.5 bg-green-400 rounded-full" />
             </div>
             {localActiveUsers.map((username) => (
-              <div key={username} className="flex items-center space-x-1 bg-gray-600 rounded px-2 py-1">
+              <div key={username} className="flex items-center space-x-1 bg-gray-600 rounded-2xl px-2 py-1">
                 <span className="text-xs text-gray-200 font-medium">
                   {username === nickname ? 'You' : username}
                 </span>
@@ -628,7 +628,7 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
                   <span className="text-xs font-medium text-gray-200">{message.user}</span>
                   <span className="text-xs text-gray-400">{message.timestamp}</span>
                 </div>
-                <div className={`text-sm p-2 rounded ${
+                <div className={`text-sm p-2 rounded-2xl ${
                   message.isAI 
                     ? 'text-white bg-gray-600' 
                     : 'text-gray-200 bg-gray-600'
@@ -650,13 +650,13 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              className="flex-1 px-3 py-2 border border-gray-400 rounded text-sm focus:outline-none focus:ring-1 focus:ring-green-500 bg-gray-700 text-white placeholder-gray-300"
+              className="flex-1 px-3 py-2 border border-gray-400 rounded-2xl text-sm focus:outline-none focus:ring-1 focus:ring-green-500 bg-gray-700 text-white placeholder-gray-300"
               maxLength={500}
             />
             <button
               onClick={sendMessage}
               disabled={!input.trim()}
-              className="px-3 py-2 bg-green-500 text-white rounded text-sm disabled:opacity-50"
+              className="px-3 py-2 bg-green-500 text-white rounded-2xl text-sm disabled:opacity-50"
             >
               →
             </button>

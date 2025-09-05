@@ -262,12 +262,12 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
               onChange={(e) => setPrompt(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && generateCode()}
               placeholder="Ask AI to generate code..."
-              className="flex-1 px-3 py-1.5 text-sm border border-gray-400 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-gray-700 text-white placeholder-gray-300"
+              className="flex-1 px-3 py-1.5 text-sm border border-gray-400 rounded-2xl focus:outline-none focus:ring-1 focus:ring-blue-500 bg-gray-700 text-white placeholder-gray-300"
             />
             <button
               onClick={generateCode}
               disabled={!prompt.trim() || isGenerating}
-              className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded disabled:opacity-50 hover:bg-blue-700"
+              className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-2xl disabled:opacity-50 hover:bg-blue-700"
             >
               {isGenerating ? 'Generating...' : 'Generate'}
             </button>
