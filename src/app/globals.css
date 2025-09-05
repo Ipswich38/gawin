@@ -35,6 +35,41 @@ body {
     /* WebKit browsers (Chrome, Safari, Edge) */
     display: none;
   }
+
+  /* Spaces Icon Animation */
+  .spaces-icon-animation {
+    position: relative;
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+  }
+
+  .spaces-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity 0.8s ease-in-out;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .spaces-icon.active {
+    opacity: 1;
+  }
+
+  /* Animation timing */
+  .spaces-icon:nth-child(1) { animation: flashIcon 3s infinite 0s; }
+  .spaces-icon:nth-child(2) { animation: flashIcon 3s infinite 1s; }
+  .spaces-icon:nth-child(3) { animation: flashIcon 3s infinite 2s; }
+
+  @keyframes flashIcon {
+    0%, 66.67%, 100% { opacity: 0; }
+    33.33% { opacity: 1; }
+  }
 }
 
 /* React Resizable Styles */

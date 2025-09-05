@@ -659,104 +659,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                 <span className="text-sm font-medium">New Chat</span>
               </button>
               
-              {/* Spaces Dropdown */}
-              <div className="relative" data-spaces-dropdown>
-                <button
-                  onClick={() => setShowSpacesDropdown(!showSpacesDropdown)}
-                  className="flex items-center space-x-2 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white/95 transition-all shadow-lg border border-gray-200/50"
-                  style={{ color: '#051a1c' }}
-                  title="Open Spaces"
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="3" y="3" width="7" height="7"/>
-                    <rect x="14" y="3" width="7" height="7"/>
-                    <rect x="14" y="14" width="7" height="7"/>
-                    <rect x="3" y="14" width="7" height="7"/>
-                  </svg>
-                  <div className="flex flex-col items-start">
-                    <span className="text-sm font-medium">Spaces</span>
-                    <span className="text-xs opacity-60">Learning tools</span>
-                  </div>
-                  <svg 
-                    width="16" 
-                    height="16" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2"
-                    className={`transition-transform ${showSpacesDropdown ? 'rotate-180' : ''}`}
-                  >
-                    <polyline points="6,9 12,15 18,9"/>
-                  </svg>
-                </button>
 
-                {/* Dropdown Menu */}
-                {showSpacesDropdown && (
-                  <div className="absolute top-full right-0 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-3xl shadow-xl border border-gray-400/50 overflow-hidden z-50" style={{ backgroundColor: '#435b67' }}>
-                    {/* Study Commons */}
-                    <button
-                      onClick={() => {
-                        setShowStudyCommons(!showStudyCommons);
-                        setShowSpacesDropdown(false);
-                      }}
-                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-500 transition-colors text-left border-b border-gray-400/30"
-                    >
-                      <div className="w-10 h-10 bg-orange-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-orange-600">
-                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                          <circle cx="9" cy="7" r="4"/>
-                          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                        </svg>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-white">Study Commons</div>
-                        <div className="text-xs text-gray-300">{onlineUsers} learners online</div>
-                      </div>
-                    </button>
-
-                    {/* Coding Mentor */}
-                    <button
-                      onClick={() => {
-                        setShowCodeEditor(true);
-                        setShowSpacesDropdown(false);
-                      }}
-                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-500 transition-colors text-left border-b border-gray-400/30"
-                    >
-                      <div className="w-10 h-10 bg-purple-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-purple-600">
-                          <polyline points="16,18 22,12 16,6"/>
-                          <polyline points="8,6 2,12 8,18"/>
-                        </svg>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-white">Coding Mentor</div>
-                        <div className="text-xs text-gray-300">AI-powered coding tutor</div>
-                      </div>
-                    </button>
-
-                    {/* Quiz Generator */}
-                    <button
-                      onClick={() => {
-                        setShowQuizGenerator(true);
-                        setShowSpacesDropdown(false);
-                      }}
-                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-500 transition-colors text-left"
-                    >
-                      <div className="w-10 h-10 bg-green-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-600">
-                          <circle cx="12" cy="12" r="3"/>
-                          <path d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24"/>
-                        </svg>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-white">Quiz Generator</div>
-                        <div className="text-xs text-gray-300">STEM practice tests</div>
-                      </div>
-                    </button>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
         </div>
@@ -1334,6 +1237,95 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                 </div>
               </div>
             )}
+
+            {/* Floating Spaces Icon */}
+            <div className="relative mb-4 flex justify-center">
+              <div className="relative">
+                <button
+                  onClick={() => setShowSpacesDropdown(!showSpacesDropdown)}
+                  className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg shadow-md backdrop-blur-sm"
+                  style={{ 
+                    boxShadow: '0 8px 25px rgba(251, 146, 60, 0.3), 0 3px 10px rgba(0, 0, 0, 0.2)' 
+                  }}
+                >
+                  <div className="text-white text-lg">
+                    <div className="spaces-icon-animation">
+                      <span className="spaces-icon">💬</span>
+                      <span className="spaces-icon">&lt;/&gt;</span>
+                      <span className="spaces-icon">🐝</span>
+                    </div>
+                  </div>
+                </button>
+
+                {/* Dropdown Menu (positioned upward) */}
+                {showSpacesDropdown && (
+                  <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-72 max-w-[calc(100vw-2rem)] rounded-3xl shadow-xl border border-gray-400/50 overflow-hidden z-50" style={{ backgroundColor: '#435b67' }}>
+                    {/* Study Commons */}
+                    <button
+                      onClick={() => {
+                        setShowStudyCommons(!showStudyCommons);
+                        setShowSpacesDropdown(false);
+                      }}
+                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-500 transition-colors text-left border-b border-gray-400/30"
+                    >
+                      <div className="w-10 h-10 bg-orange-100 rounded-2xl flex items-center justify-center flex-shrink-0">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-orange-600">
+                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                          <circle cx="9" cy="7" r="4"/>
+                          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-white">Study Commons</div>
+                        <div className="text-xs text-gray-300">{onlineUsers} learners online</div>
+                      </div>
+                    </button>
+
+                    {/* Coding Mentor */}
+                    <button
+                      onClick={() => {
+                        setShowCodeEditor(true);
+                        setShowSpacesDropdown(false);
+                      }}
+                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-500 transition-colors text-left border-b border-gray-400/30"
+                    >
+                      <div className="w-10 h-10 bg-purple-100 rounded-2xl flex items-center justify-center flex-shrink-0">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-purple-600">
+                          <polyline points="16 18 22 12 16 6"/>
+                          <polyline points="8 6 2 12 8 18"/>
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-white">Coding Mentor</div>
+                        <div className="text-xs text-gray-300">AI-powered coding tutor</div>
+                      </div>
+                    </button>
+
+                    {/* Quiz Generator */}
+                    <button
+                      onClick={() => {
+                        setShowQuizGenerator(true);
+                        setShowSpacesDropdown(false);
+                      }}
+                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-500 transition-colors text-left"
+                    >
+                      <div className="w-10 h-10 bg-green-100 rounded-2xl flex items-center justify-center flex-shrink-0">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-600">
+                          <circle cx="12" cy="12" r="10"/>
+                          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                          <path d="M12 17h.01"/>
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-white">Quiz Generator</div>
+                        <div className="text-xs text-gray-300">STEM practice tests</div>
+                      </div>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
 
             <form onSubmit={handleSubmit} className="relative">
               <div 
