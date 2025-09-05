@@ -1238,9 +1238,9 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
               </div>
             )}
 
-            {/* Floating Spaces Icon */}
-            <div className="relative mb-4 flex justify-center">
-              <div className="relative">
+            <form onSubmit={handleSubmit} className="relative">
+              {/* Floating Spaces Icon - positioned at top-right of chat box */}
+              <div className="absolute -top-16 right-0 z-50" data-spaces-dropdown>
                 <button
                   onClick={() => setShowSpacesDropdown(!showSpacesDropdown)}
                   className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg shadow-md backdrop-blur-sm"
@@ -1259,7 +1259,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
 
                 {/* Dropdown Menu (positioned upward) */}
                 {showSpacesDropdown && (
-                  <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-72 max-w-[calc(100vw-2rem)] rounded-3xl shadow-xl border border-gray-400/50 overflow-hidden z-50" style={{ backgroundColor: '#435b67' }}>
+                  <div className="absolute bottom-full mb-2 right-0 w-72 max-w-[calc(100vw-2rem)] rounded-3xl shadow-xl border border-gray-400/50 overflow-hidden z-50" style={{ backgroundColor: '#435b67' }}>
                     {/* Study Commons */}
                     <button
                       onClick={() => {
@@ -1325,9 +1325,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                   </div>
                 )}
               </div>
-            </div>
 
-            <form onSubmit={handleSubmit} className="relative">
               <div 
                 className={`relative ${isDragOver ? 'ring-2 ring-emerald-400 ring-opacity-50' : ''}`}
                 onDragOver={handleDragOver}
