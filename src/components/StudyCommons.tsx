@@ -696,9 +696,10 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="p-6 rounded-xl shadow-lg border border-gray-200 cursor-move bg-white"
+          className="p-6 bg-white border border-gray-200 cursor-move"
           style={{
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+            borderRadius: '8px',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)'
           }}
           onMouseDown={handleMouseDown}
         >
@@ -774,25 +775,30 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
         initial={{ opacity: 0, x: 100 }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 100 }}
-        className="w-full h-full flex flex-col rounded-xl shadow-lg border border-gray-200 overflow-hidden bg-white"
+        className="w-full h-full flex flex-col bg-white border border-gray-200 overflow-hidden"
         style={{
-          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+          borderRadius: '8px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)'
         }}
       >
-        {/* Header */}
+        {/* Compact Header */}
         <div 
-          className={`p-4 border-b border-white/10 flex-shrink-0 ${isMobile ? 'cursor-default' : 'cursor-move'}`}
-          style={{ background: 'linear-gradient(to right, #f0fdf4, #ecfdf5)' }}
+          className={`p-3 border-b border-gray-100 flex-shrink-0 bg-gray-50/50 ${isMobile ? 'cursor-default' : 'cursor-move'}`}
           onMouseDown={isMobile ? undefined : handleMouseDown}
         >
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-lg">
-                <span className="text-white text-sm">💬</span>
+              <div className="w-6 h-6 rounded-md bg-orange-100 flex items-center justify-center">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-orange-600">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
               </div>
               <div className="flex flex-col">
-                <h2 className="text-sm font-bold text-gray-800 leading-tight">Study Commons</h2>
-                <span className="text-xs text-gray-500 leading-tight">{localActiveUsers.length + 1} online</span>
+                <span className="text-xs font-medium text-gray-700">Commons</span>
+                <span className="text-xs text-gray-500">{localActiveUsers.length + 1} online</span>
               </div>
             </div>
             

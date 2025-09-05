@@ -351,19 +351,25 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
         
         <div 
           ref={containerRef}
-          className={`w-full h-full flex flex-col rounded-xl shadow-lg border border-gray-200 overflow-hidden bg-white ${isMobile ? '' : 'cursor-move'}`}
-          style={{ boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}
+          className={`w-full h-full flex flex-col bg-white border border-gray-200 overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
+          style={{ 
+            borderRadius: '8px',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)'
+          }}
           onMouseDown={isMobile ? undefined : handleMouseDown}
         >
-          {/* Header - Mobile First Design */}
-          <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-amber-50">
+          {/* Compact Header */}
+          <div className="flex items-center justify-between p-3 border-b border-gray-100 bg-gray-50/50">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-sm">
-                <span className="text-white text-sm">🧠</span>
+              <div className="w-6 h-6 rounded-md bg-green-100 flex items-center justify-center">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-600">
+                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24"/>
+                </svg>
               </div>
               <div className="flex flex-col">
-                <h2 className="text-sm font-bold text-gray-800 leading-tight">Quiz Generator</h2>
-                <span className="text-xs text-gray-500 leading-tight">AI Testing</span>
+                <span className="text-xs font-medium text-gray-700">Quiz</span>
+                <span className="text-xs text-gray-500">STEM practice</span>
               </div>
             </div>
             
@@ -651,8 +657,11 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
         
         <div 
           ref={containerRef}
-          className={`w-full h-full flex flex-col rounded-xl shadow-lg border border-gray-200 overflow-hidden bg-white ${isMobile ? '' : 'cursor-move'}`}
-          style={{ boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}
+          className={`w-full h-full flex flex-col bg-white border border-gray-200 overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
+          style={{ 
+            borderRadius: '8px',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)'
+          }}
           onMouseDown={isMobile ? undefined : handleMouseDown}
         >
           {/* Quiz Header - Mobile First Design */}
@@ -943,8 +952,11 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
         
         <div 
           ref={containerRef}
-          className={`w-full h-full flex flex-col rounded-xl shadow-lg border border-gray-200 overflow-hidden bg-white ${isMobile ? '' : 'cursor-move'}`}
-          style={{ boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}
+          className={`w-full h-full flex flex-col bg-white border border-gray-200 overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
+          style={{ 
+            borderRadius: '8px',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)'
+          }}
           onMouseDown={isMobile ? undefined : handleMouseDown}
         >
           {/* Results Header - Mobile First Design */}

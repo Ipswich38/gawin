@@ -228,19 +228,25 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
       
       <div 
         ref={containerRef}
-        className={`w-full h-full flex flex-col rounded-xl shadow-lg border border-gray-200 overflow-hidden bg-white ${isMobile ? '' : 'cursor-move'}`}
-        style={{ boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}
+        className={`w-full h-full flex flex-col bg-white border border-gray-200 overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
+        style={{ 
+          borderRadius: '8px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)'
+        }}
         onMouseDown={isMobile ? undefined : handleMouseDown}
       >
-        {/* Header - Paper Card Design */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-indigo-50">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-sm">
-              <span className="text-white text-lg">👨‍💻</span>
+        {/* Compact Header */}
+        <div className="flex items-center justify-between p-3 border-b border-gray-100 bg-gray-50/50">
+          <div className="flex items-center space-x-2">
+            <div className="w-6 h-6 rounded-md bg-purple-100 flex items-center justify-center">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-purple-600">
+                <polyline points="16,18 22,12 16,6"/>
+                <polyline points="8,6 2,12 8,18"/>
+              </svg>
             </div>
             <div className="flex flex-col">
-              <h2 className="text-lg font-bold text-gray-800 leading-tight">Coding Mentor</h2>
-              <span className="text-sm text-gray-500 leading-tight">AI Programming Assistant</span>
+              <span className="text-xs font-medium text-gray-700">Mentor</span>
+              <span className="text-xs text-gray-500">AI coding tutor</span>
             </div>
           </div>
           
