@@ -366,7 +366,7 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
           </div>
 
           {/* Setup Content */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-4">
+          <div className="flex-1 overflow-y-auto p-3 space-y-4 scrollbar-hide">
             {/* Topic Selection */}
             <div>
               <h3 className="text-sm font-medium text-white mb-2">Choose Your Topic</h3>
@@ -597,7 +597,7 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
           </div>
 
           {/* Question Content */}
-          <div className="flex-1 overflow-y-auto p-3">
+          <div className="flex-1 overflow-y-auto p-3 scrollbar-hide">
             <div className="mb-4">
               <h2 className="text-sm font-medium text-white mb-3">
                 {currentQ.question}
@@ -830,7 +830,7 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
           </div>
 
           {/* Review Section */}
-          <div className="flex-1 overflow-y-auto p-3">
+          <div className="flex-1 overflow-y-auto p-3 scrollbar-hide">
             <div className="flex justify-between items-center mb-3">
               <h3 className="text-sm font-medium text-white">Review</h3>
               <button 

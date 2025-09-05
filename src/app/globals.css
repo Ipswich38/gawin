@@ -22,6 +22,19 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+  
+  /* Hide scrollbars for clean panel design */
+  .scrollbar-hide {
+    /* Firefox */
+    scrollbar-width: none;
+    /* Internet Explorer and Edge */
+    -ms-overflow-style: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    /* WebKit browsers (Chrome, Safari, Edge) */
+    display: none;
+  }
 }
 
 /* React Resizable Styles */

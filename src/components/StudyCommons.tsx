@@ -615,7 +615,7 @@ export default function StudyCommons({ onMinimize }: StudyCommonsProps) {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-3">
+        <div className="flex-1 overflow-y-auto p-3 space-y-3 scrollbar-hide">
           {messages.map((message) => (
             <div key={message.id} className="flex space-x-2">
               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ${
