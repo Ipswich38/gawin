@@ -1282,8 +1282,8 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
 
             <form onSubmit={handleSubmit} className="relative">
               {/* Floating Spaces Icon - positioned above and aligned with send button */}
-              <div className="absolute -top-16 z-50" data-spaces-dropdown
-                   style={{ right: 'calc(25% + 12px)' }}>
+              <div className="absolute -top-16 right-0 z-50" data-spaces-dropdown
+                   style={{ marginRight: 'calc(12.5% + 12px)' }}>
                 <button
                   onClick={() => setShowSpacesDropdown(!showSpacesDropdown)}
                   className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg shadow-md backdrop-blur-sm"
@@ -1375,15 +1375,15 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
               >
-                {/* File Upload Button */}
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
+                {/* File Upload Button - positioned at bottom left corner */}
+                <div className="absolute left-4 bottom-4 z-10">
                   <button
                     type="button"
                     onClick={() => setShowUploadDropdown(!showUploadDropdown)}
-                    className={`w-8 h-8 backdrop-blur-sm rounded-md flex items-center justify-center transition-all shadow-md z-10 ${
+                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all z-10 ${
                       uploadedFiles.length > 0 
-                        ? 'bg-emerald-400 text-black' 
-                        : 'bg-white/20 text-white/70 hover:bg-orange-500 hover:text-white'
+                        ? 'text-emerald-400' 
+                        : 'text-orange-500 hover:text-orange-600'
                     }`}
                     title="File upload"
                   >
@@ -1434,7 +1434,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                     ? "Ask questions about your files..." 
                     : "Message Gawin... (Paste images, drag & drop files, or click + to upload)"
                   }
-                  className={`w-3/4 pl-16 pr-16 py-5 text-white placeholder-white/70 transition-all resize-none text-lg focus:outline-none focus:ring-2 focus:ring-white/40 shadow-2xl backdrop-blur-md hover:shadow-3xl min-h-[120px] max-h-[400px] ${
+                  className={`w-3/4 mx-auto block pl-16 pr-16 py-5 text-white placeholder-white/70 transition-all resize-none text-lg focus:outline-none focus:ring-2 focus:ring-white/40 shadow-2xl backdrop-blur-md hover:shadow-3xl min-h-[120px] max-h-[400px] ${
                     isDragOver ? 'border-emerald-400 border-2' : ''
                   }`}
                   style={{ 
@@ -1450,9 +1450,9 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                 <button
                   type="submit"
                   disabled={(!input.trim() && uploadedFiles.length === 0) || isLoading || isProcessingFiles}
-                  className="absolute top-1/2 -translate-y-1/2 w-10 h-10 backdrop-blur-sm text-black rounded-full flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105 transition-all shadow-lg"
+                  className="absolute top-1/2 right-0 -translate-y-1/2 w-10 h-10 backdrop-blur-sm text-black rounded-full flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105 transition-all shadow-lg"
                   style={{
-                    right: 'calc(25% + 12px)',
+                    marginRight: 'calc(12.5% + 12px)',
                     backgroundColor: ((input.trim() || uploadedFiles.length > 0) && !isLoading && !isProcessingFiles) 
                       ? '#00FFEF' 
                       : 'rgba(255,255,255,0.9)'
