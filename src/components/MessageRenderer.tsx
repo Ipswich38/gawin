@@ -9,15 +9,38 @@ interface MessageRendererProps {
 }
 
 export default function MessageRenderer({ text }: MessageRendererProps) {
-  // Preprocess text to handle various fraction formats
+  // For OCR-related messages, render as plain text without any processing
+  const isOCRMessage = text.includes('uploaded') || text.includes('PDF') || text.includes('images') || 
+                      text.includes('OCR') || text.includes('extraction') || text.includes('convert') ||
+                      text.includes('PNG') || text.includes('JPG') || text.includes('analyze');
+  
+  if (isOCRMessage) {
+    return (
+      <div className="message-content" style={{
+        letterSpacing: 'normal',
+        wordSpacing: 'normal',
+        whiteSpace: 'pre-wrap'
+      }}>
+        <span>{text}</span>
+      </div>
+    );
+  }
+  
+  // Preprocess text to handle various fraction formats - only for mathematical content
   const preprocessText = (input: string) => {
     return input
       // Convert simple fractions like 1/2 to LaTeX when they appear to be mathematical
       .replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}')
       // Convert fractions with parentheses like (a+b)/(c+d) to LaTeX
       .replace(/\(([^)]+)\)\/\(([^)]+)\)/g, '\\frac{$1}{$2}')
-      // Convert complex fractions with variables
-      .replace(/([a-zA-Z0-9\+\-\*]+)\/([a-zA-Z0-9\+\-\*]+)/g, '\\frac{$1}{$2}')
+      // Convert complex fractions with variables - but be more specific to avoid matching normal text
+      .replace(/\b([a-zA-Z0-9\+\-\*]{1,3})\/([a-zA-Z0-9\+\-\*]{1,3})\b/g, (match, p1, p2) => {
+        // Only convert if it looks like a mathematical expression (short terms)
+        if (p1.length <= 3 && p2.length <= 3 && /^[a-zA-Z0-9\+\-\*]+$/.test(p1) && /^[a-zA-Z0-9\+\-\*]+$/.test(p2)) {
+          return `\\frac{${p1}}{${p2}}`;
+        }
+        return match;
+      })
       // Fix common math symbols
       .replace(/\+\-/g, '\\pm')
       .replace(/\-\+/g, '\\mp')
@@ -302,7 +325,11 @@ export default function MessageRenderer({ text }: MessageRendererProps) {
   };
 
   return (
-    <div className="message-content">
+    <div className="message-content" style={{
+      letterSpacing: 'normal',
+      wordSpacing: 'normal',
+      whiteSpace: 'normal'
+    }}>
       {renderText(text)}
     </div>
   );

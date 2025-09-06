@@ -1433,7 +1433,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                     ? "Ask questions about your files..." 
                     : "Message Gawin... (Paste images, drag & drop files, or click + to upload)"
                   }
-                  className={`w-full pl-16 pr-16 py-5 text-white placeholder-white/70 transition-all resize-none text-lg focus:outline-none focus:ring-2 focus:ring-white/40 shadow-2xl backdrop-blur-md hover:shadow-3xl min-h-[60px] max-h-[200px] ${
+                  className={`w-3/4 pl-16 pr-16 py-5 text-white placeholder-white/70 transition-all resize-none text-lg focus:outline-none focus:ring-2 focus:ring-white/40 shadow-2xl backdrop-blur-md hover:shadow-3xl min-h-[120px] max-h-[400px] ${
                     isDragOver ? 'border-emerald-400 border-2' : ''
                   }`}
                   style={{ 
