@@ -1281,8 +1281,9 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
             )}
 
             <form onSubmit={handleSubmit} className="relative">
-              {/* Floating Spaces Icon - positioned at top-right of chat box */}
-              <div className="absolute -top-16 right-0 z-50" data-spaces-dropdown>
+              {/* Floating Spaces Icon - positioned above and aligned with send button */}
+              <div className="absolute -top-16 z-50" data-spaces-dropdown
+                   style={{ right: 'calc(12.5% + 12px)' }}>
                 <button
                   onClick={() => setShowSpacesDropdown(!showSpacesDropdown)}
                   className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg shadow-md backdrop-blur-sm"
@@ -1445,12 +1446,13 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                   rows={1}
                 />
 
-                {/* Send Button */}
+                {/* Send Button - positioned inside the textarea */}
                 <button
                   type="submit"
                   disabled={(!input.trim() && uploadedFiles.length === 0) || isLoading || isProcessingFiles}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 backdrop-blur-sm text-black rounded-full flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105 transition-all shadow-lg"
+                  className="absolute top-1/2 -translate-y-1/2 w-10 h-10 backdrop-blur-sm text-black rounded-full flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105 transition-all shadow-lg"
                   style={{
+                    right: 'calc(12.5% + 12px)',
                     backgroundColor: ((input.trim() || uploadedFiles.length > 0) && !isLoading && !isProcessingFiles) 
                       ? '#00FFEF' 
                       : 'rgba(255,255,255,0.9)'
