@@ -1375,8 +1375,8 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
               >
-                {/* File Upload Button - positioned at bottom left corner */}
-                <div className="absolute left-4 bottom-4 z-10">
+                {/* File Upload Button - positioned at bottom left corner of textarea */}
+                <div className="absolute bottom-4 z-10" style={{ left: 'calc(12.5% + 16px)' }}>
                   <button
                     type="button"
                     onClick={() => setShowUploadDropdown(!showUploadDropdown)}
