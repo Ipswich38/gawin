@@ -48,9 +48,20 @@ export async function POST(request: NextRequest) {
     console.log(`🔄 Groq primary failed: ${groqResult.error}, trying Groq DeepSeek model...`);
     
     try {
+      // Convert multimodal content to text for DeepSeek fallback
+      const textOnlyMessages = body.messages.map(msg => ({
+        ...msg,
+        content: typeof msg.content === 'string' 
+          ? msg.content 
+          : Array.isArray(msg.content)
+          ? msg.content.find(item => item.type === 'text')?.text || 'Please analyze the provided content.'
+          : String(msg.content)
+      }));
+
       // Try Groq's DeepSeek model as fallback
       const groqDeepSeekResult = await groqService.createChatCompletion({
         ...body,
+        messages: textOnlyMessages,
         action: 'deepseek' // Use Groq's DeepSeek model configuration
       });
 

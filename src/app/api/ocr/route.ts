@@ -74,35 +74,12 @@ export async function POST(request: NextRequest) {
       for (const file of processedFiles.filter(f => f.type.startsWith('image/'))) {
         try {
           // Use Groq's vision model for OCR and image analysis
-          const visionResult = await groqService.createChatCompletion({
-            messages: [
-              {
-                role: 'user',
-                content: [
-                  {
-                    type: 'text',
-                    text: `Please analyze this image and extract all text content. If it contains:
-- Documents: Extract all text accurately, maintaining structure
-- Screenshots: Extract UI text, buttons, labels
-- Handwritten notes: Convert handwritten text to typed text
-- Charts/graphs: Describe the visual content and extract any text labels
-- Educational content: Extract formulas, equations, and explanations
-- Code: Extract and format code properly
-
-Be thorough and accurate in your text extraction.`
-                  },
-                  {
-                    type: 'image_url',
-                    image_url: {
-                      url: file.dataUri
-                    }
-                  }
-                ]
-              }
-            ],
-            action: 'vision',
-            module: 'ocr'
-          });
+          // Note: Vision models are temporarily unavailable from Groq
+          // For now, we'll provide guidance on image analysis
+          const visionResult = {
+            success: false,
+            error: 'Vision analysis temporarily unavailable - Groq has deprecated their vision models'
+          };
 
           if (visionResult.success && visionResult.data) {
             extractedText += `\n--- Content from ${file.name} ---\n${visionResult.data.response}\n`;
@@ -116,8 +93,8 @@ Be thorough and accurate in your text extraction.`
             analysisResults.push({
               filename: file.name,
               type: 'image',
-              status: 'error',
-              error: visionResult.error || 'Failed to process image'
+              status: 'unavailable',
+              error: 'Image analysis temporarily unavailable - vision models are being updated'
             });
           }
         } catch (error) {
@@ -209,34 +186,44 @@ ${extractedText}
 *Feel free to ask me any questions about this content!*`;
       }
     } else {
-      // No text was extracted, but we processed images
-      const successfulImageProcessing = analysisResults.some(result => 
-        result.type === 'image' && result.status === 'success'
+      // No text was extracted, check if we have unavailable image processing
+      const imageProcessingUnavailable = analysisResults.some(result => 
+        result.type === 'image' && result.status === 'unavailable'
       );
       
-      if (successfulImageProcessing && hasImages) {
-        // Images were processed but no text was found
+      if (imageProcessingUnavailable && hasImages) {
+        // Images could not be processed due to unavailable vision models
         if (userQuery.trim()) {
-          aiAnalysis = `I've analyzed your uploaded images, but I wasn't able to extract any readable text content from them. 
+          aiAnalysis = `I apologize, but image analysis and OCR capabilities are currently temporarily unavailable as our vision models are being updated.
 
-Regarding your question: "${userQuery}"
+Your question: "${userQuery}"
 
-The images appear to contain visual content that doesn't include text elements, or the text might not be clear enough for OCR processing. If you believe there should be text in these images, you could try:
+**Current Status:**
+🔧 Vision/OCR models: Temporarily offline
+📊 Text analysis: Fully operational
+💻 Code assistance: Fully operational
+📝 Writing help: Fully operational
 
-• Ensuring the images are high resolution and clear
-• Checking that any text is not too small or blurry
-• Re-uploading with better lighting or contrast
+**What you can do:**
+• If your images contain text, you could try typing or copying the text content manually and I can help analyze it
+• For non-text visual content, you can describe what you see and I can provide guidance
+• All other AI features (math, coding, writing, general questions) are working normally
 
-Is there anything else I can help you with regarding these images?`;
+Thank you for your patience while we update our vision capabilities!`;
         } else {
-          aiAnalysis = `I've successfully processed your uploaded images, but I wasn't able to extract any readable text content from them.
+          aiAnalysis = `I apologize, but I'm currently unable to analyze images or perform OCR (text extraction) as our vision models are temporarily offline while being updated.
 
-This could be because:
-• The images don't contain text elements
-• The text is too small, blurry, or low contrast
-• The text is in a format that's difficult to recognize
+**Current Status:**
+🔧 Image analysis: Temporarily unavailable
+🔧 OCR/text extraction: Temporarily unavailable  
+✅ All other AI features: Fully operational
 
-If you have any questions about these images or need help with something specific, feel free to ask! I can still analyze visual content and answer questions about what I see in the images.`;
+**Alternative approaches:**
+• If your images contain text, you can type or copy the text content and I'll analyze it
+• For questions about visual content, you can describe what you see
+• All other capabilities (math, coding, writing, research) are working perfectly
+
+We're working to restore full image analysis capabilities soon. Thank you for your patience!`;
         }
       } else if (hasPDFs && !hasImages) {
         // Only PDFs were uploaded

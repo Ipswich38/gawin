@@ -72,13 +72,14 @@ const MODEL_CONFIG = {
     description: 'DeepSeek model for fallback',
     max_tokens: 4096,
     temperature: 0.7
-  },
-  vision: {
-    model: 'llama-3.2-11b-vision-preview',
-    description: 'Vision model for image analysis and OCR',
-    max_tokens: 4096,
-    temperature: 0.3
   }
+  // Note: Vision models temporarily disabled - Groq has deprecated their vision models
+  // vision: {
+  //   model: 'llama-3.2-90b-vision-preview', 
+  //   description: 'Vision model for image analysis and OCR',
+  //   max_tokens: 4096,
+  //   temperature: 0.3
+  // }
 };
 
 class GroqService {
@@ -123,7 +124,7 @@ class GroqService {
         case 'analysis': return 'analysis';
         case 'writing': return 'writing';
         case 'vision':
-        case 'ocr': return 'vision';
+        case 'ocr': return 'general'; // Fallback to general since vision is unavailable
         case 'deepseek': return 'deepseek';
         default: break;
       }
@@ -136,7 +137,7 @@ class GroqService {
     );
     
     if (hasImages) {
-      return 'vision';
+      return 'general'; // Vision unavailable, use general model
     }
 
     // Analyze message content
