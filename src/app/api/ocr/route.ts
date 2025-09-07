@@ -78,7 +78,8 @@ export async function POST(request: NextRequest) {
           // For now, we'll provide guidance on image analysis
           const visionResult = {
             success: false,
-            error: 'Vision analysis temporarily unavailable - Groq has deprecated their vision models'
+            error: 'Vision analysis temporarily unavailable - Groq has deprecated their vision models',
+            data: null as any
           };
 
           if (visionResult.success && visionResult.data) {
