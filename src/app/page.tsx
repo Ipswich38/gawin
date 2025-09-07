@@ -797,273 +797,129 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
           />
           
           {/* Side Panel */}
-          <div className="relative w-96 h-full bg-gradient-to-b from-white/95 to-white/90 backdrop-blur-xl border-r border-gray-200/50 shadow-2xl overflow-y-auto">
+          <div className="relative w-80 h-full bg-white/95 backdrop-blur-xl border-r border-gray-200/50 shadow-2xl overflow-y-auto">
             <div className="p-6">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
-                    <span className="text-white font-bold text-lg">G</span>
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-800">Gawin Menu</h2>
-                    <p className="text-xs text-gray-500">Dashboard & Settings</p>
-                  </div>
+              {/* Avatar + Name */}
+              <div className="flex items-center space-x-4 mb-8">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                  <span className="text-white font-bold text-lg">
+                    {(user.full_name || user.email).charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-gray-800 text-lg">{user.full_name || 'Gawin User'}</p>
                 </div>
                 <button
                   onClick={() => setShowSidePanel(false)}
-                  className="p-2 hover:bg-gray-200/70 rounded-full transition-all group"
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                 >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="group-hover:rotate-90 transition-transform">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-500">
                     <path d="M18 6L6 18M6 6l12 12"/>
                   </svg>
                 </button>
               </div>
 
-              {/* User Profile Card */}
-              <div className="bg-gradient-to-r from-blue-50/80 to-purple-50/80 p-5 rounded-2xl mb-6 border border-blue-100/50">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
-                    <span className="text-white font-bold text-lg">
-                      {(user.full_name || user.email).charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-gray-800 text-lg">{user.full_name || 'Gawin User'}</p>
-                    <p className="text-sm text-gray-600">{user.email}</p>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                      <span className="text-xs text-green-600 font-medium">Online</span>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Quick Stats */}
-                <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-white/50">
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-blue-600">{messages.length}</div>
-                    <div className="text-xs text-gray-500">Messages Today</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-purple-600">{onlineUsers}</div>
-                    <div className="text-xs text-gray-500">Online Learners</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Quick Actions */}
-              <div className="mb-6">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mr-2">
-                    <circle cx="12" cy="12" r="3"/>
-                    <path d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24"/>
-                  </svg>
-                  Quick Actions
-                </h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() => {
-                      setMessages([]);
-                      setInput('');
-                      setCurrentPrompt('');
-                      setIsLoading(false);
-                      setCognitiveProcess('');
-                      setShowSidePanel(false);
-                    }}
-                    className="p-3 bg-gradient-to-r from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 rounded-2xl transition-all border border-emerald-200/50 group"
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mx-auto mb-2 text-emerald-600 group-hover:scale-110 transition-transform">
-                      <path d="M12 5v14M5 12h14"/>
-                    </svg>
-                    <div className="text-xs font-medium text-emerald-700">New Chat</div>
-                  </button>
-                  
-                  <button
-                    onClick={() => {
-                      setShowCodeEditor(true);
-                      setShowSidePanel(false);
-                    }}
-                    className="p-3 bg-gradient-to-r from-purple-50 to-indigo-50 hover:from-purple-100 hover:to-indigo-100 rounded-2xl transition-all border border-purple-200/50 group"
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mx-auto mb-2 text-purple-600 group-hover:scale-110 transition-transform">
-                      <polyline points="16,18 22,12 16,6"/>
-                      <polyline points="8,6 2,12 8,18"/>
-                    </svg>
-                    <div className="text-xs font-medium text-purple-700">Coding Mentor</div>
-                  </button>
-                  
-                  <button
-                    onClick={() => {
-                      setShowQuizGenerator(true);
-                      setShowSidePanel(false);
-                    }}
-                    className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 rounded-2xl transition-all border border-green-200/50 group"
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mx-auto mb-2 text-green-600 group-hover:scale-110 transition-transform">
-                      <circle cx="12" cy="12" r="3"/>
-                      <path d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24"/>
-                    </svg>
-                    <div className="text-xs font-medium text-green-700">Take Quiz</div>
-                  </button>
-                  
-                  <button
-                    onClick={() => {
-                      setShowStudyCommons(true);
-                      setShowSidePanel(false);
-                    }}
-                    className="p-3 bg-gradient-to-r from-orange-50 to-yellow-50 hover:from-orange-100 hover:to-yellow-100 rounded-2xl transition-all border border-orange-200/50 group"
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mx-auto mb-2 text-orange-600 group-hover:scale-110 transition-transform">
-                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                      <circle cx="9" cy="7" r="4"/>
-                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                    </svg>
-                    <div className="text-xs font-medium text-orange-700">Study Commons</div>
-                  </button>
-                </div>
-              </div>
-
               {/* Navigation Menu */}
-              <div className="mb-6">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mr-2">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                    <polyline points="9,22 9,12 15,12 15,22"/>
-                  </svg>
-                  Navigation
-                </h3>
-                <div className="space-y-2">
-                  <button 
-                    onClick={() => setShowHistory(!showHistory)}
-                    className="w-full flex items-center space-x-3 p-3 hover:bg-blue-50 rounded-2xl transition-all text-left border border-transparent hover:border-blue-200"
-                  >
-                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-600">
-                        <path d="M3 3h18v18H3V3z"/>
-                        <path d="M8 7h8"/>
-                        <path d="M8 11h8"/>
-                        <path d="M8 15h5"/>
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-700">Chat History</div>
-                      <div className="text-xs text-gray-500">View previous conversations</div>
-                    </div>
-                  </button>
-                  
-                  <button 
-                    className="w-full flex items-center space-x-3 p-3 hover:bg-purple-50 rounded-2xl transition-all text-left border border-transparent hover:border-purple-200"
-                  >
-                    <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-purple-600">
-                        <circle cx="12" cy="12" r="3"/>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2 2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-700">Settings</div>
-                      <div className="text-xs text-gray-500">Preferences & configuration</div>
-                    </div>
-                  </button>
-                  
-                  <button 
-                    className="w-full flex items-center space-x-3 p-3 hover:bg-green-50 rounded-2xl transition-all text-left border border-transparent hover:border-green-200"
-                  >
-                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-600">
-                        <path d="M9 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-4"/>
-                        <polyline points="9,11 12,14 15,11"/>
-                        <path d="M12 2v12"/>
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-700">Export Data</div>
-                      <div className="text-xs text-gray-500">Download your conversations</div>
-                    </div>
-                  </button>
-                </div>
-              </div>
+              <nav className="space-y-2">
+                {/* Home */}
+                <button 
+                  onClick={() => {
+                    setMessages([]);
+                    setInput('');
+                    setCurrentPrompt('');
+                    setIsLoading(false);
+                    setCognitiveProcess('');
+                    setShowHistory(false);
+                    setShowStudyCommons(false);
+                    setShowSidePanel(false);
+                  }}
+                  className="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors text-left"
+                >
+                  <span className="text-lg">🏠</span>
+                  <span className="text-gray-700 font-medium">Home</span>
+                </button>
 
-              {/* Recent Activity */}
-              <div className="mb-6">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mr-2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <polyline points="12,6 12,12 16,14"/>
-                  </svg>
-                  Recent Activity
-                </h3>
-                <div className="space-y-2">
-                  {messages.slice(-3).map((message, index) => (
-                    <div key={index} className="p-3 bg-gray-50/80 rounded-lg border border-gray-200/50">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <div className={`w-2 h-2 rounded-full ${message.role === 'user' ? 'bg-blue-400' : 'bg-green-400'}`}></div>
-                        <span className="text-xs text-gray-500 capitalize">{message.role}</span>
-                        <span className="text-xs text-gray-400">•</span>
-                        <span className="text-xs text-gray-400">{message.timestamp}</span>
-                      </div>
-                      <div className="text-sm text-gray-700 truncate">{message.content.substring(0, 60)}...</div>
-                    </div>
-                  )).reverse()}
-                  {messages.length === 0 && (
-                    <div className="p-3 bg-gray-50/50 rounded-lg border border-gray-200/50 text-center">
-                      <div className="text-xs text-gray-500">No recent activity</div>
-                    </div>
-                  )}
-                </div>
-              </div>
+                {/* New Chat */}
+                <button 
+                  onClick={() => {
+                    setMessages([]);
+                    setInput('');
+                    setCurrentPrompt('');
+                    setIsLoading(false);
+                    setCognitiveProcess('');
+                    setShowSidePanel(false);
+                  }}
+                  className="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors text-left"
+                >
+                  <span className="text-lg">💬</span>
+                  <span className="text-gray-700 font-medium">New Chat</span>
+                </button>
 
-              {/* System Status */}
-              <div className="mb-6">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mr-2">
-                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-                  </svg>
-                  System Status
-                </h3>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between p-2 bg-green-50/80 rounded-lg">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                      <span className="text-sm text-gray-700">AI Services</span>
-                    </div>
-                    <span className="text-xs text-green-600 font-medium">Online</span>
-                  </div>
-                  <div className="flex items-center justify-between p-2 bg-blue-50/80 rounded-lg">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                      <span className="text-sm text-gray-700">Database</span>
-                    </div>
-                    <span className="text-xs text-blue-600 font-medium">Connected</span>
-                  </div>
-                  <div className="flex items-center justify-between p-2 bg-purple-50/80 rounded-lg">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                      <span className="text-sm text-gray-700">Study Commons</span>
-                    </div>
-                    <span className="text-xs text-purple-600 font-medium">{onlineUsers} Active</span>
-                  </div>
-                </div>
-              </div>
+                {/* My Chats */}
+                <button 
+                  onClick={() => {
+                    setShowHistory(!showHistory);
+                    setShowSidePanel(false);
+                  }}
+                  className="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors text-left"
+                >
+                  <span className="text-lg">📖</span>
+                  <span className="text-gray-700 font-medium">My Chats</span>
+                </button>
 
-              {/* Sign Out Button */}
-              <div className="border-t border-gray-200/60 pt-6">
+                {/* STEM Subjects */}
+                <button 
+                  onClick={() => {
+                    setShowStudyCommons(true);
+                    setShowSidePanel(false);
+                  }}
+                  className="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors text-left"
+                >
+                  <span className="text-lg">🔬</span>
+                  <span className="text-gray-700 font-medium">STEM Subjects</span>
+                </button>
+
+                {/* Divider */}
+                <div className="py-4">
+                  <div className="border-t border-gray-200"></div>
+                </div>
+
+                {/* Settings */}
+                <button className="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors text-left">
+                  <span className="text-lg">⚙️</span>
+                  <span className="text-gray-700 font-medium">Settings</span>
+                </button>
+
+                {/* Help & Support */}
+                <button className="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors text-left">
+                  <span className="text-lg">❓</span>
+                  <span className="text-gray-700 font-medium">Help & Support</span>
+                </button>
+
+                {/* About */}
+                <button className="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors text-left">
+                  <span className="text-lg">ℹ️</span>
+                  <span className="text-gray-700 font-medium">About</span>
+                </button>
+
+                {/* Privacy */}
+                <button className="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors text-left">
+                  <span className="text-lg">🔒</span>
+                  <span className="text-gray-700 font-medium">Privacy</span>
+                </button>
+
+                {/* Logout */}
                 <button 
                   onClick={() => {
                     onLogout();
                     setShowSidePanel(false);
                   }}
-                  className="w-full flex items-center justify-center space-x-3 p-4 bg-gradient-to-r from-red-50 to-pink-50 hover:from-red-100 hover:to-pink-100 text-red-600 rounded-2xl transition-all border border-red-200/50 group"
+                  className="w-full flex items-center space-x-3 p-3 hover:bg-red-50 rounded-lg transition-colors text-left text-red-600 hover:text-red-700"
                 >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="group-hover:translate-x-1 transition-transform">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                    <polyline points="16,17 21,12 16,7"/>
-                    <line x1="21" y1="12" x2="9" y2="12"/>
-                  </svg>
-                  <span className="font-semibold">Sign Out</span>
+                  <span className="text-lg">🚪</span>
+                  <span className="font-medium">Logout</span>
                 </button>
-              </div>
+              </nav>
             </div>
           </div>
         </div>
