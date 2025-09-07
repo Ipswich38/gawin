@@ -1236,9 +1236,9 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
           </>
         )}
 
-        {/* Fixed Footer with Chat Input */}
-        <footer className="p-4 border-t bg-[#021B1D]">
-          <div className="max-w-4xl mx-auto">
+        {/* Fixed Footer with Enhanced Chat Input */}
+        <footer className="p-4 bg-[#021B1D]">
+          <div className="max-w-2xl mx-auto">
             {/* File Previews */}
             {uploadedFiles.length > 0 && (
               <div className="mb-4 p-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl">
@@ -1271,101 +1271,97 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="relative">
-              {/* Floating Spaces Icon - positioned above chat box */}
-              <div className="flex justify-end mb-4">
-                <button
-                  onClick={() => setShowSpacesDropdown(!showSpacesDropdown)}
-                  className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg shadow-md backdrop-blur-sm"
-                  style={{ 
-                    boxShadow: '0 8px 25px rgba(251, 146, 60, 0.3), 0 3px 10px rgba(0, 0, 0, 0.2)' 
-                  }}
-                >
-                  <div className="text-white text-lg">
-                    <div className="spaces-icon-animation">
-                      <span className="spaces-icon">💬</span>
-                      <span className="spaces-icon">&lt;/&gt;</span>
-                      <span className="spaces-icon">🐝</span>
-                    </div>
-                  </div>
-                </button>
-
-                {/* Dropdown Menu (positioned upward) */}
-                {showSpacesDropdown && (
-                  <div className="absolute bottom-full mb-2 right-0 w-72 max-w-[calc(100vw-2rem)] rounded-3xl shadow-xl border border-gray-400/50 overflow-hidden z-50" style={{ backgroundColor: '#435b67' }}>
-                    {/* Study Commons */}
-                    <button
-                      onClick={() => {
-                        setShowStudyCommons(!showStudyCommons);
-                        setShowSpacesDropdown(false);
-                      }}
-                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-500 transition-colors text-left border-b border-gray-400/30"
-                    >
-                      <div className="w-10 h-10 bg-orange-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-orange-600">
-                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                          <circle cx="9" cy="7" r="4"/>
-                          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                        </svg>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-white">Study Commons</div>
-                        <div className="text-xs text-gray-300">{onlineUsers} learners online</div>
-                      </div>
-                    </button>
-
-                    {/* Coding Mentor */}
-                    <button
-                      onClick={() => {
-                        setShowCodeEditor(true);
-                        setShowSpacesDropdown(false);
-                      }}
-                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-500 transition-colors text-left border-b border-gray-400/30"
-                    >
-                      <div className="w-10 h-10 bg-purple-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-purple-600">
-                          <polyline points="16 18 22 12 16 6"/>
-                          <polyline points="8 6 2 12 8 18"/>
-                        </svg>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-white">Coding Mentor</div>
-                        <div className="text-xs text-gray-300">AI-powered coding tutor</div>
-                      </div>
-                    </button>
-
-                    {/* Quiz Generator */}
-                    <button
-                      onClick={() => {
-                        setShowQuizGenerator(true);
-                        setShowSpacesDropdown(false);
-                      }}
-                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-500 transition-colors text-left"
-                    >
-                      <div className="w-10 h-10 bg-green-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-600">
-                          <circle cx="12" cy="12" r="10"/>
-                          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-                          <path d="M12 17h.01"/>
-                        </svg>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-white">Quiz Generator</div>
-                        <div className="text-xs text-gray-300">STEM practice tests</div>
-                      </div>
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* ChatBox Container */}
-              <div 
-                className={`flex items-center gap-2 rounded-2xl border border-orange-200 p-2 ${isDragOver ? 'ring-2 ring-emerald-400 ring-opacity-50' : ''}`}
+            {/* Floating Spaces Icon - positioned above chat box */}
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={() => setShowSpacesDropdown(!showSpacesDropdown)}
+                className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg shadow-md backdrop-blur-sm"
                 style={{ 
-                  backgroundColor: '#051a1c',
-                  borderColor: isDragOver ? '#10b981' : 'rgba(255, 146, 60, 0.3)'
+                  boxShadow: '0 8px 25px rgba(251, 146, 60, 0.3), 0 3px 10px rgba(0, 0, 0, 0.2)' 
                 }}
+              >
+                <div className="text-white text-lg">
+                  <div className="spaces-icon-animation">
+                    <span className="spaces-icon">💬</span>
+                    <span className="spaces-icon">&lt;/&gt;</span>
+                    <span className="spaces-icon">🐝</span>
+                  </div>
+                </div>
+              </button>
+
+              {/* Dropdown Menu (positioned upward) */}
+              {showSpacesDropdown && (
+                <div className="absolute bottom-full mb-2 right-0 w-72 max-w-[calc(100vw-2rem)] rounded-3xl shadow-xl border border-gray-400/50 overflow-hidden z-50" style={{ backgroundColor: '#435b67' }}>
+                  {/* Study Commons */}
+                  <button
+                    onClick={() => {
+                      setShowStudyCommons(!showStudyCommons);
+                      setShowSpacesDropdown(false);
+                    }}
+                    className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-500 transition-colors text-left border-b border-gray-400/30"
+                  >
+                    <div className="w-10 h-10 bg-orange-100 rounded-2xl flex items-center justify-center flex-shrink-0">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-orange-600">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-white">Study Commons</div>
+                      <div className="text-xs text-gray-300">{onlineUsers} learners online</div>
+                    </div>
+                  </button>
+
+                  {/* Coding Mentor */}
+                  <button
+                    onClick={() => {
+                      setShowCodeEditor(true);
+                      setShowSpacesDropdown(false);
+                    }}
+                    className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-500 transition-colors text-left border-b border-gray-400/30"
+                  >
+                    <div className="w-10 h-10 bg-purple-100 rounded-2xl flex items-center justify-center flex-shrink-0">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-purple-600">
+                        <polyline points="16 18 22 12 16 6"/>
+                        <polyline points="8 6 2 12 8 18"/>
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-white">Coding Mentor</div>
+                      <div className="text-xs text-gray-300">AI-powered coding tutor</div>
+                    </div>
+                  </button>
+
+                  {/* Quiz Generator */}
+                  <button
+                    onClick={() => {
+                      setShowQuizGenerator(true);
+                      setShowSpacesDropdown(false);
+                    }}
+                    className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-500 transition-colors text-left"
+                  >
+                    <div className="w-10 h-10 bg-green-100 rounded-2xl flex items-center justify-center flex-shrink-0">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-600">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                        <path d="M12 17h.01"/>
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-white">Quiz Generator</div>
+                      <div className="text-xs text-gray-300">STEM practice tests</div>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Enhanced ChatBox Container */}
+            <form onSubmit={handleSubmit} className="relative">
+              <div 
+                className={`flex items-center w-full rounded-full bg-[#021B1D] shadow-md border border-white/10 px-4 py-4 ${isDragOver ? 'ring-2 ring-emerald-400 ring-opacity-50' : ''}`}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
@@ -1374,7 +1370,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                 <button
                   type="button"
                   onClick={() => setShowUploadDropdown(!showUploadDropdown)}
-                  className={`flex-shrink-0 text-orange-500 hover:opacity-80 text-2xl relative ${
+                  className={`text-orange-500 hover:bg-orange-500/10 transition-colors rounded-full p-2 relative ${
                     uploadedFiles.length > 0 ? 'text-emerald-400' : ''
                   }`}
                   title="File upload"
@@ -1408,7 +1404,8 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                 </button>
 
                 {/* Input Field */}
-                <textarea
+                <input
+                  type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onPaste={handlePaste}
@@ -1424,15 +1421,14 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                     ? "Ask questions about your files..." 
                     : "Ask me anything..."
                   }
-                  className="flex-1 bg-transparent border-0 focus:ring-0 text-white placeholder-gray-400 text-lg resize-none min-h-[50px] max-h-[200px] py-3 px-2 focus:outline-none"
-                  rows={1}
+                  className="flex-1 bg-transparent border-0 focus:ring-0 focus:outline-none text-white placeholder-gray-400 text-lg px-3"
                 />
 
                 {/* Send Button */}
                 <button
                   type="submit"
                   disabled={(!input.trim() && uploadedFiles.length === 0) || isLoading || isProcessingFiles}
-                  className="flex-shrink-0 rounded-full bg-cyan-400 hover:bg-cyan-500 text-black p-2 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="ml-2 rounded-full bg-cyan-400 hover:bg-cyan-500 text-black p-3 shadow-md transition-transform active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {isLoading || isProcessingFiles ? (
                     <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
