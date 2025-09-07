@@ -1269,9 +1269,8 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
             )}
 
             <form onSubmit={handleSubmit} className="relative">
-              {/* Floating Spaces Icon - positioned above and aligned with send button */}
-              <div className="absolute -top-16 right-4 z-50 sm:right-8 md:right-12 lg:right-4" data-spaces-dropdown
-                   style={{ right: 'max(1rem, calc((100vw - min(100vw - 2rem, 56rem)) / 2 + 0.75rem))' }}>
+              {/* Floating Spaces Icon - positioned above chat box */}
+              <div className="flex justify-end mb-4">
                 <button
                   onClick={() => setShowSpacesDropdown(!showSpacesDropdown)}
                   className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg shadow-md backdrop-blur-sm"
@@ -1357,38 +1356,42 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                 )}
               </div>
 
+              {/* ChatBox Container - Inspired by the UI example */}
               <div 
-                className={`relative ${isDragOver ? 'ring-2 ring-emerald-400 ring-opacity-50' : ''}`}
+                className={`w-full max-w-4xl mx-auto flex items-center gap-2 rounded-2xl border p-2 ${isDragOver ? 'ring-2 ring-emerald-400 ring-opacity-50' : ''}`}
+                style={{ 
+                  backgroundColor: '#051a1c',
+                  borderColor: isDragOver ? '#10b981' : 'rgba(255, 146, 60, 0.3)'
+                }}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
               >
-                {/* File Upload Button - positioned at bottom left corner of textarea */}
-                <div className="absolute bottom-4 left-4 z-10 sm:left-8 md:left-12 lg:left-4" style={{ left: 'max(1rem, calc((100vw - min(100vw - 2rem, 56rem)) / 2 + 0.75rem))' }}>
-                  <button
-                    type="button"
-                    onClick={() => setShowUploadDropdown(!showUploadDropdown)}
-                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all z-10 ${
-                      uploadedFiles.length > 0 
-                        ? 'text-emerald-400' 
-                        : 'text-orange-500 hover:text-orange-600'
-                    }`}
-                    title="File upload"
-                  >
-                    {uploadedFiles.length > 0 ? (
-                      <span className="text-xs font-bold">{uploadedFiles.length}</span>
-                    ) : (
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <path d="M12 5v14M5 12h14"/>
-                      </svg>
-                    )}
-                  </button>
+                {/* File Upload Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowUploadDropdown(!showUploadDropdown)}
+                  className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all relative ${
+                    uploadedFiles.length > 0 
+                      ? 'text-emerald-400 hover:bg-emerald-100/10' 
+                      : 'text-orange-500 hover:bg-orange-100/10'
+                  }`}
+                  title="File upload"
+                >
+                  {uploadedFiles.length > 0 ? (
+                    <span className="text-sm font-bold">{uploadedFiles.length}</span>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66L9.42 16.4a2 2 0 0 1-2.83-2.83l8.49-8.49"/>
+                    </svg>
+                  )}
 
                   {/* Upload Options Dropdown */}
                   {showUploadDropdown && (
                     <div className="absolute bottom-full mb-2 left-0 w-32 bg-white rounded-2xl shadow-xl border border-gray-200/50 overflow-hidden z-50">
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           handleFileClick();
                           setShowUploadDropdown(false);
                         }}
@@ -1403,9 +1406,9 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                       </button>
                     </div>
                   )}
-                </div>
+                </button>
 
-                {/* Enhanced Input Field */}
+                {/* Input Field */}
                 <textarea
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
@@ -1420,27 +1423,18 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                     ? "Drop files here..." 
                     : uploadedFiles.length > 0 
                     ? "Ask questions about your files..." 
-                    : ""
+                    : "Ask me anything..."
                   }
-                  className={`w-full max-w-4xl mx-auto block px-16 py-5 text-white placeholder-white/70 transition-all resize-none text-lg focus:outline-none focus:ring-2 focus:ring-white/40 shadow-2xl backdrop-blur-md hover:shadow-3xl min-h-[120px] max-h-[400px] sm:mx-4 md:mx-8 lg:mx-auto ${
-                    isDragOver ? 'border-emerald-400 border-2' : ''
-                  }`}
-                  style={{ 
-                    backgroundColor: isDragOver ? 'rgba(5, 26, 28, 0.95)' : '#051a1c',
-                    borderRadius: '32px',
-                    border: isDragOver ? '2px dashed #10b981' : '1px solid rgba(255,255,255,0.2)',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.1)'
-                  }}
+                  className="flex-1 bg-transparent border-0 focus:ring-0 text-white placeholder-gray-400 text-lg resize-none min-h-[60px] max-h-[300px] py-4 px-2 focus:outline-none"
                   rows={1}
                 />
 
-                {/* Send Button - positioned inside the textarea */}
+                {/* Send Button */}
                 <button
                   type="submit"
                   disabled={(!input.trim() && uploadedFiles.length === 0) || isLoading || isProcessingFiles}
-                  className="absolute top-1/2 right-4 -translate-y-1/2 w-10 h-10 backdrop-blur-sm text-black rounded-full flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105 transition-all shadow-lg sm:right-8 md:right-12 lg:right-4"
+                  className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all text-black disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105 shadow-lg"
                   style={{
-                    right: 'max(1rem, calc((100vw - min(100vw - 2rem, 56rem)) / 2 + 0.75rem))',
                     backgroundColor: ((input.trim() || uploadedFiles.length > 0) && !isLoading && !isProcessingFiles) 
                       ? '#00FFEF' 
                       : 'rgba(255,255,255,0.9)'
@@ -1449,7 +1443,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                   {isLoading || isProcessingFiles ? (
                     <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
                   ) : (
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="m22 2-7 20-4-9-9-4Z"/>
                       <path d="M22 2 11 13"/>
                     </svg>
