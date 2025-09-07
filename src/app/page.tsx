@@ -1237,7 +1237,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
         )}
 
         {/* Fixed Footer with Chat Input */}
-        <footer className="p-4 border-t bg-[#021B1D]">
+        <footer className="p-4 border-t" style={{ backgroundColor: '#fffbd4' }}>
           <div className="max-w-4xl mx-auto">
             {/* File Previews */}
             {uploadedFiles.length > 0 && (
@@ -1424,8 +1424,8 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                     ? "Ask questions about your files..." 
                     : "Ask me anything..."
                   }
-                  className="flex-1 bg-transparent border-0 focus:ring-0 text-white placeholder-gray-400 text-lg resize-none min-h-[50px] max-h-[200px] py-3 px-2 focus:outline-none"
-                  rows={1}
+                  className="flex-1 bg-transparent border-0 focus:ring-0 text-white placeholder-gray-400 text-lg resize-none min-h-[90px] max-h-[200px] py-3 px-2 focus:outline-none"
+                  rows={3}
                 />
 
                 {/* Send Button */}
