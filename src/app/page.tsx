@@ -1355,10 +1355,10 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
 
               {/* ChatBox Container */}
               <div 
-                className={`flex items-center gap-2 rounded-full border border-gray-200 p-3 ${isDragOver ? 'ring-2 ring-emerald-400 ring-opacity-50' : ''}`}
+                className={`flex items-center gap-2 rounded-full border-0 p-3 ${isDragOver ? 'ring-2 ring-emerald-400 ring-opacity-50' : ''}`}
                 style={{ 
-                  backgroundColor: 'white',
-                  borderColor: isDragOver ? '#10b981' : '#e5e7eb'
+                  backgroundColor: '#374151',
+                  boxShadow: 'inset 2px 2px 5px rgba(0, 0, 0, 0.3), inset -2px -2px 5px rgba(255, 255, 255, 0.1), 0 4px 15px rgba(0, 0, 0, 0.1)'
                 }}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -1418,7 +1418,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                     ? "Ask questions about your files..." 
                     : "Ask me anything..."
                   }
-                  className="flex-1 bg-transparent border-0 focus:ring-0 text-gray-800 placeholder-gray-500 text-lg resize-none min-h-[90px] max-h-[200px] py-3 px-2 focus:outline-none"
+                  className="flex-1 bg-transparent border-0 focus:ring-0 text-white placeholder-gray-300 text-lg resize-none min-h-[90px] max-h-[200px] py-3 px-2 focus:outline-none"
                   rows={3}
                 />
 
@@ -1426,12 +1426,15 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                 <button
                   type="submit"
                   disabled={(!input.trim() && uploadedFiles.length === 0) || isLoading || isProcessingFiles}
-                  className="flex-shrink-0 rounded-full bg-cyan-400 hover:bg-cyan-500 text-black p-2 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="flex-shrink-0 w-10 h-10 rounded-full bg-cyan-400 hover:bg-cyan-500 text-black flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                 >
                   {isLoading || isProcessingFiles ? (
                     <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
                   ) : (
-                    <span className="text-lg">✈️</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M22 2L11 13"/>
+                      <path d="M22 2l-7 20-4-9-9-4 20-7z"/>
+                    </svg>
                   )}
                 </button>
               </div>
