@@ -1407,8 +1407,9 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
           </>
         )}
 
-        {/* Fixed Footer with Chat Input */}
-        <footer className="p-4 border-t" style={{ backgroundColor: '#fffbeb' }}>
+        {/* Fixed Footer with Chat Input - Only show when not on landing page */}
+        {messages.length > 0 && (
+          <footer className="p-4 border-t" style={{ backgroundColor: '#fffbeb' }}>
           <div className="max-w-4xl mx-auto">
             {/* File Previews */}
             {uploadedFiles.length > 0 && (
@@ -1552,6 +1553,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
             )}
           </div>
         </footer>
+        )}
       </div>
     </div>
   );
