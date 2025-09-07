@@ -1418,7 +1418,8 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                     ? "Ask questions about your files..." 
                     : "Ask me anything..."
                   }
-                  className="flex-1 bg-transparent border-0 focus:ring-0 text-white placeholder-gray-300 text-lg resize-none min-h-[90px] max-h-[200px] py-3 px-2 focus:outline-none"
+                  className="flex-1 bg-transparent border-none focus:ring-0 focus:border-none text-white placeholder-gray-300 text-lg resize-none min-h-[90px] max-h-[200px] py-3 px-2 focus:outline-none"
+                  style={{ border: 'none', outline: 'none' }}
                   rows={3}
                 />
 
