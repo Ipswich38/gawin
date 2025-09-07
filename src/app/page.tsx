@@ -1283,7 +1283,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
             <form onSubmit={handleSubmit} className="relative">
               {/* Floating Spaces Icon - positioned above and aligned with send button */}
               <div className="absolute -top-16 right-4 z-50 sm:right-8 md:right-12 lg:right-4" data-spaces-dropdown
-                   style={{ right: 'max(1rem, calc((100vw - min(100vw - 2rem, 56rem)) / 2 + 1rem))' }}>
+                   style={{ right: 'max(1rem, calc((100vw - min(100vw - 2rem, 56rem)) / 2 + 0.75rem))' }}>
                 <button
                   onClick={() => setShowSpacesDropdown(!showSpacesDropdown)}
                   className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg shadow-md backdrop-blur-sm"
@@ -1376,7 +1376,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                 onDrop={handleDrop}
               >
                 {/* File Upload Button - positioned at bottom left corner of textarea */}
-                <div className="absolute bottom-4 left-4 z-10 sm:left-8 md:left-12 lg:left-4" style={{ left: 'max(1rem, calc((100vw - min(100vw - 2rem, 56rem)) / 2 + 1rem))' }}>
+                <div className="absolute bottom-4 left-4 z-10 sm:left-8 md:left-12 lg:left-4" style={{ left: 'max(1rem, calc((100vw - min(100vw - 2rem, 56rem)) / 2 + 0.75rem))' }}>
                   <button
                     type="button"
                     onClick={() => setShowUploadDropdown(!showUploadDropdown)}
@@ -1452,7 +1452,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                   disabled={(!input.trim() && uploadedFiles.length === 0) || isLoading || isProcessingFiles}
                   className="absolute top-1/2 right-4 -translate-y-1/2 w-10 h-10 backdrop-blur-sm text-black rounded-full flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105 transition-all shadow-lg sm:right-8 md:right-12 lg:right-4"
                   style={{
-                    right: 'max(1rem, calc((100vw - min(100vw - 2rem, 56rem)) / 2 + 1rem))',
+                    right: 'max(1rem, calc((100vw - min(100vw - 2rem, 56rem)) / 2 + 0.75rem))',
                     backgroundColor: ((input.trim() || uploadedFiles.length > 0) && !isLoading && !isProcessingFiles) 
                       ? '#00FFEF' 
                       : 'rgba(255,255,255,0.9)'
