@@ -1211,7 +1211,8 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
             </div>
 
             {/* Center Chat Input (Logged-in Landing Page) */}
-            <div className="max-w-4xl mx-auto mb-8">
+            <div className="w-full px-6">
+              <div className="max-w-4xl mx-auto mb-8">
               <form onSubmit={handleSubmit} className="relative">
                 <div 
                   className={`flex items-center gap-3 rounded-full border-0 p-4 hover:scale-[1.02] transition-all ${isDragOver ? 'ring-2 ring-emerald-400 ring-opacity-50' : ''}`}
@@ -1299,6 +1300,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                   </button>
                 </div>
               </form>
+              </div>
             </div>
 
             {/* Tool Chips - Moved Below Capsule */}
@@ -1829,9 +1831,9 @@ export default function Home() {
       </header>
 
       {/* Hero Section with Dynamic Bento Box */}
-      <main className="max-w-4xl mx-auto px-6 py-16">
+      <main className="w-full px-6 py-16">
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="max-w-4xl mx-auto text-center mb-12">
           <h1 className="text-5xl md:text-6xl font-normal mb-4 tracking-tight" style={{ color: '#051a1c' }}>
             <span 
               className="inline-block" 
@@ -1848,7 +1850,8 @@ export default function Home() {
         </div>
 
         {/* Center Chat Input (Landing Page) */}
-        <div className="max-w-4xl mx-auto mb-8">
+        <div className="w-full px-6">
+          <div className="max-w-4xl mx-auto mb-8">
           <div 
             className="flex items-center gap-3 rounded-full border-0 p-4 cursor-pointer hover:scale-[1.02] transition-all"
             style={{ 
@@ -1866,6 +1869,7 @@ export default function Home() {
                 <path d="M22 2l-7 20-4-9-9-4 20-7z"/>
               </svg>
             </div>
+          </div>
           </div>
         </div>
 
