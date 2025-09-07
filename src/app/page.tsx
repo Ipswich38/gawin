@@ -1848,7 +1848,7 @@ export default function Home() {
         </div>
 
         {/* Center Chat Input (Landing Page) */}
-        <div className="max-w-2xl mx-auto mb-8">
+        <div className="max-w-4xl mx-auto mb-8">
           <div 
             className="flex items-center gap-3 rounded-full border-0 p-4 cursor-pointer hover:scale-[1.02] transition-all"
             style={{ 
