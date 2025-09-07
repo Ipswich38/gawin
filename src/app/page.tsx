@@ -1211,7 +1211,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
             </div>
 
             {/* Center Chat Input (Logged-in Landing Page) */}
-            <div className="max-w-2xl mx-auto mb-8">
+            <div className="max-w-4xl mx-auto mb-8">
               <form onSubmit={handleSubmit} className="relative">
                 <div 
                   className={`flex items-center gap-3 rounded-full border-0 p-4 hover:scale-[1.02] transition-all ${isDragOver ? 'ring-2 ring-emerald-400 ring-opacity-50' : ''}`}
