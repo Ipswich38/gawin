@@ -1282,8 +1282,8 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
 
             <form onSubmit={handleSubmit} className="relative">
               {/* Floating Spaces Icon - positioned above and aligned with send button */}
-              <div className="absolute -top-16 right-0 z-50" data-spaces-dropdown
-                   style={{ marginRight: 'calc(12.5% + 12px)' }}>
+              <div className="absolute -top-16 right-4 z-50 sm:right-8 md:right-12 lg:right-4" data-spaces-dropdown
+                   style={{ right: 'max(1rem, calc((100vw - min(100vw - 2rem, 56rem)) / 2 + 1rem))' }}>
                 <button
                   onClick={() => setShowSpacesDropdown(!showSpacesDropdown)}
                   className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg shadow-md backdrop-blur-sm"
@@ -1376,7 +1376,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                 onDrop={handleDrop}
               >
                 {/* File Upload Button - positioned at bottom left corner of textarea */}
-                <div className="absolute bottom-4 z-10" style={{ left: 'calc(12.5% + 16px)' }}>
+                <div className="absolute bottom-4 left-4 z-10 sm:left-8 md:left-12 lg:left-4" style={{ left: 'max(1rem, calc((100vw - min(100vw - 2rem, 56rem)) / 2 + 1rem))' }}>
                   <button
                     type="button"
                     onClick={() => setShowUploadDropdown(!showUploadDropdown)}
@@ -1434,7 +1434,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                     ? "Ask questions about your files..." 
                     : ""
                   }
-                  className={`w-3/4 mx-auto block pl-16 pr-16 py-5 text-white placeholder-white/70 transition-all resize-none text-lg focus:outline-none focus:ring-2 focus:ring-white/40 shadow-2xl backdrop-blur-md hover:shadow-3xl min-h-[120px] max-h-[400px] ${
+                  className={`w-full max-w-4xl mx-auto block px-16 py-5 text-white placeholder-white/70 transition-all resize-none text-lg focus:outline-none focus:ring-2 focus:ring-white/40 shadow-2xl backdrop-blur-md hover:shadow-3xl min-h-[120px] max-h-[400px] sm:mx-4 md:mx-8 lg:mx-auto ${
                     isDragOver ? 'border-emerald-400 border-2' : ''
                   }`}
                   style={{ 
@@ -1450,9 +1450,9 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                 <button
                   type="submit"
                   disabled={(!input.trim() && uploadedFiles.length === 0) || isLoading || isProcessingFiles}
-                  className="absolute top-1/2 right-0 -translate-y-1/2 w-10 h-10 backdrop-blur-sm text-black rounded-full flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105 transition-all shadow-lg"
+                  className="absolute top-1/2 right-4 -translate-y-1/2 w-10 h-10 backdrop-blur-sm text-black rounded-full flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105 transition-all shadow-lg sm:right-8 md:right-12 lg:right-4"
                   style={{
-                    marginRight: 'calc(12.5% + 12px)',
+                    right: 'max(1rem, calc((100vw - min(100vw - 2rem, 56rem)) / 2 + 1rem))',
                     backgroundColor: ((input.trim() || uploadedFiles.length > 0) && !isLoading && !isProcessingFiles) 
                       ? '#00FFEF' 
                       : 'rgba(255,255,255,0.9)'
