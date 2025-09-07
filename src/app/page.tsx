@@ -1210,7 +1210,98 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
               </p>
             </div>
 
-            {/* Tool Chips - Enhanced with Model Indicators */}
+            {/* Center Chat Input (Logged-in Landing Page) */}
+            <div className="max-w-2xl mx-auto mb-8">
+              <form onSubmit={handleSubmit} className="relative">
+                <div 
+                  className={`flex items-center gap-3 rounded-full border-0 p-4 hover:scale-[1.02] transition-all ${isDragOver ? 'ring-2 ring-emerald-400 ring-opacity-50' : ''}`}
+                  style={{ 
+                    backgroundColor: '#374151',
+                    boxShadow: 'inset 2px 2px 5px rgba(0, 0, 0, 0.3), inset -2px -2px 5px rgba(255, 255, 255, 0.1), 0 8px 25px rgba(0, 0, 0, 0.15)'
+                  }}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                >
+                  {/* File Upload Button */}
+                  <button
+                    type="button"
+                    onClick={() => setShowUploadDropdown(!showUploadDropdown)}
+                    className={`flex-shrink-0 text-orange-500 hover:opacity-80 text-xl relative ${
+                      uploadedFiles.length > 0 ? 'text-emerald-500' : ''
+                    }`}
+                    title="File upload"
+                  >
+                    {uploadedFiles.length > 0 ? (
+                      <span className="text-sm font-bold">{uploadedFiles.length}</span>
+                    ) : (
+                      '+'
+                    )}
+
+                    {/* Upload Options Dropdown */}
+                    {showUploadDropdown && (
+                      <div className="absolute bottom-full mb-2 left-0 w-32 bg-white rounded-2xl shadow-xl border border-gray-200/50 overflow-hidden z-50">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleFileClick();
+                            setShowUploadDropdown(false);
+                          }}
+                          className="w-full flex items-center space-x-2 px-3 py-2 hover:bg-gray-50 transition-colors text-left text-sm text-gray-700"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7,10 12,15 17,10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                          </svg>
+                          <span>File upload</span>
+                        </button>
+                      </div>
+                    )}
+                  </button>
+
+                  {/* Input Field */}
+                  <input
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onPaste={handlePaste}
+                    placeholder={isDragOver 
+                      ? "Drop files here..." 
+                      : uploadedFiles.length > 0 
+                      ? "Ask questions about your files..." 
+                      : "Ask me anything..."
+                    }
+                    className="flex-1 bg-transparent border-none focus:ring-0 focus:border-none text-white placeholder-gray-300 text-lg py-2 px-3 focus:outline-none"
+                    style={{ border: 'none', outline: 'none' }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleSubmit(e as any);
+                      }
+                    }}
+                  />
+
+                  {/* Send Button */}
+                  <button
+                    type="submit"
+                    disabled={(!input.trim() && uploadedFiles.length === 0) || isLoading || isProcessingFiles}
+                    className="flex-shrink-0 w-10 h-10 rounded-full bg-cyan-400 hover:bg-cyan-500 text-black flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  >
+                    {isLoading || isProcessingFiles ? (
+                      <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
+                    ) : (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M22 2L11 13"/>
+                        <path d="M22 2l-7 20-4-9-9-4 20-7z"/>
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* Tool Chips - Moved Below Capsule */}
             <div className="flex flex-wrap justify-center gap-2 mb-8">
               <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-blue-100/70 to-blue-200/70 backdrop-blur-md rounded-full hover:from-blue-200/80 hover:to-blue-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-blue-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Help me with STEM subjects - science, technology, engineering, and math")}>
                 🔬 All About STEM
