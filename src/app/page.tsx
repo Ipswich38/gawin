@@ -1126,38 +1126,26 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
               Hello! I'm <span className="font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">Gawin AI</span>
             </h1>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-              Your intelligent AI companion for learning. Ask me anything, or join our community to learn with fellow students!
+              The future of learning is now with Gawin
             </p>
           </div>
 
           {/* Tool Chips - Enhanced with Model Indicators */}
           <div className="flex flex-wrap justify-center gap-2 mb-8">
-            <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-full hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Explain artificial intelligence concepts")}>
-              🤖 AI Concepts
+            <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-blue-100/70 to-blue-200/70 backdrop-blur-md rounded-full hover:from-blue-200/80 hover:to-blue-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-blue-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Help me with STEM subjects - science, technology, engineering, and math")}>
+              🔬 All About STEM
             </span>
-            <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-purple-100/70 to-purple-200/70 backdrop-blur-md rounded-full hover:from-purple-200/80 hover:to-purple-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-purple-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Help me write Python code")}>
-              💻 Coding Help
+            <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-purple-100/70 to-purple-200/70 backdrop-blur-md rounded-full hover:from-purple-200/80 hover:to-purple-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-purple-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Research this topic for me and provide comprehensive information")}>
+              📚 Research
             </span>
-            <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-blue-100/70 to-blue-200/70 backdrop-blur-md rounded-full hover:from-blue-200/80 hover:to-blue-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-blue-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Solve this calculus problem")}>
-              🔢 Math Problems
-            </span>
-            <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-green-100/70 to-green-200/70 backdrop-blur-md rounded-full hover:from-green-200/80 hover:to-green-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-green-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Write a creative story")}>
-              🎨 Creative Writing
-            </span>
-            <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-green-100/70 to-green-200/70 backdrop-blur-md rounded-full hover:from-green-200/80 hover:to-green-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-green-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Check my grammar and improve this essay")}>
-              📝 Grammar & Writing
-            </span>
-            <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-full hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Translate text to another language")}>
-              🌍 Translation
-            </span>
-            <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-blue-100/70 to-blue-200/70 backdrop-blur-md rounded-full hover:from-blue-200/80 hover:to-blue-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-blue-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Explain quantum physics concepts")}>
-              🔬 Science
+            <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-orange-100/70 to-orange-200/70 backdrop-blur-md rounded-full hover:from-orange-200/80 hover:to-orange-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-orange-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setShowStudyCommons(true)}>
+              💬 Chat with Peers
             </span>
             <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-pink-100/70 to-pink-200/70 backdrop-blur-md rounded-full hover:from-pink-200/80 hover:to-pink-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-pink-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Draw a beautiful sunset over mountains")}>
-              🎨 Image Generation
+              🎨 Create Images
             </span>
-            <span className="inline-flex items-center px-3 py-2 text-xs bg-white/50 backdrop-blur-md rounded-full hover:bg-white/70 hover:scale-105 transition-all cursor-pointer shadow-md border border-white/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setInput("Help me learn a new topic")}>
-              📚 Learning
+            <span className="inline-flex items-center px-3 py-2 text-xs bg-gradient-to-r from-green-100/70 to-green-200/70 backdrop-blur-md rounded-full hover:from-green-200/80 hover:to-green-300/80 hover:scale-105 transition-all cursor-pointer shadow-md border border-green-300/40 hover:shadow-lg" style={{ color: '#051a1c' }} onClick={() => setShowQuizGenerator(true)}>
+              🎯 Quiz Generator
             </span>
           </div>
 
