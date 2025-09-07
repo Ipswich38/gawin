@@ -1116,11 +1116,11 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
         />
       )}
 
-      {/* Main Chat Area with Proper Layout */}
-      <div className="flex flex-col h-screen">
+      {/* Main Chat Area - Reverted to Original Design with Fixed Alignment */}
+      <main className="flex-1 flex flex-col max-w-5xl mx-auto w-full px-6">
         {messages.length === 0 ? (
           /* Welcome Section */
-          <main className="flex-1 flex flex-col justify-center py-16 px-6">
+          <div className="flex-1 flex flex-col justify-center py-16">
             <div className="text-center mb-12">
               <h1 className="text-4xl font-normal mb-3" style={{ color: '#051a1c' }}>
                 Hello! I'm <span className="font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">Gawin AI</span>
@@ -1160,84 +1160,80 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                 )}
               </p>
             </div>
-          </main>
+          </div>
         ) : (
-          /* Chat Layout with Fixed Header/Footer */
-          <>
-            {/* Chat Messages Area - Scrollable */}
-            <main className="flex-1 overflow-y-auto p-4 bg-neutral-100 dark:bg-neutral-900">
-              <div className="max-w-4xl mx-auto space-y-4">
-                {messages.map((message) => (
+          /* Chat Messages - Fixed Alignment */
+          <div className="flex-1 flex flex-col py-8">
+            <div className="flex-1 overflow-y-auto space-y-4 mb-8">
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
                   <div
-                    key={message.id}
-                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    className={`max-w-2xl px-6 py-4 rounded-3xl relative ${
+                      message.role === 'user'
+                        ? 'bg-[#051a1c] text-white shadow-xl'
+                        : 'bg-white/60 backdrop-blur-md text-[#051a1c] border border-white/40 shadow-lg'
+                    }`}
                   >
-                    <div
-                      className={`max-w-2xl px-6 py-4 rounded-3xl relative ${
-                        message.role === 'user'
-                          ? 'bg-[#051a1c] text-white shadow-xl'
-                          : 'bg-white dark:bg-neutral-800 text-[#051a1c] dark:text-white shadow-lg'
-                      }`}
-                    >
-                      <div className="text-base leading-relaxed">
-                        {message.role === 'user' ? (
-                          <p className="whitespace-pre-wrap">{message.content}</p>
-                        ) : (
-                          <MessageRenderer text={message.content} />
-                        )}
-                      </div>
-                      <div className="flex items-center justify-between mt-2">
-                        <p className={`text-xs opacity-60 ${
-                          message.role === 'user' ? 'text-white/70' : 'text-[#051a1c]/70 dark:text-white/70'
-                        }`}>
-                          {message.timestamp}
-                        </p>
-                        {message.role === 'assistant' && (
-                          <button
-                            onClick={() => copyToClipboard(message.content, message.id)}
-                            className="p-1.5 rounded-lg hover:bg-black/10 transition-colors opacity-60 hover:opacity-100"
-                            title="Copy response"
-                          >
-                            {copiedMessageId === message.id ? (
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M20 6L9 17l-5-5"/>
-                              </svg>
-                            ) : (
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
-                                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-                              </svg>
-                            )}
-                          </button>
-                        )}
-                      </div>
+                    <div className="text-base leading-relaxed">
+                      {message.role === 'user' ? (
+                        <p className="whitespace-pre-wrap">{message.content}</p>
+                      ) : (
+                        <MessageRenderer text={message.content} />
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between mt-2">
+                      <p className={`text-xs opacity-60 ${
+                        message.role === 'user' ? 'text-white/70' : 'text-[#051a1c]/70'
+                      }`}>
+                        {message.timestamp}
+                      </p>
+                      {message.role === 'assistant' && (
+                        <button
+                          onClick={() => copyToClipboard(message.content, message.id)}
+                          className="p-1.5 rounded-lg hover:bg-black/10 transition-colors opacity-60 hover:opacity-100"
+                          title="Copy response"
+                        >
+                          {copiedMessageId === message.id ? (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M20 6L9 17l-5-5"/>
+                            </svg>
+                          ) : (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                              <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                            </svg>
+                          )}
+                        </button>
+                      )}
                     </div>
                   </div>
-                ))}
-                
-                {(isLoading || cognitiveProcess) && (
-                  <div className="flex justify-start">
-                    <div className="bg-white dark:bg-neutral-800 shadow-lg px-6 py-4 rounded-3xl">
-                      <div className="flex items-center space-x-2">
-                        <div className="flex space-x-1">
-                          <div className="w-2 h-2 bg-[#051a1c] dark:bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                          <div className="w-2 h-2 bg-[#051a1c] dark:bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                          <div className="w-2 h-2 bg-[#051a1c] dark:bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                        </div>
-                        <span className="text-sm opacity-60 italic text-[#051a1c] dark:text-white">
-                          {cognitiveProcess || 'Gawin is thinking...'}
-                        </span>
+                </div>
+              ))}
+              {(isLoading || cognitiveProcess) && (
+                <div className="flex justify-start">
+                  <div className="bg-white/60 backdrop-blur-md text-[#051a1c] border border-white/40 shadow-lg px-6 py-4 rounded-3xl">
+                    <div className="flex items-center space-x-2">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-[#051a1c] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                        <div className="w-2 h-2 bg-[#051a1c] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                        <div className="w-2 h-2 bg-[#051a1c] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                       </div>
+                      <span className="text-sm opacity-60 italic">
+                        {cognitiveProcess || 'Gawin is thinking...'}
+                      </span>
                     </div>
                   </div>
-                )}
-              </div>
-            </main>
-          </>
+                </div>
+              )}
+            </div>
+          </div>
         )}
 
-        {/* Fixed Footer with Enhanced Chat Input */}
-        <footer className="p-4 bg-[#021B1D]">
+        {/* Enhanced Input Area - Fixed Alignment & Spacing */}
+        <div className="pb-8">
           <div className="max-w-2xl mx-auto">
             {/* File Previews */}
             {uploadedFiles.length > 0 && (
@@ -1358,7 +1354,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
               )}
             </div>
 
-            {/* Enhanced ChatBox Container */}
+            {/* ChatBox Container - Enhanced but keeping original structure */}
             <form onSubmit={handleSubmit} className="relative">
               <div 
                 className={`flex items-center w-full rounded-full bg-[#021B1D] shadow-md border border-white/10 px-4 py-4 ${isDragOver ? 'ring-2 ring-emerald-400 ring-opacity-50' : ''}`}
@@ -1458,8 +1454,8 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
               </div>
             )}
           </div>
-        </footer>
-      </div>
+        </div>
+        </main>
     </div>
   );
 }
