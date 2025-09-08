@@ -78,7 +78,7 @@ export async function GET() {
           vision: 'pixtral-large-2411 - Advanced vision model'
         },
         limits: {
-          maxFileSize: '50MB',
+          maxFileSize: '20MB for PDFs, 5MB for images',
           maxPages: '1000',
           maxImages: '8 per request',
           supportedFormats: ['PNG', 'JPEG', 'WEBP', 'PDF', 'non-animated GIF']

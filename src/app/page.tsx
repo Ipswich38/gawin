@@ -94,7 +94,19 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
 
   // File handling functions
   const validateFile = (file: File): { isValid: boolean; error?: string } => {
-    const maxSize = 10 * 1024 * 1024; // 10MB
+    // Set different size limits based on file type to match OCR service limits
+    const isImage = file.type.startsWith('image/');
+    const isPDF = file.type === 'application/pdf';
+    
+    let maxSize: number;
+    if (isPDF) {
+      maxSize = 20 * 1024 * 1024; // 20MB for PDFs (OCR processing)
+    } else if (isImage) {
+      maxSize = 5 * 1024 * 1024; // 5MB for images (vision processing)
+    } else {
+      maxSize = 10 * 1024 * 1024; // 10MB for other files
+    }
+    
     const allowedTypes = [
       'image/jpeg', 'image/png', 'image/gif', 'image/webp',
       'application/pdf', 'text/plain', 'text/csv',
@@ -103,7 +115,8 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
     ];
 
     if (file.size > maxSize) {
-      return { isValid: false, error: 'File too large (max 10MB)' };
+      const maxSizeMB = maxSize / (1024 * 1024);
+      return { isValid: false, error: `File too large (max ${maxSizeMB}MB for ${isPDF ? 'PDFs' : isImage ? 'images' : 'this file type'})` };
     }
 
     if (!allowedTypes.includes(file.type)) {
@@ -463,7 +476,7 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
               const errorMessage = {
                 id: Date.now() + 1,
                 role: 'assistant' as const,
-                content: `I encountered an issue processing your files with Mistral OCR: ${fileError instanceof Error ? fileError.message : 'Unknown error'}\n\n**Troubleshooting tips:**\n• Ensure images are in supported formats (PNG, JPEG, WEBP, GIF)\n• Check file size is under 10MB per image\n• For PDFs, ensure they're under 50MB\n• Try uploading fewer files at once (max 8 images)\n\n**Mistral OCR supports:**\n✅ 99%+ accuracy across 11+ languages\n✅ Lightning-fast processing\n✅ Document structure preservation\n✅ Both images and PDFs`,
+                content: `I encountered an issue processing your files with Mistral OCR: ${fileError instanceof Error ? fileError.message : 'Unknown error'}\n\n**Troubleshooting tips:**\n• Ensure images are in supported formats (PNG, JPEG, WEBP, GIF)\n• Check file size: Images max 5MB, PDFs max 20MB\n• Try uploading fewer files at once (max 8 images)\n• For very large files, consider compressing or splitting them\n\n**Mistral OCR supports:**\n✅ 99%+ accuracy across 11+ languages\n✅ Lightning-fast processing\n✅ Document structure preservation\n✅ Both images and PDFs`,
                 timestamp: new Date().toLocaleTimeString()
               };
               

@@ -67,6 +67,28 @@ class MistralOCRService {
   }
 
   /**
+   * Validate document size before processing
+   */
+  private validateDocumentSize(documentData: string, documentType: 'pdf' | 'image'): { isValid: boolean; error?: string } {
+    // Calculate approximate file size from base64 data
+    const base64Data = documentData.split(',')[1] || documentData;
+    const sizeInBytes = (base64Data.length * 3) / 4;
+    
+    // Set different limits based on document type
+    const maxSize = documentType === 'pdf' ? 20 * 1024 * 1024 : 5 * 1024 * 1024; // 20MB for PDF, 5MB for images
+    
+    if (sizeInBytes > maxSize) {
+      const maxSizeMB = maxSize / (1024 * 1024);
+      return {
+        isValid: false,
+        error: `Document too large. Maximum size for ${documentType.toUpperCase()} is ${maxSizeMB}MB. Current size: ${(sizeInBytes / (1024 * 1024)).toFixed(1)}MB`
+      };
+    }
+    
+    return { isValid: true };
+  }
+
+  /**
    * Process OCR requests using Mistral's OCR API
    */
   async processOCR(request: MistralOCRRequest): Promise<MistralOCRResponse> {
@@ -82,6 +104,18 @@ class MistralOCRService {
 
       // Use OCR endpoint for documents
       if (request.document) {
+        // Validate document size before processing
+        const documentData = request.document.document_base64 || '';
+        if (documentData) {
+          const validation = this.validateDocumentSize(documentData, 'pdf'); // Assume PDF for OCR endpoint
+          if (!validation.isValid) {
+            return {
+              success: false,
+              error: validation.error
+            };
+          }
+        }
+
         const response = await fetch(`${this.baseURL}/ocr`, {
           method: 'POST',
           headers: {
@@ -118,6 +152,26 @@ class MistralOCRService {
 
       // Use chat/vision endpoint for images
       if (request.messages) {
+        // Validate image sizes in messages
+        for (const message of request.messages) {
+          if (Array.isArray(message.content)) {
+            for (const item of message.content) {
+              if (item.type === 'image_url' && item.image_url?.url) {
+                const imageUrl = item.image_url.url;
+                if (imageUrl.startsWith('data:image/')) {
+                  const validation = this.validateDocumentSize(imageUrl, 'image');
+                  if (!validation.isValid) {
+                    return {
+                      success: false,
+                      error: validation.error
+                    };
+                  }
+                }
+              }
+            }
+          }
+        }
+
         const response = await fetch(`${this.baseURL}/chat/completions`, {
           method: 'POST',
           headers: {
