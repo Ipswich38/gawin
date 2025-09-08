@@ -1,4 +1,6 @@
 import { validationService } from './validationService';
+import { behaviorEnhancedAI } from './behaviorEnhancedAI';
+import { behaviorPrivacyService } from './behaviorPrivacyService';
 
 export interface GroqMessage {
   role: 'system' | 'user' | 'assistant';
@@ -244,7 +246,44 @@ Formatting Rules:
       console.log(`🚀 Using Groq ${taskType} model: ${modelConfig.model}`);
 
       // Add system prompts for specialized tasks
-      const messagesWithSystem = this.addSystemPrompts(validatedMessages, taskType);
+      let messagesWithSystem = this.addSystemPrompts(validatedMessages, taskType);
+      
+      // Enhance with behavior context if available and user has consented
+      if (behaviorPrivacyService.hasValidConsent()) {
+        try {
+          const userMessage = validatedMessages.find(msg => msg.role === 'user');
+          if (userMessage && typeof userMessage.content === 'string') {
+            const enhancement = await behaviorEnhancedAI.enhancePrompt({
+              originalPrompt: messagesWithSystem.find(msg => msg.role === 'system')?.content || '',
+              userMessage: userMessage.content,
+              messageHistory: validatedMessages,
+              aiAction: request.action || 'chat'
+            });
+            
+            if (enhancement.contextUsed) {
+              // Update system message with enhanced prompt
+              const systemMessageIndex = messagesWithSystem.findIndex(msg => msg.role === 'system');
+              if (systemMessageIndex >= 0) {
+                messagesWithSystem[systemMessageIndex] = {
+                  ...messagesWithSystem[systemMessageIndex],
+                  content: enhancement.enhancedPrompt
+                };
+              } else {
+                // Add new system message if none exists
+                messagesWithSystem.unshift({
+                  role: 'system',
+                  content: enhancement.enhancedPrompt
+                });
+              }
+              
+              console.log('🧠 Behavior context integrated into AI prompt');
+            }
+          }
+        } catch (error) {
+          // Silently continue without behavior enhancement if it fails
+          console.warn('Behavior enhancement failed, continuing without:', error);
+        }
+      }
 
       // Prepare the request
       const payload = {

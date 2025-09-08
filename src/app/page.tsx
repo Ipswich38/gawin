@@ -6,6 +6,7 @@ import StudyCommons from "@/components/StudyCommons";
 import CodingMentor from "@/components/AICodeEditor";
 import QuizGenerator from "@/components/QuizGenerator";
 import MessageRenderer from "@/components/MessageRenderer";
+import BehaviorService from "@/components/BehaviorService";
 import { databaseService } from "@/lib/services/databaseService";
 
 // ChatInterface Component - Fixed syntax error
@@ -646,7 +647,15 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                 </button>
 
                 {/* Privacy */}
-                <button className="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors text-left">
+                <button 
+                  onClick={() => {
+                    if (typeof window !== 'undefined' && (window as any).gawinBehavior) {
+                      (window as any).gawinBehavior.showPrivacySettings();
+                    }
+                    setShowSidePanel(false);
+                  }}
+                  className="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors text-left"
+                >
                   <span className="text-lg">🔒</span>
                   <span className="text-gray-700 font-medium">Privacy</span>
                 </button>
@@ -1274,7 +1283,10 @@ export default function Home() {
   // Show dashboard for authenticated users
   if (user) {
     return (
-      <ChatInterface user={user} onLogout={handleLogout} />
+      <>
+        <BehaviorService />
+        <ChatInterface user={user} onLogout={handleLogout} />
+      </>
     );
   }
 
