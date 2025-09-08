@@ -989,45 +989,16 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                       backgroundColor: '#374151',
                       boxShadow: 'inset 2px 2px 5px rgba(0, 0, 0, 0.3), inset -2px -2px 5px rgba(255, 255, 255, 0.1), 0 8px 30px rgba(0, 0, 0, 0.25)' // Enhanced shadow for floating effect
                     }}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
                   >
                     {/* File Upload Button */}
                     <button
                       type="button"
-                      onClick={() => setShowUploadDropdown(!showUploadDropdown)}
-                      className={`flex-shrink-0 text-orange-500 hover:opacity-80 text-xl sm:text-2xl relative ${
-                        uploadedFiles.length > 0 ? 'text-emerald-500' : ''
-                      }`}
+                      onClick={() => {}}
+                      className="flex-shrink-0 text-orange-500 hover:opacity-80 text-xl sm:text-2xl relative"
                       title="File upload"
                     >
-                      {uploadedFiles.length > 0 ? (
-                        <span className="text-sm font-bold">{uploadedFiles.length}</span>
-                      ) : (
-                        '+'
-                      )}
+                      +
 
-                      {/* Upload Options Dropdown */}
-                      {showUploadDropdown && (
-                        <div className="absolute bottom-full mb-2 left-0 w-32 bg-white rounded-2xl shadow-xl border border-gray-200/50 overflow-hidden z-50">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleFileClick();
-                              setShowUploadDropdown(false);
-                            }}
-                            className="w-full flex items-center space-x-2 px-3 py-2 hover:bg-gray-50 transition-colors text-left text-sm text-gray-700"
-                          >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                              <polyline points="7,10 12,15 17,10"/>
-                              <line x1="12" y1="15" x2="12" y2="3"/>
-                            </svg>
-                            <span>File upload</span>
-                          </button>
-                        </div>
-                      )}
                     </button>
 
                     {/* Input Field - Mobile Optimized */}
@@ -1035,7 +1006,6 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                       type="text"
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
-                      onPaste={handlePaste}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           e.preventDefault();
@@ -1050,10 +1020,10 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                     {/* Send Button */}
                     <button
                       type="submit"
-                      disabled={(!input.trim() && uploadedFiles.length === 0) || isLoading || isProcessingFiles}
+                      disabled={!input.trim() || isLoading}
                       className="flex-shrink-0 w-10 h-10 sm:w-10 sm:h-10 rounded-full bg-cyan-400 hover:bg-cyan-500 text-black flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                     >
-                      {isLoading || isProcessingFiles ? (
+                      {isLoading ? (
                         <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
                       ) : (
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1065,24 +1035,6 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                   </div>
                 </form>
 
-                {/* File Processing Status */}
-                {isProcessingFiles && (
-                  <div className="mt-3 p-3 bg-blue-50/10 border border-blue-200/20 rounded-3xl">
-                    <div className="flex items-center space-x-3">
-                      <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                      </div>
-                      <span className="text-sm text-white/80">
-                        🔍 Gawin is scanning and analyzing your documents...
-                      </span>
-                    </div>
-                    <div className="text-xs text-white/60 mt-2">
-                      This may take a moment for complex documents or images
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </main>
