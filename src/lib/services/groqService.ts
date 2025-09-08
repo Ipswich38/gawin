@@ -254,7 +254,9 @@ Formatting Rules:
           const userMessage = validatedMessages.find(msg => msg.role === 'user');
           if (userMessage && typeof userMessage.content === 'string') {
             const enhancement = await behaviorEnhancedAI.enhancePrompt({
-              originalPrompt: messagesWithSystem.find(msg => msg.role === 'system')?.content || '',
+              originalPrompt: typeof messagesWithSystem.find(msg => msg.role === 'system')?.content === 'string' 
+                ? messagesWithSystem.find(msg => msg.role === 'system')!.content as string
+                : '',
               userMessage: userMessage.content,
               messageHistory: validatedMessages,
               aiAction: request.action || 'chat'

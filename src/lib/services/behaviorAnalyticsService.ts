@@ -84,6 +84,9 @@ class BehaviorAnalyticsService {
   }
 
   private async initializeService() {
+    // Skip initialization during SSR
+    if (typeof window === 'undefined') return;
+    
     try {
       // Generate or retrieve encryption key
       this.encryptionKey = localStorage.getItem('behavior_encryption_key') || this.generateEncryptionKey();
@@ -102,6 +105,8 @@ class BehaviorAnalyticsService {
   }
 
   private generateEncryptionKey(): string {
+    if (typeof window === 'undefined') return '';
+    
     const key = Array.from(crypto.getRandomValues(new Uint8Array(32)))
       .map(b => b.toString(16).padStart(2, '0'))
       .join('');
@@ -391,7 +396,7 @@ class BehaviorAnalyticsService {
     
     if (movements.length === 0) return 3; // Low activity if no sensor data
     
-    const averageMovement = movements.reduce((sum, m) => sum + m, 0) / movements.length;
+    const averageMovement = movements.reduce((sum: number, m: number) => sum + m, 0) / movements.length;
     const maxMovement = Math.max(...movements);
     
     // Normalize to 0-10 scale (typical phone movement ranges from 0-20 m/s²)
@@ -559,6 +564,8 @@ class BehaviorAnalyticsService {
   }
 
   private async storeData() {
+    if (typeof window === 'undefined') return;
+    
     try {
       const data = {
         locationPoints: this.locationPoints.slice(-100), // Store last 100 points
@@ -575,6 +582,8 @@ class BehaviorAnalyticsService {
   }
 
   private async loadStoredData() {
+    if (typeof window === 'undefined') return;
+    
     try {
       const encryptedData = localStorage.getItem('behavior_analytics_data');
       if (!encryptedData) return;
@@ -681,7 +690,10 @@ class BehaviorAnalyticsService {
     this.stayPoints = [];
     this.sensorData = [];
     this.behaviorPatterns = [];
-    localStorage.removeItem('behavior_analytics_data');
+    
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('behavior_analytics_data');
+    }
   }
 
   getPrivacySummary() {

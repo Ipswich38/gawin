@@ -10,8 +10,8 @@ import { behaviorAnalyticsService, BehaviorContext } from './behaviorAnalyticsSe
 interface EnhancedPromptOptions {
   originalPrompt: string;
   userMessage: string;
-  messageHistory?: Array<{role: string, content: string}>;
-  aiAction?: 'chat' | 'code' | 'writing' | 'analysis';
+  messageHistory?: Array<{role: string, content: string | Array<{type: string, text?: string}>}>;
+  aiAction?: 'chat' | 'code' | 'writing' | 'analysis' | 'deepseek' | 'vision' | 'ocr';
 }
 
 interface EnhancedResponse {
@@ -41,7 +41,9 @@ class BehaviorEnhancedAIService {
 
   private initializeService() {
     // Enable behavior integration by default, but allow user control
-    const userPreference = localStorage.getItem('behavior_ai_integration');
+    const userPreference = typeof window !== 'undefined' 
+      ? localStorage.getItem('behavior_ai_integration')
+      : null;
     this.isEnabled = userPreference !== 'disabled';
   }
 
@@ -373,12 +375,16 @@ Remember: Use this context subtly to enhance your helpfulness and empathy, but d
    */
   enableBehaviorIntegration() {
     this.isEnabled = true;
-    localStorage.setItem('behavior_ai_integration', 'enabled');
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('behavior_ai_integration', 'enabled');
+    }
   }
 
   disableBehaviorIntegration() {
     this.isEnabled = false;
-    localStorage.setItem('behavior_ai_integration', 'disabled');
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('behavior_ai_integration', 'disabled');
+    }
   }
 
   isBehaviorIntegrationEnabled(): boolean {

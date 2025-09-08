@@ -260,6 +260,8 @@ class BehaviorPrivacyService {
   }
 
   private recordConsent(settings: PrivacySettings) {
+    if (typeof window === 'undefined') return;
+    
     const consent: ConsentRecord = {
       timestamp: Date.now(),
       version: this.CONSENT_VERSION,
@@ -271,6 +273,8 @@ class BehaviorPrivacyService {
   }
 
   private getStoredConsent(): ConsentRecord | null {
+    if (typeof window === 'undefined') return null;
+    
     try {
       const stored = localStorage.getItem('behavior_analytics_consent');
       if (!stored) return null;
@@ -294,6 +298,8 @@ class BehaviorPrivacyService {
    * Update privacy settings
    */
   updatePrivacySettings(settings: Partial<PrivacySettings>): boolean {
+    if (typeof window === 'undefined') return false;
+    
     const consent = this.getStoredConsent();
     if (!consent) return false;
     
@@ -312,6 +318,8 @@ class BehaviorPrivacyService {
    * Withdraw consent and delete all data
    */
   withdrawConsent() {
+    if (typeof window === 'undefined') return;
+    
     // Remove consent record
     localStorage.removeItem('behavior_analytics_consent');
     
@@ -377,6 +385,8 @@ class BehaviorPrivacyService {
    * Check if user should be prompted for consent
    */
   shouldPromptForConsent(): boolean {
+    if (typeof window === 'undefined') return false;
+    
     // Don't prompt if user has explicitly declined recently
     const lastPrompt = localStorage.getItem('behavior_last_consent_prompt');
     if (lastPrompt) {
@@ -396,7 +406,9 @@ class BehaviorPrivacyService {
    * Record that consent was prompted (to avoid annoying users)
    */
   recordConsentPrompt() {
-    localStorage.setItem('behavior_last_consent_prompt', Date.now().toString());
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('behavior_last_consent_prompt', Date.now().toString());
+    }
   }
 
   /**
