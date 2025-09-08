@@ -1276,7 +1276,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
             <div 
               className="chat-input-container flex-shrink-0 p-4 pt-2" 
               style={{ 
-                backgroundColor: '#fffbeb',
+                backgroundColor: 'transparent', // Transparent background for floating effect
                 minHeight: '120px' // Consistent minimum height for input area
               }}
             >
@@ -1319,7 +1319,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                     className={`flex items-center gap-2 sm:gap-3 rounded-full border-0 p-3 sm:p-4 ${isDragOver ? 'ring-2 ring-emerald-400 ring-opacity-50' : ''}`}
                     style={{ 
                       backgroundColor: '#374151',
-                      boxShadow: 'inset 2px 2px 5px rgba(0, 0, 0, 0.3), inset -2px -2px 5px rgba(255, 255, 255, 0.1), 0 4px 15px rgba(0, 0, 0, 0.1)'
+                      boxShadow: 'inset 2px 2px 5px rgba(0, 0, 0, 0.3), inset -2px -2px 5px rgba(255, 255, 255, 0.1), 0 8px 30px rgba(0, 0, 0, 0.25)' // Enhanced shadow for floating effect
                     }}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
