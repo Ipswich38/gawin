@@ -526,38 +526,83 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
           if (imageFiles.length > 0) {
             // Set processing state for images
             setIsProcessingFiles(true);
-            setCognitiveProcess('🔍 Gawin AI • analyzing your images and extracting text...');
+            setCognitiveProcess('🍎 Apple FastLM • analyzing your images with advanced vision processing...');
             
-            // Convert images to base64 and create multimodal content
-            const imagePromises = imageFiles.map(fileObj => {
-              return new Promise<string>((resolve) => {
-                const reader = new FileReader();
-                reader.onload = () => {
-                  const base64 = reader.result as string;
-                  resolve(base64);
-                };
-                reader.readAsDataURL(fileObj.file);
+            try {
+              // Convert images to base64 and create multimodal content
+              const imagePromises = imageFiles.map(fileObj => {
+                return new Promise<string>((resolve) => {
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    const base64 = reader.result as string;
+                    resolve(base64);
+                  };
+                  reader.readAsDataURL(fileObj.file);
+                });
               });
-            });
 
-            const base64Images = await Promise.all(imagePromises);
-            
-            // Create multimodal message content
-            messageContent = [
-              { type: 'text', text: currentInput || 'Please analyze this image and extract any text using OCR. If there is text in the image, please extract it accurately and provide any analysis requested.' }
-            ];
+              const base64Images = await Promise.all(imagePromises);
+              
+              // Create multimodal message content
+              messageContent = [
+                { type: 'text', text: currentInput || 'Please analyze this image and extract any text using OCR. If there is text in the image, please extract it accurately and provide any analysis requested.' }
+              ];
 
-            // Add each image to the content
-            base64Images.forEach((base64Image) => {
-              messageContent.push({
-                type: 'image_url',
-                image_url: { url: base64Image }
+              // Add each image to the content
+              base64Images.forEach((base64Image) => {
+                messageContent.push({
+                  type: 'image_url',
+                  image_url: { url: base64Image }
+                });
               });
-            });
 
-            // Use vision/OCR action for images
-            apiAction = 'vision';
-            setIsProcessingFiles(false);
+              // Use Apple FastLM for vision processing
+              const visionResponse = await fetch('/api/apple-fastlm', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  messages: [
+                    { role: 'user', content: messageContent }
+                  ],
+                  action: 'vision',
+                  module: 'vision'
+                }),
+              });
+
+              const visionData = await visionResponse.json();
+              setIsProcessingFiles(false);
+
+              if (visionData.success && visionData.data) {
+                // Show Apple FastLM vision results
+                setTimeout(() => {
+                  const assistantMessage = {
+                    id: Date.now() + 1,
+                    role: 'assistant' as const,
+                    content: visionData.data.response,
+                    timestamp: new Date().toLocaleTimeString()
+                  };
+                  
+                  setMessages(prev => [...prev, assistantMessage]);
+                  setCognitiveProcess('');
+                }, 1000);
+                return; // Exit early for Apple FastLM processing
+              } else {
+                // Fallback to regular processing if Apple FastLM fails
+                console.log('Apple FastLM failed, falling back to regular processing');
+                
+                // Use vision/OCR action for images as fallback
+                apiAction = 'vision';
+                setIsProcessingFiles(false);
+              }
+            } catch (visionError) {
+              console.error('Apple FastLM vision error:', visionError);
+              setIsProcessingFiles(false);
+              
+              // Fallback to regular processing
+              apiAction = 'vision';
+            }
           }
         }
 
