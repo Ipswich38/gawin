@@ -345,111 +345,126 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
     setUploadedFiles([]);
       
       try {
-        // Handle file upload - Check if we have images vs other documents  
+        // Handle file uploads with Mistral OCR
         if (hasFiles) {
           const imageFiles = currentFiles.filter(file => file.file.type.startsWith('image/'));
-          const documentFiles = currentFiles.filter(file => !file.file.type.startsWith('image/'));
+          const documentFiles = currentFiles.filter(file => file.type === 'application/pdf');
           
-          // For pure images, skip OCR route entirely and go directly to vision processing
-          if (imageFiles.length > 0 && documentFiles.length === 0) {
-            console.log('Pure images detected - skipping OCR route, proceeding to vision processing:', imageFiles.length);
-            // Skip the entire OCR processing block and go directly to vision processing below
-          } 
-          // For documents or mixed files, try OCR route first
-          else if (documentFiles.length > 0) {
+          if (imageFiles.length > 0 || documentFiles.length > 0) {
             setIsProcessingFiles(true);
-            setCognitiveProcess('🔍 Gawin AI • scanning and analyzing your documents...');
+            setCognitiveProcess('🔍 Mistral OCR • processing your files with world-class accuracy...');
             
             try {
-              const formData = new FormData();
-              currentFiles.forEach(uploadedFile => {
-                formData.append('files', uploadedFile.file);
+              // Convert images to base64 for Mistral API
+              const imagePromises = imageFiles.map(fileObj => {
+                return new Promise<string>((resolve) => {
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    const base64 = reader.result as string;
+                    resolve(base64);
+                  };
+                  reader.readAsDataURL(fileObj.file);
+                });
               });
-              formData.append('query', currentInput || 'Please analyze these files');
 
-              const ocrResponse = await fetch('/api/ocr', {
-                method: 'POST',
-                body: formData
-              });
-
-              const ocrData = await ocrResponse.json();
+              const base64Images = await Promise.all(imagePromises);
               
+              let mistralResponse;
+
+              if (imageFiles.length > 0) {
+                // Use Mistral Vision API for images
+                const messages = [
+                  {
+                    role: 'user' as const,
+                    content: [
+                      { 
+                        type: 'text' as const, 
+                        text: currentInput || 'Please analyze this image and extract any text using OCR. If there is text in the image, please extract it accurately and provide any analysis requested.' 
+                      },
+                      ...base64Images.map(imageUrl => ({
+                        type: 'image_url' as const,
+                        image_url: { url: imageUrl }
+                      }))
+                    ]
+                  }
+                ];
+
+                mistralResponse = await fetch('/api/mistral-ocr', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    messages,
+                    model: 'pixtral-large-2411',
+                    max_tokens: 4096,
+                    temperature: 0.3
+                  }),
+                });
+              } else if (documentFiles.length > 0) {
+                // For PDFs, convert first one to base64 and use OCR endpoint
+                const pdfFile = documentFiles[0];
+                const pdfBase64 = await new Promise<string>((resolve) => {
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    const result = reader.result as string;
+                    // Remove data URL prefix to get just base64
+                    const base64 = result.split(',')[1];
+                    resolve(base64);
+                  };
+                  reader.readAsDataURL(pdfFile.file);
+                });
+
+                mistralResponse = await fetch('/api/mistral-ocr', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    model: 'mistral-ocr-latest',
+                    document: {
+                      type: 'document_base64',
+                      document_base64: pdfBase64
+                    },
+                    include_image_base64: false
+                  }),
+                });
+              }
+
+              const mistralData = await mistralResponse.json();
               setIsProcessingFiles(false);
-              
-              if (ocrData.success && ocrData.data) {
-                // Show AI analysis if available
-                if (ocrData.data.aiAnalysis) {
-                  setTimeout(() => {
-                    const assistantMessage = {
-                      id: Date.now() + 1,
-                      role: 'assistant' as const,
-                      content: ocrData.data.aiAnalysis,
-                      timestamp: new Date().toLocaleTimeString()
-                    };
-                    
-                    setMessages(prev => [...prev, assistantMessage]);
-                    setCognitiveProcess('');
-                  }, 1000);
-                } else if (ocrData.data.extractedText) {
-                  // Show extracted text if no AI analysis
-                  setTimeout(() => {
-                    const assistantMessage = {
-                      id: Date.now() + 1,
-                      role: 'assistant' as const,
-                      content: `I've successfully extracted text from your ${ocrData.data.filesProcessed} file${ocrData.data.filesProcessed > 1 ? 's' : ''}:\n\n${ocrData.data.extractedText}\n\n*Would you like me to analyze this content or answer any questions about it?*`,
-                      timestamp: new Date().toLocaleTimeString()
-                    };
-                    
-                    setMessages(prev => [...prev, assistantMessage]);
-                    setCognitiveProcess('');
-                  }, 1000);
-                } else {
-                  // Show processing results
-                  const results = ocrData.data.analysisResults.map((result: any) => {
-                    if (result.status === 'success') {
-                      return `✅ ${result.filename}: Text extracted successfully`;
-                    } else if (result.status === 'error') {
-                      return `❌ ${result.filename}: ${result.error}`;
-                    } else {
-                      return `ℹ️ ${result.filename}: ${result.message}`;
-                    }
-                  }).join('\n');
+
+              if (mistralData.success && mistralData.data) {
+                setTimeout(() => {
+                  const assistantMessage = {
+                    id: Date.now() + 1,
+                    role: 'assistant' as const,
+                    content: mistralData.data.response,
+                    timestamp: new Date().toLocaleTimeString()
+                  };
                   
-                  setTimeout(() => {
-                    const assistantMessage = {
-                      id: Date.now() + 1,
-                      role: 'assistant' as const,
-                      content: `File Processing Results:\n\n${results}`,
-                      timestamp: new Date().toLocaleTimeString()
-                    };
-                    
-                    setMessages(prev => [...prev, assistantMessage]);
-                    setCognitiveProcess('');
-                  }, 1000);
-                }
-                return; // Exit early for successful OCR processing
+                  setMessages(prev => [...prev, assistantMessage]);
+                  setCognitiveProcess('');
+                }, 1000);
+                return; // Exit early for successful Mistral processing
               } else {
-                // OCR failed - fall through to try vision processing for images
-                console.log('OCR processing failed, falling back to vision processing');
+                throw new Error(mistralData.error || 'Mistral OCR processing failed');
               }
               
             } catch (fileError) {
-              console.error('OCR processing error:', fileError);
+              console.error('Mistral OCR processing error:', fileError);
               setIsProcessingFiles(false);
               
-              // If OCR fails and we have images, fall through to vision processing
-              if (imageFiles.length === 0) {
-                const errorMessage = {
-                  id: Date.now() + 1,
-                  role: 'assistant' as const,
-                  content: `I encountered an issue processing your files: ${fileError instanceof Error ? fileError.message : 'Unknown error'}\n\nFor PDF files, I recommend converting them to high-quality images (PNG or JPG) for better text extraction results.\n\nPlease try:\n• Converting PDFs to images first\n• Using image formats (JPG, PNG, WebP)\n• Reducing file size (max 10MB each)\n• Uploading fewer files at once`,
-                  timestamp: new Date().toLocaleTimeString()
-                };
-                
-                setMessages(prev => [...prev, errorMessage]);
-                setCognitiveProcess('');
-                return;
-              }
+              const errorMessage = {
+                id: Date.now() + 1,
+                role: 'assistant' as const,
+                content: `I encountered an issue processing your files with Mistral OCR: ${fileError instanceof Error ? fileError.message : 'Unknown error'}\n\n**Troubleshooting tips:**\n• Ensure images are in supported formats (PNG, JPEG, WEBP, GIF)\n• Check file size is under 10MB per image\n• For PDFs, ensure they're under 50MB\n• Try uploading fewer files at once (max 8 images)\n\n**Mistral OCR supports:**\n✅ 99%+ accuracy across 11+ languages\n✅ Lightning-fast processing\n✅ Document structure preservation\n✅ Both images and PDFs`,
+                timestamp: new Date().toLocaleTimeString()
+              };
+              
+              setMessages(prev => [...prev, errorMessage]);
+              setCognitiveProcess('');
+              return;
             }
           }
         }
@@ -519,92 +534,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
         let messageContent: any = currentInput;
         let apiAction = isCoding ? 'code' : isWriting ? 'writing' : isSTEM ? 'analysis' : 'chat';
 
-        // Handle file uploads (especially images for OCR/vision)
-        if (currentFiles.length > 0) {
-          const imageFiles = currentFiles.filter(file => file.file.type.startsWith('image/'));
-          
-          if (imageFiles.length > 0) {
-            // Set processing state for images
-            setIsProcessingFiles(true);
-            setCognitiveProcess('🍎 Apple FastLM • analyzing your images with advanced vision processing...');
-            
-            try {
-              // Convert images to base64 and create multimodal content
-              const imagePromises = imageFiles.map(fileObj => {
-                return new Promise<string>((resolve) => {
-                  const reader = new FileReader();
-                  reader.onload = () => {
-                    const base64 = reader.result as string;
-                    resolve(base64);
-                  };
-                  reader.readAsDataURL(fileObj.file);
-                });
-              });
-
-              const base64Images = await Promise.all(imagePromises);
-              
-              // Create multimodal message content
-              messageContent = [
-                { type: 'text', text: currentInput || 'Please analyze this image and extract any text using OCR. If there is text in the image, please extract it accurately and provide any analysis requested.' }
-              ];
-
-              // Add each image to the content
-              base64Images.forEach((base64Image) => {
-                messageContent.push({
-                  type: 'image_url',
-                  image_url: { url: base64Image }
-                });
-              });
-
-              // Use Apple FastLM for vision processing
-              const visionResponse = await fetch('/api/apple-fastlm', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  messages: [
-                    { role: 'user', content: messageContent }
-                  ],
-                  action: 'vision',
-                  module: 'vision'
-                }),
-              });
-
-              const visionData = await visionResponse.json();
-              setIsProcessingFiles(false);
-
-              if (visionData.success && visionData.data) {
-                // Show Apple FastLM vision results
-                setTimeout(() => {
-                  const assistantMessage = {
-                    id: Date.now() + 1,
-                    role: 'assistant' as const,
-                    content: visionData.data.response,
-                    timestamp: new Date().toLocaleTimeString()
-                  };
-                  
-                  setMessages(prev => [...prev, assistantMessage]);
-                  setCognitiveProcess('');
-                }, 1000);
-                return; // Exit early for Apple FastLM processing
-              } else {
-                // Fallback to regular processing if Apple FastLM fails
-                console.log('Apple FastLM failed, falling back to regular processing');
-                
-                // Use vision/OCR action for images as fallback
-                apiAction = 'vision';
-                setIsProcessingFiles(false);
-              }
-            } catch (visionError) {
-              console.error('Apple FastLM vision error:', visionError);
-              setIsProcessingFiles(false);
-              
-              // Fallback to regular processing
-              apiAction = 'vision';
-            }
-          }
-        }
+        // No additional image processing needed - handled by Mistral OCR above
 
         // Use Groq API with intelligent fallback system (Groq -> HuggingFace -> DeepSeek -> Educational)
         const response = await fetch('/api/groq', {
