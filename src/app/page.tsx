@@ -1192,8 +1192,15 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
         ) : (
           /* Chat Layout with Messages and Fixed Bottom Input */
           <main className="flex-1 flex flex-col overflow-hidden" style={{ backgroundColor: '#fffbeb' }}>
-            {/* Chat Messages Area - Scrollable */}
-            <div className="flex-1 overflow-y-auto p-4 pb-2">
+            {/* Chat Messages Area - Scrollable with calculated height */}
+            <div 
+              className="chat-messages-container overflow-y-auto p-4 pb-2" 
+              style={{ 
+                height: 'calc(100vh - 200px)', // Desktop: subtract header + input area
+                minHeight: '300px',
+                maxHeight: '100vh' // Prevent overflow
+              }}
+            >
               <div className="max-w-4xl mx-auto space-y-4">
                 {messages.map((message) => (
                   <div
@@ -1266,7 +1273,13 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
             </div>
 
             {/* Fixed Bottom Chat Input */}
-            <div className="flex-shrink-0 p-4 pt-2" style={{ backgroundColor: '#fffbeb' }}>
+            <div 
+              className="chat-input-container flex-shrink-0 p-4 pt-2" 
+              style={{ 
+                backgroundColor: '#fffbeb',
+                minHeight: '120px' // Consistent minimum height for input area
+              }}
+            >
               <div className="max-w-4xl mx-auto">
                 {/* File Previews */}
                 {uploadedFiles.length > 0 && (
@@ -1655,6 +1668,27 @@ export default function Home() {
           40%, 60% { transform: rotate(14deg); }
           50% { transform: rotate(-8deg); }
           70%, 90% { transform: rotate(0deg); }
+        }
+        
+        /* Mobile responsive chat height adjustments */
+        @media (max-width: 768px) {
+          .chat-messages-container {
+            height: calc(100vh - 220px) !important;
+            min-height: 250px !important;
+          }
+          .chat-input-container {
+            min-height: 140px !important;
+          }
+        }
+        
+        @media (max-width: 480px) {
+          .chat-messages-container {
+            height: calc(100vh - 240px) !important;
+            min-height: 200px !important;
+          }
+          .chat-input-container {
+            min-height: 160px !important;
+          }
         }
       `}</style>
       {/* Clean Navigation Header */}
