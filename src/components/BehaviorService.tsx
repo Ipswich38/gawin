@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { behaviorAnalyticsService } from '@/lib/services/behaviorAnalyticsService';
 import { behaviorPrivacyService } from '@/lib/services/behaviorPrivacyService';
 import { behaviorEnhancedAI } from '@/lib/services/behaviorEnhancedAI';
+import { backgroundBehaviorService } from '@/lib/services/backgroundBehaviorService';
 
 /**
  * Background Behavior Service Component
@@ -76,7 +77,12 @@ const BehaviorService: React.FC<BehaviorServiceProps> = ({ children }) => {
         getPrivacyDashboard: () => behaviorPrivacyService.getPrivacyDashboard(),
         clearData: () => behaviorPrivacyService.withdrawConsent(),
         enable: () => behaviorAnalyticsService.enableService(),
-        disable: () => behaviorAnalyticsService.disableService()
+        disable: () => behaviorAnalyticsService.disableService(),
+        // Enhanced background features
+        enableBackground: () => backgroundBehaviorService.requestBackgroundPermissions(),
+        disableBackground: () => backgroundBehaviorService.disableBackgroundCollection(),
+        getEnhancedSummary: () => backgroundBehaviorService.getEnhancedSummary(),
+        isBackgroundEnabled: () => backgroundBehaviorService.isBackgroundEnabled()
       };
     }
   }, []);

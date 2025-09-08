@@ -7,6 +7,7 @@ import CodingMentor from "@/components/AICodeEditor";
 import QuizGenerator from "@/components/QuizGenerator";
 import MessageRenderer from "@/components/MessageRenderer";
 import BehaviorService from "@/components/BehaviorService";
+import DigitalSelf from "@/components/DigitalSelf";
 import { databaseService } from "@/lib/services/databaseService";
 
 // ChatInterface Component - Fixed syntax error
@@ -24,6 +25,7 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
   const [showCodeEditor, setShowCodeEditor] = useState(false);
   const [showQuizGenerator, setShowQuizGenerator] = useState(false);
   const [showSidePanel, setShowSidePanel] = useState(false);
+  const [showDigitalSelf, setShowDigitalSelf] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState(0); // Real online user count
   const [showSpacesDropdown, setShowSpacesDropdown] = useState(false);
 
@@ -640,6 +642,18 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                   <span className="text-gray-700 font-medium">Help & Support</span>
                 </button>
 
+                {/* Digital Self */}
+                <button 
+                  onClick={() => {
+                    setShowDigitalSelf(true);
+                    setShowSidePanel(false);
+                  }}
+                  className="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors text-left"
+                >
+                  <span className="text-lg">🧠</span>
+                  <span className="text-gray-700 font-medium">Digital Self</span>
+                </button>
+
                 {/* About */}
                 <button className="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors text-left">
                   <span className="text-lg">ℹ️</span>
@@ -802,6 +816,11 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
         <QuizGenerator
           onMinimize={() => setShowQuizGenerator(false)}
         />
+      )}
+
+      {/* Digital Self Modal */}
+      {showDigitalSelf && (
+        <DigitalSelf onClose={() => setShowDigitalSelf(false)} />
       )}
 
       {/* Main Chat Area with Proper Layout */}
