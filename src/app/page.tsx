@@ -814,58 +814,18 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
               <div className="max-w-4xl mx-auto mb-8">
               <form onSubmit={handleSubmit} className="relative">
                 <div 
-                  className={`flex items-center gap-2 sm:gap-3 rounded-full border-0 p-3 sm:p-4 hover:scale-[1.02] transition-all ${isDragOver ? 'ring-2 ring-emerald-400 ring-opacity-50' : ''}`}
+                  className="flex items-center gap-2 sm:gap-3 rounded-full border-0 p-3 sm:p-4 hover:scale-[1.02] transition-all"
                   style={{ 
                     backgroundColor: '#374151',
                     boxShadow: 'inset 2px 2px 5px rgba(0, 0, 0, 0.3), inset -2px -2px 5px rgba(255, 255, 255, 0.1), 0 8px 25px rgba(0, 0, 0, 0.15)'
                   }}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
                 >
-                  {/* File Upload Button */}
-                  <button
-                    type="button"
-                    onClick={() => setShowUploadDropdown(!showUploadDropdown)}
-                    className={`flex-shrink-0 text-orange-500 hover:opacity-80 text-xl relative ${
-                      uploadedFiles.length > 0 ? 'text-emerald-500' : ''
-                    }`}
-                    title="File upload"
-                  >
-                    {uploadedFiles.length > 0 ? (
-                      <span className="text-sm font-bold">{uploadedFiles.length}</span>
-                    ) : (
-                      '+'
-                    )}
-
-                    {/* Upload Options Dropdown */}
-                    {showUploadDropdown && (
-                      <div className="absolute bottom-full mb-2 left-0 w-32 bg-white rounded-2xl shadow-xl border border-gray-200/50 overflow-hidden z-50">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleFileClick();
-                            setShowUploadDropdown(false);
-                          }}
-                          className="w-full flex items-center space-x-2 px-3 py-2 hover:bg-gray-50 transition-colors text-left text-sm text-gray-700"
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                            <polyline points="7,10 12,15 17,10"/>
-                            <line x1="12" y1="15" x2="12" y2="3"/>
-                          </svg>
-                          <span>File upload</span>
-                        </button>
-                      </div>
-                    )}
-                  </button>
 
                   {/* Input Field */}
                   <input
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    onPaste={handlePaste}
                     placeholder="What would you like to learn today?"
                     className="flex-1 bg-transparent border-none focus:ring-0 focus:border-none text-white placeholder-gray-300 text-base sm:text-lg py-2 px-2 sm:px-3 focus:outline-none min-w-0"
                     style={{ border: 'none', outline: 'none' }}
@@ -880,10 +840,10 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                   {/* Send Button */}
                   <button
                     type="submit"
-                    disabled={(!input.trim() && uploadedFiles.length === 0) || isLoading || isProcessingFiles}
+                    disabled={!input.trim() || isLoading}
                     className="flex-shrink-0 w-10 h-10 sm:w-10 sm:h-10 rounded-full bg-cyan-400 hover:bg-cyan-500 text-black flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                   >
-                    {isLoading || isProcessingFiles ? (
+                    {isLoading ? (
                       <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
                     ) : (
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1055,7 +1015,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                 <form onSubmit={handleSubmit} className="relative">
                   {/* ChatBox Container */}
                   <div 
-                    className={`flex items-center gap-2 sm:gap-3 rounded-full border-0 p-3 sm:p-4 ${isDragOver ? 'ring-2 ring-emerald-400 ring-opacity-50' : ''}`}
+                    className="flex items-center gap-2 sm:gap-3 rounded-full border-0 p-3 sm:p-4"
                     style={{ 
                       backgroundColor: '#374151',
                       boxShadow: 'inset 2px 2px 5px rgba(0, 0, 0, 0.3), inset -2px -2px 5px rgba(255, 255, 255, 0.1), 0 8px 30px rgba(0, 0, 0, 0.25)' // Enhanced shadow for floating effect
