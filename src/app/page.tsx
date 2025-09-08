@@ -345,98 +345,112 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
     setUploadedFiles([]);
       
       try {
-        // Handle file upload and OCR processing
+        // Handle file upload - Check if we have images vs other documents  
         if (hasFiles) {
-          setIsProcessingFiles(true);
-          setCognitiveProcess('🔍 Gawin AI • scanning and analyzing your documents...');
+          const imageFiles = currentFiles.filter(file => file.file.type.startsWith('image/'));
+          const documentFiles = currentFiles.filter(file => !file.file.type.startsWith('image/'));
           
-          try {
-            const formData = new FormData();
-            currentFiles.forEach(uploadedFile => {
-              formData.append('files', uploadedFile.file);
-            });
-            formData.append('query', currentInput || 'Please analyze these files');
-
-            const ocrResponse = await fetch('/api/ocr', {
-              method: 'POST',
-              body: formData
-            });
-
-            const ocrData = await ocrResponse.json();
+          // For images, use the vision API directly (skip OCR route)
+          if (imageFiles.length > 0 && documentFiles.length === 0) {
+            // Only images - proceed to vision processing below
+            console.log('Processing images via vision API:', imageFiles.length);
+          } 
+          // For documents or mixed files, try OCR route first
+          else if (documentFiles.length > 0) {
+            setIsProcessingFiles(true);
+            setCognitiveProcess('🔍 Gawin AI • scanning and analyzing your documents...');
             
-            setIsProcessingFiles(false);
-            
-            if (ocrData.success && ocrData.data) {
-              // Show AI analysis if available
-              if (ocrData.data.aiAnalysis) {
-                setTimeout(() => {
-                  const assistantMessage = {
-                    id: Date.now() + 1,
-                    role: 'assistant' as const,
-                    content: ocrData.data.aiAnalysis,
-                    timestamp: new Date().toLocaleTimeString()
-                  };
+            try {
+              const formData = new FormData();
+              currentFiles.forEach(uploadedFile => {
+                formData.append('files', uploadedFile.file);
+              });
+              formData.append('query', currentInput || 'Please analyze these files');
+
+              const ocrResponse = await fetch('/api/ocr', {
+                method: 'POST',
+                body: formData
+              });
+
+              const ocrData = await ocrResponse.json();
+              
+              setIsProcessingFiles(false);
+              
+              if (ocrData.success && ocrData.data) {
+                // Show AI analysis if available
+                if (ocrData.data.aiAnalysis) {
+                  setTimeout(() => {
+                    const assistantMessage = {
+                      id: Date.now() + 1,
+                      role: 'assistant' as const,
+                      content: ocrData.data.aiAnalysis,
+                      timestamp: new Date().toLocaleTimeString()
+                    };
+                    
+                    setMessages(prev => [...prev, assistantMessage]);
+                    setCognitiveProcess('');
+                  }, 1000);
+                } else if (ocrData.data.extractedText) {
+                  // Show extracted text if no AI analysis
+                  setTimeout(() => {
+                    const assistantMessage = {
+                      id: Date.now() + 1,
+                      role: 'assistant' as const,
+                      content: `I've successfully extracted text from your ${ocrData.data.filesProcessed} file${ocrData.data.filesProcessed > 1 ? 's' : ''}:\n\n${ocrData.data.extractedText}\n\n*Would you like me to analyze this content or answer any questions about it?*`,
+                      timestamp: new Date().toLocaleTimeString()
+                    };
+                    
+                    setMessages(prev => [...prev, assistantMessage]);
+                    setCognitiveProcess('');
+                  }, 1000);
+                } else {
+                  // Show processing results
+                  const results = ocrData.data.analysisResults.map((result: any) => {
+                    if (result.status === 'success') {
+                      return `✅ ${result.filename}: Text extracted successfully`;
+                    } else if (result.status === 'error') {
+                      return `❌ ${result.filename}: ${result.error}`;
+                    } else {
+                      return `ℹ️ ${result.filename}: ${result.message}`;
+                    }
+                  }).join('\n');
                   
-                  setMessages(prev => [...prev, assistantMessage]);
-                  setCognitiveProcess('');
-                }, 1000);
-              } else if (ocrData.data.extractedText) {
-                // Show extracted text if no AI analysis
-                setTimeout(() => {
-                  const assistantMessage = {
-                    id: Date.now() + 1,
-                    role: 'assistant' as const,
-                    content: `I've successfully extracted text from your ${ocrData.data.filesProcessed} file${ocrData.data.filesProcessed > 1 ? 's' : ''}:\n\n${ocrData.data.extractedText}\n\n*Would you like me to analyze this content or answer any questions about it?*`,
-                    timestamp: new Date().toLocaleTimeString()
-                  };
-                  
-                  setMessages(prev => [...prev, assistantMessage]);
-                  setCognitiveProcess('');
-                }, 1000);
+                  setTimeout(() => {
+                    const assistantMessage = {
+                      id: Date.now() + 1,
+                      role: 'assistant' as const,
+                      content: `File Processing Results:\n\n${results}`,
+                      timestamp: new Date().toLocaleTimeString()
+                    };
+                    
+                    setMessages(prev => [...prev, assistantMessage]);
+                    setCognitiveProcess('');
+                  }, 1000);
+                }
+                return; // Exit early for successful OCR processing
               } else {
-                // Show processing results
-                const results = ocrData.data.analysisResults.map((result: any) => {
-                  if (result.status === 'success') {
-                    return `✅ ${result.filename}: Text extracted successfully`;
-                  } else if (result.status === 'error') {
-                    return `❌ ${result.filename}: ${result.error}`;
-                  } else {
-                    return `ℹ️ ${result.filename}: ${result.message}`;
-                  }
-                }).join('\n');
-                
-                setTimeout(() => {
-                  const assistantMessage = {
-                    id: Date.now() + 1,
-                    role: 'assistant' as const,
-                    content: `File Processing Results:\n\n${results}`,
-                    timestamp: new Date().toLocaleTimeString()
-                  };
-                  
-                  setMessages(prev => [...prev, assistantMessage]);
-                  setCognitiveProcess('');
-                }, 1000);
+                // OCR failed - fall through to try vision processing for images
+                console.log('OCR processing failed, falling back to vision processing');
               }
-            } else {
-              throw new Error(ocrData.error || 'File processing failed');
+              
+            } catch (fileError) {
+              console.error('OCR processing error:', fileError);
+              setIsProcessingFiles(false);
+              
+              // If OCR fails and we have images, fall through to vision processing
+              if (imageFiles.length === 0) {
+                const errorMessage = {
+                  id: Date.now() + 1,
+                  role: 'assistant' as const,
+                  content: `I encountered an issue processing your files: ${fileError instanceof Error ? fileError.message : 'Unknown error'}\n\nFor PDF files, I recommend converting them to high-quality images (PNG or JPG) for better text extraction results.\n\nPlease try:\n• Converting PDFs to images first\n• Using image formats (JPG, PNG, WebP)\n• Reducing file size (max 10MB each)\n• Uploading fewer files at once`,
+                  timestamp: new Date().toLocaleTimeString()
+                };
+                
+                setMessages(prev => [...prev, errorMessage]);
+                setCognitiveProcess('');
+                return;
+              }
             }
-            
-            return; // Exit early for file processing
-            
-          } catch (fileError) {
-            console.error('File processing error:', fileError);
-            setIsProcessingFiles(false);
-            
-            const errorMessage = {
-              id: Date.now() + 1,
-              role: 'assistant' as const,
-              content: `I encountered an issue processing your files: ${fileError instanceof Error ? fileError.message : 'Unknown error'}\n\nPlease try:\n• Checking file formats (Images: JPG, PNG, WebP; Documents: PDF)\n• Reducing file size (max 10MB each)\n• Uploading fewer files at once`,
-              timestamp: new Date().toLocaleTimeString()
-            };
-            
-            setMessages(prev => [...prev, errorMessage]);
-            setCognitiveProcess('');
-            return;
           }
         }
         
@@ -506,10 +520,14 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
         let apiAction = isCoding ? 'code' : isWriting ? 'writing' : isSTEM ? 'analysis' : 'chat';
 
         // Handle file uploads (especially images for OCR/vision)
-        if (uploadedFiles.length > 0) {
-          const imageFiles = uploadedFiles.filter(file => file.file.type.startsWith('image/'));
+        if (currentFiles.length > 0) {
+          const imageFiles = currentFiles.filter(file => file.file.type.startsWith('image/'));
           
           if (imageFiles.length > 0) {
+            // Set processing state for images
+            setIsProcessingFiles(true);
+            setCognitiveProcess('🔍 Gawin AI • analyzing your images and extracting text...');
+            
             // Convert images to base64 and create multimodal content
             const imagePromises = imageFiles.map(fileObj => {
               return new Promise<string>((resolve) => {
@@ -526,7 +544,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
             
             // Create multimodal message content
             messageContent = [
-              { type: 'text', text: currentInput || 'Please analyze this image and extract any text using OCR.' }
+              { type: 'text', text: currentInput || 'Please analyze this image and extract any text using OCR. If there is text in the image, please extract it accurately and provide any analysis requested.' }
             ];
 
             // Add each image to the content
@@ -539,6 +557,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
 
             // Use vision/OCR action for images
             apiAction = 'vision';
+            setIsProcessingFiles(false);
           }
         }
 
@@ -1067,11 +1086,11 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
             </div>
 
             {/* Center Chat Input (Logged-in Landing Page) */}
-            <div className="w-full px-6">
+            <div className="w-full px-4 sm:px-6">
               <div className="max-w-4xl mx-auto mb-8">
               <form onSubmit={handleSubmit} className="relative">
                 <div 
-                  className={`flex items-center gap-3 rounded-full border-0 p-4 hover:scale-[1.02] transition-all ${isDragOver ? 'ring-2 ring-emerald-400 ring-opacity-50' : ''}`}
+                  className={`flex items-center gap-2 sm:gap-3 rounded-full border-0 p-3 sm:p-4 hover:scale-[1.02] transition-all ${isDragOver ? 'ring-2 ring-emerald-400 ring-opacity-50' : ''}`}
                   style={{ 
                     backgroundColor: '#374151',
                     boxShadow: 'inset 2px 2px 5px rgba(0, 0, 0, 0.3), inset -2px -2px 5px rgba(255, 255, 255, 0.1), 0 8px 25px rgba(0, 0, 0, 0.15)'
@@ -1129,7 +1148,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                       ? "Ask questions about your files..." 
                       : "Ask me anything..."
                     }
-                    className="flex-1 bg-transparent border-none focus:ring-0 focus:border-none text-white placeholder-gray-300 text-lg py-2 px-3 focus:outline-none"
+                    className="flex-1 bg-transparent border-none focus:ring-0 focus:border-none text-white placeholder-gray-300 text-base sm:text-lg py-2 px-2 sm:px-3 focus:outline-none min-w-0"
                     style={{ border: 'none', outline: 'none' }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
@@ -1143,7 +1162,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                   <button
                     type="submit"
                     disabled={(!input.trim() && uploadedFiles.length === 0) || isLoading || isProcessingFiles}
-                    className="flex-shrink-0 w-10 h-10 rounded-full bg-cyan-400 hover:bg-cyan-500 text-black flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                    className="flex-shrink-0 w-10 h-10 sm:w-10 sm:h-10 rounded-full bg-cyan-400 hover:bg-cyan-500 text-black flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                   >
                     {isLoading || isProcessingFiles ? (
                       <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
@@ -1706,20 +1725,20 @@ export default function Home() {
         </div>
 
         {/* Center Chat Input (Landing Page) */}
-        <div className="w-full px-6">
+        <div className="w-full px-4 sm:px-6">
           <div className="max-w-4xl mx-auto mb-8">
           <div 
-            className="flex items-center gap-3 rounded-full border-0 p-4 cursor-pointer hover:scale-[1.02] transition-all"
+            className="flex items-center gap-2 sm:gap-3 rounded-full border-0 p-3 sm:p-4 cursor-pointer hover:scale-[1.02] transition-all"
             style={{ 
               backgroundColor: '#374151',
               boxShadow: 'inset 2px 2px 5px rgba(0, 0, 0, 0.3), inset -2px -2px 5px rgba(255, 255, 255, 0.1), 0 8px 25px rgba(0, 0, 0, 0.15)'
             }}
             onClick={() => setShowAuthModal(true)}
           >
-            <div className="flex-1 text-gray-300 text-lg py-2 px-3">
+            <div className="flex-1 text-gray-300 text-base sm:text-lg py-2 px-2 sm:px-3">
               Ask me anything...
             </div>
-            <div className="w-10 h-10 rounded-full bg-cyan-400 flex items-center justify-center text-black">
+            <div className="w-10 h-10 sm:w-10 sm:h-10 rounded-full bg-cyan-400 flex items-center justify-center text-black">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M22 2L11 13"/>
                 <path d="M22 2l-7 20-4-9-9-4 20-7z"/>
