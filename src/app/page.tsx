@@ -431,6 +431,11 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
                 });
               }
 
+              if (!mistralResponse) {
+                setIsProcessingFiles(false);
+                throw new Error('No files processed - unsupported file type');
+              }
+
               const mistralData = await mistralResponse.json();
               setIsProcessingFiles(false);
 
@@ -1185,10 +1190,10 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
             </div>
           </main>
         ) : (
-          /* Chat Layout with Fixed Header/Footer */
-          <>
+          /* Chat Layout with Messages and Fixed Bottom Input */
+          <main className="flex-1 flex flex-col overflow-hidden" style={{ backgroundColor: '#fffbeb' }}>
             {/* Chat Messages Area - Scrollable */}
-            <main className="flex-1 overflow-y-auto p-4" style={{ backgroundColor: '#fffbeb' }}>
+            <div className="flex-1 overflow-y-auto p-4 pb-2">
               <div className="max-w-4xl mx-auto space-y-4">
                 {messages.map((message) => (
                   <div
@@ -1254,157 +1259,157 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                     </div>
                   </div>
                 )}
+                
+                {/* Extra padding at bottom to ensure last message isn't hidden behind input */}
+                <div className="h-4"></div>
               </div>
-            </main>
-          </>
-        )}
+            </div>
 
-        {/* Fixed Footer with Chat Input - Only show when not on landing page */}
-        {messages.length > 0 && (
-          <footer className="p-4 border-t" style={{ backgroundColor: '#fffbeb' }}>
-          <div className="max-w-4xl mx-auto">
-            {/* File Previews */}
-            {uploadedFiles.length > 0 && (
-              <div className="mb-4 p-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl">
-                <div className="flex flex-wrap gap-2">
-                  {uploadedFiles.map((file) => (
-                    <div
-                      key={file.id}
-                      className="flex items-center space-x-2 bg-white/20 rounded-lg px-3 py-2 text-sm"
+            {/* Fixed Bottom Chat Input */}
+            <div className="flex-shrink-0 p-4 pt-2" style={{ backgroundColor: '#fffbeb' }}>
+              <div className="max-w-4xl mx-auto">
+                {/* File Previews */}
+                {uploadedFiles.length > 0 && (
+                  <div className="mb-3 p-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl">
+                    <div className="flex flex-wrap gap-2">
+                      {uploadedFiles.map((file) => (
+                        <div
+                          key={file.id}
+                          className="flex items-center space-x-2 bg-white/20 rounded-lg px-3 py-2 text-sm"
+                        >
+                          {file.preview ? (
+                            <img src={file.preview} alt={file.name} className="w-6 h-6 rounded object-cover" />
+                          ) : (
+                            <div className="w-6 h-6 bg-gray-400 rounded flex items-center justify-center text-xs text-white">
+                              📄
+                            </div>
+                          )}
+                          <span className="text-white/90 truncate max-w-32">{file.name}</span>
+                          <button
+                            onClick={() => removeFile(file.id)}
+                            className="text-white/60 hover:text-white ml-2"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-3 text-xs text-white/60">
+                      💡 Ask questions about your files or request analysis in your message
+                    </div>
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="relative">
+                  {/* ChatBox Container */}
+                  <div 
+                    className={`flex items-center gap-2 sm:gap-3 rounded-full border-0 p-3 sm:p-4 ${isDragOver ? 'ring-2 ring-emerald-400 ring-opacity-50' : ''}`}
+                    style={{ 
+                      backgroundColor: '#374151',
+                      boxShadow: 'inset 2px 2px 5px rgba(0, 0, 0, 0.3), inset -2px -2px 5px rgba(255, 255, 255, 0.1), 0 4px 15px rgba(0, 0, 0, 0.1)'
+                    }}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                  >
+                    {/* File Upload Button */}
+                    <button
+                      type="button"
+                      onClick={() => setShowUploadDropdown(!showUploadDropdown)}
+                      className={`flex-shrink-0 text-orange-500 hover:opacity-80 text-xl sm:text-2xl relative ${
+                        uploadedFiles.length > 0 ? 'text-emerald-500' : ''
+                      }`}
+                      title="File upload"
                     >
-                      {file.preview ? (
-                        <img src={file.preview} alt={file.name} className="w-6 h-6 rounded object-cover" />
+                      {uploadedFiles.length > 0 ? (
+                        <span className="text-sm font-bold">{uploadedFiles.length}</span>
                       ) : (
-                        <div className="w-6 h-6 bg-gray-400 rounded flex items-center justify-center text-xs text-white">
-                          📄
+                        '+'
+                      )}
+
+                      {/* Upload Options Dropdown */}
+                      {showUploadDropdown && (
+                        <div className="absolute bottom-full mb-2 left-0 w-32 bg-white rounded-2xl shadow-xl border border-gray-200/50 overflow-hidden z-50">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleFileClick();
+                              setShowUploadDropdown(false);
+                            }}
+                            className="w-full flex items-center space-x-2 px-3 py-2 hover:bg-gray-50 transition-colors text-left text-sm text-gray-700"
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                              <polyline points="7,10 12,15 17,10"/>
+                              <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            <span>File upload</span>
+                          </button>
                         </div>
                       )}
-                      <span className="text-white/90 truncate max-w-32">{file.name}</span>
-                      <button
-                        onClick={() => removeFile(file.id)}
-                        className="text-white/60 hover:text-white ml-2"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-3 text-xs text-white/60">
-                  💡 Ask questions about your files or request analysis in your message
-                </div>
-              </div>
-            )}
+                    </button>
 
-            <form onSubmit={handleSubmit} className="relative">
+                    {/* Input Field - Mobile Optimized */}
+                    <input
+                      type="text"
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onPaste={handlePaste}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleSubmit(e as any);
+                        }
+                      }}
+                      placeholder={isDragOver 
+                        ? "Drop files here..." 
+                        : uploadedFiles.length > 0 
+                        ? "Ask questions about your files..." 
+                        : "Ask me anything..."
+                      }
+                      className="flex-1 bg-transparent border-none focus:ring-0 focus:border-none text-white placeholder-gray-300 text-base sm:text-lg py-2 px-2 sm:px-3 focus:outline-none min-w-0"
+                      style={{ border: 'none', outline: 'none' }}
+                    />
 
-              {/* ChatBox Container */}
-              <div 
-                className={`flex items-center gap-2 rounded-full border-0 p-3 ${isDragOver ? 'ring-2 ring-emerald-400 ring-opacity-50' : ''}`}
-                style={{ 
-                  backgroundColor: '#374151',
-                  boxShadow: 'inset 2px 2px 5px rgba(0, 0, 0, 0.3), inset -2px -2px 5px rgba(255, 255, 255, 0.1), 0 4px 15px rgba(0, 0, 0, 0.1)'
-                }}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-              >
-                {/* File Upload Button */}
-                <button
-                  type="button"
-                  onClick={() => setShowUploadDropdown(!showUploadDropdown)}
-                  className={`flex-shrink-0 text-orange-500 hover:opacity-80 text-2xl relative ${
-                    uploadedFiles.length > 0 ? 'text-emerald-500' : ''
-                  }`}
-                  title="File upload"
-                >
-                  {uploadedFiles.length > 0 ? (
-                    <span className="text-sm font-bold">{uploadedFiles.length}</span>
-                  ) : (
-                    '+'
-                  )}
-
-                  {/* Upload Options Dropdown */}
-                  {showUploadDropdown && (
-                    <div className="absolute bottom-full mb-2 left-0 w-32 bg-white rounded-2xl shadow-xl border border-gray-200/50 overflow-hidden z-50">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleFileClick();
-                          setShowUploadDropdown(false);
-                        }}
-                        className="w-full flex items-center space-x-2 px-3 py-2 hover:bg-gray-50 transition-colors text-left text-sm text-gray-700"
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                          <polyline points="7,10 12,15 17,10"/>
-                          <line x1="12" y1="15" x2="12" y2="3"/>
+                    {/* Send Button */}
+                    <button
+                      type="submit"
+                      disabled={(!input.trim() && uploadedFiles.length === 0) || isLoading || isProcessingFiles}
+                      className="flex-shrink-0 w-10 h-10 sm:w-10 sm:h-10 rounded-full bg-cyan-400 hover:bg-cyan-500 text-black flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                    >
+                      {isLoading || isProcessingFiles ? (
+                        <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
+                      ) : (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M22 2L11 13"/>
+                          <path d="M22 2l-7 20-4-9-9-4 20-7z"/>
                         </svg>
-                        <span>File upload</span>
-                      </button>
-                    </div>
-                  )}
-                </button>
-
-                {/* Input Field */}
-                <textarea
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onPaste={handlePaste}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSubmit(e as any);
-                    }
-                  }}
-                  placeholder={isDragOver 
-                    ? "Drop files here..." 
-                    : uploadedFiles.length > 0 
-                    ? "Ask questions about your files..." 
-                    : "Ask me anything..."
-                  }
-                  className="flex-1 bg-transparent border-none focus:ring-0 focus:border-none text-white placeholder-gray-300 text-lg resize-none min-h-[90px] max-h-[200px] py-3 px-2 focus:outline-none"
-                  style={{ border: 'none', outline: 'none' }}
-                  rows={3}
-                />
-
-                {/* Send Button */}
-                <button
-                  type="submit"
-                  disabled={(!input.trim() && uploadedFiles.length === 0) || isLoading || isProcessingFiles}
-                  className="flex-shrink-0 w-10 h-10 rounded-full bg-cyan-400 hover:bg-cyan-500 text-black flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                >
-                  {isLoading || isProcessingFiles ? (
-                    <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
-                  ) : (
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M22 2L11 13"/>
-                      <path d="M22 2l-7 20-4-9-9-4 20-7z"/>
-                    </svg>
-                  )}
-                </button>
-              </div>
-            </form>
-
-            {/* File Processing Status */}
-            {isProcessingFiles && (
-              <div className="mt-4 p-4 bg-blue-50/10 border border-blue-200/20 rounded-3xl">
-                <div className="flex items-center space-x-3">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                      )}
+                    </button>
                   </div>
-                  <span className="text-sm text-white/80">
-                    🔍 Gawin is scanning and analyzing your documents...
-                  </span>
-                </div>
-                <div className="text-xs text-white/60 mt-2">
-                  This may take a moment for complex documents or images
-                </div>
+                </form>
+
+                {/* File Processing Status */}
+                {isProcessingFiles && (
+                  <div className="mt-3 p-3 bg-blue-50/10 border border-blue-200/20 rounded-3xl">
+                    <div className="flex items-center space-x-3">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                      </div>
+                      <span className="text-sm text-white/80">
+                        🔍 Gawin is scanning and analyzing your documents...
+                      </span>
+                    </div>
+                    <div className="text-xs text-white/60 mt-2">
+                      This may take a moment for complex documents or images
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </footer>
+            </div>
+          </main>
         )}
       </div>
     </div>
