@@ -24,11 +24,7 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
   const [showQuizGenerator, setShowQuizGenerator] = useState(false);
   const [showSidePanel, setShowSidePanel] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState(0); // Real online user count
-  const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
-  const [isProcessingFiles, setIsProcessingFiles] = useState(false);
-  const [isDragOver, setIsDragOver] = useState(false);
   const [showSpacesDropdown, setShowSpacesDropdown] = useState(false);
-  const [showUploadDropdown, setShowUploadDropdown] = useState(false);
 
   // Update active users count periodically
   useEffect(() => {
@@ -92,131 +88,6 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showSpacesDropdown]);
 
-  // File handling functions
-  const validateFile = (file: File): { isValid: boolean; error?: string } => {
-    // Set different size limits based on file type to match OCR service limits
-    const isImage = file.type.startsWith('image/');
-    const isPDF = file.type === 'application/pdf';
-    
-    let maxSize: number;
-    if (isPDF) {
-      maxSize = 20 * 1024 * 1024; // 20MB for PDFs (OCR processing)
-    } else if (isImage) {
-      maxSize = 5 * 1024 * 1024; // 5MB for images (vision processing)
-    } else {
-      maxSize = 10 * 1024 * 1024; // 10MB for other files
-    }
-    
-    const allowedTypes = [
-      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-      'application/pdf', 'text/plain', 'text/csv',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    ];
-
-    if (file.size > maxSize) {
-      const maxSizeMB = maxSize / (1024 * 1024);
-      return { isValid: false, error: `File too large (max ${maxSizeMB}MB for ${isPDF ? 'PDFs' : isImage ? 'images' : 'this file type'})` };
-    }
-
-    if (!allowedTypes.includes(file.type)) {
-      return { isValid: false, error: 'Unsupported file type' };
-    }
-
-    return { isValid: true };
-  };
-
-  const processFiles = async (files: File[]) => {
-    const validFiles: any[] = [];
-    
-    for (const file of files.slice(0, 5 - uploadedFiles.length)) {
-      const validation = validateFile(file);
-      if (!validation.isValid) {
-        console.warn(`File ${file.name}: ${validation.error}`);
-        continue;
-      }
-
-      // Create preview for images
-      let preview = '';
-      if (file.type.startsWith('image/')) {
-        preview = URL.createObjectURL(file);
-      }
-
-      validFiles.push({
-        id: Date.now() + Math.random(),
-        file,
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        preview
-      });
-    }
-
-    if (validFiles.length > 0) {
-      setUploadedFiles(prev => [...prev, ...validFiles]);
-    }
-  };
-
-  const removeFile = (id: number) => {
-    setUploadedFiles(prev => {
-      const updated = prev.filter(f => f.id !== id);
-      // Revoke object URLs to prevent memory leaks
-      prev.filter(f => f.id === id).forEach(f => {
-        if (f.preview) URL.revokeObjectURL(f.preview);
-      });
-      return updated;
-    });
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragOver(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragOver(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragOver(false);
-
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0) {
-      processFiles(files);
-    }
-  };
-
-  const handlePaste = (e: React.ClipboardEvent) => {
-    const items = Array.from(e.clipboardData?.items || []);
-    const imageItems = items.filter(item => item.type.startsWith('image/'));
-    
-    if (imageItems.length > 0) {
-      e.preventDefault();
-      const pastedFiles = imageItems
-        .map(item => item.getAsFile())
-        .filter(Boolean) as File[];
-      processFiles(pastedFiles);
-    }
-  };
-
-  const handleFileClick = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.multiple = true;
-    input.accept = 'image/*,.pdf,.txt,.csv,.docx,.xlsx';
-    input.onchange = (e) => {
-      const files = Array.from((e.target as HTMLInputElement).files || []);
-      if (files.length > 0) {
-        processFiles(files);
-      }
-    };
-    input.click();
-  };
 
   // Helper function to process AI response and extract cognitive indicators
   const processAIResponse = (rawResponse: string) => {
@@ -325,21 +196,15 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Check if we have content (text or files)
+    // Check if we have text content
     const hasText = input.trim().length > 0;
-    const hasFiles = uploadedFiles.length > 0;
     
-    if ((!hasText && !hasFiles) || isLoading || isProcessingFiles) {
+    if (!hasText || isLoading) {
       return;
     }
 
-    // Create user message with file context if present
-    let userContent = input.trim();
-    if (hasFiles && !hasText) {
-      userContent = "Please analyze the uploaded files.";
-    } else if (hasFiles && hasText) {
-      userContent = `${input.trim()}\n\n📎 ${uploadedFiles.length} file${uploadedFiles.length > 1 ? 's' : ''} attached`;
-    }
+    // Create user message
+    const userContent = input.trim();
 
     const userMessage = {
       id: Date.now(),
@@ -353,148 +218,17 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
     setIsLoading(true);
     
     const currentInput = input.trim();
-    const currentFiles = [...uploadedFiles];
     setInput('');
-    setUploadedFiles([]);
       
       try {
-        // Handle file uploads with Mistral OCR
-        if (hasFiles) {
-          const imageFiles = currentFiles.filter(file => file.file.type.startsWith('image/'));
-          const documentFiles = currentFiles.filter(file => file.type === 'application/pdf');
-          
-          if (imageFiles.length > 0 || documentFiles.length > 0) {
-            setIsProcessingFiles(true);
-            setCognitiveProcess('🔍 Mistral OCR • processing your files with world-class accuracy...');
-            
-            try {
-              // Convert images to base64 for Mistral API
-              const imagePromises = imageFiles.map(fileObj => {
-                return new Promise<string>((resolve) => {
-                  const reader = new FileReader();
-                  reader.onload = () => {
-                    const base64 = reader.result as string;
-                    resolve(base64);
-                  };
-                  reader.readAsDataURL(fileObj.file);
-                });
-              });
-
-              const base64Images = await Promise.all(imagePromises);
-              
-              let mistralResponse;
-
-              if (imageFiles.length > 0) {
-                // Use Mistral Vision API for images
-                const messages = [
-                  {
-                    role: 'user' as const,
-                    content: [
-                      { 
-                        type: 'text' as const, 
-                        text: currentInput || 'Please analyze this image and extract any text using OCR. If there is text in the image, please extract it accurately and provide any analysis requested.' 
-                      },
-                      ...base64Images.map(imageUrl => ({
-                        type: 'image_url' as const,
-                        image_url: { url: imageUrl }
-                      }))
-                    ]
-                  }
-                ];
-
-                mistralResponse = await fetch('/api/mistral-ocr', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({
-                    messages,
-                    model: 'pixtral-large-2411',
-                    max_tokens: 4096,
-                    temperature: 0.3
-                  }),
-                });
-              } else if (documentFiles.length > 0) {
-                // For PDFs, convert first one to base64 and use OCR endpoint
-                const pdfFile = documentFiles[0];
-                const pdfBase64 = await new Promise<string>((resolve) => {
-                  const reader = new FileReader();
-                  reader.onload = () => {
-                    const result = reader.result as string;
-                    // Remove data URL prefix to get just base64
-                    const base64 = result.split(',')[1];
-                    resolve(base64);
-                  };
-                  reader.readAsDataURL(pdfFile.file);
-                });
-
-                mistralResponse = await fetch('/api/mistral-ocr', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({
-                    model: 'mistral-ocr-latest',
-                    document: {
-                      type: 'document_base64',
-                      document_base64: pdfBase64
-                    },
-                    include_image_base64: false
-                  }),
-                });
-              }
-
-              if (!mistralResponse) {
-                setIsProcessingFiles(false);
-                throw new Error('No files processed - unsupported file type');
-              }
-
-              const mistralData = await mistralResponse.json();
-              setIsProcessingFiles(false);
-
-              if (mistralData.success && mistralData.data) {
-                setTimeout(() => {
-                  const assistantMessage = {
-                    id: Date.now() + 1,
-                    role: 'assistant' as const,
-                    content: mistralData.data.response,
-                    timestamp: new Date().toLocaleTimeString()
-                  };
-                  
-                  setMessages(prev => [...prev, assistantMessage]);
-                  setCognitiveProcess('');
-                }, 1000);
-                return; // Exit early for successful Mistral processing
-              } else {
-                throw new Error(mistralData.error || 'Mistral OCR processing failed');
-              }
-              
-            } catch (fileError) {
-              console.error('Mistral OCR processing error:', fileError);
-              setIsProcessingFiles(false);
-              
-              const errorMessage = {
-                id: Date.now() + 1,
-                role: 'assistant' as const,
-                content: `I encountered an issue processing your files with Mistral OCR: ${fileError instanceof Error ? fileError.message : 'Unknown error'}\n\n**Troubleshooting tips:**\n• Ensure images are in supported formats (PNG, JPEG, WEBP, GIF)\n• Check file size: Images max 5MB, PDFs max 20MB\n• Try uploading fewer files at once (max 8 images)\n• For very large files, consider compressing or splitting them\n\n**Mistral OCR supports:**\n✅ 99%+ accuracy across 11+ languages\n✅ Lightning-fast processing\n✅ Document structure preservation\n✅ Both images and PDFs`,
-                timestamp: new Date().toLocaleTimeString()
-              };
-              
-              setMessages(prev => [...prev, errorMessage]);
-              setCognitiveProcess('');
-              return;
-            }
-          }
-        }
-        
-        // Regular text processing (no files)
+        // Regular text processing
         const isSTEM = /math|physics|chemistry|biology|calculus|algebra|equation|formula|scientific|theorem/.test(currentInput.toLowerCase());
         const isCoding = /code|program|function|class|variable|debug|algorithm|javascript|python|react|typescript|css|html/.test(currentInput.toLowerCase());
         const isWriting = /write|essay|story|letter|email|article|blog|creative|compose|grammar|spelling/.test(currentInput.toLowerCase());
         const isImageGeneration = /draw|create.*image|generate.*image|make.*image|paint|sketch|illustrate|picture|photo|artwork|visual/.test(currentInput.toLowerCase());
         
         // Handle image generation requests
-        if (isImageGeneration && !hasFiles) {
+        if (isImageGeneration) {
           setCognitiveProcess('🎨 Gawin AI • creating your image...');
           
           const imageResponse = await fetch('/api/images', {
@@ -548,11 +282,9 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
           return;
         }
         
-        // Process uploaded files for API
+        // Process message for API
         let messageContent: any = currentInput;
         let apiAction = isCoding ? 'code' : isWriting ? 'writing' : isSTEM ? 'analysis' : 'chat';
-
-        // No additional image processing needed - handled by Mistral OCR above
 
         // Use Groq API with intelligent fallback system (Groq -> HuggingFace -> DeepSeek -> Educational)
         const response = await fetch('/api/groq', {
@@ -636,7 +368,6 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
         setMessages(prev => [...prev, errorMessage]);
       } finally {
         setIsLoading(false);
-        setIsProcessingFiles(false);
         setCognitiveProcess('');
       }
   };
@@ -1135,12 +866,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onPaste={handlePaste}
-                    placeholder={isDragOver 
-                      ? "Drop files here..." 
-                      : uploadedFiles.length > 0 
-                      ? "Ask questions about your files..." 
-                      : "Ask me anything..."
-                    }
+                    placeholder="What would you like to learn today?"
                     className="flex-1 bg-transparent border-none focus:ring-0 focus:border-none text-white placeholder-gray-300 text-base sm:text-lg py-2 px-2 sm:px-3 focus:outline-none min-w-0"
                     style={{ border: 'none', outline: 'none' }}
                     onKeyDown={(e) => {
@@ -1387,12 +1113,7 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                           handleSubmit(e as any);
                         }
                       }}
-                      placeholder={isDragOver 
-                        ? "Drop files here..." 
-                        : uploadedFiles.length > 0 
-                        ? "Ask questions about your files..." 
-                        : "Ask me anything..."
-                      }
+                      placeholder="What would you like to learn today?"
                       className="flex-1 bg-transparent border-none focus:ring-0 focus:border-none text-white placeholder-gray-300 text-base sm:text-lg py-2 px-2 sm:px-3 focus:outline-none min-w-0"
                       style={{ border: 'none', outline: 'none' }}
                     />
@@ -1763,7 +1484,7 @@ export default function Home() {
             onClick={() => setShowAuthModal(true)}
           >
             <div className="flex-1 text-gray-300 text-base sm:text-lg py-2 px-2 sm:px-3">
-              Ask me anything...
+              What would you like to learn today?
             </div>
             <div className="w-10 h-10 sm:w-10 sm:h-10 rounded-full bg-cyan-400 flex items-center justify-center text-black">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

@@ -43,13 +43,8 @@ class MistralOCRService {
   private baseURL: string = 'https://api.mistral.ai/v1';
 
   constructor() {
-    this.apiKey = process.env.MISTRAL_API_KEY || '';
-    
-    if (!this.apiKey) {
-      console.warn('⚠️ Mistral API key not found. OCR/Vision processing will not work.');
-    } else {
-      console.log('✅ Mistral API key configured successfully.');
-    }
+    this.apiKey = ''; // OCR functionality disabled
+    console.log('⚠️ OCR/Vision processing has been disabled.');
   }
 
   static getInstance(): MistralOCRService {
@@ -63,7 +58,7 @@ class MistralOCRService {
    * Check if the service is properly configured
    */
   isConfigured(): boolean {
-    return this.apiKey !== '';
+    return false; // Always return false as OCR is disabled
   }
 
   /**
@@ -89,172 +84,23 @@ class MistralOCRService {
   }
 
   /**
-   * Process OCR requests using Mistral's OCR API
+   * Process OCR requests - DISABLED
    */
   async processOCR(request: MistralOCRRequest): Promise<MistralOCRResponse> {
-    try {
-      if (!this.isConfigured()) {
-        return {
-          success: false,
-          error: 'Mistral API key not configured'
-        };
-      }
-
-      const startTime = Date.now();
-
-      // Use OCR endpoint for documents
-      if (request.document) {
-        // Validate document size before processing
-        const documentData = request.document.document_base64 || '';
-        if (documentData) {
-          const validation = this.validateDocumentSize(documentData, 'pdf'); // Assume PDF for OCR endpoint
-          if (!validation.isValid) {
-            return {
-              success: false,
-              error: validation.error
-            };
-          }
-        }
-
-        const response = await fetch(`${this.baseURL}/ocr`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.apiKey}`
-          },
-          body: JSON.stringify({
-            model: 'mistral-ocr-latest',
-            document: request.document,
-            include_image_base64: request.include_image_base64 || false
-          })
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Mistral OCR API error: ${response.status} - ${errorText}`);
-        }
-
-        const data = await response.json();
-        const processingTime = Date.now() - startTime;
-
-        return {
-          success: true,
-          data: {
-            response: data.content || data.text || 'OCR processing completed',
-            model_used: 'mistral-ocr-latest',
-            task_type: 'ocr',
-            processing_time: processingTime,
-            extracted_text: data.content || data.text
-          },
-          usage: data.usage
-        };
-      }
-
-      // Use chat/vision endpoint for images
-      if (request.messages) {
-        // Validate image sizes in messages
-        for (const message of request.messages) {
-          if (Array.isArray(message.content)) {
-            for (const item of message.content) {
-              if (item.type === 'image_url' && item.image_url?.url) {
-                const imageUrl = item.image_url.url;
-                if (imageUrl.startsWith('data:image/')) {
-                  const validation = this.validateDocumentSize(imageUrl, 'image');
-                  if (!validation.isValid) {
-                    return {
-                      success: false,
-                      error: validation.error
-                    };
-                  }
-                }
-              }
-            }
-          }
-        }
-
-        const response = await fetch(`${this.baseURL}/chat/completions`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.apiKey}`
-          },
-          body: JSON.stringify({
-            model: 'pixtral-large-2411', // Mistral's latest vision model
-            messages: request.messages,
-            max_tokens: request.max_tokens || 4096,
-            temperature: request.temperature || 0.3
-          })
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Mistral Vision API error: ${response.status} - ${errorText}`);
-        }
-
-        const data = await response.json();
-        const processingTime = Date.now() - startTime;
-
-        const responseText = data.choices?.[0]?.message?.content || 'Vision processing completed';
-
-        return {
-          success: true,
-          data: {
-            response: responseText,
-            model_used: 'pixtral-large-2411',
-            task_type: 'vision',
-            processing_time: processingTime,
-            extracted_text: responseText
-          },
-          usage: data.usage
-        };
-      }
-
-      return {
-        success: false,
-        error: 'No valid request format provided (document or messages required)'
-      };
-
-    } catch (error) {
-      console.error('Mistral OCR processing error:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred'
-      };
-    }
+    return {
+      success: false,
+      error: 'OCR functionality has been disabled. File processing is not available.'
+    };
   }
 
   /**
-   * Process images with vision model
+   * Process images with vision model - DISABLED
    */
-  async processVision(images: string[], prompt: string = 'Please analyze this image and extract any text using OCR. If there is text in the image, please extract it accurately and provide any analysis requested.'): Promise<MistralOCRResponse> {
-    try {
-      const messages = [
-        {
-          role: 'user' as const,
-          content: [
-            { type: 'text' as const, text: prompt },
-            ...images.map(imageUrl => ({
-              type: 'image_url' as const,
-              image_url: { url: imageUrl }
-            }))
-          ]
-        }
-      ];
-
-      return await this.processOCR({ 
-        model: 'pixtral-large-2411', 
-        messages,
-        max_tokens: 4096,
-        temperature: 0.3
-      });
-
-    } catch (error) {
-      console.error('Mistral vision processing error:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Vision processing failed'
-      };
-    }
+  async processVision(images: string[], prompt?: string): Promise<MistralOCRResponse> {
+    return {
+      success: false,
+      error: 'Vision processing functionality has been disabled. Image analysis is not available.'
+    };
   }
 
   /**
