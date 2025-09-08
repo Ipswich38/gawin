@@ -238,7 +238,7 @@ export default function MessageRenderer({ text }: MessageRendererProps) {
       if (stepNum && content) {
         return (
           <div className="mt-6 mb-4">
-            <h3 className="text-lg font-bold text-blue-800 mb-2">Step {stepNum}: {content}</h3>
+            <h3 className="text-lg font-bold text-teal-600 mb-2">Step {stepNum}: {content}</h3>
           </div>
         );
       }
@@ -250,7 +250,7 @@ export default function MessageRenderer({ text }: MessageRendererProps) {
       if (stepNum && content) {
         return (
           <div className="mt-6 mb-4">
-            <h3 className="text-lg font-bold text-blue-800 mb-2">Step {stepNum}: {content}</h3>
+            <h3 className="text-lg font-bold text-teal-600 mb-2">Step {stepNum}: {content}</h3>
           </div>
         );
       }
@@ -262,7 +262,7 @@ export default function MessageRenderer({ text }: MessageRendererProps) {
       if (number && content) {
         return (
           <div className="flex items-start space-x-2 mb-2">
-            <span className="font-semibold text-orange-600 flex-shrink-0">{number}.</span>
+            <span className="font-semibold text-teal-600 flex-shrink-0">{number}.</span>
             <span>{content}</span>
           </div>
         );
@@ -274,7 +274,7 @@ export default function MessageRenderer({ text }: MessageRendererProps) {
       const content = text.replace(/^[•\-]\s*/, '');
       return (
         <div className="flex items-start space-x-2 mb-2">
-          <span className="text-orange-600 flex-shrink-0">•</span>
+          <span className="text-teal-600 flex-shrink-0">•</span>
           <span>{content}</span>
         </div>
       );
@@ -288,7 +288,7 @@ export default function MessageRenderer({ text }: MessageRendererProps) {
         <div>
           {parts[0] && <span>{parts[0]}</span>}
           <div className="mt-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-r shadow-sm">
-            <div className="font-bold text-green-800 mb-2 text-lg">✅ Final Answer</div>
+            <div className="font-bold text-teal-600 mb-2 text-lg">✅ Final Answer</div>
             <div className="text-green-700 font-medium">{parts[1]}</div>
           </div>
         </div>
@@ -302,7 +302,7 @@ export default function MessageRenderer({ text }: MessageRendererProps) {
         <div>
           {parts[0] && <span>{parts[0]}</span>}
           <div className="mt-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-r shadow-sm">
-            <div className="font-bold text-green-800 mb-2 text-lg">✅ Final Answer</div>
+            <div className="font-bold text-teal-600 mb-2 text-lg">✅ Final Answer</div>
             <div className="text-green-700 font-medium">{parts[1]}</div>
           </div>
         </div>
@@ -315,7 +315,7 @@ export default function MessageRenderer({ text }: MessageRendererProps) {
       return (
         <div>
           {parts[0] && <span>{parts[0]}</span>}
-          <div className="mt-3 font-semibold text-blue-800">Solution:</div>
+          <div className="mt-3 font-semibold text-teal-600">Solution:</div>
           <div className="text-gray-700">{parts[1]}</div>
         </div>
       );

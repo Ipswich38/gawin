@@ -907,11 +907,13 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                     className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`max-w-2xl px-6 py-4 rounded-3xl relative ${
-                        message.role === 'user'
-                          ? 'bg-[#051a1c] text-white shadow-xl'
-                          : 'bg-white dark:bg-neutral-800 text-[#051a1c] dark:text-white shadow-lg'
-                      }`}
+                      className="max-w-2xl px-6 py-4 rounded-3xl relative text-gray-700"
+                      style={{ 
+                        backgroundColor: '#fffbeb',
+                        boxShadow: message.role === 'user' 
+                          ? 'inset 2px 2px 5px rgba(0, 0, 0, 0.1), inset -2px -2px 5px rgba(255, 255, 255, 0.7), 4px 4px 10px rgba(0, 0, 0, 0.1)'
+                          : 'inset -2px -2px 5px rgba(0, 0, 0, 0.1), inset 2px 2px 5px rgba(255, 255, 255, 0.7), 4px 4px 10px rgba(0, 0, 0, 0.1)'
+                      }}
                     >
                       <div className="text-base leading-relaxed">
                         {message.role === 'user' ? (
@@ -921,15 +923,13 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                         )}
                       </div>
                       <div className="flex items-center justify-between mt-2">
-                        <p className={`text-xs opacity-60 ${
-                          message.role === 'user' ? 'text-white/70' : 'text-[#051a1c]/70 dark:text-white/70'
-                        }`}>
+                        <p className="text-xs opacity-60 text-gray-500">
                           {message.timestamp}
                         </p>
                         {message.role === 'assistant' && (
                           <button
                             onClick={() => copyToClipboard(message.content, message.id)}
-                            className="p-1.5 rounded-lg hover:bg-black/10 transition-colors opacity-60 hover:opacity-100"
+                            className="p-1.5 rounded-lg hover:bg-white/40 transition-colors opacity-60 hover:opacity-100 text-gray-600"
                             title="Copy response"
                           >
                             {copiedMessageId === message.id ? (
@@ -951,14 +951,20 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
                 
                 {(isLoading || cognitiveProcess) && (
                   <div className="flex justify-start">
-                    <div className="bg-white dark:bg-neutral-800 shadow-lg px-6 py-4 rounded-3xl">
+                    <div 
+                      className="px-6 py-4 rounded-3xl text-gray-700"
+                      style={{ 
+                        backgroundColor: '#fffbeb',
+                        boxShadow: 'inset -2px -2px 5px rgba(0, 0, 0, 0.1), inset 2px 2px 5px rgba(255, 255, 255, 0.7), 4px 4px 10px rgba(0, 0, 0, 0.1)'
+                      }}
+                    >
                       <div className="flex items-center space-x-2">
                         <div className="flex space-x-1">
-                          <div className="w-2 h-2 bg-[#051a1c] dark:bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                          <div className="w-2 h-2 bg-[#051a1c] dark:bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                          <div className="w-2 h-2 bg-[#051a1c] dark:bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                          <div className="w-2 h-2 bg-teal-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                          <div className="w-2 h-2 bg-teal-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                          <div className="w-2 h-2 bg-teal-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                         </div>
-                        <span className="text-sm opacity-60 italic text-[#051a1c] dark:text-white">
+                        <span className="text-sm opacity-60 italic text-gray-600">
                           {cognitiveProcess || 'Gawin is thinking...'}
                         </span>
                       </div>
