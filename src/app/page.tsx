@@ -980,37 +980,6 @@ Gawin AI image generation sometimes experiences high demand, but usually works b
               }}
             >
               <div className="max-w-4xl mx-auto">
-                {/* File Previews */}
-                {uploadedFiles.length > 0 && (
-                  <div className="mb-3 p-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl">
-                    <div className="flex flex-wrap gap-2">
-                      {uploadedFiles.map((file) => (
-                        <div
-                          key={file.id}
-                          className="flex items-center space-x-2 bg-white/20 rounded-lg px-3 py-2 text-sm"
-                        >
-                          {file.preview ? (
-                            <img src={file.preview} alt={file.name} className="w-6 h-6 rounded object-cover" />
-                          ) : (
-                            <div className="w-6 h-6 bg-gray-400 rounded flex items-center justify-center text-xs text-white">
-                              📄
-                            </div>
-                          )}
-                          <span className="text-white/90 truncate max-w-32">{file.name}</span>
-                          <button
-                            onClick={() => removeFile(file.id)}
-                            className="text-white/60 hover:text-white ml-2"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-3 text-xs text-white/60">
-                      💡 Ask questions about your files or request analysis in your message
-                    </div>
-                  </div>
-                )}
 
                 <form onSubmit={handleSubmit} className="relative">
                   {/* ChatBox Container */}
