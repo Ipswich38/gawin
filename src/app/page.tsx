@@ -350,10 +350,10 @@ function ChatInterface({ user, onLogout }: { user: { full_name?: string; email: 
           const imageFiles = currentFiles.filter(file => file.file.type.startsWith('image/'));
           const documentFiles = currentFiles.filter(file => !file.file.type.startsWith('image/'));
           
-          // For images, use the vision API directly (skip OCR route)
+          // For pure images, skip OCR route entirely and go directly to vision processing
           if (imageFiles.length > 0 && documentFiles.length === 0) {
-            // Only images - proceed to vision processing below
-            console.log('Processing images via vision API:', imageFiles.length);
+            console.log('Pure images detected - skipping OCR route, proceeding to vision processing:', imageFiles.length);
+            // Skip the entire OCR processing block and go directly to vision processing below
           } 
           // For documents or mixed files, try OCR route first
           else if (documentFiles.length > 0) {
