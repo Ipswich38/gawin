@@ -69,12 +69,31 @@ const quickPrompts = [
   "Practice questions"
 ];
 
+const features = [
+  {
+    icon: '⚡',
+    title: 'Instant Help',
+    description: 'Get immediate answers to your questions with our advanced AI system'
+  },
+  {
+    icon: '🎯',
+    title: 'Personalized',
+    description: 'Tailored learning experiences that adapt to your unique style'
+  },
+  {
+    icon: '🛡️',
+    title: 'Safe & Secure', 
+    description: 'Built with privacy and safety at the core of every interaction'
+  }
+];
+
 export default function ModernLandingPage({ user, onLogin, onStartChat }: ModernLandingPageProps) {
   const [currentTime, setCurrentTime] = useState('');
   const [greeting, setGreeting] = useState('');
-  const [selectedCard, setSelectedCard] = useState<number | null>(null);
-  const [showQuickPrompts, setShowQuickPrompts] = useState(false);
   const [chatInput, setChatInput] = useState('');
+  const [currentFeatureIndex, setCurrentFeatureIndex] = useState(0);
+  const [displayedText, setDisplayedText] = useState('');
+  const [isTyping, setIsTyping] = useState(true);
 
   useEffect(() => {
     const updateTimeAndGreeting = () => {
@@ -97,15 +116,34 @@ export default function ModernLandingPage({ user, onLogin, onStartChat }: Modern
     return () => clearInterval(interval);
   }, []);
 
-  const handleCardHover = (id: number) => {
-    setSelectedCard(id);
-    setShowQuickPrompts(true);
-  };
+  // Typing effect for features
+  useEffect(() => {
+    const currentFeature = features[currentFeatureIndex];
+    const fullText = `${currentFeature.icon} ${currentFeature.title}\n${currentFeature.description}`;
+    
+    if (isTyping) {
+      let charIndex = 0;
+      const typeInterval = setInterval(() => {
+        setDisplayedText(fullText.substring(0, charIndex));
+        charIndex++;
+        
+        if (charIndex > fullText.length) {
+          clearInterval(typeInterval);
+          setIsTyping(false);
+          
+          // Wait 3 seconds then move to next feature
+          setTimeout(() => {
+            setCurrentFeatureIndex((prev) => (prev + 1) % features.length);
+            setDisplayedText('');
+            setIsTyping(true);
+          }, 3000);
+        }
+      }, 50);
+      
+      return () => clearInterval(typeInterval);
+    }
+  }, [currentFeatureIndex, isTyping]);
 
-  const handleCardLeave = () => {
-    setSelectedCard(null);
-    setShowQuickPrompts(false);
-  };
 
   const handleCardClick = (prompt: string) => {
     setChatInput(prompt);
@@ -176,7 +214,7 @@ export default function ModernLandingPage({ user, onLogin, onStartChat }: Modern
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-center mb-12"
+            className="text-center mb-8"
           >
             <h2 className="font-serif text-4xl md:text-6xl text-stone-900 mb-4 leading-tight">
               Learn with
@@ -184,17 +222,35 @@ export default function ModernLandingPage({ user, onLogin, onStartChat }: Modern
                 Intelligence
               </span>
             </h2>
-            <p className="text-stone-600 max-w-xl mx-auto leading-relaxed text-base">
+            <p className="text-stone-600 max-w-xl mx-auto leading-relaxed text-base mb-6">
               Your personal AI learning companion for instant help with any subject.
             </p>
+            
+            {/* Suggestion Chips */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="flex flex-wrap justify-center gap-2 mb-8"
+            >
+              {quickPrompts.map((prompt) => (
+                <button
+                  key={prompt}
+                  onClick={() => handleCardClick(prompt)}
+                  className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-stone-200/50 rounded-full text-sm text-stone-600 hover:bg-white hover:border-stone-300/50 hover:shadow-sm transition-all"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </motion.div>
           </motion.div>
 
           {/* Capsule Chat Input */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="w-full max-w-2xl mx-auto mb-16"
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="w-full max-w-2xl mx-auto mb-12"
           >
             <div className="relative">
               <input
@@ -216,31 +272,49 @@ export default function ModernLandingPage({ user, onLogin, onStartChat }: Modern
               </button>
             </div>
           </motion.div>
+
+          {/* Typing Feature Display */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="text-center min-h-[100px] flex items-center justify-center"
+          >
+            <div className="max-w-md">
+              <div className="text-2xl mb-2">
+                {displayedText.split('\n')[0]}
+              </div>
+              <div className="text-sm text-stone-600 leading-relaxed">
+                {displayedText.split('\n')[1]}
+                {isTyping && <span className="animate-pulse">|</span>}
+              </div>
+            </div>
+          </motion.div>
         </div>
 
-        {/* Bento Grid Cards */}
-        <div className="max-w-4xl mx-auto">
+        {/* Small Square Cards */}
+        <div className="max-w-3xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-16"
+            transition={{ duration: 0.8, delay: 0.8 }}
+            className="grid grid-cols-3 md:grid-cols-6 gap-4 mb-16"
           >
             {suggestionCards.map((card, index) => (
               <motion.button
                 key={card.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.4, delay: 0.1 * index }}
                 onClick={() => handleCardClick(card.prompt)}
                 className={`
-                  group relative overflow-hidden rounded-2xl bg-gradient-to-br ${card.gradient} 
-                  border ${card.border} p-4 h-24 cursor-pointer
-                  hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5
+                  group relative overflow-hidden rounded-xl bg-gradient-to-br ${card.gradient} 
+                  border ${card.border} p-3 aspect-square cursor-pointer
+                  hover:shadow-md transition-all duration-300 hover:-translate-y-1
                 `}
               >
                 <div className="flex flex-col items-center justify-center h-full text-center">
-                  <div className="text-xl mb-1 opacity-70 group-hover:opacity-100 transition-opacity">
+                  <div className="text-lg mb-1 opacity-70 group-hover:opacity-100 transition-opacity">
                     {card.icon}
                   </div>
                   <span className="font-sans font-medium text-xs text-stone-700 uppercase tracking-wide">
@@ -250,65 +324,8 @@ export default function ModernLandingPage({ user, onLogin, onStartChat }: Modern
               </motion.button>
             ))}
           </motion.div>
-
-          {/* Quick Action Pills */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-            className="flex flex-wrap justify-center gap-2 mb-12"
-          >
-            {quickPrompts.map((prompt, index) => (
-              <button
-                key={prompt}
-                onClick={() => handleCardClick(prompt)}
-                className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-stone-200/50 rounded-full text-sm text-stone-600 hover:bg-white hover:border-stone-300/50 hover:shadow-sm transition-all"
-              >
-                {prompt}
-              </button>
-            ))}
-          </motion.div>
         </div>
 
-        {/* Features Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-          className="max-w-4xl mx-auto mt-20"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-stone-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <span className="text-stone-600">⚡</span>
-              </div>
-              <h3 className="font-serif text-lg text-stone-800 mb-2">Instant Help</h3>
-              <p className="text-sm text-stone-600">
-                Get immediate answers to your questions with our advanced AI system
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-12 h-12 bg-stone-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <span className="text-stone-600">🎯</span>
-              </div>
-              <h3 className="font-serif text-lg text-stone-800 mb-2">Personalized</h3>
-              <p className="text-sm text-stone-600">
-                Tailored learning experiences that adapt to your unique style
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-12 h-12 bg-stone-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <span className="text-stone-600">🛡️</span>
-              </div>
-              <h3 className="font-serif text-lg text-stone-800 mb-2">Safe & Secure</h3>
-              <p className="text-sm text-stone-600">
-                Built with privacy and safety at the core of every interaction
-              </p>
-            </div>
-          </div>
-        </motion.div>
 
         {/* Footer */}
         <footer className="mt-20 pt-8 border-t border-stone-200">
