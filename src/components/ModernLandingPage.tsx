@@ -150,7 +150,7 @@ export default function ModernLandingPage({ user, onLogin, onStartChat }: Modern
             <h2 className="font-serif text-4xl md:text-6xl text-stone-900 mb-4 leading-tight">
               Learn with
               <span className="block font-sans font-light text-stone-600 text-3xl md:text-4xl mt-1">
-                Intelligence
+                Gawin Intelligence
               </span>
             </h2>
             <p className="text-stone-600 max-w-xl mx-auto leading-relaxed text-base">

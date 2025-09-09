@@ -46,19 +46,19 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-emerald-50 to-cyan-50 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-white to-stone-50 flex items-center justify-center p-6">
       <div className="max-w-md w-full">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-teal-600 to-cyan-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-teal-500/20">
+          <div className="w-16 h-16 bg-gradient-to-br from-stone-900 to-zinc-700 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
             <span className="text-white text-2xl font-bold">G</span>
           </div>
-          <h1 className="font-serif text-2xl text-slate-800 mb-2">Welcome to Gawin</h1>
-          <p className="text-slate-600">Your AI Learning Assistant</p>
+          <h1 className="font-serif text-2xl text-stone-900 mb-2">Welcome to Gawin</h1>
+          <p className="text-stone-600">Your AI Learning Assistant</p>
         </div>
 
         {/* Auth Form - Material 3 inspired elevated surface */}
-        <div className="bg-white/95 backdrop-blur-md shadow-xl shadow-teal-500/10 border border-teal-100/50 rounded-3xl p-8 ring-1 ring-black/5">
+        <div className="bg-white/60 backdrop-blur-sm shadow-lg border border-stone-200/50 rounded-2xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {isSignUp && (
               <div>

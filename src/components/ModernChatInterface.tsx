@@ -38,8 +38,10 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const [showCodeWorkspace, setShowCodeWorkspace] = useState(false);
+  const [codeContent, setCodeContent] = useState('');
   const chatContainerRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -47,9 +49,27 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
     }
   }, [messages]);
 
+  // Function to detect if a message is about coding
+  const isCodeRelated = (text: string): boolean => {
+    const codeKeywords = [
+      'code', 'coding', 'program', 'programming', 'function', 'class', 'variable', 
+      'javascript', 'python', 'react', 'typescript', 'css', 'html', 'debug', 
+      'algorithm', 'api', 'database', 'sql', 'git', 'github', 'npm', 'yarn',
+      'component', 'useState', 'useEffect', 'import', 'export', 'const', 'let',
+      'if', 'else', 'for', 'while', 'array', 'object', 'json', 'async', 'await'
+    ];
+    return codeKeywords.some(keyword => text.toLowerCase().includes(keyword));
+  };
+
   const handleSend = async (text?: string) => {
     const messageText = text || input.trim();
     if (!messageText) return;
+
+    // Check if this is a coding-related query
+    const isCodingQuery = isCodeRelated(messageText);
+    if (isCodingQuery && !showCodeWorkspace) {
+      setShowCodeWorkspace(true);
+    }
 
     const newMessage: Message = {
       id: Date.now(),
@@ -181,11 +201,13 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
       </header>
 
       {/* Chat Area */}
-      <div className="flex-1 overflow-hidden flex flex-col">
-        <div 
-          ref={chatContainerRef}
-          className="flex-1 overflow-y-auto px-6 py-6 space-y-6"
-        >
+      <div className="flex-1 overflow-hidden flex">
+        {/* Main Chat */}
+        <div className={`${showCodeWorkspace ? 'flex-1' : 'w-full'} flex flex-col`}>
+          <div 
+            ref={chatContainerRef}
+            className="flex-1 overflow-y-auto px-6 py-6 space-y-6"
+          >
           {messages.length === 0 ? (
             <div className="h-full flex items-center justify-center">
               <div className="text-center max-w-2xl">
@@ -202,37 +224,6 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                   </p>
                 </motion.div>
 
-                {showSuggestions && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.2 }}
-                    className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8"
-                  >
-                    {suggestionPrompts.map((prompt, index) => (
-                      <motion.button
-                        key={prompt.text}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.3, delay: index * 0.1 }}
-                        onClick={() => handleSend(prompt.text)}
-                        className="group p-6 bg-gradient-to-br from-orange-50 to-stone-50 border-2 border-stone-200/50 rounded-2xl hover:border-stone-300/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
-                      >
-                        <div className="flex flex-col items-center text-center">
-                          <div className="text-2xl mb-3 group-hover:scale-110 transition-transform">
-                            {prompt.icon}
-                          </div>
-                          <h3 className="font-sans font-bold text-xs tracking-wider text-stone-700 mb-1 uppercase">
-                            {prompt.text}
-                          </h3>
-                          <p className="text-xs text-stone-500 font-serif">
-                            {prompt.category}
-                          </p>
-                        </div>
-                      </motion.button>
-                    ))}
-                  </motion.div>
-                )}
               </div>
             </div>
           ) : (
@@ -323,15 +314,14 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
         <div className="px-6 py-6 bg-white/60 backdrop-blur-sm border-t border-stone-200/30">
           <div className="max-w-4xl mx-auto">
             <div className="relative">
-              <textarea
+              <input
                 ref={inputRef}
+                type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Ask me anything about your studies..."
-                className="w-full px-8 py-5 pr-16 bg-stone-800 text-white rounded-full resize-none focus:outline-none focus:ring-4 focus:ring-stone-600/30 transition-all duration-300 font-sans placeholder-stone-400 text-lg"
-                rows={1}
-                style={{ minHeight: '64px', maxHeight: '120px' }}
+                className="w-full px-8 py-6 pr-16 bg-stone-800 text-white rounded-full focus:outline-none focus:ring-4 focus:ring-stone-600/30 transition-all duration-300 font-sans placeholder-stone-400 text-lg h-16"
                 disabled={isLoading}
               />
               
@@ -360,6 +350,69 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
             </div>
           </div>
         </div>
+        </div>
+
+        {/* Code Workspace Panel */}
+        {showCodeWorkspace && (
+          <motion.div
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: '50%', opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            className="border-l border-stone-200/50 bg-black/95 flex flex-col"
+          >
+            {/* Code Workspace Header */}
+            <div className="px-4 py-3 border-b border-stone-700/50 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <span className="text-teal-400 text-lg">&lt;/&gt;</span>
+                <h3 className="text-white font-mono text-sm">Code Workspace</h3>
+              </div>
+              <button
+                onClick={() => setShowCodeWorkspace(false)}
+                className="text-stone-400 hover:text-white transition-colors"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Code Editor */}
+            <div className="flex-1 p-4">
+              <textarea
+                value={codeContent}
+                onChange={(e) => setCodeContent(e.target.value)}
+                placeholder="// Write or paste your code here..."
+                className="w-full h-full bg-transparent text-green-400 font-mono text-sm resize-none border border-stone-700 rounded-lg p-4 focus:outline-none focus:border-teal-500 placeholder-stone-500"
+                spellCheck={false}
+              />
+            </div>
+
+            {/* Code Actions */}
+            <div className="px-4 py-3 border-t border-stone-700/50">
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setInput(`Review this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
+                  className="px-3 py-1 bg-teal-600 hover:bg-teal-700 text-white text-xs rounded font-mono transition-colors"
+                  disabled={!codeContent.trim()}
+                >
+                  Review Code
+                </button>
+                <button
+                  onClick={() => setInput(`Explain this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
+                  className="px-3 py-1 bg-stone-700 hover:bg-stone-600 text-white text-xs rounded font-mono transition-colors"
+                  disabled={!codeContent.trim()}
+                >
+                  Explain
+                </button>
+                <button
+                  onClick={() => setInput(`Debug this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
+                  className="px-3 py-1 bg-stone-700 hover:bg-stone-600 text-white text-xs rounded font-mono transition-colors"
+                  disabled={!codeContent.trim()}
+                >
+                  Debug
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
       </div>
     </div>
   );
