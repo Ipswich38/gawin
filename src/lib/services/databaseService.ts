@@ -77,7 +77,8 @@ class DatabaseService {
         auth: {
           persistSession: true,
           autoRefreshToken: true,
-          detectSessionInUrl: true
+          detectSessionInUrl: true,
+          flowType: 'implicit'
         }
       });
       this.initializeDatabase();
@@ -173,7 +174,9 @@ class DatabaseService {
           options: {
             data: {
               full_name: nameValidation.sanitized,
-            }
+              email_verified: true
+            },
+            emailRedirectTo: undefined // Disable email confirmation
           }
         });
 
@@ -183,7 +186,14 @@ class DatabaseService {
         }
 
         if (data.user) {
+          // Create user profile
           const newUser = await this.createUserProfile(data.user.id, emailValidation.sanitized, nameValidation.sanitized);
+          
+          // Store user in localStorage for persistence
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('gawin_current_user', JSON.stringify(newUser));
+          }
+          
           return { user: newUser, error: null };
         }
       }
@@ -197,7 +207,7 @@ class DatabaseService {
         credits_remaining: 100,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        email_verified: false,
+        email_verified: true, // Set to true for immediate access
         preferences: {
           theme: 'auto',
           language: 'en',
@@ -243,6 +253,12 @@ class DatabaseService {
 
         if (data.user) {
           const userProfile = await this.getUserProfile(data.user.id);
+          
+          // Store user in localStorage for persistence
+          if (typeof window !== 'undefined' && userProfile) {
+            localStorage.setItem('gawin_current_user', JSON.stringify(userProfile));
+          }
+          
           return { user: userProfile, error: null };
         }
       }
@@ -318,7 +334,7 @@ class DatabaseService {
       credits_remaining: 100,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      email_verified: false,
+      email_verified: true, // Set to true for immediate access
       preferences: {
         theme: 'auto',
         language: 'en',
