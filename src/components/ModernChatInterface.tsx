@@ -64,33 +64,60 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
     setShowSuggestions(false);
 
     try {
-      // Simulate AI response - replace with your actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
-      
-      const aiResponse: Message = {
-        id: Date.now() + 1,
-        role: 'assistant',
-        content: generateMockResponse(messageText),
-        timestamp: new Date().toISOString()
-      };
+      const response = await fetch('/api/groq', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [
+            ...messages,
+            newMessage
+          ].map(msg => ({
+            role: msg.role,
+            content: msg.content
+          })),
+          model: 'llama-3.1-70b-versatile',
+          temperature: 0.7,
+          max_tokens: 2048,
+        }),
+      });
 
-      setMessages(prev => [...prev, aiResponse]);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.success && result.choices?.[0]?.message?.content) {
+        const aiResponse: Message = {
+          id: Date.now() + 1,
+          role: 'assistant',
+          content: result.choices[0].message.content,
+          timestamp: new Date().toISOString()
+        };
+
+        setMessages(prev => [...prev, aiResponse]);
+      } else {
+        throw new Error(result.error || 'Failed to get AI response');
+      }
     } catch (error) {
       console.error('Error getting AI response:', error);
-      // Handle error appropriately
+      
+      // Show error message to user
+      const errorResponse: Message = {
+        id: Date.now() + 1,
+        role: 'assistant',
+        content: "I apologize, but I'm experiencing technical difficulties. Please try again in a moment.",
+        timestamp: new Date().toISOString()
+      };
+      
+      setMessages(prev => [...prev, errorResponse]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const generateMockResponse = (query: string): string => {
-    const responses = [
-      `I'd be happy to help you with "${query}". Let me break this down step by step and provide you with a comprehensive explanation that's easy to understand.`,
-      `Great question about "${query}"! This is a fascinating topic that connects to several key concepts. Let me walk you through the fundamentals.`,
-      `To address your question about "${query}", I'll provide both the theoretical background and practical applications you might find useful.`
-    ];
-    return responses[Math.floor(Math.random() * responses.length)];
-  };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -105,7 +132,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
   };
 
   return (
-    <div className="h-screen bg-gradient-to-br from-stone-50 via-neutral-50 to-zinc-50 flex flex-col">
+    <div className="h-screen bg-gradient-to-br from-stone-50 via-white to-stone-50 flex flex-col">
       {/* Header */}
       <header className="px-6 py-4 border-b border-stone-200/50 bg-white/60 backdrop-blur-sm">
         <div className="flex items-center justify-between">
@@ -293,7 +320,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
         )}
 
         {/* Input Area */}
-        <div className="px-6 py-6 bg-white/80 backdrop-blur-sm border-t border-stone-200/50">
+        <div className="px-6 py-6 bg-white/60 backdrop-blur-sm border-t border-stone-200/30">
           <div className="max-w-4xl mx-auto">
             <div className="relative">
               <textarea
@@ -302,24 +329,24 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Ask me anything about your studies..."
-                className="w-full px-6 py-4 pr-16 bg-white border-2 border-stone-200/50 rounded-full resize-none focus:outline-none focus:border-stone-400/50 focus:shadow-lg transition-all duration-300 font-sans placeholder-stone-400"
+                className="w-full px-8 py-5 pr-16 bg-stone-800 text-white rounded-full resize-none focus:outline-none focus:ring-4 focus:ring-stone-600/30 transition-all duration-300 font-sans placeholder-stone-400 text-lg"
                 rows={1}
-                style={{ minHeight: '56px', maxHeight: '120px' }}
+                style={{ minHeight: '64px', maxHeight: '120px' }}
                 disabled={isLoading}
               />
               
               <button
                 onClick={() => handleSend()}
                 disabled={!input.trim() || isLoading}
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-stone-900 hover:bg-stone-800 disabled:bg-stone-300 rounded-full flex items-center justify-center transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-12 h-12 bg-white hover:bg-stone-100 disabled:bg-stone-600 rounded-full flex items-center justify-center transition-colors"
               >
-                <span className="text-white text-sm">
+                <span className="text-stone-800 text-xl">
                   {isLoading ? '⋯' : '→'}
                 </span>
               </button>
             </div>
             
-            <div className="flex items-center justify-between mt-3 px-3">
+            <div className="flex items-center justify-between mt-4 px-4">
               <p className="text-xs text-stone-500">
                 Press Enter to send, Shift+Enter for new line
               </p>

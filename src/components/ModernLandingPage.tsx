@@ -12,57 +12,51 @@ interface ModernLandingPageProps {
 const suggestionCards = [
   {
     id: 1,
-    title: 'MATHEMATICS',
-    subtitle: 'Calculus & Algebra',
+    title: 'Math',
     icon: '∫',
     gradient: 'from-amber-50 to-orange-50',
-    border: 'border-amber-200',
-    examples: ['Solve derivatives', 'Matrix operations', 'Trigonometry help']
+    border: 'border-amber-200/30',
+    prompt: 'Help me solve this calculus problem'
   },
   {
     id: 2,
-    title: 'SCIENCE',
-    subtitle: 'Physics & Chemistry',
+    title: 'Science',
     icon: '⚗️',
     gradient: 'from-blue-50 to-cyan-50',
-    border: 'border-blue-200',
-    examples: ['Chemical reactions', 'Physics problems', 'Lab analysis']
+    border: 'border-blue-200/30',
+    prompt: 'Explain this physics concept'
   },
   {
     id: 3,
-    title: 'PROGRAMMING',
-    subtitle: 'Code & Algorithms',
+    title: 'Code',
     icon: '</>', 
     gradient: 'from-green-50 to-emerald-50',
-    border: 'border-green-200',
-    examples: ['Debug code', 'Algorithm design', 'Code review']
+    border: 'border-green-200/30',
+    prompt: 'Review my code and suggest improvements'
   },
   {
     id: 4,
-    title: 'WRITING',
-    subtitle: 'Essays & Analysis',
+    title: 'Writing',
     icon: '✒️',
     gradient: 'from-purple-50 to-pink-50', 
-    border: 'border-purple-200',
-    examples: ['Essay structure', 'Grammar check', 'Style improvement']
+    border: 'border-purple-200/30',
+    prompt: 'Help me write a better essay'
   },
   {
     id: 5,
-    title: 'STUDY HELP',
-    subtitle: 'Notes & Research',
+    title: 'Study',
     icon: '📚',
     gradient: 'from-rose-50 to-red-50',
-    border: 'border-rose-200',
-    examples: ['Summarize text', 'Study plans', 'Research guidance']
+    border: 'border-rose-200/30',
+    prompt: 'Create a study plan for this topic'
   },
   {
     id: 6,
-    title: 'LANGUAGES',
-    subtitle: 'Translation & Practice',
+    title: 'Language',
     icon: '🌍',
     gradient: 'from-indigo-50 to-blue-50',
-    border: 'border-indigo-200',
-    examples: ['Translate text', 'Language practice', 'Grammar rules']
+    border: 'border-indigo-200/30',
+    prompt: 'Help me practice this language'
   }
 ];
 
@@ -80,6 +74,7 @@ export default function ModernLandingPage({ user, onLogin, onStartChat }: Modern
   const [greeting, setGreeting] = useState('');
   const [selectedCard, setSelectedCard] = useState<number | null>(null);
   const [showQuickPrompts, setShowQuickPrompts] = useState(false);
+  const [chatInput, setChatInput] = useState('');
 
   useEffect(() => {
     const updateTimeAndGreeting = () => {
@@ -112,8 +107,26 @@ export default function ModernLandingPage({ user, onLogin, onStartChat }: Modern
     setShowQuickPrompts(false);
   };
 
+  const handleCardClick = (prompt: string) => {
+    setChatInput(prompt);
+  };
+
+  const handleChatSubmit = () => {
+    if (chatInput.trim()) {
+      // For now, just start chat - later integrate with actual chat
+      onStartChat();
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleChatSubmit();
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-neutral-50 to-zinc-50">
+    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-white to-stone-50">
       {/* Header */}
       <header className="px-8 py-6 flex items-center justify-between">
         <div className="flex items-center space-x-4">
@@ -157,131 +170,104 @@ export default function ModernLandingPage({ user, onLogin, onStartChat }: Modern
 
       {/* Main Content */}
       <main className="px-8 py-12">
-        {/* Welcome Section */}
-        <div className="max-w-4xl mx-auto text-center mb-16">
+        {/* Central Chat Section */}
+        <div className="min-h-[60vh] flex flex-col justify-center items-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
+            className="text-center mb-12"
           >
-            <h2 className="font-serif text-5xl md:text-7xl text-stone-900 mb-6 leading-tight">
+            <h2 className="font-serif text-4xl md:text-6xl text-stone-900 mb-4 leading-tight">
               Learn with
-              <span className="block font-sans font-light text-stone-600 text-4xl md:text-5xl mt-2">
+              <span className="block font-sans font-light text-stone-600 text-3xl md:text-4xl mt-1">
                 Intelligence
               </span>
             </h2>
-            <p className="text-lg text-stone-600 max-w-2xl mx-auto leading-relaxed">
-              Your personal AI learning companion. Get instant help with mathematics, science, 
-              programming, and more—designed for students who want to excel.
+            <p className="text-stone-600 max-w-xl mx-auto leading-relaxed text-base">
+              Your personal AI learning companion for instant help with any subject.
             </p>
           </motion.div>
 
-          {user && (
-            <motion.button
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              onClick={onStartChat}
-              className="mt-8 px-8 py-4 bg-stone-900 text-white rounded-full font-medium hover:bg-stone-800 transition-all duration-300 shadow-lg hover:shadow-xl"
-            >
-              Start Learning →
-            </motion.button>
-          )}
-        </div>
-
-        {/* Subject Cards */}
-        <div className="max-w-6xl mx-auto">
+          {/* Capsule Chat Input */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12"
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="w-full max-w-2xl mx-auto mb-16"
+          >
+            <div className="relative">
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Ask me anything about your studies..."
+                className="w-full px-8 py-6 bg-stone-800 text-white rounded-full text-lg placeholder-stone-400 focus:outline-none focus:ring-4 focus:ring-stone-600/30 transition-all duration-300"
+              />
+              <button
+                onClick={handleChatSubmit}
+                disabled={!chatInput.trim()}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-12 h-12 bg-white hover:bg-stone-100 disabled:bg-stone-600 rounded-full flex items-center justify-center transition-colors"
+              >
+                <span className="text-stone-800 text-xl">
+                  {chatInput.trim() ? '→' : '⋯'}
+                </span>
+              </button>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Bento Grid Cards */}
+        <div className="max-w-4xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-16"
           >
             {suggestionCards.map((card, index) => (
-              <motion.div
+              <motion.button
                 key={card.id}
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.1 * index }}
-                onMouseEnter={() => handleCardHover(card.id)}
-                onMouseLeave={handleCardLeave}
+                transition={{ duration: 0.4, delay: 0.1 * index }}
+                onClick={() => handleCardClick(card.prompt)}
                 className={`
-                  relative overflow-hidden rounded-2xl bg-gradient-to-br ${card.gradient} 
-                  ${card.border} border-2 p-8 cursor-pointer group
-                  hover:shadow-xl transition-all duration-300 hover:-translate-y-1
+                  group relative overflow-hidden rounded-2xl bg-gradient-to-br ${card.gradient} 
+                  border ${card.border} p-4 h-24 cursor-pointer
+                  hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5
                 `}
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="font-sans font-bold text-sm tracking-wider text-stone-800 mb-1">
-                      {card.title}
-                    </h3>
-                    <p className="font-serif text-stone-600 text-sm">
-                      {card.subtitle}
-                    </p>
-                  </div>
-                  <div className="text-2xl opacity-60 group-hover:opacity-100 transition-opacity">
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                  <div className="text-xl mb-1 opacity-70 group-hover:opacity-100 transition-opacity">
                     {card.icon}
                   </div>
+                  <span className="font-sans font-medium text-xs text-stone-700 uppercase tracking-wide">
+                    {card.title}
+                  </span>
                 </div>
-
-                <AnimatePresence>
-                  {selectedCard === card.id && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="space-y-2"
-                    >
-                      {card.examples.map((example, i) => (
-                        <motion.div
-                          key={i}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.3, delay: i * 0.1 }}
-                          className="text-xs text-stone-600 bg-white/50 px-3 py-2 rounded-lg"
-                        >
-                          {example}
-                        </motion.div>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="w-6 h-6 bg-stone-900 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs">→</span>
-                  </div>
-                </div>
-              </motion.div>
+              </motion.button>
             ))}
           </motion.div>
 
-          {/* Quick Prompts */}
-          <AnimatePresence>
-            {showQuickPrompts && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.3 }}
-                className="flex flex-wrap justify-center gap-3 mb-12"
+          {/* Quick Action Pills */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="flex flex-wrap justify-center gap-2 mb-12"
+          >
+            {quickPrompts.map((prompt, index) => (
+              <button
+                key={prompt}
+                onClick={() => handleCardClick(prompt)}
+                className="px-4 py-2 bg-white/60 backdrop-blur-sm border border-stone-200/50 rounded-full text-sm text-stone-600 hover:bg-white hover:border-stone-300/50 hover:shadow-sm transition-all"
               >
-                {quickPrompts.map((prompt, index) => (
-                  <motion.button
-                    key={prompt}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.2, delay: index * 0.05 }}
-                    className="px-4 py-2 bg-white border border-stone-200 rounded-full text-sm text-stone-600 hover:border-stone-300 hover:shadow-sm transition-all"
-                  >
-                    {prompt}
-                  </motion.button>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
+                {prompt}
+              </button>
+            ))}
+          </motion.div>
         </div>
 
         {/* Features Section */}
