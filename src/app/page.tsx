@@ -46,11 +46,11 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-emerald-50 to-cyan-50 flex items-center justify-center p-6">
       <div className="max-w-md w-full">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-500/20">
+          <div className="w-16 h-16 bg-gradient-to-br from-teal-600 to-cyan-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-teal-500/20">
             <span className="text-white text-2xl font-bold">G</span>
           </div>
           <h1 className="font-serif text-2xl text-slate-800 mb-2">Welcome to Gawin</h1>
@@ -58,7 +58,7 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
         </div>
 
         {/* Auth Form - Material 3 inspired elevated surface */}
-        <div className="bg-white/95 backdrop-blur-md shadow-xl shadow-indigo-500/10 border border-indigo-100/50 rounded-3xl p-8 ring-1 ring-black/5">
+        <div className="bg-white/95 backdrop-blur-md shadow-xl shadow-teal-500/10 border border-teal-100/50 rounded-3xl p-8 ring-1 ring-black/5">
           <form onSubmit={handleSubmit} className="space-y-6">
             {isSignUp && (
               <div>
@@ -69,7 +69,7 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-50/50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all duration-200 text-slate-800 placeholder-slate-400 hover:bg-slate-50"
+                  className="w-full px-4 py-3 bg-slate-50/50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400 transition-all duration-200 text-slate-800 placeholder-slate-400 hover:bg-slate-50"
                   placeholder="Enter your full name"
                   required
                 />
@@ -84,7 +84,7 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50/50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all duration-200 text-slate-800 placeholder-slate-400 hover:bg-slate-50"
+                className="w-full px-4 py-3 bg-slate-50/50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400 transition-all duration-200 text-slate-800 placeholder-slate-400 hover:bg-slate-50"
                 placeholder="Enter your email address"
                 required
               />
@@ -98,7 +98,7 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50/50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all duration-200 text-slate-800 placeholder-slate-400 hover:bg-slate-50"
+                className="w-full px-4 py-3 bg-slate-50/50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400 transition-all duration-200 text-slate-800 placeholder-slate-400 hover:bg-slate-50"
                 placeholder="Enter your password"
                 required
               />
@@ -113,7 +113,7 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl font-medium hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 transition-all duration-200 shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/30"
+              className="w-full py-3 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-2xl font-medium hover:from-teal-700 hover:to-cyan-700 disabled:opacity-50 transition-all duration-200 shadow-lg shadow-teal-500/25 hover:shadow-xl hover:shadow-teal-500/30"
             >
               {loading ? 'Please wait...' : (isSignUp ? 'Create Account' : 'Sign In')}
             </button>
