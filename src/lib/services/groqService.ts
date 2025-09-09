@@ -23,12 +23,13 @@ export interface GroqRequest {
 
 export interface GroqResponse {
   success: boolean;
-  data?: {
-    response: string;
-    model_used: string;
-    task_type: string;
-    processing_time?: number;
-  };
+  choices?: [{
+    message: {
+      role: 'assistant';
+      content: string;
+    };
+  }];
+  model?: string;
   error?: string;
   usage?: {
     prompt_tokens: number;
@@ -346,12 +347,13 @@ Formatting Rules:
 
       return {
         success: true,
-        data: {
-          response: responseText.trim(),
-          model_used: modelConfig.model,
-          task_type: taskType,
-          processing_time: processingTime
-        },
+        choices: [{
+          message: {
+            role: 'assistant',
+            content: responseText.trim()
+          }
+        }],
+        model: modelConfig.model,
         usage: {
           prompt_tokens: data.usage?.prompt_tokens || 0,
           completion_tokens: data.usage?.completion_tokens || 0,

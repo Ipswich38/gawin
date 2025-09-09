@@ -92,11 +92,17 @@ export async function POST(request: NextRequest) {
       
       return NextResponse.json({
         success: true,
-        data: {
-          response: educationalResponse,
-          model_used: 'Gawin AI Educational',
-          task_type: body.action || 'educational',
-          processing_time: 100
+        choices: [{
+          message: {
+            role: 'assistant',
+            content: educationalResponse
+          }
+        }],
+        model: 'Gawin AI Educational',
+        usage: {
+          prompt_tokens: 0,
+          completion_tokens: 0,
+          total_tokens: 0
         }
       });
     }
