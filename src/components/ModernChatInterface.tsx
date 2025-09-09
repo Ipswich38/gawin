@@ -39,7 +39,10 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [showCodeWorkspace, setShowCodeWorkspace] = useState(false);
+  const [showQuizWorkspace, setShowQuizWorkspace] = useState(false);
+  const [showStudyWorkspace, setShowStudyWorkspace] = useState(false);
   const [codeContent, setCodeContent] = useState('');
+  const [currentWorkspace, setCurrentWorkspace] = useState<'code' | 'quiz' | 'study' | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -61,15 +64,53 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
     return codeKeywords.some(keyword => text.toLowerCase().includes(keyword));
   };
 
+  // Function to detect if a message is about quizzes/tests
+  const isQuizRelated = (text: string): boolean => {
+    const quizKeywords = [
+      'quiz', 'test', 'exam', 'assessment', 'question', 'questions', 'practice',
+      'mcq', 'multiple choice', 'true false', 'fill blank', 'evaluate', 'grade',
+      'score', 'flashcard', 'review questions', 'practice test', 'mock exam'
+    ];
+    return quizKeywords.some(keyword => text.toLowerCase().includes(keyword));
+  };
+
+  // Function to detect if a message is about study/collaboration
+  const isStudyRelated = (text: string): boolean => {
+    const studyKeywords = [
+      'study group', 'study with', 'collaborate', 'work together', 'peer', 'classmate',
+      'study buddy', 'group study', 'study session', 'discuss', 'share notes',
+      'study plan', 'schedule', 'study commons', 'library', 'group work'
+    ];
+    return studyKeywords.some(keyword => text.toLowerCase().includes(keyword));
+  };
+
+  // Workspace control functions
+  const openWorkspace = (type: 'code' | 'quiz' | 'study') => {
+    // Close all workspaces first
+    setShowCodeWorkspace(false);
+    setShowQuizWorkspace(false);
+    setShowStudyWorkspace(false);
+    
+    // Open the requested workspace
+    if (type === 'code') setShowCodeWorkspace(true);
+    if (type === 'quiz') setShowQuizWorkspace(true);
+    if (type === 'study') setShowStudyWorkspace(true);
+    
+    setCurrentWorkspace(type);
+  };
+
   const handleSend = async (text?: string) => {
     const messageText = text || input.trim();
     if (!messageText) return;
 
-    // Check if this is a coding-related query
+    // Check workspace-related queries
     const isCodingQuery = isCodeRelated(messageText);
-    if (isCodingQuery && !showCodeWorkspace) {
-      setShowCodeWorkspace(true);
-    }
+    const isQuizQuery = isQuizRelated(messageText);
+    const isStudyQuery = isStudyRelated(messageText);
+    
+    if (isCodingQuery && !showCodeWorkspace) openWorkspace('code');
+    else if (isQuizQuery && !showQuizWorkspace) openWorkspace('quiz');
+    else if (isStudyQuery && !showStudyWorkspace) openWorkspace('study');
 
     const newMessage: Message = {
       id: Date.now(),
@@ -222,6 +263,31 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                   <p className="text-stone-600 mb-8">
                     Ask me anything about mathematics, science, programming, writing, or any subject you're studying.
                   </p>
+
+                  {/* Workspace Suggestion Chips */}
+                  <div className="flex items-center justify-center space-x-3 mb-4">
+                    <button
+                      onClick={() => openWorkspace('code')}
+                      className="flex items-center space-x-2 px-4 py-2 bg-black/90 hover:bg-black text-white rounded-full text-sm transition-colors"
+                    >
+                      <span className="text-teal-400">&lt;/&gt;</span>
+                      <span>Code</span>
+                    </button>
+                    <button
+                      onClick={() => openWorkspace('quiz')}
+                      className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-sm transition-colors"
+                    >
+                      <span>❓</span>
+                      <span>Quiz</span>
+                    </button>
+                    <button
+                      onClick={() => openWorkspace('study')}
+                      className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-full text-sm transition-colors"
+                    >
+                      <span>👥</span>
+                      <span>Study</span>
+                    </button>
+                  </div>
                 </motion.div>
 
               </div>
@@ -321,7 +387,8 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Ask me anything about your studies..."
-                className="w-full px-8 py-6 pr-16 bg-stone-800 text-white rounded-full focus:outline-none focus:ring-4 focus:ring-stone-600/30 transition-all duration-300 font-sans placeholder-stone-400 text-lg h-16"
+                className="w-full px-8 pr-16 bg-stone-800 text-white rounded-full focus:outline-none focus:ring-4 focus:ring-stone-600/30 transition-all duration-300 font-sans placeholder-stone-400 text-lg resize-none overflow-hidden"
+                style={{ height: '64px', minHeight: '64px', maxHeight: '64px', lineHeight: '64px' }}
                 disabled={isLoading}
               />
               
