@@ -1,3 +1,5 @@
+'use client';
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { databaseService, User } from '../lib/services/databaseService';
 import { systemGuardianService } from '../lib/services/systemGuardianService';

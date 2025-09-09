@@ -1,5 +1,19 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Exclude backend directory from Next.js compilation
+  pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'mdx'],
+  
+  // Webpack configuration to exclude backend
+  webpack: (config, { isServer }) => {
+    // Exclude backend directory from webpack compilation
+    config.module.rules.push({
+      test: /backend\//,
+      use: 'ignore-loader'
+    });
+    
+    return config;
+  },
+  
   // Turbopack is now stable - use turbopack instead of experimental.turbo
   turbopack: {
     rules: {

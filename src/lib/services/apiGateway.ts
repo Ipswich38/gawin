@@ -14,6 +14,7 @@ interface RequestHeaders {
   'X-Request-ID'?: string;
   'X-Client-Version'?: string;
   'X-Canary-Route'?: string;
+  [key: string]: string | undefined;
 }
 
 interface ApiGatewayConfig {
@@ -323,7 +324,7 @@ class ApiGatewayService {
     
     const fetchOptions: RequestInit = {
       method: request.method,
-      headers,
+      headers: headers as HeadersInit,
       signal: AbortSignal.timeout(request.timeout || this.config.timeout)
     };
 

@@ -1,0 +1,9 @@
+# Exclude backend directory from frontend deployment
+backend/
+
+# Exclude other unnecessary files
+*.md
+.git/
+node_modules/
+.DS_Store
+*.log
