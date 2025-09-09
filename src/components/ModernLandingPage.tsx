@@ -177,10 +177,10 @@ export default function ModernLandingPage({ user, onLogin, onStartChat }: Modern
               <button
                 onClick={handleChatSubmit}
                 disabled={!chatInput.trim()}
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-12 h-12 bg-white hover:bg-stone-100 disabled:bg-stone-600 rounded-full flex items-center justify-center transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-12 h-12 bg-teal-500 hover:bg-teal-600 disabled:bg-stone-600 rounded-full flex items-center justify-center transition-colors"
               >
-                <span className="text-stone-800 text-xl">
-                  {chatInput.trim() ? '→' : '⋯'}
+                <span className="text-white text-xl">
+                  →
                 </span>
               </button>
             </div>

@@ -126,27 +126,6 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
           </div>
         </div>
 
-        {/* Features */}
-        <div className="mt-8 grid grid-cols-3 gap-4 text-center">
-          <div>
-            <div className="w-8 h-8 bg-stone-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-              <span className="text-stone-600 text-sm">⚡</span>
-            </div>
-            <p className="text-xs text-stone-600">Instant Help</p>
-          </div>
-          <div>
-            <div className="w-8 h-8 bg-stone-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-              <span className="text-stone-600 text-sm">🎯</span>
-            </div>
-            <p className="text-xs text-stone-600">Personalized</p>
-          </div>
-          <div>
-            <div className="w-8 h-8 bg-stone-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-              <span className="text-stone-600 text-sm">🛡️</span>
-            </div>
-            <p className="text-xs text-stone-600">Safe & Secure</p>
-          </div>
-        </div>
       </div>
     </div>
   );
