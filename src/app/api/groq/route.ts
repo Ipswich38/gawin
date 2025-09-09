@@ -176,7 +176,7 @@ export async function POST(request: NextRequest) {
       // Try HuggingFace as an intelligent AI fallback
       const hfResult = await huggingFaceService.createChatCompletion({
         messages: textOnlyMessages,
-        model: 'microsoft/DialoGPT-large',
+        action: 'chat',
         temperature: body.temperature || 0.7,
         max_tokens: body.max_tokens || 2048
       });
@@ -188,7 +188,7 @@ export async function POST(request: NextRequest) {
           choices: [{
             message: {
               role: 'assistant',
-              content: hfResult.response || hfResult.choices?.[0]?.message?.content || 'I understand your question and I\'m here to help you learn!'
+              content: hfResult.data?.response || 'I understand your question and I\'m here to help you learn!'
             }
           }],
           model: 'HuggingFace-AI-Fallback',
