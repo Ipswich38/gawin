@@ -35,12 +35,6 @@ const suggestionPrompts = [
   { text: "LANGUAGE PRACTICE", icon: "🌍", category: "Languages" }
 ];
 
-const quickActions = [
-  { text: "Summarize this", icon: "📝" },
-  { text: "Explain simply", icon: "💡" },
-  { text: "Step by step", icon: "📋" },
-  { text: "Practice quiz", icon: "❓" }
-];
 
 export default function ModernChatInterface({ user, onLogout, onBackToLanding }: ModernChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -796,23 +790,6 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
               </div>
             </div>
 
-            {/* Quick Actions Bar */}
-            {messages.length > 0 && (
-              <div className="px-6 py-3 border-t border-stone-200/50 bg-white/60 backdrop-blur-sm">
-                <div className="flex items-center justify-center space-x-3">
-                  {quickActions.map((action) => (
-                    <button
-                      key={action.text}
-                      onClick={() => handleSend(action.text)}
-                      className="flex items-center space-x-2 px-4 py-2 bg-stone-100 hover:bg-stone-200 rounded-full text-sm text-stone-600 transition-colors"
-                    >
-                      <span>{action.icon}</span>
-                      <span>{action.text}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {/* Input Area */}
             <div className="px-6 py-6 bg-white/60 backdrop-blur-sm border-t border-stone-200/30">
