@@ -321,6 +321,13 @@ class DatabaseService {
       });
 
       if (error) {
+        // Check for provider not enabled error
+        if (error.message.includes('provider is not enabled') || error.message.includes('Unsupported provider')) {
+          const helpfulError = 'Google OAuth is not enabled. Please enable Google OAuth in your Supabase dashboard under Authentication > Settings > Auth Providers.';
+          systemGuardianService.reportError(`Google OAuth not configured: ${error.message}`, 'auth', 'medium');
+          return { user: null, error: helpfulError };
+        }
+        
         systemGuardianService.reportError(`Google OAuth failed: ${error.message}`, 'auth', 'medium');
         return { user: null, error: error.message };
       }
