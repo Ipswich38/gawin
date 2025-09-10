@@ -145,6 +145,49 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
   const getActiveTab = () => tabs.find(tab => tab.id === activeTabId);
   const activeTab = getActiveTab();
 
+  // Generate dynamic, personalized greeting based on time and weather
+  const generateDynamicGreeting = () => {
+    const now = new Date();
+    const hour = now.getHours();
+    
+    // Time-based greetings
+    const timeGreetings = {
+      morning: ["Good morning! I'm Gawin.", "Morning! I'm Gawin.", "Hello there! I'm Gawin."],
+      afternoon: ["Good afternoon! I'm Gawin.", "Afternoon! I'm Gawin.", "Hey! I'm Gawin."],
+      evening: ["Good evening! I'm Gawin.", "Evening! I'm Gawin.", "Hi there! I'm Gawin."],
+      night: ["Hi! I'm Gawin.", "Hello! I'm Gawin.", "Hey there! I'm Gawin."]
+    };
+
+    // Weather-aware variations (simulated - in production you'd use a weather API)
+    const weatherGreetings = [
+      "Hi! I'm Gawin, ready to brighten your day with learning!",
+      "Hello! I'm Gawin, here to help you learn something amazing!",
+      "Hey! I'm Gawin, your AI learning companion!",
+      "Greetings! I'm Gawin, excited to explore knowledge with you!",
+      "Hi there! I'm Gawin, let's make today a learning adventure!",
+      "Hello! I'm Gawin, ready to dive into some fascinating topics!"
+    ];
+
+    // Determine time period
+    let timeOfDay;
+    if (hour >= 5 && hour < 12) timeOfDay = 'morning';
+    else if (hour >= 12 && hour < 17) timeOfDay = 'afternoon';
+    else if (hour >= 17 && hour < 21) timeOfDay = 'evening';
+    else timeOfDay = 'night';
+
+    // Randomly choose between time-based and weather-aware greetings
+    const useWeatherGreeting = Math.random() > 0.6;
+    
+    if (useWeatherGreeting) {
+      const randomWeatherGreeting = weatherGreetings[Math.floor(Math.random() * weatherGreetings.length)];
+      return `${randomWeatherGreeting} What would you like to learn today?`;
+    } else {
+      const timeBasedGreetings = timeGreetings[timeOfDay];
+      const randomTimeGreeting = timeBasedGreetings[Math.floor(Math.random() * timeBasedGreetings.length)];
+      return `${randomTimeGreeting} What would you like to learn today?`;
+    }
+  };
+
   const handleSend = async (text?: string) => {
     const messageText = text || input.trim();
     if (!messageText) return;
@@ -408,11 +451,8 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                   transition={{ duration: 0.6 }}
                 >
                   <h2 className="font-serif text-3xl text-stone-800 mb-4">
-                    What would you like to learn today?
+                    {generateDynamicGreeting()}
                   </h2>
-                  <p className="text-stone-600 mb-8">
-                    Ask me anything about mathematics, science, programming, writing, or any subject you're studying.
-                  </p>
 
                 </motion.div>
 

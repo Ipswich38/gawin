@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import ModernLandingPage from '@/components/ModernLandingPage';
 import ModernChatInterface from '@/components/ModernChatInterface';
 import BehaviorService from '@/components/BehaviorService';
 
@@ -137,7 +136,6 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
 // Main App Component
 export default function HomePage() {
   const { user, isLoading, signOut } = useAuth();
-  const [currentView, setCurrentView] = useState<'landing' | 'chat'>('landing');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -147,23 +145,16 @@ export default function HomePage() {
   // Handle logout
   const handleLogout = async () => {
     await signOut();
-    setCurrentView('landing');
   };
 
   // Handle login redirect
   const handleLogin = () => {
     // The AuthContext will automatically update when login succeeds
-    setCurrentView('landing');
   };
 
-  // Handle start chat
-  const handleStartChat = () => {
-    setCurrentView('chat');
-  };
-
-  // Handle back to landing
+  // Handle back to landing - not used since we go directly to chat
   const handleBackToLanding = () => {
-    setCurrentView('landing');
+    // This could redirect to a landing page if needed in the future
   };
 
   // Show loading while checking auth
@@ -193,22 +184,14 @@ export default function HomePage() {
     );
   }
 
-  // Show appropriate view for authenticated users
+  // Show chat interface directly for authenticated users
   return (
     <>
-      {currentView === 'landing' ? (
-        <ModernLandingPage
-          user={user}
-          onLogin={handleLogin}
-          onStartChat={handleStartChat}
-        />
-      ) : (
-        <ModernChatInterface
-          user={user}
-          onLogout={handleLogout}
-          onBackToLanding={handleBackToLanding}
-        />
-      )}
+      <ModernChatInterface
+        user={user}
+        onLogout={handleLogout}
+        onBackToLanding={handleBackToLanding}
+      />
       
       {/* Behavior Service for authenticated users */}
       <BehaviorService>
