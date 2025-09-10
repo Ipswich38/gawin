@@ -97,11 +97,11 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
   // Tab management functions
   const createNewTab = (type: 'general' | 'code' | 'quiz' | 'study' | 'creative') => {
     const tabConfig = {
-      general: { title: 'General Chat', icon: '💬', color: 'bg-stone-600' },
-      code: { title: 'Code Workspace', icon: '⚡', color: 'bg-black' },
-      quiz: { title: 'Exam Tryout', icon: '🎯', color: 'bg-blue-600' },
-      study: { title: 'Study Buddy', icon: '👥', color: 'bg-green-600' },
-      creative: { title: 'Creative & Design', icon: '🎨', color: 'bg-purple-600' }
+      general: { title: 'General Chat', icon: '💬', color: 'bg-stone-600', textColor: 'text-white' },
+      code: { title: 'Code Workspace', icon: '⚡', color: 'bg-black', textColor: 'text-white' },
+      quiz: { title: 'Exam Tryout', icon: '🎯', color: 'bg-gray-600', textColor: 'text-white' },
+      study: { title: 'Study Buddy', icon: '👥', color: 'bg-orange-600', textColor: 'text-white' },
+      creative: { title: 'Creative & Design', icon: '🎨', color: 'bg-teal-600', textColor: 'text-white' }
     };
 
     const newTabId = `${type}-${Date.now()}`;
@@ -329,39 +329,97 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
       <div className="flex-1 p-6">
         <div className="h-full bg-white/80 backdrop-blur-sm border border-stone-300/50 rounded-3xl shadow-xl overflow-hidden">
           
-          {/* Browser-like Tab Bar */}
-          <div className="flex items-center bg-stone-100/50 border-b border-stone-200/50 px-4 py-2">
-            <div className="flex items-center space-x-1 flex-1">
-              {tabs.map((tab) => (
-                <div
-                  key={tab.id}
-                  className={`
-                    relative flex items-center space-x-2 px-4 py-2 rounded-t-xl text-sm cursor-pointer transition-all duration-200
-                    ${tab.isActive 
-                      ? 'bg-white text-stone-800 border-t border-l border-r border-stone-200 shadow-sm' 
-                      : 'bg-stone-50 text-stone-600 hover:bg-stone-100'
-                    }
-                  `}
-                  onClick={() => switchToTab(tab.id)}
-                >
-                  <span className="text-base">{tab.icon}</span>
-                  <span className="font-medium max-w-32 truncate">{tab.title}</span>
-                  {tabs.length > 1 && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        closeTab(tab.id);
-                      }}
-                      className="ml-2 text-stone-400 hover:text-stone-600 hover:bg-stone-200 rounded-full p-1 transition-colors"
+          {/* Browser-like Tab Bar with Mobile Scrolling */}
+          <div className="relative bg-stone-100/50 border-b border-stone-200/50">
+            <div className="flex items-center px-4 py-2">
+              {/* Left scroll arrow for mobile */}
+              <button 
+                id="scroll-left"
+                className="block md:hidden flex-shrink-0 p-1 hover:bg-stone-200 rounded-lg text-stone-500 hover:text-stone-700 transition-colors mr-2"
+                onClick={() => {
+                  const container = document.getElementById('tabs-container');
+                  if (container) container.scrollLeft -= 200;
+                }}
+              >
+                <span className="text-lg">←</span>
+              </button>
+
+              {/* Scrollable tabs container */}
+              <div 
+                id="tabs-container"
+                className="flex items-center space-x-1 flex-1 overflow-x-auto scrollbar-hide"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              >
+                {tabs.map((tab) => {
+                  // Get color configuration for each tab type
+                  const getTabColors = (type: string, isActive: boolean) => {
+                    const colorMap = {
+                      general: {
+                        active: 'bg-stone-600 text-white border-stone-600',
+                        inactive: 'bg-stone-100 text-stone-700 hover:bg-stone-200 border-stone-200'
+                      },
+                      code: {
+                        active: 'bg-black text-white border-black',
+                        inactive: 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200'
+                      },
+                      quiz: {
+                        active: 'bg-gray-600 text-white border-gray-600',
+                        inactive: 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200'
+                      },
+                      study: {
+                        active: 'bg-orange-600 text-white border-orange-600',
+                        inactive: 'bg-orange-100 text-orange-700 hover:bg-orange-200 border-orange-200'
+                      },
+                      creative: {
+                        active: 'bg-teal-600 text-white border-teal-600',
+                        inactive: 'bg-teal-100 text-teal-700 hover:bg-teal-200 border-teal-200'
+                      }
+                    };
+                    return colorMap[type as keyof typeof colorMap]?.[isActive ? 'active' : 'inactive'] || colorMap.general[isActive ? 'active' : 'inactive'];
+                  };
+
+                  return (
+                    <div
+                      key={tab.id}
+                      className={`
+                        relative flex items-center space-x-2 px-4 py-2 rounded-t-xl text-sm cursor-pointer transition-all duration-200 flex-shrink-0 border-t border-l border-r
+                        ${getTabColors(tab.type, tab.isActive)}
+                        ${tab.isActive ? 'shadow-sm z-10' : ''}
+                      `}
+                      onClick={() => switchToTab(tab.id)}
                     >
-                      <span className="text-xs">×</span>
-                    </button>
-                  )}
-                </div>
-              ))}
+                      <span className="text-base">{tab.icon}</span>
+                      <span className="font-medium whitespace-nowrap max-w-24 sm:max-w-32 truncate">{tab.title}</span>
+                      {tabs.length > 1 && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            closeTab(tab.id);
+                          }}
+                          className="ml-2 opacity-70 hover:opacity-100 hover:bg-white/20 rounded-full p-1 transition-all"
+                        >
+                          <span className="text-xs">×</span>
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Right scroll arrow for mobile */}
+              <button 
+                id="scroll-right"
+                className="block md:hidden flex-shrink-0 p-1 hover:bg-stone-200 rounded-lg text-stone-500 hover:text-stone-700 transition-colors ml-2"
+                onClick={() => {
+                  const container = document.getElementById('tabs-container');
+                  if (container) container.scrollLeft += 200;
+                }}
+              >
+                <span className="text-lg">→</span>
+              </button>
               
               {/* Add New Tab Button */}
-              <div className="relative">
+              <div className="relative flex-shrink-0 ml-2">
                 <button
                   onClick={() => {
                     const dropdown = document.getElementById('tab-dropdown');
@@ -377,7 +435,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                 {/* Dropdown Menu */}
                 <div 
                   id="tab-dropdown"
-                  className="absolute top-10 left-0 hidden bg-white border border-stone-200 rounded-xl shadow-lg py-2 z-50 min-w-48"
+                  className="absolute top-10 right-0 hidden bg-white border border-stone-200 rounded-xl shadow-lg py-2 z-50 min-w-48"
                 >
                   <button
                     onClick={() => {
@@ -435,7 +493,13 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
           </div>
 
           {/* Chat Area */}
-          <div className="flex-1 flex flex-col h-full">
+          <div className={`flex-1 flex flex-col h-full ${
+            activeTab?.type === 'code' ? 'bg-gray-50/30' :
+            activeTab?.type === 'study' ? 'bg-orange-50/30' :
+            activeTab?.type === 'quiz' ? 'bg-gray-50/30' :
+            activeTab?.type === 'creative' ? 'bg-teal-50/30' :
+            'bg-white/20'
+          }`}>
             {/* Main Chat with Integrated Workspaces */}
             <div className="w-full flex flex-col">
               <div 
