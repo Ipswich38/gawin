@@ -347,7 +347,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                       createNewTab('general');
                       document.getElementById('tab-dropdown')?.classList.add('hidden');
                     }}
-                    className="w-full px-4 py-2 text-left hover:bg-stone-50 flex items-center space-x-3"
+                    className="w-full px-4 py-2 text-left hover:bg-stone-50 flex items-center space-x-3 text-stone-700 hover:text-stone-900"
                   >
                     <span>💬</span>
                     <span>General Chat</span>
@@ -357,7 +357,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                       createNewTab('code');
                       document.getElementById('tab-dropdown')?.classList.add('hidden');
                     }}
-                    className="w-full px-4 py-2 text-left hover:bg-stone-50 flex items-center space-x-3"
+                    className="w-full px-4 py-2 text-left hover:bg-stone-50 flex items-center space-x-3 text-stone-700 hover:text-stone-900"
                   >
                     <span>⚡</span>
                     <span>Code Workspace</span>
@@ -367,7 +367,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                       createNewTab('study');
                       document.getElementById('tab-dropdown')?.classList.add('hidden');
                     }}
-                    className="w-full px-4 py-2 text-left hover:bg-stone-50 flex items-center space-x-3"
+                    className="w-full px-4 py-2 text-left hover:bg-stone-50 flex items-center space-x-3 text-stone-700 hover:text-stone-900"
                   >
                     <span>👥</span>
                     <span>Study Buddy</span>
@@ -377,7 +377,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                       createNewTab('quiz');
                       document.getElementById('tab-dropdown')?.classList.add('hidden');
                     }}
-                    className="w-full px-4 py-2 text-left hover:bg-stone-50 flex items-center space-x-3"
+                    className="w-full px-4 py-2 text-left hover:bg-stone-50 flex items-center space-x-3 text-stone-700 hover:text-stone-900"
                   >
                     <span>🎯</span>
                     <span>Exam Tryout</span>
@@ -387,7 +387,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                       createNewTab('creative');
                       document.getElementById('tab-dropdown')?.classList.add('hidden');
                     }}
-                    className="w-full px-4 py-2 text-left hover:bg-stone-50 flex items-center space-x-3"
+                    className="w-full px-4 py-2 text-left hover:bg-stone-50 flex items-center space-x-3 text-stone-700 hover:text-stone-900"
                   >
                     <span>🎨</span>
                     <span>Creative & Design</span>
@@ -520,6 +520,154 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                         >
                           Debug
                         </button>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Study Buddy Tab - Messenger-style with Rooms */}
+              {activeTab && activeTab.type === 'study' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="w-full"
+                >
+                  <div className="bg-white/60 backdrop-blur-sm border border-stone-200/50 rounded-3xl shadow-lg p-6 mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <h3 className="text-stone-800 font-medium text-lg">Study Commons</h3>
+                      </div>
+                      <button className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-full font-medium transition-colors">
+                        Create Room
+                      </button>
+                    </div>
+                    
+                    {/* Study Rooms */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-green-50 border border-green-200 rounded-2xl p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-medium text-green-800">Math Study Group</h4>
+                          <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">3 active</span>
+                        </div>
+                        <p className="text-sm text-green-700 mb-3">Calculus problem solving session</p>
+                        <button className="w-full bg-green-600 hover:bg-green-700 text-white text-sm py-2 rounded-lg font-medium transition-colors">
+                          Join Room
+                        </button>
+                      </div>
+                      
+                      <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-medium text-blue-800">CS Study Hall</h4>
+                          <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full">5 active</span>
+                        </div>
+                        <p className="text-sm text-blue-700 mb-3">Data structures & algorithms</p>
+                        <button className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 rounded-lg font-medium transition-colors">
+                          Join Room
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Quick Study Actions */}
+                    <div className="mt-4 pt-4 border-t border-stone-200/50">
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => setInput('Start a study session for [subject]')}
+                          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                        >
+                          Start Study Session
+                        </button>
+                        <button
+                          onClick={() => setInput('Find study buddies for [topic]')}
+                          className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                        >
+                          Find Study Buddy
+                        </button>
+                        <button
+                          onClick={() => setInput('Create study notes for [subject]')}
+                          className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                        >
+                          Create Notes
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Creative Tab - Image Generation & Creative Content */}
+              {activeTab && activeTab.type === 'creative' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="w-full"
+                >
+                  <div className="bg-white/60 backdrop-blur-sm border border-stone-200/50 rounded-3xl shadow-lg p-6 mb-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-3 mb-4">
+                        <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                        <h3 className="text-stone-800 font-medium text-lg">Creative Studio</h3>
+                      </div>
+
+                      {/* Image Generation Section */}
+                      <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-2xl p-4">
+                        <h4 className="font-medium text-purple-800 mb-3 flex items-center">
+                          <span className="mr-2">🎨</span>
+                          Image Generation
+                        </h4>
+                        <div className="space-y-3">
+                          <input
+                            type="text"
+                            placeholder="Describe the image you want to create..."
+                            className="w-full bg-white/80 border border-purple-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-400 placeholder-stone-500"
+                          />
+                          <div className="flex flex-wrap gap-2">
+                            <button className="px-3 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 text-xs rounded-full transition-colors">
+                              Realistic
+                            </button>
+                            <button className="px-3 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 text-xs rounded-full transition-colors">
+                              Artistic
+                            </button>
+                            <button className="px-3 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 text-xs rounded-full transition-colors">
+                              Cartoon
+                            </button>
+                            <button className="px-3 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 text-xs rounded-full transition-colors">
+                              Abstract
+                            </button>
+                          </div>
+                          <button className="w-full bg-purple-600 hover:bg-purple-700 text-white text-sm py-2 rounded-lg font-medium transition-colors">
+                            Generate Image
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Creative Writing Section */}
+                      <div className="bg-gradient-to-r from-pink-50 to-orange-50 border border-pink-200 rounded-2xl p-4">
+                        <h4 className="font-medium text-pink-800 mb-3 flex items-center">
+                          <span className="mr-2">✍️</span>
+                          Creative Writing
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            onClick={() => setInput('Write a creative story about [topic]')}
+                            className="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                          >
+                            Story Generator
+                          </button>
+                          <button
+                            onClick={() => setInput('Create a poem about [theme]')}
+                            className="px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                          >
+                            Poetry
+                          </button>
+                          <button
+                            onClick={() => setInput('Help me brainstorm ideas for [project]')}
+                            className="px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                          >
+                            Brainstorm
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
