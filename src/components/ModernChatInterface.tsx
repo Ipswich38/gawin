@@ -169,7 +169,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
     ];
 
     // Determine time period
-    let timeOfDay;
+    let timeOfDay: 'morning' | 'afternoon' | 'evening' | 'night';
     if (hour >= 5 && hour < 12) timeOfDay = 'morning';
     else if (hour >= 12 && hour < 17) timeOfDay = 'afternoon';
     else if (hour >= 17 && hour < 21) timeOfDay = 'evening';
