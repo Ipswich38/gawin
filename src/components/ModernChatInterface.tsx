@@ -592,11 +592,13 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                   className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div className={`
-                    max-w-[80%] p-6 shadow-lg border
+                    max-w-[85%] p-6 shadow-xl border-0 rounded-2xl
                     ${message.role === 'user' 
-                      ? 'bg-gradient-to-br from-teal-600 to-teal-700 text-white border-teal-500 rounded-full' 
-                      : 'bg-gradient-to-br from-gray-700 to-gray-800 text-white border-gray-600 rounded-full'
+                      ? 'bg-gradient-to-br from-teal-600 to-teal-700 text-white shadow-teal-500/20' 
+                      : 'bg-gradient-to-br from-gray-800 to-gray-900 text-white shadow-gray-900/40 ring-1 ring-gray-700/50'
                     }
+                    backdrop-blur-sm transition-all duration-200 hover:shadow-2xl
+                    ${message.role === 'user' ? 'hover:shadow-teal-500/30' : 'hover:shadow-gray-900/50'}
                   `}>
                     {message.role === 'assistant' ? (
                       <div className="prose prose-stone max-w-none">
@@ -632,7 +634,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                   animate={{ opacity: 1, y: 0 }}
                   className="flex justify-start"
                 >
-                  <div className="max-w-[80%] p-6 bg-gradient-to-br from-gray-700 to-gray-800 border border-gray-600 rounded-full shadow-lg">
+                  <div className="max-w-[85%] p-6 bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-xl ring-1 ring-gray-700/50 backdrop-blur-sm">
                     <div className="flex items-center space-x-3">
                       <div className="flex space-x-1">
                         <div className="w-2 h-2 bg-teal-400 rounded-full animate-pulse"></div>
