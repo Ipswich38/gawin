@@ -11,6 +11,15 @@ interface Message {
   timestamp: string;
 }
 
+interface Tab {
+  id: string;
+  type: 'general' | 'code' | 'quiz' | 'study' | 'creative';
+  title: string;
+  icon: string;
+  color: string;
+  isActive: boolean;
+}
+
 interface ModernChatInterfaceProps {
   user: { full_name?: string; email: string };
   onLogout: () => void;
@@ -38,11 +47,18 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
-  const [showCodeWorkspace, setShowCodeWorkspace] = useState(false);
-  const [showQuizWorkspace, setShowQuizWorkspace] = useState(false);
-  const [showStudyWorkspace, setShowStudyWorkspace] = useState(false);
+  const [tabs, setTabs] = useState<Tab[]>([
+    {
+      id: 'general-1',
+      type: 'general',
+      title: 'General Chat',
+      icon: '💬',
+      color: 'bg-stone-600',
+      isActive: true
+    }
+  ]);
+  const [activeTabId, setActiveTabId] = useState('general-1');
   const [codeContent, setCodeContent] = useState('');
-  const [currentWorkspace, setCurrentWorkspace] = useState<'code' | 'quiz' | 'study' | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -84,33 +100,73 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
     return studyKeywords.some(keyword => text.toLowerCase().includes(keyword));
   };
 
-  // Workspace control functions
-  const openWorkspace = (type: 'code' | 'quiz' | 'study') => {
-    // Close all workspaces first
-    setShowCodeWorkspace(false);
-    setShowQuizWorkspace(false);
-    setShowStudyWorkspace(false);
-    
-    // Open the requested workspace
-    if (type === 'code') setShowCodeWorkspace(true);
-    if (type === 'quiz') setShowQuizWorkspace(true);
-    if (type === 'study') setShowStudyWorkspace(true);
-    
-    setCurrentWorkspace(type);
+  // Tab management functions
+  const createNewTab = (type: 'general' | 'code' | 'quiz' | 'study' | 'creative') => {
+    const tabConfig = {
+      general: { title: 'General Chat', icon: '💬', color: 'bg-stone-600' },
+      code: { title: 'Code Workspace', icon: '⚡', color: 'bg-black' },
+      quiz: { title: 'Exam Tryout', icon: '🎯', color: 'bg-blue-600' },
+      study: { title: 'Study Buddy', icon: '👥', color: 'bg-green-600' },
+      creative: { title: 'Creative & Design', icon: '🎨', color: 'bg-purple-600' }
+    };
+
+    const newTabId = `${type}-${Date.now()}`;
+    const newTab: Tab = {
+      id: newTabId,
+      type,
+      title: tabConfig[type].title,
+      icon: tabConfig[type].icon,
+      color: tabConfig[type].color,
+      isActive: false
+    };
+
+    setTabs(prev => prev.map(tab => ({ ...tab, isActive: false })).concat([{ ...newTab, isActive: true }]));
+    setActiveTabId(newTabId);
+    setMessages([]);
+    setShowSuggestions(true);
   };
+
+  const switchToTab = (tabId: string) => {
+    setTabs(prev => prev.map(tab => ({ ...tab, isActive: tab.id === tabId })));
+    setActiveTabId(tabId);
+  };
+
+  const closeTab = (tabId: string) => {
+    const tabIndex = tabs.findIndex(tab => tab.id === tabId);
+    const isActiveTab = tabs.find(tab => tab.id === tabId)?.isActive;
+    
+    if (tabs.length === 1) return; // Don't close the last tab
+    
+    setTabs(prev => prev.filter(tab => tab.id !== tabId));
+    
+    if (isActiveTab) {
+      const newActiveTabId = tabs[tabIndex > 0 ? tabIndex - 1 : tabIndex + 1]?.id;
+      if (newActiveTabId) {
+        setActiveTabId(newActiveTabId);
+        setTabs(prev => prev.map(tab => ({ ...tab, isActive: tab.id === newActiveTabId })));
+      }
+    }
+  };
+
+  const getActiveTab = () => tabs.find(tab => tab.id === activeTabId);
+  const activeTab = getActiveTab();
 
   const handleSend = async (text?: string) => {
     const messageText = text || input.trim();
     if (!messageText) return;
 
-    // Check workspace-related queries
+    // Check workspace-related queries and create appropriate tab
     const isCodingQuery = isCodeRelated(messageText);
     const isQuizQuery = isQuizRelated(messageText);
     const isStudyQuery = isStudyRelated(messageText);
     
-    if (isCodingQuery && !showCodeWorkspace) openWorkspace('code');
-    else if (isQuizQuery && !showQuizWorkspace) openWorkspace('quiz');
-    else if (isStudyQuery && !showStudyWorkspace) openWorkspace('study');
+    if (isCodingQuery && !tabs.some(tab => tab.type === 'code' && tab.isActive)) {
+      createNewTab('code');
+    } else if (isQuizQuery && !tabs.some(tab => tab.type === 'quiz' && tab.isActive)) {
+      createNewTab('quiz');
+    } else if (isStudyQuery && !tabs.some(tab => tab.type === 'study' && tab.isActive)) {
+      createNewTab('study');
+    }
 
     const newMessage: Message = {
       id: Date.now(),
@@ -217,15 +273,6 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
           </div>
 
           <div className="flex items-center space-x-4">
-            {messages.length > 0 && (
-              <button 
-                onClick={clearChat}
-                className="text-sm text-stone-600 hover:text-stone-800 transition-colors"
-              >
-                New Chat
-              </button>
-            )}
-            
             <div className="flex items-center space-x-3">
               <div className="text-right">
                 <p className="text-sm font-medium text-stone-800">{user.full_name || 'User'}</p>
@@ -241,8 +288,117 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
         </div>
       </header>
 
-      {/* Chat Area */}
-      <div className="flex-1 overflow-hidden flex flex-col">
+      {/* Main Browser-like Container */}
+      <div className="flex-1 p-6">
+        <div className="h-full bg-white/80 backdrop-blur-sm border border-stone-300/50 rounded-3xl shadow-xl overflow-hidden">
+          
+          {/* Browser-like Tab Bar */}
+          <div className="flex items-center bg-stone-100/50 border-b border-stone-200/50 px-4 py-2">
+            <div className="flex items-center space-x-1 flex-1">
+              {tabs.map((tab) => (
+                <div
+                  key={tab.id}
+                  className={`
+                    relative flex items-center space-x-2 px-4 py-2 rounded-t-xl text-sm cursor-pointer transition-all duration-200
+                    ${tab.isActive 
+                      ? 'bg-white text-stone-800 border-t border-l border-r border-stone-200 shadow-sm' 
+                      : 'bg-stone-50 text-stone-600 hover:bg-stone-100'
+                    }
+                  `}
+                  onClick={() => switchToTab(tab.id)}
+                >
+                  <span className="text-base">{tab.icon}</span>
+                  <span className="font-medium max-w-32 truncate">{tab.title}</span>
+                  {tabs.length > 1 && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        closeTab(tab.id);
+                      }}
+                      className="ml-2 text-stone-400 hover:text-stone-600 hover:bg-stone-200 rounded-full p-1 transition-colors"
+                    >
+                      <span className="text-xs">×</span>
+                    </button>
+                  )}
+                </div>
+              ))}
+              
+              {/* Add New Tab Button */}
+              <div className="relative">
+                <button
+                  onClick={() => {
+                    const dropdown = document.getElementById('tab-dropdown');
+                    if (dropdown) {
+                      dropdown.classList.toggle('hidden');
+                    }
+                  }}
+                  className="flex items-center justify-center w-8 h-8 bg-stone-50 hover:bg-stone-100 rounded-lg text-stone-500 hover:text-stone-700 transition-colors"
+                >
+                  <span className="text-lg">+</span>
+                </button>
+                
+                {/* Dropdown Menu */}
+                <div 
+                  id="tab-dropdown"
+                  className="absolute top-10 left-0 hidden bg-white border border-stone-200 rounded-xl shadow-lg py-2 z-50 min-w-48"
+                >
+                  <button
+                    onClick={() => {
+                      createNewTab('general');
+                      document.getElementById('tab-dropdown')?.classList.add('hidden');
+                    }}
+                    className="w-full px-4 py-2 text-left hover:bg-stone-50 flex items-center space-x-3"
+                  >
+                    <span>💬</span>
+                    <span>General Chat</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      createNewTab('code');
+                      document.getElementById('tab-dropdown')?.classList.add('hidden');
+                    }}
+                    className="w-full px-4 py-2 text-left hover:bg-stone-50 flex items-center space-x-3"
+                  >
+                    <span>⚡</span>
+                    <span>Code Workspace</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      createNewTab('study');
+                      document.getElementById('tab-dropdown')?.classList.add('hidden');
+                    }}
+                    className="w-full px-4 py-2 text-left hover:bg-stone-50 flex items-center space-x-3"
+                  >
+                    <span>👥</span>
+                    <span>Study Buddy</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      createNewTab('quiz');
+                      document.getElementById('tab-dropdown')?.classList.add('hidden');
+                    }}
+                    className="w-full px-4 py-2 text-left hover:bg-stone-50 flex items-center space-x-3"
+                  >
+                    <span>🎯</span>
+                    <span>Exam Tryout</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      createNewTab('creative');
+                      document.getElementById('tab-dropdown')?.classList.add('hidden');
+                    }}
+                    className="w-full px-4 py-2 text-left hover:bg-stone-50 flex items-center space-x-3"
+                  >
+                    <span>🎨</span>
+                    <span>Creative & Design</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Chat Area */}
+          <div className="flex-1 flex flex-col h-full">
         {/* Main Chat with Integrated Workspaces */}
         <div className="w-full flex flex-col">
           <div 
@@ -312,274 +468,60 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                 </motion.div>
               ))}
 
-              {/* Integrated Workspace Cards */}
-              {(showCodeWorkspace || showQuizWorkspace || showStudyWorkspace) && (
+              {/* Specialized Content for Active Tab */}
+              {activeTab && activeTab.type === 'code' && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="w-full"
                 >
-                  {/* Workspace Tab Bar - Perplexity/Opera AI Inspired */}
-                  <div className="mb-4 flex items-center justify-center">
-                    <div className="bg-white/80 backdrop-blur-sm border border-stone-200/60 rounded-2xl p-1.5 shadow-lg">
-                      <div className="flex space-x-1">
-                        {showCodeWorkspace && (
-                          <div className="flex items-center space-x-2 px-4 py-2 bg-black/90 text-white rounded-xl text-sm font-medium shadow-sm">
-                            <span className="text-teal-400">&lt;/&gt;</span>
-                            <span>Code Workspace</span>
-                            <button 
-                              onClick={() => {setShowCodeWorkspace(false); setCurrentWorkspace(null);}}
-                              className="ml-1 text-white/70 hover:text-white transition-colors"
-                            >
-                              ×
-                            </button>
+                  <div className="bg-white/60 backdrop-blur-sm border border-stone-200/50 rounded-3xl shadow-lg p-6 mb-6 max-h-96 overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-3 mb-4">
+                        <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
+                        <h3 className="text-stone-800 font-medium text-lg">Code Workspace</h3>
+                      </div>
+                      <div className="bg-black/95 rounded-2xl border border-stone-700/50 overflow-hidden">
+                        <div className="px-4 py-3 border-b border-stone-700/50 bg-stone-900/50">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                            <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                            <span className="ml-4 text-stone-400 text-sm font-mono">editor.js</span>
                           </div>
-                        )}
-                        {showQuizWorkspace && (
-                          <div className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium shadow-sm">
-                            <span className="text-blue-200">🎯</span>
-                            <span>Exam Tryout</span>
-                            <button 
-                              onClick={() => {setShowQuizWorkspace(false); setCurrentWorkspace(null);}}
-                              className="ml-1 text-white/70 hover:text-white transition-colors"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        )}
-                        {showStudyWorkspace && (
-                          <div className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-medium shadow-sm">
-                            <span className="text-green-200">👥</span>
-                            <span>Study Buddy</span>
-                            <button 
-                              onClick={() => {setShowStudyWorkspace(false); setCurrentWorkspace(null);}}
-                              className="ml-1 text-white/70 hover:text-white transition-colors"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        )}
+                        </div>
+                        <textarea
+                          value={codeContent}
+                          onChange={(e) => setCodeContent(e.target.value)}
+                          placeholder="// Write or paste your code here..."
+                          className="w-full h-64 bg-transparent text-green-400 font-mono text-sm resize-none p-4 focus:outline-none placeholder-stone-500"
+                          spellCheck={false}
+                        />
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => setInput(`Review this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
+                          className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                          disabled={!codeContent.trim()}
+                        >
+                          Review Code
+                        </button>
+                        <button
+                          onClick={() => setInput(`Explain this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
+                          className="px-4 py-2 bg-stone-600 hover:bg-stone-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                          disabled={!codeContent.trim()}
+                        >
+                          Explain
+                        </button>
+                        <button
+                          onClick={() => setInput(`Debug this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
+                          className="px-4 py-2 bg-stone-600 hover:bg-stone-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                          disabled={!codeContent.trim()}
+                        >
+                          Debug
+                        </button>
                       </div>
                     </div>
-                  </div>
-
-                  {/* Workspace Content Card */}
-                  <div className="bg-white/60 backdrop-blur-sm border border-stone-200/50 rounded-3xl shadow-lg p-6 mb-6">
-                    {/* Code Workspace Content */}
-                    {showCodeWorkspace && (
-                      <div className="space-y-4">
-                        <div className="flex items-center space-x-3 mb-4">
-                          <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
-                          <h3 className="text-stone-800 font-medium text-lg">Code Workspace</h3>
-                        </div>
-                        <div className="bg-black/95 rounded-2xl border border-stone-700/50 overflow-hidden">
-                          <div className="px-4 py-3 border-b border-stone-700/50 bg-stone-900/50">
-                            <div className="flex items-center space-x-2">
-                              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                              <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                              <span className="ml-4 text-stone-400 text-sm font-mono">editor.js</span>
-                            </div>
-                          </div>
-                          <textarea
-                            value={codeContent}
-                            onChange={(e) => setCodeContent(e.target.value)}
-                            placeholder="// Write or paste your code here..."
-                            className="w-full h-64 bg-transparent text-green-400 font-mono text-sm resize-none p-4 focus:outline-none placeholder-stone-500"
-                            spellCheck={false}
-                          />
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            onClick={() => setInput(`Review this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
-                            className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
-                            disabled={!codeContent.trim()}
-                          >
-                            Review Code
-                          </button>
-                          <button
-                            onClick={() => setInput(`Explain this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
-                            className="px-4 py-2 bg-stone-600 hover:bg-stone-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
-                            disabled={!codeContent.trim()}
-                          >
-                            Explain
-                          </button>
-                          <button
-                            onClick={() => setInput(`Debug this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
-                            className="px-4 py-2 bg-stone-600 hover:bg-stone-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
-                            disabled={!codeContent.trim()}
-                          >
-                            Debug
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Quiz Workspace Content */}
-                    {showQuizWorkspace && (
-                      <div className="space-y-4">
-                        <div className="flex items-center space-x-3 mb-4">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          <h3 className="text-stone-800 font-medium text-lg">Exam Tryout</h3>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-3">
-                            <div>
-                              <label className="block text-stone-700 text-sm font-medium mb-2">Quiz Topic</label>
-                              <input
-                                type="text"
-                                placeholder="Enter the topic for your quiz..."
-                                className="w-full bg-white/80 border border-stone-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 placeholder-stone-500"
-                              />
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                              <div>
-                                <label className="block text-stone-700 text-sm font-medium mb-2">Questions</label>
-                                <select className="w-full bg-white/80 border border-stone-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400">
-                                  <option value="5">5 Questions</option>
-                                  <option value="10">10 Questions</option>
-                                  <option value="15">15 Questions</option>
-                                  <option value="20">20 Questions</option>
-                                </select>
-                              </div>
-                              <div>
-                                <label className="block text-stone-700 text-sm font-medium mb-2">Difficulty</label>
-                                <select className="w-full bg-white/80 border border-stone-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400">
-                                  <option value="easy">Easy</option>
-                                  <option value="medium">Medium</option>
-                                  <option value="hard">Hard</option>
-                                </select>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="space-y-3">
-                            <div>
-                              <label className="block text-stone-700 text-sm font-medium mb-2">Question Types</label>
-                              <div className="space-y-2">
-                                <label className="flex items-center space-x-2">
-                                  <input type="checkbox" className="rounded border-stone-400 text-blue-600" defaultChecked />
-                                  <span className="text-stone-700 text-sm">Multiple Choice</span>
-                                </label>
-                                <label className="flex items-center space-x-2">
-                                  <input type="checkbox" className="rounded border-stone-400 text-blue-600" />
-                                  <span className="text-stone-700 text-sm">True/False</span>
-                                </label>
-                                <label className="flex items-center space-x-2">
-                                  <input type="checkbox" className="rounded border-stone-400 text-blue-600" />
-                                  <span className="text-stone-700 text-sm">Short Answer</span>
-                                </label>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex flex-wrap gap-2 pt-2">
-                          <button
-                            onClick={() => setInput('Generate a quiz about [topic] with [number] questions at [difficulty] level')}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
-                          >
-                            Generate Quiz
-                          </button>
-                          <button
-                            onClick={() => setInput('Create practice questions for studying [topic]')}
-                            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
-                          >
-                            Practice Mode
-                          </button>
-                          <button
-                            onClick={() => setInput('Make flashcards for [topic]')}
-                            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
-                          >
-                            Flashcards
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Study Workspace Content */}
-                    {showStudyWorkspace && (
-                      <div className="space-y-4">
-                        <div className="flex items-center space-x-3 mb-4">
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                          <h3 className="text-stone-800 font-medium text-lg">Study Buddy</h3>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-3">
-                            <div>
-                              <label className="block text-stone-700 text-sm font-medium mb-2">Study Session Topic</label>
-                              <input
-                                type="text"
-                                placeholder="What are you studying today..."
-                                className="w-full bg-white/80 border border-stone-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-400 placeholder-stone-500"
-                              />
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                              <div>
-                                <label className="block text-stone-700 text-sm font-medium mb-2">Study Method</label>
-                                <select className="w-full bg-white/80 border border-stone-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-400">
-                                  <option value="group">Group Discussion</option>
-                                  <option value="review">Note Review</option>
-                                  <option value="practice">Practice Problems</option>
-                                  <option value="explain">Teach & Explain</option>
-                                </select>
-                              </div>
-                              <div>
-                                <label className="block text-stone-700 text-sm font-medium mb-2">Duration</label>
-                                <select className="w-full bg-white/80 border border-stone-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-400">
-                                  <option value="25">25 minutes</option>
-                                  <option value="45">45 minutes</option>
-                                  <option value="60">1 hour</option>
-                                  <option value="90">1.5 hours</option>
-                                </select>
-                              </div>
-                            </div>
-                            <div>
-                              <label className="block text-stone-700 text-sm font-medium mb-2">Study Goals</label>
-                              <textarea
-                                placeholder="What do you want to achieve in this study session?"
-                                rows={3}
-                                className="w-full bg-white/80 border border-stone-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-400 placeholder-stone-500 resize-none"
-                              />
-                            </div>
-                          </div>
-                          <div className="space-y-3">
-                            <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                              <div className="flex items-center justify-between mb-3">
-                                <span className="text-green-800 text-sm font-medium">Study Timer</span>
-                                <span className="text-green-600 text-xl font-mono">00:00:00</span>
-                              </div>
-                              <div className="flex space-x-2">
-                                <button className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm py-2 rounded-lg font-medium transition-colors">
-                                  Start
-                                </button>
-                                <button className="flex-1 bg-green-500 hover:bg-green-600 text-white text-sm py-2 rounded-lg font-medium transition-colors">
-                                  Break
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex flex-wrap gap-2 pt-2">
-                          <button
-                            onClick={() => setInput('Help me create a study plan for [subject]')}
-                            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
-                          >
-                            Study Plan
-                          </button>
-                          <button
-                            onClick={() => setInput('Explain [topic] in simple terms')}
-                            className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
-                          >
-                            Simplify
-                          </button>
-                          <button
-                            onClick={() => setInput('Give me practice problems for [subject]')}
-                            className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
-                          >
-                            Practice
-                          </button>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </motion.div>
               )}
@@ -627,42 +569,6 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
         {/* Input Area */}
         <div className="px-6 py-6 bg-white/60 backdrop-blur-sm border-t border-stone-200/30">
           <div className="max-w-4xl mx-auto">
-            {/* Workspace Chips - Above Input */}
-            <div className="flex items-center justify-center space-x-2 mb-4">
-              <button
-                onClick={() => openWorkspace('code')}
-                className={`flex items-center space-x-1 px-3 py-1.5 rounded-full text-xs transition-all duration-200 ${
-                  currentWorkspace === 'code' 
-                    ? 'bg-black text-white shadow-lg' 
-                    : 'bg-stone-100 hover:bg-stone-200 text-stone-700'
-                }`}
-              >
-                <span className={currentWorkspace === 'code' ? 'text-teal-400' : 'text-stone-500'}>&lt;/&gt;</span>
-                <span>Code</span>
-              </button>
-              <button
-                onClick={() => openWorkspace('study')}
-                className={`flex items-center space-x-1 px-3 py-1.5 rounded-full text-xs transition-all duration-200 ${
-                  currentWorkspace === 'study' 
-                    ? 'bg-green-600 text-white shadow-lg' 
-                    : 'bg-stone-100 hover:bg-stone-200 text-stone-700'
-                }`}
-              >
-                <span className={currentWorkspace === 'study' ? 'text-green-200' : 'text-stone-500'}>👥</span>
-                <span>Study Buddy</span>
-              </button>
-              <button
-                onClick={() => openWorkspace('quiz')}
-                className={`flex items-center space-x-1 px-3 py-1.5 rounded-full text-xs transition-all duration-200 ${
-                  currentWorkspace === 'quiz' 
-                    ? 'bg-blue-600 text-white shadow-lg' 
-                    : 'bg-stone-100 hover:bg-stone-200 text-stone-700'
-                }`}
-              >
-                <span className={currentWorkspace === 'quiz' ? 'text-blue-200' : 'text-stone-500'}>🎯</span>
-                <span>Exam Tryout</span>
-              </button>
-            </div>
             
             <div className="relative">
               <input
@@ -672,8 +578,16 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Ask me anything about your studies..."
-                className="w-full px-8 pr-16 bg-stone-800 text-white rounded-full focus:outline-none focus:ring-4 focus:ring-stone-600/30 transition-all duration-300 font-sans placeholder-stone-400 text-lg resize-none overflow-hidden"
-                style={{ height: '64px', minHeight: '64px', maxHeight: '64px', lineHeight: '64px' }}
+                className="w-full px-8 pr-16 bg-stone-800 text-white focus:outline-none focus:ring-4 focus:ring-stone-600/30 transition-all duration-300 font-sans placeholder-stone-400 text-lg resize-none overflow-hidden"
+                style={{ 
+                  height: '64px', 
+                  minHeight: '64px', 
+                  maxHeight: '64px', 
+                  lineHeight: '32px',
+                  borderRadius: '32px',
+                  paddingTop: '16px',
+                  paddingBottom: '16px'
+                }}
                 disabled={isLoading}
               />
               
