@@ -596,6 +596,105 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                 </motion.div>
               )}
 
+              {/* Exam Tryout Tab - Quiz & Assessment Generator */}
+              {activeTab && activeTab.type === 'quiz' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="w-full"
+                >
+                  <div className="bg-white/60 backdrop-blur-sm border border-stone-200/50 rounded-3xl shadow-lg p-6 mb-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-3 mb-4">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <h3 className="text-stone-800 font-medium text-lg">Exam Tryout</h3>
+                      </div>
+
+                      {/* Quiz Configuration */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-stone-700 text-sm font-medium mb-2">Quiz Topic</label>
+                            <input
+                              type="text"
+                              placeholder="Enter the topic for your quiz..."
+                              className="w-full bg-white/80 border border-stone-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 placeholder-stone-500"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-stone-700 text-sm font-medium mb-2">Questions</label>
+                              <select className="w-full bg-white/80 border border-stone-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400">
+                                <option value="5">5 Questions</option>
+                                <option value="10">10 Questions</option>
+                                <option value="15">15 Questions</option>
+                                <option value="20">20 Questions</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-stone-700 text-sm font-medium mb-2">Difficulty</label>
+                              <select className="w-full bg-white/80 border border-stone-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400">
+                                <option value="easy">Easy</option>
+                                <option value="medium">Medium</option>
+                                <option value="hard">Hard</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-stone-700 text-sm font-medium mb-2">Question Types</label>
+                            <div className="space-y-2">
+                              <label className="flex items-center space-x-2">
+                                <input type="checkbox" className="rounded border-stone-400 text-blue-600" defaultChecked />
+                                <span className="text-stone-700 text-sm">Multiple Choice</span>
+                              </label>
+                              <label className="flex items-center space-x-2">
+                                <input type="checkbox" className="rounded border-stone-400 text-blue-600" />
+                                <span className="text-stone-700 text-sm">True/False</span>
+                              </label>
+                              <label className="flex items-center space-x-2">
+                                <input type="checkbox" className="rounded border-stone-400 text-blue-600" />
+                                <span className="text-stone-700 text-sm">Short Answer</span>
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Quick Quiz Actions */}
+                      <div className="flex flex-wrap gap-2 pt-2">
+                        <button
+                          onClick={() => setInput('Generate a quiz about [topic] with [number] questions at [difficulty] level')}
+                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                        >
+                          Generate Quiz
+                        </button>
+                        <button
+                          onClick={() => setInput('Create practice questions for studying [topic]')}
+                          className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                        >
+                          Practice Mode
+                        </button>
+                        <button
+                          onClick={() => setInput('Make flashcards for [topic]')}
+                          className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                        >
+                          Flashcards
+                        </button>
+                        <button
+                          onClick={() => setInput('Create a mock exam for [subject]')}
+                          className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                        >
+                          Mock Exam
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
               {/* Creative Tab - Image Generation & Creative Content */}
               {activeTab && activeTab.type === 'creative' && (
                 <motion.div
