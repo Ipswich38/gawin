@@ -399,12 +399,12 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
 
           {/* Chat Area */}
           <div className="flex-1 flex flex-col h-full">
-        {/* Main Chat with Integrated Workspaces */}
-        <div className="w-full flex flex-col">
-          <div 
-            ref={chatContainerRef}
-            className="flex-1 overflow-y-auto px-4 lg:px-6 py-6 space-y-6"
-          >
+            {/* Main Chat with Integrated Workspaces */}
+            <div className="w-full flex flex-col">
+              <div 
+                ref={chatContainerRef}
+                className="flex-1 overflow-y-auto px-4 lg:px-6 py-6 space-y-6"
+              >
           {messages.length === 0 ? (
             <div className="h-full flex items-center justify-center">
               <div className="text-center max-w-2xl">
@@ -546,71 +546,73 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
               )}
             </div>
           )}
-        </div>
-
-        {/* Quick Actions Bar */}
-        {messages.length > 0 && (
-          <div className="px-6 py-3 border-t border-stone-200/50 bg-white/60 backdrop-blur-sm">
-            <div className="flex items-center justify-center space-x-3">
-              {quickActions.map((action) => (
-                <button
-                  key={action.text}
-                  onClick={() => handleSend(action.text)}
-                  className="flex items-center space-x-2 px-4 py-2 bg-stone-100 hover:bg-stone-200 rounded-full text-sm text-stone-600 transition-colors"
-                >
-                  <span>{action.icon}</span>
-                  <span>{action.text}</span>
-                </button>
-              ))}
+              </div>
             </div>
-          </div>
-        )}
 
-        {/* Input Area */}
-        <div className="px-6 py-6 bg-white/60 backdrop-blur-sm border-t border-stone-200/30">
-          <div className="max-w-4xl mx-auto">
-            
-            <div className="relative">
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Ask me anything about your studies..."
-                className="w-full px-8 pr-16 bg-stone-800 text-white focus:outline-none focus:ring-4 focus:ring-stone-600/30 transition-all duration-300 font-sans placeholder-stone-400 text-lg resize-none overflow-hidden"
-                style={{ 
-                  height: '64px', 
-                  minHeight: '64px', 
-                  maxHeight: '64px', 
-                  lineHeight: '32px',
-                  borderRadius: '32px',
-                  paddingTop: '16px',
-                  paddingBottom: '16px'
-                }}
-                disabled={isLoading}
-              />
-              
-              <button
-                onClick={() => handleSend()}
-                disabled={!input.trim() || isLoading}
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-12 h-12 bg-teal-500 hover:bg-teal-600 disabled:bg-stone-600 rounded-full flex items-center justify-center transition-colors"
-              >
-                <span className="text-white text-xl">
-                  {isLoading ? '⋯' : '→'}
-                </span>
-              </button>
-            </div>
-            
-            <div className="flex items-center justify-between mt-4 px-4">
-              <p className="text-xs text-stone-500">
-                Press Enter to send, Shift+Enter for new line
-              </p>
-              <div className="flex items-center space-x-4 text-xs text-stone-500">
-                <span>Powered by AI Orchestrator</span>
-                <div className="flex items-center space-x-1">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span>Online</span>
+            {/* Quick Actions Bar */}
+            {messages.length > 0 && (
+              <div className="px-6 py-3 border-t border-stone-200/50 bg-white/60 backdrop-blur-sm">
+                <div className="flex items-center justify-center space-x-3">
+                  {quickActions.map((action) => (
+                    <button
+                      key={action.text}
+                      onClick={() => handleSend(action.text)}
+                      className="flex items-center space-x-2 px-4 py-2 bg-stone-100 hover:bg-stone-200 rounded-full text-sm text-stone-600 transition-colors"
+                    >
+                      <span>{action.icon}</span>
+                      <span>{action.text}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Input Area */}
+            <div className="px-6 py-6 bg-white/60 backdrop-blur-sm border-t border-stone-200/30">
+              <div className="max-w-4xl mx-auto">
+                <div className="relative">
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Ask me anything about your studies..."
+                    className="w-full px-8 pr-16 bg-stone-800 text-white focus:outline-none focus:ring-4 focus:ring-stone-600/30 transition-all duration-300 font-sans placeholder-stone-400 text-lg resize-none overflow-hidden"
+                    style={{ 
+                      height: '64px', 
+                      minHeight: '64px', 
+                      maxHeight: '64px', 
+                      lineHeight: '32px',
+                      borderRadius: '32px',
+                      paddingTop: '16px',
+                      paddingBottom: '16px'
+                    }}
+                    disabled={isLoading}
+                  />
+                  
+                  <button
+                    onClick={() => handleSend()}
+                    disabled={!input.trim() || isLoading}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-12 h-12 bg-teal-500 hover:bg-teal-600 disabled:bg-stone-600 rounded-full flex items-center justify-center transition-colors"
+                  >
+                    <span className="text-white text-xl">
+                      {isLoading ? '⋯' : '→'}
+                    </span>
+                  </button>
+                </div>
+                
+                <div className="flex items-center justify-between mt-4 px-4">
+                  <p className="text-xs text-stone-500">
+                    Press Enter to send, Shift+Enter for new line
+                  </p>
+                  <div className="flex items-center space-x-4 text-xs text-stone-500">
+                    <span>Powered by AI Orchestrator</span>
+                    <div className="flex items-center space-x-1">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>Online</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
