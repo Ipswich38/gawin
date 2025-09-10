@@ -443,19 +443,29 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                 className="flex-1 overflow-y-auto px-4 lg:px-6 py-6 space-y-6"
               >
           {messages.length === 0 && activeTab?.type === 'general' ? (
-            <div className="h-full flex items-center justify-center">
-              <div className="text-center max-w-2xl">
+            <div className="h-full flex items-center justify-center py-16">
+              <div className="text-center max-w-2xl px-6">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6 }}
+                  className="space-y-4"
                 >
-                  <h2 className="font-serif text-3xl text-stone-800 mb-4">
-                    {generateDynamicGreeting()}
-                  </h2>
-
+                  {(() => {
+                    const greeting = generateDynamicGreeting();
+                    const parts = greeting.split('What would you like to learn today?');
+                    return (
+                      <>
+                        <p className="text-xl text-stone-700 leading-relaxed">
+                          {parts[0].trim()}
+                        </p>
+                        <h2 className="font-serif text-3xl text-stone-800">
+                          What would you like to learn today?
+                        </h2>
+                      </>
+                    );
+                  })()}
                 </motion.div>
-
               </div>
             </div>
           ) : messages.length > 0 ? (
