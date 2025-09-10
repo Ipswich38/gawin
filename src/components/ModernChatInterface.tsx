@@ -242,12 +242,12 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
       </header>
 
       {/* Chat Area */}
-      <div className="flex-1 overflow-hidden flex">
+      <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
         {/* Main Chat */}
-        <div className={`${showCodeWorkspace ? 'flex-1' : 'w-full'} flex flex-col`}>
+        <div className={`${showCodeWorkspace || showQuizWorkspace || showStudyWorkspace ? 'lg:flex-1' : 'w-full'} flex flex-col`}>
           <div 
             ref={chatContainerRef}
-            className="flex-1 overflow-y-auto px-6 py-6 space-y-6"
+            className="flex-1 overflow-y-auto px-4 lg:px-6 py-6 space-y-6"
           >
           {messages.length === 0 ? (
             <div className="h-full flex items-center justify-center">
@@ -264,30 +264,6 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                     Ask me anything about mathematics, science, programming, writing, or any subject you're studying.
                   </p>
 
-                  {/* Workspace Suggestion Chips */}
-                  <div className="flex items-center justify-center space-x-3 mb-4">
-                    <button
-                      onClick={() => openWorkspace('code')}
-                      className="flex items-center space-x-2 px-4 py-2 bg-black/90 hover:bg-black text-white rounded-full text-sm transition-colors"
-                    >
-                      <span className="text-teal-400">&lt;/&gt;</span>
-                      <span>Code</span>
-                    </button>
-                    <button
-                      onClick={() => openWorkspace('quiz')}
-                      className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-sm transition-colors"
-                    >
-                      <span>❓</span>
-                      <span>Quiz</span>
-                    </button>
-                    <button
-                      onClick={() => openWorkspace('study')}
-                      className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-full text-sm transition-colors"
-                    >
-                      <span>👥</span>
-                      <span>Study</span>
-                    </button>
-                  </div>
                 </motion.div>
 
               </div>
@@ -379,6 +355,43 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
         {/* Input Area */}
         <div className="px-6 py-6 bg-white/60 backdrop-blur-sm border-t border-stone-200/30">
           <div className="max-w-4xl mx-auto">
+            {/* Workspace Chips - Above Input */}
+            <div className="flex items-center justify-center space-x-2 mb-4">
+              <button
+                onClick={() => openWorkspace('code')}
+                className={`flex items-center space-x-1 px-3 py-1.5 rounded-full text-xs transition-all duration-200 ${
+                  currentWorkspace === 'code' 
+                    ? 'bg-black text-white shadow-lg' 
+                    : 'bg-stone-100 hover:bg-stone-200 text-stone-700'
+                }`}
+              >
+                <span className={currentWorkspace === 'code' ? 'text-teal-400' : 'text-stone-500'}>&lt;/&gt;</span>
+                <span>Code</span>
+              </button>
+              <button
+                onClick={() => openWorkspace('study')}
+                className={`flex items-center space-x-1 px-3 py-1.5 rounded-full text-xs transition-all duration-200 ${
+                  currentWorkspace === 'study' 
+                    ? 'bg-green-600 text-white shadow-lg' 
+                    : 'bg-stone-100 hover:bg-stone-200 text-stone-700'
+                }`}
+              >
+                <span className={currentWorkspace === 'study' ? 'text-green-200' : 'text-stone-500'}>👥</span>
+                <span>Study Buddy</span>
+              </button>
+              <button
+                onClick={() => openWorkspace('quiz')}
+                className={`flex items-center space-x-1 px-3 py-1.5 rounded-full text-xs transition-all duration-200 ${
+                  currentWorkspace === 'quiz' 
+                    ? 'bg-blue-600 text-white shadow-lg' 
+                    : 'bg-stone-100 hover:bg-stone-200 text-stone-700'
+                }`}
+              >
+                <span className={currentWorkspace === 'quiz' ? 'text-blue-200' : 'text-stone-500'}>🎯</span>
+                <span>Exam Tryout</span>
+              </button>
+            </div>
+            
             <div className="relative">
               <input
                 ref={inputRef}
@@ -422,10 +435,10 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
         {/* Code Workspace Panel */}
         {showCodeWorkspace && (
           <motion.div
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: '50%', opacity: 1 }}
-            exit={{ width: 0, opacity: 0 }}
-            className="border-l border-stone-200/50 bg-black/95 flex flex-col"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="lg:border-l border-t lg:border-t-0 border-stone-200/50 bg-black/95 flex flex-col lg:w-1/2 w-full lg:max-h-none max-h-96"
           >
             {/* Code Workspace Header */}
             <div className="px-4 py-3 border-b border-stone-700/50 flex items-center justify-between">
@@ -484,16 +497,16 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
         {/* Quiz Workspace Panel */}
         {showQuizWorkspace && (
           <motion.div
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: '50%', opacity: 1 }}
-            exit={{ width: 0, opacity: 0 }}
-            className="border-l border-stone-200/50 bg-blue-950/95 flex flex-col"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="lg:border-l border-t lg:border-t-0 border-stone-200/50 bg-blue-950/95 flex flex-col lg:w-1/2 w-full lg:max-h-none max-h-96"
           >
-            {/* Quiz Workspace Header */}
+            {/* Exam Tryout Workspace Header */}
             <div className="px-4 py-3 border-b border-blue-800/50 flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <span className="text-blue-400 text-lg">❓</span>
-                <h3 className="text-white font-sans text-sm">Quiz Generator</h3>
+                <span className="text-blue-400 text-lg">🎯</span>
+                <h3 className="text-white font-sans text-sm">Exam Tryout</h3>
               </div>
               <button
                 onClick={() => setShowQuizWorkspace(false)}
@@ -575,19 +588,19 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
           </motion.div>
         )}
 
-        {/* Study Commons Workspace Panel */}
+        {/* Study Buddy Workspace Panel */}
         {showStudyWorkspace && (
           <motion.div
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: '50%', opacity: 1 }}
-            exit={{ width: 0, opacity: 0 }}
-            className="border-l border-stone-200/50 bg-green-950/95 flex flex-col"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="lg:border-l border-t lg:border-t-0 border-stone-200/50 bg-green-950/95 flex flex-col lg:w-1/2 w-full lg:max-h-none max-h-96"
           >
-            {/* Study Workspace Header */}
+            {/* Study Buddy Workspace Header */}
             <div className="px-4 py-3 border-b border-green-800/50 flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <span className="text-green-400 text-lg">👥</span>
-                <h3 className="text-white font-sans text-sm">Study Commons</h3>
+                <h3 className="text-white font-sans text-sm">Study Buddy</h3>
               </div>
               <button
                 onClick={() => setShowStudyWorkspace(false)}
