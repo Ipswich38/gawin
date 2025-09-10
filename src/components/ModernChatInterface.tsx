@@ -58,11 +58,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-    }
-  }, [activeTab?.messages]);
+  // This useEffect will be moved after activeTab declaration
 
   // Function to detect if a message is about coding
   const isCodeRelated = (text: string): boolean => {
@@ -324,26 +320,33 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
     setShowSuggestions(true);
   };
 
+  // Auto-scroll effect (moved after activeTab declaration)
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [activeTab?.messages]);
+
   return (
-    <div className="h-screen bg-gradient-to-br from-stone-50 via-white to-stone-50 flex flex-col">
+    <div className="h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col">
       {/* Header */}
-      <header className="px-6 py-4 border-b border-stone-200/50 bg-white/60 backdrop-blur-sm">
+      <header className="px-6 py-4 border-b border-gray-700/50 bg-gray-900/80 backdrop-blur-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button 
               onClick={onBackToLanding}
-              className="p-2 hover:bg-stone-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
             >
-              <span className="text-stone-600">←</span>
+              <span className="text-gray-300">←</span>
             </button>
             
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-stone-900 to-zinc-700 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-br from-teal-600 to-teal-700 rounded-lg flex items-center justify-center">
                 <span className="text-white text-sm font-bold">G</span>
               </div>
               <div>
-                <h1 className="font-serif text-lg text-stone-900">Gawin AI</h1>
-                <p className="text-xs text-stone-500">Your Learning Assistant</p>
+                <h1 className="font-serif text-lg text-white">Gawin AI</h1>
+                <p className="text-xs text-gray-400">Your Learning Assistant</p>
               </div>
             </div>
           </div>
@@ -351,10 +354,10 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-3">
               <div className="text-right">
-                <p className="text-sm font-medium text-stone-800">{user.full_name || 'User'}</p>
-                <p className="text-xs text-stone-500">{user.email}</p>
+                <p className="text-sm font-medium text-white">{user.full_name || 'User'}</p>
+                <p className="text-xs text-gray-400">{user.email}</p>
               </div>
-              <div className="w-9 h-9 bg-gradient-to-br from-stone-600 to-zinc-600 rounded-full flex items-center justify-center">
+              <div className="w-9 h-9 bg-gradient-to-br from-teal-600 to-teal-700 rounded-full flex items-center justify-center">
                 <span className="text-white text-sm font-medium">
                   {user.full_name?.[0] || user.email[0].toUpperCase()}
                 </span>
@@ -366,15 +369,15 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
 
       {/* Main Browser-like Container */}
       <div className="flex-1 p-6">
-        <div className="h-full bg-white/80 backdrop-blur-sm border border-stone-300/50 rounded-3xl shadow-xl overflow-hidden">
+        <div className="h-full bg-gray-800/90 backdrop-blur-sm border border-gray-600/50 rounded-3xl shadow-xl overflow-hidden">
           
           {/* Browser-like Tab Bar with Mobile Scrolling */}
-          <div className="relative bg-stone-100/50 border-b border-stone-200/50">
+          <div className="relative bg-gray-700/50 border-b border-gray-600/50">
             <div className="flex items-center px-4 py-2">
               {/* Left scroll arrow for mobile */}
               <button 
                 id="scroll-left"
-                className="block md:hidden flex-shrink-0 p-1 hover:bg-stone-200 rounded-lg text-stone-500 hover:text-stone-700 transition-colors mr-2"
+                className="block md:hidden flex-shrink-0 p-1 hover:bg-gray-600 rounded-lg text-gray-400 hover:text-gray-200 transition-colors mr-2"
                 onClick={() => {
                   const container = document.getElementById('tabs-container');
                   if (container) container.scrollLeft -= 200;
@@ -392,36 +395,36 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                 {tabs.map((tab) => {
                   // Get color configuration for each tab type
                   const getTabColors = (type: string, isActive: boolean) => {
-                    // Define all color classes explicitly to ensure Tailwind includes them
+                    // Material 3 Dark Theme with Turquoise as primary color
                     if (type === 'general') {
                       return isActive 
-                        ? 'bg-stone-600 text-white border-stone-600' 
-                        : 'bg-stone-100 text-stone-700 hover:bg-stone-200 border-stone-200';
+                        ? 'bg-teal-600 text-white border-teal-600 shadow-lg shadow-teal-500/25' 
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600';
                     }
                     if (type === 'code') {
                       return isActive 
-                        ? 'bg-black text-white border-black' 
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200';
+                        ? 'bg-teal-600 text-white border-teal-600 shadow-lg shadow-teal-500/25' 
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600';
                     }
                     if (type === 'study') {
                       return isActive 
-                        ? 'bg-orange-600 text-white border-orange-600' 
-                        : 'bg-orange-100 text-orange-700 hover:bg-orange-200 border-orange-200';
+                        ? 'bg-teal-600 text-white border-teal-600 shadow-lg shadow-teal-500/25' 
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600';
                     }
                     if (type === 'quiz') {
                       return isActive 
-                        ? 'bg-gray-600 text-white border-gray-600' 
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200';
+                        ? 'bg-teal-600 text-white border-teal-600 shadow-lg shadow-teal-500/25' 
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600';
                     }
                     if (type === 'creative') {
                       return isActive 
-                        ? 'bg-teal-600 text-white border-teal-600' 
-                        : 'bg-teal-100 text-teal-700 hover:bg-teal-200 border-teal-200';
+                        ? 'bg-teal-600 text-white border-teal-600 shadow-lg shadow-teal-500/25' 
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600';
                     }
                     // Default fallback
                     return isActive 
-                      ? 'bg-stone-600 text-white border-stone-600' 
-                      : 'bg-stone-100 text-stone-700 hover:bg-stone-200 border-stone-200';
+                      ? 'bg-teal-600 text-white border-teal-600 shadow-lg shadow-teal-500/25' 
+                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600';
                   };
 
                   return (
@@ -455,7 +458,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
               {/* Right scroll arrow for mobile */}
               <button 
                 id="scroll-right"
-                className="block md:hidden flex-shrink-0 p-1 hover:bg-stone-200 rounded-lg text-stone-500 hover:text-stone-700 transition-colors ml-2"
+                className="block md:hidden flex-shrink-0 p-1 hover:bg-gray-600 rounded-lg text-gray-400 hover:text-gray-200 transition-colors ml-2"
                 onClick={() => {
                   const container = document.getElementById('tabs-container');
                   if (container) container.scrollLeft += 200;
@@ -473,7 +476,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                       dropdown.classList.toggle('hidden');
                     }
                   }}
-                  className="flex items-center justify-center w-8 h-8 bg-stone-50 hover:bg-stone-100 rounded-lg text-stone-500 hover:text-stone-700 transition-colors"
+                  className="flex items-center justify-center w-8 h-8 bg-gray-700 hover:bg-gray-600 rounded-lg text-gray-300 hover:text-white transition-colors"
                 >
                   <span className="text-lg">+</span>
                 </button>
@@ -481,14 +484,14 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                 {/* Dropdown Menu */}
                 <div 
                   id="tab-dropdown"
-                  className="absolute top-10 right-0 hidden bg-white border border-stone-200 rounded-xl shadow-lg py-2 z-50 min-w-48"
+                  className="absolute top-10 right-0 hidden bg-gray-800 border border-gray-600 rounded-xl shadow-lg py-2 z-50 min-w-48"
                 >
                   <button
                     onClick={() => {
                       createNewTab('general');
                       document.getElementById('tab-dropdown')?.classList.add('hidden');
                     }}
-                    className="w-full px-4 py-2 text-left hover:bg-stone-50 flex items-center space-x-3 text-stone-700 hover:text-stone-900"
+                    className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center space-x-3 text-gray-300 hover:text-white"
                   >
                     <span>💬</span>
                     <span>General Chat</span>
@@ -498,7 +501,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                       createNewTab('code');
                       document.getElementById('tab-dropdown')?.classList.add('hidden');
                     }}
-                    className="w-full px-4 py-2 text-left hover:bg-stone-50 flex items-center space-x-3 text-stone-700 hover:text-stone-900"
+                    className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center space-x-3 text-gray-300 hover:text-white"
                   >
                     <span>⚡</span>
                     <span>Code Workspace</span>
@@ -508,7 +511,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                       createNewTab('study');
                       document.getElementById('tab-dropdown')?.classList.add('hidden');
                     }}
-                    className="w-full px-4 py-2 text-left hover:bg-stone-50 flex items-center space-x-3 text-stone-700 hover:text-stone-900"
+                    className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center space-x-3 text-gray-300 hover:text-white"
                   >
                     <span>👥</span>
                     <span>Study Buddy</span>
@@ -518,7 +521,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                       createNewTab('quiz');
                       document.getElementById('tab-dropdown')?.classList.add('hidden');
                     }}
-                    className="w-full px-4 py-2 text-left hover:bg-stone-50 flex items-center space-x-3 text-stone-700 hover:text-stone-900"
+                    className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center space-x-3 text-gray-300 hover:text-white"
                   >
                     <span>🎯</span>
                     <span>Exam Tryout</span>
@@ -528,7 +531,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                       createNewTab('creative');
                       document.getElementById('tab-dropdown')?.classList.add('hidden');
                     }}
-                    className="w-full px-4 py-2 text-left hover:bg-stone-50 flex items-center space-x-3 text-stone-700 hover:text-stone-900"
+                    className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center space-x-3 text-gray-300 hover:text-white"
                   >
                     <span>🎨</span>
                     <span>Creative & Design</span>
@@ -540,11 +543,11 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
 
           {/* Chat Area */}
           <div className={`flex-1 flex flex-col h-full ${
-            activeTab?.type === 'code' ? 'bg-gray-50/30' :
-            activeTab?.type === 'study' ? 'bg-orange-50/30' :
-            activeTab?.type === 'quiz' ? 'bg-gray-50/30' :
-            activeTab?.type === 'creative' ? 'bg-teal-50/30' :
-            'bg-white/20'
+            activeTab?.type === 'code' ? 'bg-gray-800/50' :
+            activeTab?.type === 'study' ? 'bg-gray-800/50' :
+            activeTab?.type === 'quiz' ? 'bg-gray-800/50' :
+            activeTab?.type === 'creative' ? 'bg-gray-800/50' :
+            'bg-gray-800/30'
           }`}>
             {/* Main Chat with Integrated Workspaces */}
             <div className="w-full flex flex-col">
@@ -566,10 +569,10 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                     const parts = greeting.split('What would you like to learn today?');
                     return (
                       <>
-                        <p className="text-xl text-stone-700 leading-relaxed">
+                        <p className="text-xl text-gray-300 leading-relaxed">
                           {parts[0].trim()}
                         </p>
-                        <h2 className="font-serif text-3xl text-stone-800">
+                        <h2 className="font-serif text-3xl text-white">
                           What would you like to learn today?
                         </h2>
                       </>
@@ -589,10 +592,10 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                   className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div className={`
-                    max-w-[80%] p-6 rounded-2xl shadow-sm border-2
+                    max-w-[80%] p-6 shadow-lg border
                     ${message.role === 'user' 
-                      ? 'bg-gradient-to-br from-stone-800 to-zinc-800 text-white border-stone-700' 
-                      : 'bg-gradient-to-br from-white to-stone-50 text-stone-800 border-stone-200/50'
+                      ? 'bg-gradient-to-br from-teal-600 to-teal-700 text-white border-teal-500 rounded-full' 
+                      : 'bg-gradient-to-br from-gray-700 to-gray-800 text-white border-gray-600 rounded-full'
                     }
                   `}>
                     {message.role === 'assistant' ? (
@@ -609,7 +612,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                       mt-3 pt-3 border-t text-xs
                       ${message.role === 'user' 
                         ? 'border-white/20 text-white/70' 
-                        : 'border-stone-200 text-stone-500'
+                        : 'border-gray-500 text-gray-300'
                       }
                     `}>
                       {new Date(message.timestamp).toLocaleTimeString('en-US', {
@@ -629,14 +632,14 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                   animate={{ opacity: 1, y: 0 }}
                   className="flex justify-start"
                 >
-                  <div className="max-w-[80%] p-6 bg-gradient-to-br from-white to-stone-50 border-2 border-stone-200/50 rounded-2xl shadow-sm">
+                  <div className="max-w-[80%] p-6 bg-gradient-to-br from-gray-700 to-gray-800 border border-gray-600 rounded-full shadow-lg">
                     <div className="flex items-center space-x-3">
                       <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-stone-400 rounded-full animate-pulse"></div>
-                        <div className="w-2 h-2 bg-stone-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                        <div className="w-2 h-2 bg-stone-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                        <div className="w-2 h-2 bg-teal-400 rounded-full animate-pulse"></div>
+                        <div className="w-2 h-2 bg-teal-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                        <div className="w-2 h-2 bg-teal-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
                       </div>
-                      <span className="text-stone-600 text-sm font-serif italic">Thinking...</span>
+                      <span className="text-gray-300 text-sm font-serif italic">Thinking...</span>
                     </div>
                   </div>
                 </motion.div>
@@ -658,11 +661,11 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                 animate={{ opacity: 1, y: 0 }}
                 className="w-full px-4 lg:px-6"
               >
-                <div className="bg-white/60 backdrop-blur-sm border border-stone-200/50 rounded-3xl shadow-lg p-6 mb-6 max-h-96 overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-600/50 rounded-3xl shadow-lg p-6 mb-6 max-h-96 overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                   <div className="space-y-4">
                     <div className="flex items-center space-x-3 mb-4">
                       <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
-                      <h3 className="text-stone-800 font-medium text-lg">Code Workspace</h3>
+                      <h3 className="text-white font-medium text-lg">Code Workspace</h3>
                     </div>
                     <div className="bg-black/95 rounded-2xl border border-stone-700/50 overflow-hidden">
                       <div className="px-4 py-3 border-b border-stone-700/50 bg-stone-900/50">
@@ -691,14 +694,14 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                       </button>
                       <button
                         onClick={() => setInput(`Explain this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
-                        className="px-4 py-2 bg-stone-600 hover:bg-stone-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                        className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
                         disabled={!codeContent.trim()}
                       >
                         Explain
                       </button>
                       <button
                         onClick={() => setInput(`Debug this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
-                        className="px-4 py-2 bg-stone-600 hover:bg-stone-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                        className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
                         disabled={!codeContent.trim()}
                       >
                         Debug
@@ -716,48 +719,48 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                 animate={{ opacity: 1, y: 0 }}
                 className="w-full px-4 lg:px-6"
               >
-                <div className="bg-white/60 backdrop-blur-sm border border-stone-200/50 rounded-3xl shadow-lg p-6 mb-6">
+                <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-600/50 rounded-3xl shadow-lg p-6 mb-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <h3 className="text-stone-800 font-medium text-lg">Study Commons</h3>
+                      <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
+                      <h3 className="text-white font-medium text-lg">Study Commons</h3>
                     </div>
-                    <button className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-full font-medium transition-colors">
+                    <button className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm rounded-full font-medium transition-colors">
                       Create Room
                     </button>
                   </div>
                   
                   {/* Study Rooms */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-green-50 border border-green-200 rounded-2xl p-4">
+                    <div className="bg-teal-900/30 border border-teal-700 rounded-2xl p-4">
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium text-green-800">Math Study Group</h4>
-                        <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">3 active</span>
+                        <h4 className="font-medium text-teal-100">Math Study Group</h4>
+                        <span className="text-xs text-teal-300 bg-teal-800 px-2 py-1 rounded-full">3 active</span>
                       </div>
-                      <p className="text-sm text-green-700 mb-3">Calculus problem solving session</p>
-                      <button className="w-full bg-green-600 hover:bg-green-700 text-white text-sm py-2 rounded-lg font-medium transition-colors">
+                      <p className="text-sm text-teal-200 mb-3">Calculus problem solving session</p>
+                      <button className="w-full bg-teal-600 hover:bg-teal-700 text-white text-sm py-2 rounded-lg font-medium transition-colors">
                         Join Room
                       </button>
                     </div>
                     
-                    <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+                    <div className="bg-teal-900/30 border border-teal-700 rounded-2xl p-4">
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium text-blue-800">CS Study Hall</h4>
-                        <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full">5 active</span>
+                        <h4 className="font-medium text-teal-100">CS Study Hall</h4>
+                        <span className="text-xs text-teal-300 bg-teal-800 px-2 py-1 rounded-full">5 active</span>
                       </div>
-                      <p className="text-sm text-blue-700 mb-3">Data structures & algorithms</p>
-                      <button className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 rounded-lg font-medium transition-colors">
+                      <p className="text-sm text-teal-200 mb-3">Data structures & algorithms</p>
+                      <button className="w-full bg-teal-600 hover:bg-teal-700 text-white text-sm py-2 rounded-lg font-medium transition-colors">
                         Join Room
                       </button>
                     </div>
                   </div>
 
                   {/* Quick Study Actions */}
-                  <div className="mt-4 pt-4 border-t border-stone-200/50">
+                  <div className="mt-4 pt-4 border-t border-gray-600/50">
                     <div className="flex flex-wrap gap-2">
                       <button
                         onClick={() => setInput('Start a study session for [subject]')}
-                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                        className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
                       >
                         Start Study Session
                       </button>
@@ -786,28 +789,28 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                 animate={{ opacity: 1, y: 0 }}
                 className="w-full px-4 lg:px-6"
               >
-                <div className="bg-white/60 backdrop-blur-sm border border-stone-200/50 rounded-3xl shadow-lg p-6 mb-6">
+                <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-600/50 rounded-3xl shadow-lg p-6 mb-6">
                   <div className="space-y-4">
                     <div className="flex items-center space-x-3 mb-4">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <h3 className="text-stone-800 font-medium text-lg">Exam Tryout</h3>
+                      <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
+                      <h3 className="text-white font-medium text-lg">Exam Tryout</h3>
                     </div>
 
                     {/* Quiz Configuration */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-3">
                         <div>
-                          <label className="block text-stone-700 text-sm font-medium mb-2">Quiz Topic</label>
+                          <label className="block text-gray-300 text-sm font-medium mb-2">Quiz Topic</label>
                           <input
                             type="text"
                             placeholder="Enter the topic for your quiz..."
-                            className="w-full bg-white/80 border border-stone-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 placeholder-stone-500"
+                            className="w-full bg-gray-700/80 border border-gray-600 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 placeholder-gray-400 text-white"
                           />
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <label className="block text-stone-700 text-sm font-medium mb-2">Questions</label>
-                            <select className="w-full bg-white/80 border border-stone-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400">
+                            <label className="block text-gray-300 text-sm font-medium mb-2">Questions</label>
+                            <select className="w-full bg-gray-700/80 border border-gray-600 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 text-white">
                               <option value="5">5 Questions</option>
                               <option value="10">10 Questions</option>
                               <option value="15">15 Questions</option>
@@ -815,8 +818,8 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                             </select>
                           </div>
                           <div>
-                            <label className="block text-stone-700 text-sm font-medium mb-2">Difficulty</label>
-                            <select className="w-full bg-white/80 border border-stone-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400">
+                            <label className="block text-gray-300 text-sm font-medium mb-2">Difficulty</label>
+                            <select className="w-full bg-gray-700/80 border border-gray-600 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 text-white">
                               <option value="easy">Easy</option>
                               <option value="medium">Medium</option>
                               <option value="hard">Hard</option>
@@ -827,19 +830,19 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                       
                       <div className="space-y-3">
                         <div>
-                          <label className="block text-stone-700 text-sm font-medium mb-2">Question Types</label>
+                          <label className="block text-gray-300 text-sm font-medium mb-2">Question Types</label>
                           <div className="space-y-2">
                             <label className="flex items-center space-x-2">
-                              <input type="checkbox" className="rounded border-stone-400 text-blue-600" defaultChecked />
-                              <span className="text-stone-700 text-sm">Multiple Choice</span>
+                              <input type="checkbox" className="rounded border-gray-600 text-teal-600" defaultChecked />
+                              <span className="text-gray-300 text-sm">Multiple Choice</span>
                             </label>
                             <label className="flex items-center space-x-2">
-                              <input type="checkbox" className="rounded border-stone-400 text-blue-600" />
-                              <span className="text-stone-700 text-sm">True/False</span>
+                              <input type="checkbox" className="rounded border-gray-600 text-teal-600" />
+                              <span className="text-gray-300 text-sm">True/False</span>
                             </label>
                             <label className="flex items-center space-x-2">
-                              <input type="checkbox" className="rounded border-stone-400 text-blue-600" />
-                              <span className="text-stone-700 text-sm">Short Answer</span>
+                              <input type="checkbox" className="rounded border-gray-600 text-teal-600" />
+                              <span className="text-gray-300 text-sm">Short Answer</span>
                             </label>
                           </div>
                         </div>
@@ -850,7 +853,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                     <div className="flex flex-wrap gap-2 pt-2">
                       <button
                         onClick={() => setInput('Generate a quiz about [topic] with [number] questions at [difficulty] level')}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                        className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
                       >
                         Generate Quiz
                       </button>
@@ -885,16 +888,16 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                 animate={{ opacity: 1, y: 0 }}
                 className="w-full px-4 lg:px-6"
               >
-                <div className="bg-white/60 backdrop-blur-sm border border-stone-200/50 rounded-3xl shadow-lg p-6 mb-6">
+                <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-600/50 rounded-3xl shadow-lg p-6 mb-6">
                   <div className="space-y-4">
                     <div className="flex items-center space-x-3 mb-4">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                      <h3 className="text-stone-800 font-medium text-lg">Creative Studio</h3>
+                      <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
+                      <h3 className="text-white font-medium text-lg">Creative Studio</h3>
                     </div>
 
                     {/* Image Generation Section */}
-                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-2xl p-4">
-                      <h4 className="font-medium text-purple-800 mb-3 flex items-center">
+                    <div className="bg-gradient-to-r from-teal-900/40 to-teal-800/40 border border-teal-700 rounded-2xl p-4">
+                      <h4 className="font-medium text-teal-100 mb-3 flex items-center">
                         <span className="mr-2">🎨</span>
                         Image Generation
                       </h4>
@@ -902,38 +905,38 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                         <input
                           type="text"
                           placeholder="Describe the image you want to create..."
-                          className="w-full bg-white/80 border border-purple-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-400 placeholder-stone-500"
+                          className="w-full bg-gray-700/80 border border-gray-600 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 placeholder-gray-400 text-white"
                         />
                         <div className="flex flex-wrap gap-2">
-                          <button className="px-3 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 text-xs rounded-full transition-colors">
+                          <button className="px-3 py-1 bg-teal-800 hover:bg-teal-700 text-teal-200 text-xs rounded-full transition-colors">
                             Realistic
                           </button>
-                          <button className="px-3 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 text-xs rounded-full transition-colors">
+                          <button className="px-3 py-1 bg-teal-800 hover:bg-teal-700 text-teal-200 text-xs rounded-full transition-colors">
                             Artistic
                           </button>
-                          <button className="px-3 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 text-xs rounded-full transition-colors">
+                          <button className="px-3 py-1 bg-teal-800 hover:bg-teal-700 text-teal-200 text-xs rounded-full transition-colors">
                             Cartoon
                           </button>
-                          <button className="px-3 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 text-xs rounded-full transition-colors">
+                          <button className="px-3 py-1 bg-teal-800 hover:bg-teal-700 text-teal-200 text-xs rounded-full transition-colors">
                             Abstract
                           </button>
                         </div>
-                        <button className="w-full bg-purple-600 hover:bg-purple-700 text-white text-sm py-2 rounded-lg font-medium transition-colors">
+                        <button className="w-full bg-teal-600 hover:bg-teal-700 text-white text-sm py-2 rounded-lg font-medium transition-colors">
                           Generate Image
                         </button>
                       </div>
                     </div>
 
                     {/* Creative Writing Section */}
-                    <div className="bg-gradient-to-r from-pink-50 to-orange-50 border border-pink-200 rounded-2xl p-4">
-                      <h4 className="font-medium text-pink-800 mb-3 flex items-center">
+                    <div className="bg-gradient-to-r from-teal-900/40 to-teal-800/40 border border-teal-700 rounded-2xl p-4">
+                      <h4 className="font-medium text-teal-100 mb-3 flex items-center">
                         <span className="mr-2">✍️</span>
                         Creative Writing
                       </h4>
                       <div className="flex flex-wrap gap-2">
                         <button
                           onClick={() => setInput('Write a creative story about [topic]')}
-                          className="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                          className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
                         >
                           Story Generator
                         </button>
@@ -958,7 +961,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
 
 
             {/* Input Area */}
-            <div className="px-6 py-6 bg-white/60 backdrop-blur-sm border-t border-stone-200/30">
+            <div className="px-6 py-6 bg-gray-900/80 backdrop-blur-sm border-t border-gray-600/50">
               <div className="max-w-4xl mx-auto">
                 <div className="relative">
                   <input
@@ -968,7 +971,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                     onChange={(e) => setInput(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder="Ask me anything about your studies..."
-                    className="w-full px-8 pr-16 bg-stone-800 text-white focus:outline-none focus:ring-4 focus:ring-stone-600/30 transition-all duration-300 font-sans placeholder-stone-400 text-lg resize-none overflow-hidden"
+                    className="w-full px-8 pr-16 bg-gray-800 text-white focus:outline-none focus:ring-4 focus:ring-teal-500/30 transition-all duration-300 font-sans placeholder-gray-400 text-lg resize-none overflow-hidden border border-gray-700 focus:border-teal-500"
                     style={{ 
                       height: '64px', 
                       minHeight: '64px', 
@@ -984,7 +987,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                   <button
                     onClick={() => handleSend()}
                     disabled={!input.trim() || (activeTab?.isLoading || false)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 w-12 h-12 bg-teal-500 hover:bg-teal-600 disabled:bg-stone-600 rounded-full flex items-center justify-center transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-12 h-12 bg-teal-600 hover:bg-teal-500 disabled:bg-gray-600 rounded-full flex items-center justify-center transition-colors shadow-lg"
                   >
                     <span className="text-white text-xl">
                       {activeTab?.isLoading ? '⋯' : '→'}
@@ -993,13 +996,13 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                 </div>
                 
                 <div className="flex items-center justify-between mt-4 px-4">
-                  <p className="text-xs text-stone-500">
+                  <p className="text-xs text-gray-400">
                     Press Enter to send, Shift+Enter for new line
                   </p>
-                  <div className="flex items-center space-x-4 text-xs text-stone-500">
+                  <div className="flex items-center space-x-4 text-xs text-gray-400">
                     <span>Powered by AI Orchestrator</span>
                     <div className="flex items-center space-x-1">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
                       <span>Online</span>
                     </div>
                   </div>
