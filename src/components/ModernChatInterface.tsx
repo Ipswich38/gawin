@@ -39,8 +39,8 @@ const suggestionPrompts = [
 
 
 export default function ModernChatInterface({ user, onLogout, onBackToLanding }: ModernChatInterfaceProps) {
-  const [input, setInput] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const [isLeftPanelOpen, setIsLeftPanelOpen] = useState(false);
   const [tabs, setTabs] = useState<Tab[]>([
     {
       id: 'general-1',
@@ -187,16 +187,19 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
     }
   };
 
-  const handleSend = async (text?: string) => {
-    const messageText = text || input.trim();
-    if (!messageText || !activeTab) return;
+  const handleSend = async (text: string, tabId?: string) => {
+    const messageText = text.trim();
+    if (!messageText) return;
+    
+    const targetTab = tabId ? tabs.find(t => t.id === tabId) : activeTab;
+    if (!targetTab) return;
 
     // Check workspace-related queries and create appropriate tab
     const isCodingQuery = isCodeRelated(messageText);
     const isQuizQuery = isQuizRelated(messageText);
     const isStudyQuery = isStudyRelated(messageText);
     
-    let currentActiveTab = activeTab;
+    let currentActiveTab = targetTab;
     
     if (isCodingQuery && !tabs.some(tab => tab.type === 'code' && tab.isActive)) {
       createNewTab('code');
@@ -228,7 +231,6 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
         : tab
     ));
     
-    setInput('');
     setShowSuggestions(false);
 
     try {
@@ -303,12 +305,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
   };
 
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
+  // Removed old handleKeyPress since we now use per-tab inputs
 
   const clearChat = () => {
     if (!activeTab) return;
@@ -328,46 +325,69 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
   }, [activeTab?.messages]);
 
   return (
-    <div className="h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col">
-      {/* Header */}
-      <header className="px-6 py-4 border-b border-gray-700/50 bg-gray-900/80 backdrop-blur-sm">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <button 
-              onClick={onBackToLanding}
-              className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
-            >
-              <span className="text-gray-300">←</span>
-            </button>
-            
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-teal-600 to-teal-700 rounded-lg flex items-center justify-center">
-                <span className="text-white text-sm font-bold">G</span>
-              </div>
-              <div>
-                <h1 className="font-serif text-lg text-white">Gawin AI</h1>
-                <p className="text-xs text-gray-400">Your Learning Assistant</p>
-              </div>
+    <div className="h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex">
+      {/* Left Side Panel */}
+      <div className={`${isLeftPanelOpen ? 'w-80' : 'w-0'} transition-all duration-300 overflow-hidden bg-gray-900/90 backdrop-blur-sm border-r border-gray-700/50`}>
+        <div className="p-6 space-y-6">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-teal-600 to-teal-700 rounded-lg flex items-center justify-center">
+              <span className="text-white text-lg font-bold">G</span>
+            </div>
+            <div>
+              <h1 className="font-serif text-xl text-white">Gawin AI</h1>
+              <p className="text-sm text-gray-400">Your Learning Assistant</p>
             </div>
           </div>
-
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-3">
-              <div className="text-right">
-                <p className="text-sm font-medium text-white">{user.full_name || 'User'}</p>
-                <p className="text-xs text-gray-400">{user.email}</p>
+          
+          <div className="space-y-4">
+            <div className="p-4 bg-gray-800/50 rounded-2xl border border-gray-700/50">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-teal-600 to-teal-700 rounded-full flex items-center justify-center">
+                  <span className="text-white text-lg font-medium">
+                    {user.full_name?.[0] || user.email[0].toUpperCase()}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-white font-medium">{user.full_name || 'User'}</p>
+                  <p className="text-gray-400 text-sm">{user.email}</p>
+                </div>
               </div>
-              <div className="w-9 h-9 bg-gradient-to-br from-teal-600 to-teal-700 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-medium">
-                  {user.full_name?.[0] || user.email[0].toUpperCase()}
-                </span>
-              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <button
+                onClick={onBackToLanding}
+                className="w-full p-3 text-left text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors flex items-center space-x-2"
+              >
+                <span>←</span>
+                <span>Back to Landing</span>
+              </button>
+              <button
+                onClick={onLogout}
+                className="w-full p-3 text-left text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors flex items-center space-x-2"
+              >
+                <span>⊗</span>
+                <span>Sign Out</span>
+              </button>
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
-      {/* Main Browser-like Container */}
+      {/* Square Toggle Button */}
+      <button
+        onClick={() => setIsLeftPanelOpen(!isLeftPanelOpen)}
+        className="fixed top-4 left-4 z-50 w-10 h-10 bg-gray-800/90 hover:bg-gray-700/90 rounded-lg border border-gray-600/50 backdrop-blur-sm transition-colors flex items-center justify-center"
+      >
+        <div className="w-4 h-4 grid grid-cols-2 gap-0.5">
+          <div className="w-1.5 h-1.5 bg-gray-300 rounded-sm"></div>
+          <div className="w-1.5 h-1.5 bg-gray-300 rounded-sm"></div>
+          <div className="w-1.5 h-1.5 bg-gray-300 rounded-sm"></div>
+          <div className="w-1.5 h-1.5 bg-gray-300 rounded-sm"></div>
+        </div>
+      </button>
+
+      {/* Main Browser Container */}
       <div className="flex-1 p-6">
         <div className="h-full bg-gray-800/90 backdrop-blur-sm border border-gray-600/50 rounded-3xl shadow-xl overflow-hidden">
           
@@ -688,21 +708,21 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <button
-                        onClick={() => setInput(`Review this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
+                        onClick={() => handleSend(`Review this code:\n\`\`\`\n${codeContent}\n\`\`\``, activeTab?.id)}
                         className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
                         disabled={!codeContent.trim()}
                       >
                         Review Code
                       </button>
                       <button
-                        onClick={() => setInput(`Explain this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
+                        onClick={() => handleSend(`Explain this code:\n\`\`\`\n${codeContent}\n\`\`\``, activeTab?.id)}
                         className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
                         disabled={!codeContent.trim()}
                       >
                         Explain
                       </button>
                       <button
-                        onClick={() => setInput(`Debug this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
+                        onClick={() => handleSend(`Debug this code:\n\`\`\`\n${codeContent}\n\`\`\``, activeTab?.id)}
                         className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
                         disabled={!codeContent.trim()}
                       >
@@ -883,77 +903,47 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
               </motion.div>
             )}
 
-            {/* Creative Tab - Image Generation & Creative Content */}
+            {/* Creative Tab - Unleash Creativity Space */}
             {activeTab && activeTab.type === 'creative' && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="w-full px-4 lg:px-6"
               >
-                <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-600/50 rounded-3xl shadow-lg p-6 mb-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-3 mb-4">
-                      <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
-                      <h3 className="text-white font-medium text-lg">Creative Studio</h3>
+                <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-600/50 rounded-3xl shadow-lg p-8 mb-6">
+                  <div className="text-center space-y-6">
+                    <div className="flex items-center justify-center space-x-3 mb-6">
+                      <div className="w-3 h-3 bg-teal-500 rounded-full"></div>
+                      <h3 className="text-white font-medium text-2xl">Creative Studio</h3>
+                      <div className="w-3 h-3 bg-teal-500 rounded-full"></div>
                     </div>
 
-                    {/* Image Generation Section */}
-                    <div className="bg-gradient-to-r from-teal-900/40 to-teal-800/40 border border-teal-700 rounded-2xl p-4">
-                      <h4 className="font-medium text-teal-100 mb-3 flex items-center">
-                        <span className="mr-2">🎨</span>
-                        Image Generation
+                    <div className="space-y-4 max-w-2xl mx-auto">
+                      <h4 className="text-3xl font-serif text-white mb-4">
+                        🎨 Unleash Your Creativity
                       </h4>
-                      <div className="space-y-3">
-                        <input
-                          type="text"
-                          placeholder="Describe the image you want to create..."
-                          className="w-full bg-gray-700/80 border border-gray-600 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 placeholder-gray-400 text-white"
-                        />
-                        <div className="flex flex-wrap gap-2">
-                          <button className="px-3 py-1 bg-teal-800 hover:bg-teal-700 text-teal-200 text-xs rounded-full transition-colors">
-                            Realistic
-                          </button>
-                          <button className="px-3 py-1 bg-teal-800 hover:bg-teal-700 text-teal-200 text-xs rounded-full transition-colors">
-                            Artistic
-                          </button>
-                          <button className="px-3 py-1 bg-teal-800 hover:bg-teal-700 text-teal-200 text-xs rounded-full transition-colors">
-                            Cartoon
-                          </button>
-                          <button className="px-3 py-1 bg-teal-800 hover:bg-teal-700 text-teal-200 text-xs rounded-full transition-colors">
-                            Abstract
-                          </button>
+                      <p className="text-lg text-gray-300 leading-relaxed">
+                        Welcome to your creative sanctuary! This space is designed to inspire and amplify your imagination.
+                      </p>
+                      <p className="text-gray-400">
+                        Whether you're crafting stories, brainstorming ideas, writing poetry, or creating visual concepts, 
+                        I'm here to help bring your creative visions to life.
+                      </p>
+                      
+                      <div className="bg-gradient-to-r from-teal-900/30 to-purple-900/30 border border-teal-700/50 rounded-2xl p-6 mt-8">
+                        <div className="flex items-center justify-center space-x-2 mb-4">
+                          <span className="text-2xl">🖼️</span>
+                          <h5 className="text-xl font-medium text-teal-100">Image Generation Powered by Pollinations AI</h5>
                         </div>
-                        <button className="w-full bg-teal-600 hover:bg-teal-700 text-white text-sm py-2 rounded-lg font-medium transition-colors">
-                          Generate Image
-                        </button>
+                        <p className="text-gray-300 text-center">
+                          Describe any image you can imagine, and I'll create stunning visuals using advanced AI technology.
+                        </p>
                       </div>
-                    </div>
 
-                    {/* Creative Writing Section */}
-                    <div className="bg-gradient-to-r from-teal-900/40 to-teal-800/40 border border-teal-700 rounded-2xl p-4">
-                      <h4 className="font-medium text-teal-100 mb-3 flex items-center">
-                        <span className="mr-2">✍️</span>
-                        Creative Writing
-                      </h4>
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          onClick={() => setInput('Write a creative story about [topic]')}
-                          className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
-                        >
-                          Story Generator
-                        </button>
-                        <button
-                          onClick={() => setInput('Create a poem about [theme]')}
-                          className="px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
-                        >
-                          Poetry
-                        </button>
-                        <button
-                          onClick={() => setInput('Help me brainstorm ideas for [project]')}
-                          className="px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
-                        >
-                          Brainstorm
-                        </button>
+                      <div className="pt-6">
+                        <p className="text-gray-400 text-sm">
+                          ✨ Use the chat below to start your creative journey - ask for stories, poems, images, or any creative assistance!
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -962,55 +952,75 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
             )}
 
 
-            {/* Input Area */}
-            <div className="px-6 py-6 bg-gray-900/80 backdrop-blur-sm border-t border-gray-600/50">
-              <div className="max-w-4xl mx-auto">
-                <div className="relative">
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Ask me anything about your studies..."
-                    className="w-full px-8 pr-16 bg-gray-800 text-white focus:outline-none focus:ring-4 focus:ring-teal-500/30 transition-all duration-300 font-sans placeholder-gray-400 text-lg resize-none overflow-hidden border border-gray-700 focus:border-teal-500"
-                    style={{ 
-                      height: '64px', 
-                      minHeight: '64px', 
-                      maxHeight: '64px', 
-                      lineHeight: '32px',
-                      borderRadius: '32px',
-                      paddingTop: '16px',
-                      paddingBottom: '16px'
-                    }}
-                    disabled={activeTab?.isLoading || false}
-                  />
+            {/* Per-Tab Input Area - Each tab has its own input */}
+            {activeTab && (
+              <div className="px-6 py-6 bg-gray-900/80 backdrop-blur-sm border-t border-gray-600/50">
+                <div className="max-w-4xl mx-auto">
+                  <div className="relative">
+                    <input
+                      key={activeTab.id} // Force re-render for each tab
+                      type="text"
+                      defaultValue=""
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          const target = e.target as HTMLInputElement;
+                          handleSend(target.value, activeTab.id);
+                          target.value = '';
+                        }
+                      }}
+                      placeholder={`Ask me anything ${
+                        activeTab.type === 'code' ? 'about programming...' :
+                        activeTab.type === 'study' ? 'about studying...' :
+                        activeTab.type === 'quiz' ? 'about assessments...' :
+                        activeTab.type === 'creative' ? 'to unleash creativity...' :
+                        'about your studies...'
+                      }`}
+                      className="w-full px-8 pr-16 bg-gray-800 text-white focus:outline-none focus:ring-4 focus:ring-teal-500/30 transition-all duration-300 font-sans placeholder-gray-400 text-lg resize-none overflow-hidden border border-gray-700 focus:border-teal-500"
+                      style={{ 
+                        height: '64px', 
+                        minHeight: '64px', 
+                        maxHeight: '64px', 
+                        lineHeight: '32px',
+                        borderRadius: '32px',
+                        paddingTop: '16px',
+                        paddingBottom: '16px'
+                      }}
+                      disabled={activeTab.isLoading}
+                    />
+                    
+                    <button
+                      onClick={(e) => {
+                        const input = (e.currentTarget.previousElementSibling as HTMLInputElement);
+                        if (input.value.trim()) {
+                          handleSend(input.value.trim(), activeTab.id);
+                          input.value = '';
+                        }
+                      }}
+                      disabled={activeTab.isLoading}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-12 h-12 bg-teal-600 hover:bg-teal-500 disabled:bg-gray-600 rounded-full flex items-center justify-center transition-colors shadow-lg"
+                    >
+                      <span className="text-white text-xl">
+                        {activeTab.isLoading ? '⋯' : '→'}
+                      </span>
+                    </button>
+                  </div>
                   
-                  <button
-                    onClick={() => handleSend()}
-                    disabled={!input.trim() || (activeTab?.isLoading || false)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 w-12 h-12 bg-teal-600 hover:bg-teal-500 disabled:bg-gray-600 rounded-full flex items-center justify-center transition-colors shadow-lg"
-                  >
-                    <span className="text-white text-xl">
-                      {activeTab?.isLoading ? '⋯' : '→'}
-                    </span>
-                  </button>
-                </div>
-                
-                <div className="flex items-center justify-between mt-4 px-4">
-                  <p className="text-xs text-gray-400">
-                    Press Enter to send, Shift+Enter for new line
-                  </p>
-                  <div className="flex items-center space-x-4 text-xs text-gray-400">
-                    <span>Powered by AI Orchestrator</span>
-                    <div className="flex items-center space-x-1">
-                      <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
-                      <span>Online</span>
+                  <div className="flex items-center justify-between mt-4 px-4">
+                    <p className="text-xs text-gray-400">
+                      Press Enter to send • Tab: {activeTab.title}
+                    </p>
+                    <div className="flex items-center space-x-4 text-xs text-gray-400">
+                      <span>Powered by AI Orchestrator</span>
+                      <div className="flex items-center space-x-1">
+                        <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
+                        <span>Online</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
