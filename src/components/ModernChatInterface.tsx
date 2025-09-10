@@ -242,9 +242,9 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
       </header>
 
       {/* Chat Area */}
-      <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
-        {/* Main Chat */}
-        <div className={`${showCodeWorkspace || showQuizWorkspace || showStudyWorkspace ? 'lg:flex-1' : 'w-full'} flex flex-col`}>
+      <div className="flex-1 overflow-hidden flex flex-col">
+        {/* Main Chat with Integrated Workspaces */}
+        <div className="w-full flex flex-col">
           <div 
             ref={chatContainerRef}
             className="flex-1 overflow-y-auto px-4 lg:px-6 py-6 space-y-6"
@@ -311,6 +311,278 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                   </div>
                 </motion.div>
               ))}
+
+              {/* Integrated Workspace Cards */}
+              {(showCodeWorkspace || showQuizWorkspace || showStudyWorkspace) && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="w-full"
+                >
+                  {/* Workspace Tab Bar - Perplexity/Opera AI Inspired */}
+                  <div className="mb-4 flex items-center justify-center">
+                    <div className="bg-white/80 backdrop-blur-sm border border-stone-200/60 rounded-2xl p-1.5 shadow-lg">
+                      <div className="flex space-x-1">
+                        {showCodeWorkspace && (
+                          <div className="flex items-center space-x-2 px-4 py-2 bg-black/90 text-white rounded-xl text-sm font-medium shadow-sm">
+                            <span className="text-teal-400">&lt;/&gt;</span>
+                            <span>Code Workspace</span>
+                            <button 
+                              onClick={() => {setShowCodeWorkspace(false); setCurrentWorkspace(null);}}
+                              className="ml-1 text-white/70 hover:text-white transition-colors"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        )}
+                        {showQuizWorkspace && (
+                          <div className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium shadow-sm">
+                            <span className="text-blue-200">🎯</span>
+                            <span>Exam Tryout</span>
+                            <button 
+                              onClick={() => {setShowQuizWorkspace(false); setCurrentWorkspace(null);}}
+                              className="ml-1 text-white/70 hover:text-white transition-colors"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        )}
+                        {showStudyWorkspace && (
+                          <div className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-medium shadow-sm">
+                            <span className="text-green-200">👥</span>
+                            <span>Study Buddy</span>
+                            <button 
+                              onClick={() => {setShowStudyWorkspace(false); setCurrentWorkspace(null);}}
+                              className="ml-1 text-white/70 hover:text-white transition-colors"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Workspace Content Card */}
+                  <div className="bg-white/60 backdrop-blur-sm border border-stone-200/50 rounded-3xl shadow-lg p-6 mb-6">
+                    {/* Code Workspace Content */}
+                    {showCodeWorkspace && (
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-3 mb-4">
+                          <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
+                          <h3 className="text-stone-800 font-medium text-lg">Code Workspace</h3>
+                        </div>
+                        <div className="bg-black/95 rounded-2xl border border-stone-700/50 overflow-hidden">
+                          <div className="px-4 py-3 border-b border-stone-700/50 bg-stone-900/50">
+                            <div className="flex items-center space-x-2">
+                              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                              <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                              <span className="ml-4 text-stone-400 text-sm font-mono">editor.js</span>
+                            </div>
+                          </div>
+                          <textarea
+                            value={codeContent}
+                            onChange={(e) => setCodeContent(e.target.value)}
+                            placeholder="// Write or paste your code here..."
+                            className="w-full h-64 bg-transparent text-green-400 font-mono text-sm resize-none p-4 focus:outline-none placeholder-stone-500"
+                            spellCheck={false}
+                          />
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            onClick={() => setInput(`Review this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
+                            className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                            disabled={!codeContent.trim()}
+                          >
+                            Review Code
+                          </button>
+                          <button
+                            onClick={() => setInput(`Explain this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
+                            className="px-4 py-2 bg-stone-600 hover:bg-stone-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                            disabled={!codeContent.trim()}
+                          >
+                            Explain
+                          </button>
+                          <button
+                            onClick={() => setInput(`Debug this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
+                            className="px-4 py-2 bg-stone-600 hover:bg-stone-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                            disabled={!codeContent.trim()}
+                          >
+                            Debug
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Quiz Workspace Content */}
+                    {showQuizWorkspace && (
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-3 mb-4">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <h3 className="text-stone-800 font-medium text-lg">Exam Tryout</h3>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-3">
+                            <div>
+                              <label className="block text-stone-700 text-sm font-medium mb-2">Quiz Topic</label>
+                              <input
+                                type="text"
+                                placeholder="Enter the topic for your quiz..."
+                                className="w-full bg-white/80 border border-stone-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 placeholder-stone-500"
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="block text-stone-700 text-sm font-medium mb-2">Questions</label>
+                                <select className="w-full bg-white/80 border border-stone-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400">
+                                  <option value="5">5 Questions</option>
+                                  <option value="10">10 Questions</option>
+                                  <option value="15">15 Questions</option>
+                                  <option value="20">20 Questions</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-stone-700 text-sm font-medium mb-2">Difficulty</label>
+                                <select className="w-full bg-white/80 border border-stone-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400">
+                                  <option value="easy">Easy</option>
+                                  <option value="medium">Medium</option>
+                                  <option value="hard">Hard</option>
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="block text-stone-700 text-sm font-medium mb-2">Question Types</label>
+                              <div className="space-y-2">
+                                <label className="flex items-center space-x-2">
+                                  <input type="checkbox" className="rounded border-stone-400 text-blue-600" defaultChecked />
+                                  <span className="text-stone-700 text-sm">Multiple Choice</span>
+                                </label>
+                                <label className="flex items-center space-x-2">
+                                  <input type="checkbox" className="rounded border-stone-400 text-blue-600" />
+                                  <span className="text-stone-700 text-sm">True/False</span>
+                                </label>
+                                <label className="flex items-center space-x-2">
+                                  <input type="checkbox" className="rounded border-stone-400 text-blue-600" />
+                                  <span className="text-stone-700 text-sm">Short Answer</span>
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-2 pt-2">
+                          <button
+                            onClick={() => setInput('Generate a quiz about [topic] with [number] questions at [difficulty] level')}
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                          >
+                            Generate Quiz
+                          </button>
+                          <button
+                            onClick={() => setInput('Create practice questions for studying [topic]')}
+                            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                          >
+                            Practice Mode
+                          </button>
+                          <button
+                            onClick={() => setInput('Make flashcards for [topic]')}
+                            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                          >
+                            Flashcards
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Study Workspace Content */}
+                    {showStudyWorkspace && (
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-3 mb-4">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <h3 className="text-stone-800 font-medium text-lg">Study Buddy</h3>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-3">
+                            <div>
+                              <label className="block text-stone-700 text-sm font-medium mb-2">Study Session Topic</label>
+                              <input
+                                type="text"
+                                placeholder="What are you studying today..."
+                                className="w-full bg-white/80 border border-stone-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-400 placeholder-stone-500"
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="block text-stone-700 text-sm font-medium mb-2">Study Method</label>
+                                <select className="w-full bg-white/80 border border-stone-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-400">
+                                  <option value="group">Group Discussion</option>
+                                  <option value="review">Note Review</option>
+                                  <option value="practice">Practice Problems</option>
+                                  <option value="explain">Teach & Explain</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-stone-700 text-sm font-medium mb-2">Duration</label>
+                                <select className="w-full bg-white/80 border border-stone-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-400">
+                                  <option value="25">25 minutes</option>
+                                  <option value="45">45 minutes</option>
+                                  <option value="60">1 hour</option>
+                                  <option value="90">1.5 hours</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-stone-700 text-sm font-medium mb-2">Study Goals</label>
+                              <textarea
+                                placeholder="What do you want to achieve in this study session?"
+                                rows={3}
+                                className="w-full bg-white/80 border border-stone-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-400 placeholder-stone-500 resize-none"
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-3">
+                            <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                              <div className="flex items-center justify-between mb-3">
+                                <span className="text-green-800 text-sm font-medium">Study Timer</span>
+                                <span className="text-green-600 text-xl font-mono">00:00:00</span>
+                              </div>
+                              <div className="flex space-x-2">
+                                <button className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm py-2 rounded-lg font-medium transition-colors">
+                                  Start
+                                </button>
+                                <button className="flex-1 bg-green-500 hover:bg-green-600 text-white text-sm py-2 rounded-lg font-medium transition-colors">
+                                  Break
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-2 pt-2">
+                          <button
+                            onClick={() => setInput('Help me create a study plan for [subject]')}
+                            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                          >
+                            Study Plan
+                          </button>
+                          <button
+                            onClick={() => setInput('Explain [topic] in simple terms')}
+                            className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                          >
+                            Simplify
+                          </button>
+                          <button
+                            onClick={() => setInput('Give me practice problems for [subject]')}
+                            className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                          >
+                            Practice
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
 
               {isLoading && (
                 <motion.div
@@ -431,262 +703,6 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
           </div>
         </div>
         </div>
-
-        {/* Code Workspace Panel */}
-        {showCodeWorkspace && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="lg:border-l border-t lg:border-t-0 border-stone-200/50 bg-black/95 flex flex-col lg:w-1/2 w-full lg:max-h-none max-h-96"
-          >
-            {/* Code Workspace Header */}
-            <div className="px-4 py-3 border-b border-stone-700/50 flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <span className="text-teal-400 text-lg">&lt;/&gt;</span>
-                <h3 className="text-white font-mono text-sm">Code Workspace</h3>
-              </div>
-              <button
-                onClick={() => setShowCodeWorkspace(false)}
-                className="text-stone-400 hover:text-white transition-colors"
-              >
-                ×
-              </button>
-            </div>
-
-            {/* Code Editor */}
-            <div className="flex-1 p-4">
-              <textarea
-                value={codeContent}
-                onChange={(e) => setCodeContent(e.target.value)}
-                placeholder="// Write or paste your code here..."
-                className="w-full h-full bg-transparent text-green-400 font-mono text-sm resize-none border border-stone-700 rounded-lg p-4 focus:outline-none focus:border-teal-500 placeholder-stone-500"
-                spellCheck={false}
-              />
-            </div>
-
-            {/* Code Actions */}
-            <div className="px-4 py-3 border-t border-stone-700/50">
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => setInput(`Review this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
-                  className="px-3 py-1 bg-teal-600 hover:bg-teal-700 text-white text-xs rounded font-mono transition-colors"
-                  disabled={!codeContent.trim()}
-                >
-                  Review Code
-                </button>
-                <button
-                  onClick={() => setInput(`Explain this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
-                  className="px-3 py-1 bg-stone-700 hover:bg-stone-600 text-white text-xs rounded font-mono transition-colors"
-                  disabled={!codeContent.trim()}
-                >
-                  Explain
-                </button>
-                <button
-                  onClick={() => setInput(`Debug this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
-                  className="px-3 py-1 bg-stone-700 hover:bg-stone-600 text-white text-xs rounded font-mono transition-colors"
-                  disabled={!codeContent.trim()}
-                >
-                  Debug
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Quiz Workspace Panel */}
-        {showQuizWorkspace && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="lg:border-l border-t lg:border-t-0 border-stone-200/50 bg-blue-950/95 flex flex-col lg:w-1/2 w-full lg:max-h-none max-h-96"
-          >
-            {/* Exam Tryout Workspace Header */}
-            <div className="px-4 py-3 border-b border-blue-800/50 flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <span className="text-blue-400 text-lg">🎯</span>
-                <h3 className="text-white font-sans text-sm">Exam Tryout</h3>
-              </div>
-              <button
-                onClick={() => setShowQuizWorkspace(false)}
-                className="text-stone-400 hover:text-white transition-colors"
-              >
-                ×
-              </button>
-            </div>
-            {/* Quiz Configuration */}
-            <div className="flex-1 p-4 space-y-4">
-              <div>
-                <label className="block text-blue-200 text-xs mb-2">Quiz Topic</label>
-                <input
-                  type="text"
-                  placeholder="Enter the topic for your quiz..."
-                  className="w-full bg-blue-900/50 text-white border border-blue-700 rounded-lg p-3 text-sm focus:outline-none focus:border-blue-400 placeholder-blue-300"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-blue-200 text-xs mb-2">Questions</label>
-                  <select className="w-full bg-blue-900/50 text-white border border-blue-700 rounded-lg p-2 text-sm focus:outline-none focus:border-blue-400">
-                    <option value="5">5 Questions</option>
-                    <option value="10">10 Questions</option>
-                    <option value="15">15 Questions</option>
-                    <option value="20">20 Questions</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-blue-200 text-xs mb-2">Difficulty</label>
-                  <select className="w-full bg-blue-900/50 text-white border border-blue-700 rounded-lg p-2 text-sm focus:outline-none focus:border-blue-400">
-                    <option value="easy">Easy</option>
-                    <option value="medium">Medium</option>
-                    <option value="hard">Hard</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-blue-200 text-xs mb-2">Question Type</label>
-                <div className="flex flex-wrap gap-2">
-                  <label className="flex items-center space-x-2">
-                    <input type="checkbox" className="rounded border-blue-700" defaultChecked />
-                    <span className="text-blue-200 text-xs">Multiple Choice</span>
-                  </label>
-                  <label className="flex items-center space-x-2">
-                    <input type="checkbox" className="rounded border-blue-700" />
-                    <span className="text-blue-200 text-xs">True/False</span>
-                  </label>
-                  <label className="flex items-center space-x-2">
-                    <input type="checkbox" className="rounded border-blue-700" />
-                    <span className="text-blue-200 text-xs">Short Answer</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-            {/* Quiz Actions */}
-            <div className="px-4 py-3 border-t border-blue-800/50">
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => setInput('Generate a quiz about [topic] with [number] questions at [difficulty] level')}
-                  className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors"
-                >
-                  Generate Quiz
-                </button>
-                <button
-                  onClick={() => setInput('Create practice questions for studying [topic]')}
-                  className="px-3 py-1 bg-blue-800 hover:bg-blue-700 text-white text-xs rounded transition-colors"
-                >
-                  Practice Mode
-                </button>
-                <button
-                  onClick={() => setInput('Make flashcards for [topic]')}
-                  className="px-3 py-1 bg-blue-800 hover:bg-blue-700 text-white text-xs rounded transition-colors"
-                >
-                  Flashcards
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Study Buddy Workspace Panel */}
-        {showStudyWorkspace && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="lg:border-l border-t lg:border-t-0 border-stone-200/50 bg-green-950/95 flex flex-col lg:w-1/2 w-full lg:max-h-none max-h-96"
-          >
-            {/* Study Buddy Workspace Header */}
-            <div className="px-4 py-3 border-b border-green-800/50 flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <span className="text-green-400 text-lg">👥</span>
-                <h3 className="text-white font-sans text-sm">Study Buddy</h3>
-              </div>
-              <button
-                onClick={() => setShowStudyWorkspace(false)}
-                className="text-stone-400 hover:text-white transition-colors"
-              >
-                ×
-              </button>
-            </div>
-            {/* Study Session Setup */}
-            <div className="flex-1 p-4 space-y-4">
-              <div>
-                <label className="block text-green-200 text-xs mb-2">Study Session Topic</label>
-                <input
-                  type="text"
-                  placeholder="What are you studying today..."
-                  className="w-full bg-green-900/50 text-white border border-green-700 rounded-lg p-3 text-sm focus:outline-none focus:border-green-400 placeholder-green-300"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-green-200 text-xs mb-2">Study Method</label>
-                  <select className="w-full bg-green-900/50 text-white border border-green-700 rounded-lg p-2 text-sm focus:outline-none focus:border-green-400">
-                    <option value="group">Group Discussion</option>
-                    <option value="review">Note Review</option>
-                    <option value="practice">Practice Problems</option>
-                    <option value="explain">Teach & Explain</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-green-200 text-xs mb-2">Duration</label>
-                  <select className="w-full bg-green-900/50 text-white border border-green-700 rounded-lg p-2 text-sm focus:outline-none focus:border-green-400">
-                    <option value="25">25 minutes</option>
-                    <option value="45">45 minutes</option>
-                    <option value="60">1 hour</option>
-                    <option value="90">1.5 hours</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-green-200 text-xs mb-2">Study Goals</label>
-                <textarea
-                  placeholder="What do you want to achieve in this study session?"
-                  rows={3}
-                  className="w-full bg-green-900/50 text-white border border-green-700 rounded-lg p-3 text-sm focus:outline-none focus:border-green-400 placeholder-green-300 resize-none"
-                />
-              </div>
-              <div className="bg-green-900/30 border border-green-700/50 rounded-lg p-3">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-green-200 text-xs">Study Timer</span>
-                  <span className="text-green-400 text-sm font-mono">00:00:00</span>
-                </div>
-                <div className="flex space-x-2">
-                  <button className="flex-1 bg-green-700 hover:bg-green-600 text-white text-xs py-1 rounded transition-colors">
-                    Start
-                  </button>
-                  <button className="flex-1 bg-green-800 hover:bg-green-700 text-white text-xs py-1 rounded transition-colors">
-                    Break
-                  </button>
-                </div>
-              </div>
-            </div>
-            {/* Study Actions */}
-            <div className="px-4 py-3 border-t border-green-800/50">
-              <div className="flex items-center space-x-2 flex-wrap gap-1">
-                <button
-                  onClick={() => setInput('Help me create a study plan for [subject]')}
-                  className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded transition-colors"
-                >
-                  Study Plan
-                </button>
-                <button
-                  onClick={() => setInput('Explain [topic] in simple terms')}
-                  className="px-3 py-1 bg-green-800 hover:bg-green-700 text-white text-xs rounded transition-colors"
-                >
-                  Simplify
-                </button>
-                <button
-                  onClick={() => setInput('Give me practice problems for [subject]')}
-                  className="px-3 py-1 bg-green-800 hover:bg-green-700 text-white text-xs rounded transition-colors"
-                >
-                  Practice
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
       </div>
     </div>
   );
