@@ -616,7 +616,6 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
             </div>
           </div>
         </div>
-        </div>
       </div>
     </div>
   );
