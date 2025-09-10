@@ -204,13 +204,16 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
     if (isCodingQuery && !tabs.some(tab => tab.type === 'code' && tab.isActive)) {
       createNewTab('code');
       // Get the newly created tab
-      currentActiveTab = tabs.find(tab => tab.type === 'code') || activeTab;
+      const codeTab = tabs.find(tab => tab.type === 'code');
+      if (codeTab) currentActiveTab = codeTab;
     } else if (isQuizQuery && !tabs.some(tab => tab.type === 'quiz' && tab.isActive)) {
       createNewTab('quiz');
-      currentActiveTab = tabs.find(tab => tab.type === 'quiz') || activeTab;
+      const quizTab = tabs.find(tab => tab.type === 'quiz');
+      if (quizTab) currentActiveTab = quizTab;
     } else if (isStudyQuery && !tabs.some(tab => tab.type === 'study' && tab.isActive)) {
       createNewTab('study');
-      currentActiveTab = tabs.find(tab => tab.type === 'study') || activeTab;
+      const studyTab = tabs.find(tab => tab.type === 'study');
+      if (studyTab) currentActiveTab = studyTab;
     }
 
     const newMessage: Message = {
@@ -781,19 +784,19 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                   <div className="mt-4 pt-4 border-t border-gray-600/50">
                     <div className="flex flex-wrap gap-2">
                       <button
-                        onClick={() => setInput('Start a study session for [subject]')}
+                        onClick={() => handleSend('Start a study session for [subject]', activeTab?.id)}
                         className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
                       >
                         Start Study Session
                       </button>
                       <button
-                        onClick={() => setInput('Find study buddies for [topic]')}
+                        onClick={() => handleSend('Find study buddies for [topic]', activeTab?.id)}
                         className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
                       >
                         Find Study Buddy
                       </button>
                       <button
-                        onClick={() => setInput('Create study notes for [subject]')}
+                        onClick={() => handleSend('Create study notes for [subject]', activeTab?.id)}
                         className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
                       >
                         Create Notes
@@ -874,25 +877,25 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                     {/* Quick Quiz Actions */}
                     <div className="flex flex-wrap gap-2 pt-2">
                       <button
-                        onClick={() => setInput('Generate a quiz about [topic] with [number] questions at [difficulty] level')}
+                        onClick={() => handleSend('Generate a quiz about [topic] with [number] questions at [difficulty] level', activeTab?.id)}
                         className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
                       >
                         Generate Quiz
                       </button>
                       <button
-                        onClick={() => setInput('Create practice questions for studying [topic]')}
+                        onClick={() => handleSend('Create practice questions for studying [topic]', activeTab?.id)}
                         className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
                       >
                         Practice Mode
                       </button>
                       <button
-                        onClick={() => setInput('Make flashcards for [topic]')}
+                        onClick={() => handleSend('Make flashcards for [topic]', activeTab?.id)}
                         className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
                       >
                         Flashcards
                       </button>
                       <button
-                        onClick={() => setInput('Create a mock exam for [subject]')}
+                        onClick={() => handleSend('Create a mock exam for [subject]', activeTab?.id)}
                         className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
                       >
                         Mock Exam

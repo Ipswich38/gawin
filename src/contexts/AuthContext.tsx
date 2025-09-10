@@ -10,6 +10,8 @@ interface AuthContextType {
   isAuthenticated: boolean;
   signUp: (email: string, password: string, fullName: string) => Promise<{ success: boolean; error?: string }>;
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signInWithGoogle: () => Promise<{ success: boolean; error?: string }>;
+  signUpWithEmail: (email: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<User>) => Promise<{ success: boolean; error?: string }>;
   refreshUser: () => Promise<void>;
@@ -129,6 +131,51 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      setIsLoading(true);
+      const result = await databaseService.signInWithGoogle();
+      
+      if (result.error) {
+        systemGuardianService.reportError(`Google sign in failed: ${result.error}`, 'auth', 'medium');
+        return { success: false, error: result.error };
+      }
+      
+      // Note: OAuth will redirect, so we don't need to set user here
+      systemGuardianService.trackOperation('google_oauth_init', 50, true);
+      console.log('🔐 Google OAuth initiated');
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      systemGuardianService.reportError(`Google OAuth error: ${errorMessage}`, 'auth', 'high');
+      return { success: false, error: errorMessage };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const signUpWithEmail = async (email: string) => {
+    try {
+      setIsLoading(true);
+      const result = await databaseService.signUpWithEmail(email);
+      
+      if (result.error) {
+        systemGuardianService.reportError(`Email signup failed: ${result.error}`, 'auth', 'medium');
+        return { success: false, error: result.error };
+      }
+      
+      systemGuardianService.trackOperation('email_signup', 100, true);
+      console.log('✅ Email signup successful');
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      systemGuardianService.reportError(`Email signup error: ${errorMessage}`, 'auth', 'high');
+      return { success: false, error: errorMessage };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const updateProfile = async (updates: Partial<User>) => {
     try {
       if (!user) {
@@ -172,6 +219,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated: !!user,
     signUp,
     signIn,
+    signInWithGoogle,
+    signUpWithEmail,
     signOut,
     updateProfile,
     refreshUser,

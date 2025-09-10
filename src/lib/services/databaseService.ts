@@ -302,6 +302,148 @@ class DatabaseService {
     }
   }
 
+  // Google OAuth Authentication
+  async signInWithGoogle(): Promise<{ user: User | null; error: string | null }> {
+    try {
+      if (!this.supabase) {
+        return { user: null, error: 'Authentication service not available' };
+      }
+
+      const { data, error } = await this.supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/` : undefined,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
+        }
+      });
+
+      if (error) {
+        systemGuardianService.reportError(`Google OAuth failed: ${error.message}`, 'auth', 'medium');
+        return { user: null, error: error.message };
+      }
+
+      // Note: OAuth redirects, so this function will redirect to Google
+      // The user will be handled in the redirect callback
+      return { user: null, error: null };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      systemGuardianService.reportError(`Google OAuth error: ${errorMessage}`, 'auth', 'high');
+      return { user: null, error: errorMessage };
+    }
+  }
+
+  // Handle OAuth callback and create user profile if needed
+  async handleOAuthCallback(): Promise<{ user: User | null; error: string | null }> {
+    try {
+      if (!this.supabase) {
+        return { user: null, error: 'Authentication service not available' };
+      }
+
+      const { data: { user }, error } = await this.supabase.auth.getUser();
+      
+      if (error || !user) {
+        return { user: null, error: 'Failed to get authenticated user' };
+      }
+
+      // Check if user profile exists, create if not
+      let userProfile = await this.getUserProfile(user.id);
+      
+      if (!userProfile) {
+        // Extract name from OAuth metadata
+        const fullName = user.user_metadata?.full_name || 
+                         user.user_metadata?.name || 
+                         `${user.user_metadata?.first_name || ''} ${user.user_metadata?.last_name || ''}`.trim() ||
+                         'User';
+                         
+        userProfile = await this.createUserProfile(user.id, user.email || '', fullName);
+      }
+
+      // Store user in localStorage for persistence
+      if (typeof window !== 'undefined' && userProfile) {
+        localStorage.setItem('gawin_current_user', JSON.stringify(userProfile));
+      }
+
+      return { user: userProfile, error: null };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      systemGuardianService.reportError(`OAuth callback error: ${errorMessage}`, 'auth', 'high');
+      return { user: null, error: errorMessage };
+    }
+  }
+
+  // Simple email-only signup (no password required)
+  async signUpWithEmail(email: string): Promise<{ success: boolean; error: string | null }> {
+    try {
+      // Validate email
+      const emailValidation = validationService.validateTextInput(email);
+      if (!emailValidation.isValid) {
+        return { success: false, error: emailValidation.errors.join(', ') };
+      }
+
+      if (!this.supabase) {
+        // For fallback, create a simple user record
+        if (typeof window !== 'undefined') {
+          const users = JSON.parse(localStorage.getItem('gawin_users') || '[]');
+          const existingUser = users.find((u: User) => u.email === emailValidation.sanitized);
+          
+          if (existingUser) {
+            return { success: false, error: 'Email already registered' };
+          }
+
+          const newUser: User = {
+            id: Date.now().toString(),
+            email: emailValidation.sanitized,
+            full_name: 'User',
+            subscription_tier: 'free',
+            credits_remaining: 100,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            email_verified: true,
+            preferences: {
+              theme: 'auto',
+              language: 'en',
+              notifications_enabled: true,
+              ai_model_preference: 'auto',
+              tutor_mode_default: false
+            }
+          };
+
+          users.push(newUser);
+          localStorage.setItem('gawin_users', JSON.stringify(users));
+          localStorage.setItem('gawin_current_user', JSON.stringify(newUser));
+        }
+
+        return { success: true, error: null };
+      }
+
+      // Send magic link for email-only signup
+      const { error } = await this.supabase.auth.signInWithOtp({
+        email: emailValidation.sanitized,
+        options: {
+          shouldCreateUser: true,
+          data: {
+            full_name: 'User',
+            email_verified: true
+          }
+        }
+      });
+
+      if (error) {
+        systemGuardianService.reportError(`Email signup failed: ${error.message}`, 'auth', 'medium');
+        return { success: false, error: error.message };
+      }
+
+      return { success: true, error: null };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      systemGuardianService.reportError(`Email signup error: ${errorMessage}`, 'auth', 'high');
+      return { success: false, error: errorMessage };
+    }
+  }
+
   async getCurrentUser(): Promise<User | null> {
     try {
       if (this.supabase) {

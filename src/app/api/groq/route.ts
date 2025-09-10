@@ -5,58 +5,212 @@ import { deepseekService } from '@/lib/services/deepseekService';
 import { validationService } from '@/lib/services/validationService';
 
 /**
+ * Enhanced AI Context Analyzer - Provides deep conversation understanding
+ * Analyzes conversation patterns, learning objectives, and user progress
+ */
+function analyzeConversationContext(conversationHistory: GroqMessage[]) {
+  const context = {
+    topics: new Set<string>(),
+    learningObjectives: [] as string[],
+    userKnowledgeLevel: 'intermediate' as 'beginner' | 'intermediate' | 'advanced',
+    conversationFlow: 'exploratory' as 'exploratory' | 'problem_solving' | 'clarification' | 'deep_dive',
+    emotionalTone: 'neutral' as 'frustrated' | 'curious' | 'confused' | 'confident' | 'neutral',
+    previousContext: conversationHistory.slice(-6) // Keep more context for learning
+  };
+  
+  // Analyze conversation for topics and patterns
+  conversationHistory.forEach(msg => {
+    if (msg.role === 'user') {
+      const content = typeof msg.content === 'string' ? msg.content : '';
+      const lowerContent = content.toLowerCase();
+      
+      // Extract topics
+      const topicPatterns = [
+        { pattern: /\b(math|calculus|algebra|geometry|trigonometry|statistics)\b/i, topic: 'mathematics' },
+        { pattern: /\b(physics|chemistry|biology|science|lab|experiment)\b/i, topic: 'science' },
+        { pattern: /\b(code|coding|programming|javascript|python|react|api|database|algorithm)\b/i, topic: 'programming' },
+        { pattern: /\b(write|writing|essay|grammar|literature|english|composition)\b/i, topic: 'writing' },
+        { pattern: /\b(history|geography|social|politics|economics|culture)\b/i, topic: 'social_studies' },
+        { pattern: /\b(art|design|creative|music|visual|aesthetic)\b/i, topic: 'creative_arts' }
+      ];
+      
+      topicPatterns.forEach(({ pattern, topic }) => {
+        if (pattern.test(lowerContent)) context.topics.add(topic);
+      });
+      
+      // Detect emotional tone
+      if (/\b(frustrated|stuck|confused|don't understand|help)\b/i.test(lowerContent)) {
+        context.emotionalTone = 'frustrated';
+      } else if (/\b(interesting|curious|wonder|explore|learn more)\b/i.test(lowerContent)) {
+        context.emotionalTone = 'curious';
+      } else if (/\b(unclear|confusing|not sure|don't get)\b/i.test(lowerContent)) {
+        context.emotionalTone = 'confused';
+      } else if (/\b(understand|got it|makes sense|clear now)\b/i.test(lowerContent)) {
+        context.emotionalTone = 'confident';
+      }
+      
+      // Detect knowledge level
+      const complexTerms = content.match(/\b(algorithm|implementation|optimization|abstraction|polymorphism|derivative|integral|synthesis|analysis)\b/gi);
+      const basicTerms = content.match(/\b(what is|how do|basic|simple|beginner|start|first time)\b/gi);
+      
+      if (complexTerms && complexTerms.length > 2) {
+        context.userKnowledgeLevel = 'advanced';
+      } else if (basicTerms && basicTerms.length > 0) {
+        context.userKnowledgeLevel = 'beginner';
+      }
+    }
+  });
+  
+  return context;
+}
+
+/**
  * Generate intelligent educational responses when AI APIs fail
  * This acts as a smart fallback that analyzes context and provides helpful responses
  */
 function generateSmartEducationalResponse(userMessage: string, conversationHistory: GroqMessage[]): string {
   const lowerMessage = userMessage.toLowerCase().trim();
+  const context = analyzeConversationContext(conversationHistory);
+  const hasConversationHistory = conversationHistory.length > 1;
   
-  // Get conversation context
-  const previousMessages = conversationHistory.slice(-4); // Last 4 messages for context
-  const hasConversationHistory = previousMessages.length > 1;
+  // Generate context-aware responses based on conversation analysis
+  const topicsDiscussed = Array.from(context.topics);
+  const knowledgeLevel = context.userKnowledgeLevel;
+  const emotionalState = context.emotionalTone;
+  
+  // Adaptive response based on emotional tone
+  if (emotionalState === 'frustrated') {
+    return generateSupportiveResponse(userMessage, context, hasConversationHistory);
+  } else if (emotionalState === 'curious') {
+    return generateExploratoryResponse(userMessage, context, hasConversationHistory);
+  } else if (emotionalState === 'confused') {
+    return generateClarificationResponse(userMessage, context, hasConversationHistory);
+  } else if (emotionalState === 'confident') {
+    return generateAdvancedResponse(userMessage, context, hasConversationHistory);
+  }
   
   // Detect if user is frustrated or API failed
   if (lowerMessage.includes('not working') || lowerMessage.includes('error') || lowerMessage.includes('broken')) {
     return "I apologize that you're experiencing technical difficulties! I'm here to help with your learning. Even though some systems might be temporarily unavailable, I can still assist you with explanations, study guidance, and educational support. What specific topic would you like to explore together?";
   }
   
+  // Context-aware subject responses
+  if (topicsDiscussed.length > 0) {
+    return generateContextualSubjectResponse(userMessage, context, hasConversationHistory);
+  }
+  
   // Math and science patterns
   if (/\b(math|calculus|algebra|geometry|physics|chemistry|biology|science)\b/i.test(lowerMessage)) {
-    return generateSubjectResponse('mathematics and science', lowerMessage, hasConversationHistory);
+    return generateSubjectResponse('mathematics and science', lowerMessage, hasConversationHistory, knowledgeLevel);
   }
   
   // Programming and technology
   if (/\b(code|coding|programming|javascript|python|react|computer|software)\b/i.test(lowerMessage)) {
-    return generateSubjectResponse('programming and technology', lowerMessage, hasConversationHistory);
+    return generateSubjectResponse('programming and technology', lowerMessage, hasConversationHistory, knowledgeLevel);
   }
   
   // Language and writing
   if (/\b(write|writing|essay|grammar|literature|english|language)\b/i.test(lowerMessage)) {
-    return generateSubjectResponse('language and writing', lowerMessage, hasConversationHistory);
+    return generateSubjectResponse('language and writing', lowerMessage, hasConversationHistory, knowledgeLevel);
   }
   
   // Study help and learning
   if (/\b(study|learn|homework|assignment|test|exam|help)\b/i.test(lowerMessage)) {
-    return generateStudyHelpResponse(lowerMessage, hasConversationHistory);
+    return generateStudyHelpResponse(lowerMessage, hasConversationHistory, context);
   }
   
   // Greeting and basic interaction
   if (/\b(hello|hi|hey|good|morning|afternoon|evening)\b/i.test(lowerMessage) || lowerMessage.length < 10) {
     return hasConversationHistory 
-      ? `Great to continue our learning conversation! I see we were discussing some interesting topics. What else would you like to explore or learn about today?`
+      ? `Great to continue our learning conversation! I see we've been exploring ${topicsDiscussed.length > 0 ? topicsDiscussed.join(', ') : 'some interesting topics'}. What else would you like to dive into today?`
       : `Hello! I'm your AI learning assistant, ready to help you understand complex topics, work through problems, and support your educational journey. What subject or question can I help you with today?`;
   }
   
   // Question patterns
   if (lowerMessage.includes('?')) {
-    return generateQuestionResponse(lowerMessage, hasConversationHistory);
+    return generateQuestionResponse(lowerMessage, hasConversationHistory, context);
   }
   
   // Default educational response
-  return generateDefaultEducationalResponse(lowerMessage, hasConversationHistory);
+  return generateDefaultEducationalResponse(lowerMessage, hasConversationHistory, context);
 }
 
-function generateSubjectResponse(subject: string, message: string, hasHistory: boolean): string {
+// Enhanced response generators based on emotional state and context
+function generateSupportiveResponse(message: string, context: any, hasHistory: boolean): string {
+  const topics = Array.from(context.topics);
+  const encouragement = [
+    "I understand this can be challenging. Let's break it down step by step.",
+    "Don't worry - learning involves struggles, and that's completely normal!",
+    "I'm here to help you work through this. Let's approach it from a different angle.",
+    "Every expert was once a beginner. Let's tackle this together."
+  ];
+  
+  const support = encouragement[Math.floor(Math.random() * encouragement.length)];
+  return hasHistory && topics.length > 0
+    ? `${support} Building on our previous discussion about ${topics.join(', ')}, what specific part is giving you trouble?`
+    : `${support} What specific aspect would you like help with?`;
+}
+
+function generateExploratoryResponse(message: string, context: any, hasHistory: boolean): string {
+  const topics = Array.from(context.topics);
+  const exploration = [
+    "I love your curiosity! Let's explore this fascinating topic together.",
+    "That's an excellent question that opens up many interesting possibilities!",
+    "Your curiosity is the foundation of great learning. Let's dive deeper!",
+    "Great question! This connects to so many interesting concepts."
+  ];
+  
+  const response = exploration[Math.floor(Math.random() * exploration.length)];
+  return hasHistory && topics.length > 0
+    ? `${response} Since we've been discussing ${topics.join(', ')}, how do you think this connects to what we've covered?`
+    : `${response} What aspects of this topic intrigue you most?`;
+}
+
+function generateClarificationResponse(message: string, context: any, hasHistory: boolean): string {
+  const topics = Array.from(context.topics);
+  const clarification = [
+    "I can help clarify this for you. Let's start with the fundamentals.",
+    "Let me explain this more clearly. Understanding builds step by step.",
+    "Good question! Let me break this down into simpler parts.",
+    "I see the confusion. Let's approach this systematically."
+  ];
+  
+  const response = clarification[Math.floor(Math.random() * clarification.length)];
+  return hasHistory && topics.length > 0
+    ? `${response} Thinking back to our discussion on ${topics.join(', ')}, which part needs more explanation?`
+    : `${response} What specific aspect would you like me to clarify?`;
+}
+
+function generateAdvancedResponse(message: string, context: any, hasHistory: boolean): string {
+  const topics = Array.from(context.topics);
+  const advanced = [
+    "Great! I can see you're grasping these concepts well. Let's explore more advanced applications.",
+    "Excellent understanding! Ready to dive into some more complex aspects?",
+    "You're demonstrating solid comprehension. Let's challenge ourselves further.",
+    "Perfect! Your grasp of this topic opens doors to more sophisticated concepts."
+  ];
+  
+  const response = advanced[Math.floor(Math.random() * advanced.length)];
+  return hasHistory && topics.length > 0
+    ? `${response} Given your understanding of ${topics.join(', ')}, what advanced concepts interest you?`
+    : `${response} What challenging aspects would you like to explore?`;
+}
+
+function generateContextualSubjectResponse(message: string, context: any, hasHistory: boolean): string {
+  const topics = Array.from(context.topics);
+  const knowledgeLevel = context.userKnowledgeLevel;
+  
+  const levelAdjustedResponse: Record<string, string> = {
+    beginner: "Let's build on the basics we've covered",
+    intermediate: "Based on your growing understanding",
+    advanced: "Given your strong grasp of the concepts"
+  };
+  
+  const intro = levelAdjustedResponse[knowledgeLevel] || levelAdjustedResponse['intermediate'];
+  return `${intro} in ${topics.join(', ')}, how can I help you take the next step in your learning journey?`;
+}
+
+function generateSubjectResponse(subject: string, message: string, hasHistory: boolean, knowledgeLevel?: string): string {
   const responses = {
     'mathematics and science': [
       "I love helping with math and science! These subjects are all about understanding patterns and relationships in our world.",
@@ -76,14 +230,21 @@ function generateSubjectResponse(subject: string, message: string, hasHistory: b
   };
   
   const subjectResponses = responses[subject as keyof typeof responses] || responses['mathematics and science'];
-  const baseResponse = subjectResponses[Math.floor(Math.random() * subjectResponses.length)];
+  let baseResponse = subjectResponses[Math.floor(Math.random() * subjectResponses.length)];
+  
+  // Adjust response based on knowledge level
+  if (knowledgeLevel === 'beginner') {
+    baseResponse += " Let's start with the fundamentals and build up your understanding step by step.";
+  } else if (knowledgeLevel === 'advanced') {
+    baseResponse += " I can see you have a strong foundation - let's explore some advanced concepts.";
+  }
   
   return hasHistory 
     ? `${baseResponse} Based on our conversation so far, what specific aspect would you like to dive deeper into?`
     : `${baseResponse} What particular question or topic in ${subject} can I help you with?`;
 }
 
-function generateStudyHelpResponse(message: string, hasHistory: boolean): string {
+function generateStudyHelpResponse(message: string, hasHistory: boolean, context?: any): string {
   const studyTips = [
     "Effective studying involves active engagement with the material rather than just reading passively.",
     "Breaking study sessions into focused chunks with short breaks can improve retention significantly.",
@@ -92,19 +253,33 @@ function generateStudyHelpResponse(message: string, hasHistory: boolean): string
   ];
   
   const tip = studyTips[Math.floor(Math.random() * studyTips.length)];
+  const topics = context ? Array.from(context.topics) : [];
   
-  return hasHistory 
+  return hasHistory && topics.length > 0
+    ? `${tip} How can I help you apply this to ${topics.join(', ')} that we've been discussing?`
+    : hasHistory 
     ? `${tip} How can I help you apply this to the topics we've been discussing?`
     : `${tip} What subject or specific assignment are you working on? I'd be happy to help you develop a study strategy!`;
 }
 
-function generateQuestionResponse(message: string, hasHistory: boolean): string {
-  return hasHistory 
-    ? "That's a great follow-up question! I can see you're thinking deeply about this topic. Let me help you work through this step by step, building on what we've already covered."
-    : "Excellent question! I appreciate your curiosity. The best way to approach this is to break it down systematically. While I work on getting the full AI systems online, I can guide you through the key concepts and help you think through this problem.";
+function generateQuestionResponse(message: string, hasHistory: boolean, context?: any): string {
+  const topics = context ? Array.from(context.topics) : [];
+  const knowledgeLevel = context?.userKnowledgeLevel || 'intermediate';
+  
+  const levelResponse = knowledgeLevel === 'advanced' 
+    ? "That's a sophisticated question that shows deep thinking!"
+    : knowledgeLevel === 'beginner'
+    ? "Great question! Asking questions is how we learn."
+    : "That's a thoughtful question!";
+  
+  return hasHistory && topics.length > 0
+    ? `${levelResponse} Building on our discussion of ${topics.join(', ')}, let me help you work through this step by step.`
+    : hasHistory 
+    ? `${levelResponse} I can see you're thinking deeply about this topic. Let me help you work through this step by step, building on what we've already covered.`
+    : `${levelResponse} I appreciate your curiosity. The best way to approach this is to break it down systematically.`;
 }
 
-function generateDefaultEducationalResponse(message: string, hasHistory: boolean): string {
+function generateDefaultEducationalResponse(message: string, hasHistory: boolean, context?: any): string {
   const responses = [
     "I'm here to support your learning journey! Even when technical systems have hiccups, education continues.",
     "Learning is an active process, and I'm glad you're engaging with challenging material.",
@@ -113,8 +288,11 @@ function generateDefaultEducationalResponse(message: string, hasHistory: boolean
   ];
   
   const baseResponse = responses[Math.floor(Math.random() * responses.length)];
+  const topics = context ? Array.from(context.topics) : [];
   
-  return hasHistory 
+  return hasHistory && topics.length > 0
+    ? `${baseResponse} Let's continue building on our discussion of ${topics.join(', ')} - what aspect interests you most?`
+    : hasHistory 
     ? `${baseResponse} Let's continue building on our discussion - what aspect interests you most?`
     : `${baseResponse} What specific topic, subject, or question would you like to explore together?`;
 }
