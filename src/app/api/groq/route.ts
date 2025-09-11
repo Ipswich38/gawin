@@ -328,12 +328,36 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Try Groq first (primary provider)
+    // Try Groq first (primary provider) - THIS IS THE DEFAULT
     console.log('🚀 Attempting Groq API request...');
     const groqResult = await groqService.createChatCompletion(body);
     
     if (groqResult.success) {
-      console.log('✅ Groq request successful');
+      console.log('✅ Groq request successful - DIRECT RESPONSE');
+      
+      // Background orchestrator learning (non-blocking)
+      setTimeout(() => {
+        try {
+          // Log interaction for learning without affecting response
+          const lastMessage = body.messages[body.messages.length - 1];
+          const messageContent = typeof lastMessage.content === 'string' 
+            ? lastMessage.content 
+            : Array.isArray(lastMessage.content)
+            ? lastMessage.content.find(item => item.type === 'text')?.text || ''
+            : '';
+          
+          // Analyze conversation context for background learning
+          const context = analyzeConversationContext(body.messages);
+          console.log('📊 Background orchestrator learning:', {
+            topics: Array.from(context.topics),
+            userLevel: context.userKnowledgeLevel,
+            emotionalTone: context.emotionalTone
+          });
+        } catch (error) {
+          console.log('Background learning error (non-critical):', error);
+        }
+      }, 0);
+      
       return NextResponse.json(groqResult);
     }
 
