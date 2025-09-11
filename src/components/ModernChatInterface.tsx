@@ -71,6 +71,15 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
 
   // Function to detect if a message is about coding
   const isCodeRelated = (text: string): boolean => {
+    // Exclude quiz-related contexts
+    if (text.toLowerCase().includes('quiz') || 
+        text.toLowerCase().includes('flashcard') || 
+        text.toLowerCase().includes('practice') ||
+        text.toLowerCase().includes('exam') ||
+        text.toLowerCase().includes('assessment')) {
+      return false;
+    }
+    
     const codeKeywords = [
       'code', 'coding', 'program', 'programming', 'function', 'class', 'variable', 
       'javascript', 'python', 'react', 'typescript', 'css', 'html', 'debug', 
@@ -960,98 +969,91 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
               </motion.div>
             )}
 
-
-            {/* Exam Tryout Tab - Quiz & Assessment Generator */}
+            {/* Exam Tryout Tab - Mobile-First Quiz Generator */}
             {activeTab && activeTab.type === 'quiz' && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="w-full px-4 lg:px-6"
+                className="w-full px-4 py-4"
               >
-                <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-600/50 rounded-3xl shadow-lg p-4 md:p-6 mb-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-3 mb-4">
-                      <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
-                      <h3 className="text-white font-medium text-lg">Exam Tryout</h3>
-                    </div>
+                <div className="max-w-md mx-auto space-y-4">
+                  {/* Header */}
+                  <div className="text-center space-y-2 mb-6">
+                    <h2 className="text-2xl font-semibold text-white">🎯 Quiz Generator</h2>
+                    <p className="text-gray-400 text-sm">Create personalized quizzes instantly</p>
+                  </div>
 
-                    {/* Quiz Configuration */}
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-gray-300 text-sm font-medium mb-2">Quiz Topic</label>
-                        <input
-                          type="text"
-                          placeholder="Enter the topic for your quiz..."
-                          className="w-full bg-gray-700/80 border border-gray-600 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 placeholder-gray-400 text-white"
-                        />
-                      </div>
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-gray-300 text-sm font-medium mb-2">Questions</label>
-                          <select className="w-full bg-gray-700/80 border border-gray-600 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 text-white">
-                            <option value="5">5 Questions</option>
-                            <option value="10">10 Questions</option>
-                            <option value="15">15 Questions</option>
-                            <option value="20">20 Questions</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-gray-300 text-sm font-medium mb-2">Difficulty</label>
-                          <select className="w-full bg-gray-700/80 border border-gray-600 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 text-white">
-                            <option value="easy">Easy</option>
-                            <option value="medium">Medium</option>
-                            <option value="hard">Hard</option>
-                          </select>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-gray-300 text-sm font-medium mb-2">Question Types</label>
-                        <div className="flex flex-wrap gap-4">
-                          <label className="flex items-center space-x-2">
-                            <input type="checkbox" className="rounded border-gray-600 text-teal-600" defaultChecked />
-                            <span className="text-gray-300 text-sm">Multiple Choice</span>
-                          </label>
-                          <label className="flex items-center space-x-2">
-                            <input type="checkbox" className="rounded border-gray-600 text-teal-600" />
-                            <span className="text-gray-300 text-sm">True/False</span>
-                          </label>
-                          <label className="flex items-center space-x-2">
-                            <input type="checkbox" className="rounded border-gray-600 text-teal-600" />
-                            <span className="text-gray-300 text-sm">Short Answer</span>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
+                  {/* Topic Input */}
+                  <div className="space-y-2">
+                    <label className="text-white text-sm font-medium">What topic?</label>
+                    <input
+                      type="text"
+                      placeholder="e.g., Math, History, Science..."
+                      className="w-full px-4 py-3 bg-gray-800 text-white rounded-2xl border border-gray-700 focus:outline-none focus:border-teal-500 placeholder-gray-500"
+                    />
+                  </div>
 
-                    {/* Quick Quiz Actions */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
-                      <button
-                        onClick={() => handleSend('Generate a quiz about [topic] with [number] questions at [difficulty] level', activeTab?.id)}
-                        className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm rounded-xl font-medium transition-colors shadow-sm"
-                      >
-                        Generate Quiz
-                      </button>
-                      <button
-                        onClick={() => handleSend('Create practice questions for studying [topic]', activeTab?.id)}
-                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-xl font-medium transition-colors shadow-sm"
-                      >
-                        Practice Mode
-                      </button>
-                      <button
-                        onClick={() => handleSend('Make flashcards for [topic]', activeTab?.id)}
-                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-xl font-medium transition-colors shadow-sm"
-                      >
-                        Flashcards
-                      </button>
-                      <button
-                        onClick={() => handleSend('Create a mock exam for [subject]', activeTab?.id)}
-                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-xl font-medium transition-colors shadow-sm"
-                      >
-                        Mock Exam
-                      </button>
+                  {/* Quick Settings */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <label className="text-white text-sm font-medium">Questions</label>
+                      <select className="w-full px-4 py-3 bg-gray-800 text-white rounded-2xl border border-gray-700 focus:outline-none focus:border-teal-500">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                      </select>
                     </div>
+                    <div className="space-y-2">
+                      <label className="text-white text-sm font-medium">Level</label>
+                      <select className="w-full px-4 py-3 bg-gray-800 text-white rounded-2xl border border-gray-700 focus:outline-none focus:border-teal-500">
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Question Types */}
+                  <div className="space-y-3">
+                    <label className="text-white text-sm font-medium">Question Types</label>
+                    <div className="space-y-2">
+                      <label className="flex items-center space-x-3 p-3 bg-gray-800 rounded-2xl border border-gray-700">
+                        <input type="checkbox" className="w-4 h-4 text-teal-600 bg-gray-700 border-gray-600 rounded focus:ring-teal-500" defaultChecked />
+                        <span className="text-white text-sm">Multiple Choice</span>
+                      </label>
+                      <label className="flex items-center space-x-3 p-3 bg-gray-800 rounded-2xl border border-gray-700">
+                        <input type="checkbox" className="w-4 h-4 text-teal-600 bg-gray-700 border-gray-600 rounded focus:ring-teal-500" />
+                        <span className="text-white text-sm">True/False</span>
+                      </label>
+                      <label className="flex items-center space-x-3 p-3 bg-gray-800 rounded-2xl border border-gray-700">
+                        <input type="checkbox" className="w-4 h-4 text-teal-600 bg-gray-700 border-gray-600 rounded focus:ring-teal-500" />
+                        <span className="text-white text-sm">Short Answer</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Generate Button */}
+                  <button
+                    onClick={() => handleSend('Create a comprehensive quiz on [topic] with [number] multiple choice and written questions at [difficulty] level. Use current Philippine education standards and include recent developments in the field. Focus on critical thinking and practical application of concepts. Ensure questions test both theoretical knowledge and real-world understanding.', activeTab?.id)}
+                    className="w-full py-4 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-2xl transition-colors shadow-lg mt-6"
+                  >
+                    Create Quiz
+                  </button>
+
+                  {/* Quick Actions */}
+                  <div className="grid grid-cols-2 gap-3 mt-6">
+                    <button
+                      onClick={() => handleSend('Design practice exercises and review questions for [topic] that help students master key concepts through repetition and varied problem-solving approaches. Include explanations for each answer.', activeTab?.id)}
+                      className="py-3 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-2xl transition-colors"
+                    >
+                      Practice Mode
+                    </button>
+                    <button
+                      onClick={() => handleSend('Build interactive flashcards for [topic] with clear definitions, examples, and memory aids. Include both front-to-back and back-to-front review options for comprehensive learning.', activeTab?.id)}
+                      className="py-3 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-2xl transition-colors"
+                    >
+                      Flashcards
+                    </button>
                   </div>
                 </div>
               </motion.div>
