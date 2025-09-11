@@ -104,7 +104,6 @@ export default function GawinBrowser({ url }: GawinBrowserProps) {
             {/* X-Frame-Bypass alternative */}
             {typeof window !== 'undefined' && (
               <iframe
-                // @ts-ignore - x-frame-bypass is a custom element
                 is="x-frame-bypass"
                 src={url}
                 className="w-full h-full border-0"

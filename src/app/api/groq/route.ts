@@ -309,14 +309,78 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Validation pre-check
+    // Check for image generation request
     const lastMessage = body.messages[body.messages.length - 1];
+    const messageContent = typeof lastMessage.content === 'string' 
+      ? lastMessage.content 
+      : Array.isArray(lastMessage.content)
+      ? lastMessage.content.find(item => item.type === 'text')?.text || ''
+      : String(lastMessage.content);
+
+    const imageKeywords = [
+      'generate image', 'create image', 'make image', 'draw', 'picture', 
+      'illustration', 'visual', 'artwork', 'photo', 'generate a', 'create a',
+      'make a', 'show me', 'design', 'sketch', 'paint', 'render'
+    ];
+    
+    const isImageRequest = imageKeywords.some(keyword => 
+      messageContent.toLowerCase().includes(keyword.toLowerCase())
+    );
+
+    if (isImageRequest) {
+      console.log('🎨 Image generation request detected, using Pollinations API...');
+      try {
+        // Extract image prompt from the message
+        let imagePrompt = messageContent;
+        
+        // Clean up the prompt by removing generation keywords
+        const cleanPrompt = imagePrompt
+          .replace(/(?:generate|create|make|draw|show me|design|sketch|paint|render)\s+(?:an?\s+)?(?:image|picture|illustration|visual|artwork|photo|of\s+)?/gi, '')
+          .trim();
+
+        // Call the image API
+        const imageResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/image`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt: cleanPrompt || imagePrompt,
+            provider: 'pollinations'
+          })
+        });
+
+        if (imageResponse.ok) {
+          const imageBuffer = await imageResponse.arrayBuffer();
+          const base64Image = Buffer.from(imageBuffer).toString('base64');
+          const imageDataUrl = `data:image/jpeg;base64,${base64Image}`;
+
+          return NextResponse.json({
+            success: true,
+            choices: [{
+              message: {
+                role: 'assistant',
+                content: `I've generated an image based on your request: "${cleanPrompt || imagePrompt}"\n\n![Generated Image](${imageDataUrl})\n\nThe image has been created using AI image generation. Would you like me to generate another variation or create something different?`
+              },
+              finish_reason: 'stop',
+              index: 0
+            }],
+            usage: {
+              prompt_tokens: messageContent.length,
+              completion_tokens: 50,
+              total_tokens: messageContent.length + 50
+            }
+          });
+        } else {
+          console.log('🎨 Image generation failed, falling back to text response...');
+        }
+      } catch (imageError) {
+        console.error('Image generation error:', imageError);
+      }
+    }
+
+    // Validation pre-check
     if (lastMessage?.role === 'user') {
-      const messageContent = typeof lastMessage.content === 'string' 
-        ? lastMessage.content 
-        : Array.isArray(lastMessage.content)
-        ? lastMessage.content.find(item => item.type === 'text')?.text || ''
-        : '';
       const validation = validationService.validateTextInput(messageContent);
       
       if (!validation.isValid) {
