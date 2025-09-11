@@ -13,13 +13,14 @@ interface Message {
 
 interface Tab {
   id: string;
-  type: 'general' | 'code' | 'quiz' | 'study' | 'creative';
+  type: 'general' | 'code' | 'quiz' | 'study' | 'creative' | 'browser';
   title: string;
   icon: string;
   color: string;
   isActive: boolean;
   messages: Message[];
   isLoading: boolean;
+  url?: string; // For browser tabs
 }
 
 interface ModernChatInterfaceProps {
@@ -64,6 +65,9 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
     social: [],
     group: []
   });
+  const [showGawinBubble, setShowGawinBubble] = useState(false);
+  const [gawinChatOpen, setGawinChatOpen] = useState(false);
+  const [currentPageContent, setCurrentPageContent] = useState('');
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -111,13 +115,14 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
   };
 
   // Tab management functions
-  const createNewTab = (type: 'general' | 'code' | 'quiz' | 'study' | 'creative') => {
+  const createNewTab = (type: 'general' | 'code' | 'quiz' | 'study' | 'creative' | 'browser', url?: string) => {
     const tabConfig = {
       general: { title: 'General Chat', icon: '💬', color: 'bg-stone-600', textColor: 'text-white' },
       code: { title: 'Code Workspace', icon: '⚡', color: 'bg-black', textColor: 'text-white' },
       quiz: { title: 'Exam Tryout', icon: '🎯', color: 'bg-gray-600', textColor: 'text-white' },
       study: { title: 'Study Buddy', icon: '👥', color: 'bg-orange-600', textColor: 'text-white' },
-      creative: { title: 'Creative & Design', icon: '🎨', color: 'bg-teal-600', textColor: 'text-white' }
+      creative: { title: 'Creative & Design', icon: '🎨', color: 'bg-teal-600', textColor: 'text-white' },
+      browser: { title: 'Web Browser', icon: '🌐', color: 'bg-blue-600', textColor: 'text-white' }
     };
 
     const newTabId = `${type}-${Date.now()}`;
@@ -129,7 +134,8 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
       color: tabConfig[type].color,
       isActive: false,
       messages: [],
-      isLoading: false
+      isLoading: false,
+      url: url || undefined
     };
 
     setTabs(prev => prev.map(tab => ({ ...tab, isActive: false })).concat([{ ...newTab, isActive: true }]));
