@@ -330,7 +330,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
   return (
     <div className="h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex">
       {/* Left Side Panel */}
-      <div className={`${isLeftPanelOpen ? 'w-80' : 'w-0'} transition-all duration-300 overflow-hidden bg-gray-900/90 backdrop-blur-sm border-r border-gray-700/50`}>
+      <div className={`${isLeftPanelOpen ? 'w-80 md:w-80' : 'w-0'} transition-all duration-300 overflow-hidden bg-gray-900/90 backdrop-blur-sm border-r border-gray-700/50 ${isLeftPanelOpen ? 'fixed md:relative' : ''} ${isLeftPanelOpen ? 'inset-y-0 left-0 z-40 md:z-auto' : ''}`}>
         <div className="p-6 space-y-6">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-gradient-to-br from-teal-600 to-teal-700 rounded-lg flex items-center justify-center">
@@ -377,16 +377,26 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
         </div>
       </div>
 
-      {/* Square Toggle Button */}
+      {/* Mobile Overlay */}
+      {isLeftPanelOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          onClick={() => setIsLeftPanelOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Sidebar Toggle Button - Claude AI Style */}
       <button
         onClick={() => setIsLeftPanelOpen(!isLeftPanelOpen)}
-        className="fixed top-4 left-4 z-50 w-10 h-10 bg-gray-800/90 hover:bg-gray-700/90 rounded-lg border border-gray-600/50 backdrop-blur-sm transition-colors flex items-center justify-center"
+        className="fixed top-4 left-4 z-50 w-10 h-10 bg-gray-800/90 hover:bg-gray-700/90 rounded-lg border border-gray-600/50 backdrop-blur-sm transition-colors flex items-center justify-center touch-manipulation"
+        aria-label={isLeftPanelOpen ? "Close sidebar" : "Open sidebar"}
       >
-        <div className="w-4 h-4 grid grid-cols-2 gap-0.5">
-          <div className="w-1.5 h-1.5 bg-gray-300 rounded-sm"></div>
-          <div className="w-1.5 h-1.5 bg-gray-300 rounded-sm"></div>
-          <div className="w-1.5 h-1.5 bg-gray-300 rounded-sm"></div>
-          <div className="w-1.5 h-1.5 bg-gray-300 rounded-sm"></div>
+        <div className="w-4 h-4 flex gap-0.5">
+          {/* Narrow column */}
+          <div className="w-1 h-4 bg-gray-300 rounded-sm"></div>
+          {/* Wide column */}
+          <div className="w-2.5 h-4 bg-gray-300 rounded-sm"></div>
         </div>
       </button>
 
@@ -566,11 +576,11 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
 
           {/* Chat Area */}
           <div className={`flex-1 flex flex-col h-full ${
-            activeTab?.type === 'code' ? 'bg-gray-800/50' :
-            activeTab?.type === 'study' ? 'bg-gray-800/50' :
-            activeTab?.type === 'quiz' ? 'bg-gray-800/50' :
-            activeTab?.type === 'creative' ? 'bg-gray-800/50' :
-            'bg-gray-800/30'
+            activeTab?.type === 'code' ? 'bg-gray-900/40' :
+            activeTab?.type === 'study' ? 'bg-gray-900/40' :
+            activeTab?.type === 'quiz' ? 'bg-gray-900/40' :
+            activeTab?.type === 'creative' ? 'bg-gray-900/40' :
+            'bg-gray-900/20'
           }`}>
             {/* Main Chat with Integrated Workspaces */}
             <div className="w-full flex flex-col">
@@ -617,11 +627,11 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                   <div className={`
                     max-w-[85%] p-6 shadow-xl border-0 rounded-2xl
                     ${message.role === 'user' 
-                      ? 'bg-gradient-to-br from-teal-600 to-teal-700 text-white shadow-teal-500/20' 
-                      : 'bg-gradient-to-br from-gray-800 to-gray-900 text-white shadow-gray-900/40 ring-1 ring-gray-700/50'
+                      ? 'bg-gradient-to-br from-teal-600 to-teal-700 text-white shadow-teal-500/25' 
+                      : 'bg-gradient-to-br from-gray-700 to-gray-800 text-white shadow-gray-800/50 ring-1 ring-gray-600/50'
                     }
                     backdrop-blur-sm transition-all duration-200 hover:shadow-2xl
-                    ${message.role === 'user' ? 'hover:shadow-teal-500/30' : 'hover:shadow-gray-900/50'}
+                    ${message.role === 'user' ? 'hover:shadow-teal-500/35' : 'hover:shadow-gray-800/60'}
                   `}>
                     {message.role === 'assistant' ? (
                       <div className="prose prose-stone max-w-none">
@@ -657,7 +667,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                   animate={{ opacity: 1, y: 0 }}
                   className="flex justify-start"
                 >
-                  <div className="max-w-[85%] p-6 bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-xl ring-1 ring-gray-700/50 backdrop-blur-sm">
+                  <div className="max-w-[85%] p-6 bg-gradient-to-br from-gray-700 to-gray-800 rounded-2xl shadow-xl ring-1 ring-gray-600/50 backdrop-blur-sm">
                     <div className="flex items-center space-x-3">
                       <div className="flex space-x-1">
                         <div className="w-2 h-2 bg-teal-400 rounded-full animate-pulse"></div>
