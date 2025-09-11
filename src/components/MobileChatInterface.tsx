@@ -103,6 +103,27 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
     }
   }, [activeTab?.messages]);
 
+  // Browser navigation event listener
+  useEffect(() => {
+    const handleBrowserNavigate = (event: CustomEvent) => {
+      const { url } = event.detail;
+      const browserTab = tabs.find(tab => tab.type === 'browser');
+      if (browserTab) {
+        setBrowserUrl(url);
+        setTabs(prev => prev.map(tab => 
+          tab.id === browserTab.id 
+            ? { ...tab, url }
+            : tab
+        ));
+      }
+    };
+
+    window.addEventListener('gawin-browser-navigate', handleBrowserNavigate as EventListener);
+    return () => {
+      window.removeEventListener('gawin-browser-navigate', handleBrowserNavigate as EventListener);
+    };
+  }, [tabs]);
+
   const handleBrowserChat = async (message: string, url: string) => {
     try {
       // Close the chat bubble and show loading

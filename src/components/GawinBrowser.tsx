@@ -10,6 +10,7 @@ export default function GawinBrowser({ url }: GawinBrowserProps) {
   const [iframeError, setIframeError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [proxyUrl, setProxyUrl] = useState('');
+  const [isBlockedDomain, setIsBlockedDomain] = useState(false);
 
   // List of CORS proxy services (free alternatives)
   const proxyServices = [
@@ -20,10 +21,49 @@ export default function GawinBrowser({ url }: GawinBrowserProps) {
     'https://yacdn.org/proxy/'
   ];
 
+  // Check if domain should be blocked
+  const isUrlBlocked = (url: string): boolean => {
+    try {
+      const urlObj = new URL(url);
+      const hostname = urlObj.hostname.toLowerCase();
+      
+      // Block self-loading (current domain)
+      const currentDomain = typeof window !== 'undefined' ? window.location.hostname : '';
+      if (hostname === currentDomain || hostname.includes('gawin') || hostname.includes('vercel.app')) {
+        return true;
+      }
+      
+      // Block other problematic domains
+      const blockedDomains = [
+        'localhost',
+        '127.0.0.1',
+        '0.0.0.0',
+        'file://',
+        'javascript:',
+        'data:',
+        'blob:'
+      ];
+      
+      return blockedDomains.some(domain => 
+        hostname.includes(domain) || url.startsWith(domain)
+      );
+    } catch {
+      return true; // Block invalid URLs
+    }
+  };
+
   useEffect(() => {
     setIsLoading(true);
     setIframeError(false);
     setProxyUrl('');
+    setIsBlockedDomain(false);
+    
+    // Check if URL should be blocked
+    if (isUrlBlocked(url)) {
+      setIsBlockedDomain(true);
+      setIsLoading(false);
+      return;
+    }
     
     // First, try direct iframe loading
     const timer = setTimeout(() => {
@@ -88,7 +128,69 @@ export default function GawinBrowser({ url }: GawinBrowserProps) {
 
       {/* Main Browser Content */}
       <div className="relative h-full bg-white">
-        {!iframeError ? (
+        {isBlockedDomain ? (
+          <div className="h-full p-6 overflow-y-auto">
+            <div className="max-w-2xl mx-auto space-y-6">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  <span className="text-red-600">🚫</span>
+                  <h3 className="font-semibold text-red-900">Domain Blocked</h3>
+                </div>
+                <p className="text-red-800 text-sm mb-3">
+                  <strong>{new URL(url).hostname}</strong> cannot be loaded for security reasons.
+                </p>
+                <div className="text-red-700 text-xs space-y-1">
+                  <p>• Self-loading prevented to avoid infinite loops</p>
+                  <p>• Some domains are blocked for security</p>
+                  <p>• Try a different website or use the suggestions below</p>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-3">
+                  <span className="text-2xl">🌐</span>
+                  <h3 className="font-semibold text-blue-900">Try These Instead</h3>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { name: 'Google', url: 'https://google.com', icon: '🔍' },
+                    { name: 'Wikipedia', url: 'https://wikipedia.org', icon: '📚' },
+                    { name: 'YouTube', url: 'https://youtube.com', icon: '🎥' },
+                    { name: 'GitHub', url: 'https://github.com', icon: '💻' }
+                  ].map((site) => (
+                    <button
+                      key={site.name}
+                      onClick={() => {
+                        // This will be handled by parent component to update the browser URL
+                        if (typeof window !== 'undefined') {
+                          window.dispatchEvent(new CustomEvent('gawin-browser-navigate', {
+                            detail: { url: site.url }
+                          }));
+                        }
+                      }}
+                      className="p-3 bg-blue-100 hover:bg-blue-200 rounded-lg border border-blue-300 transition-all text-center"
+                    >
+                      <div className="text-lg mb-1">{site.icon}</div>
+                      <div className="text-blue-900 text-xs font-medium">{site.name}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  <span className="text-green-600">💡</span>
+                  <h4 className="font-semibold text-green-900">Pro Tip</h4>
+                </div>
+                <p className="text-green-800 text-sm">
+                  Use the address bar above to navigate to external websites. 
+                  Gawin Browser works best with popular sites like news, educational content, and reference materials.
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : !iframeError ? (
           <>
             {/* Direct iframe attempt */}
             <iframe
