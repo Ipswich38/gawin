@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import ModernChatInterface from '@/components/ModernChatInterface';
+import MobileChatInterface from '@/components/MobileChatInterface';
 import BehaviorService from '@/components/BehaviorService';
 
 // Auth Components
@@ -265,7 +265,7 @@ export default function HomePage() {
   // Show chat interface directly for authenticated users
   return (
     <>
-      <ModernChatInterface
+      <MobileChatInterface
         user={user}
         onLogout={handleLogout}
         onBackToLanding={handleBackToLanding}

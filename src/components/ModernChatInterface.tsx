@@ -836,9 +836,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                 </div>
               )}
             </div>
-          ) : (
-            // Regular Chat Area for other tabs OR Pure Exam Interface
-            {activeTab && activeTab.type === 'quiz' ? (
+          ) : activeTab?.type === 'quiz' ? (
               // PURE EXAM/QUIZ GENERATOR - NO CHAT INTERFACE
               <div className="flex-1 bg-gray-900/20 p-6">
                 {quizState === 'setup' ? (
@@ -1131,7 +1129,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                   </div>
                 )}
               </div>
-            ) : activeTab && activeTab.type === 'browser' ? (
+            ) : activeTab?.type === 'browser' ? (
               // WEB BROWSER WITH GAWIN AI INTEGRATION
               <div className="flex-1 flex flex-col bg-gray-900/20">
                 {/* Browser URL Bar */}
@@ -1660,7 +1658,6 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
               </div>
             )}
           </div>
-          )}
 
         </div>
       </div>
