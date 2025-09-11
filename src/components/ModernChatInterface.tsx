@@ -56,6 +56,14 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
   const [activeTabId, setActiveTabId] = useState('general-1');
   const [codeContent, setCodeContent] = useState('');
   const [showCodeWorkspace, setShowCodeWorkspace] = useState(false);
+  const [activeStudyRoom, setActiveStudyRoom] = useState<'social' | 'group' | null>(null);
+  const [studyMessages, setStudyMessages] = useState<{
+    social: Message[];
+    group: Message[];
+  }>({
+    social: [],
+    group: []
+  });
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -578,14 +586,190 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
             </div>
           </div>
 
-          {/* Chat Area */}
-          <div className={`flex-1 flex flex-col h-full ${
-            activeTab?.type === 'code' ? 'bg-gray-900/40' :
-            activeTab?.type === 'study' ? 'bg-gray-900/40' :
-            activeTab?.type === 'quiz' ? 'bg-gray-900/40' :
-            activeTab?.type === 'creative' ? 'bg-gray-900/40' :
-            'bg-gray-900/20'
-          }`}>
+          {/* Study Buddy - Messenger Interface */}
+          {activeTab && activeTab.type === 'study' ? (
+            <div className="flex-1 flex flex-col h-full bg-gray-900/20">
+              {!activeStudyRoom ? (
+                // Study Room Selection
+                <div className="flex-1 flex items-center justify-center py-16">
+                  <div className="text-center max-w-2xl px-6">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6 }}
+                      className="space-y-8"
+                    >
+                      <div className="space-y-4">
+                        <h2 className="font-serif text-4xl text-white mb-4">
+                          👥 Study Commons
+                        </h2>
+                        <p className="text-xl text-gray-300 leading-relaxed">
+                          Connect with fellow learners and collaborate on your studies
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
+                        {/* Social Learning Room */}
+                        <motion.div
+                          whileHover={{ y: -4 }}
+                          transition={{ duration: 0.2 }}
+                          onClick={() => setActiveStudyRoom('social')}
+                          className="bg-gray-800/90 border border-gray-600/50 rounded-3xl p-8 cursor-pointer hover:border-gray-500/70 transition-all group"
+                        >
+                          <div className="space-y-4">
+                            <div className="w-16 h-16 bg-gray-700/50 rounded-2xl flex items-center justify-center mx-auto group-hover:bg-gray-600/50 transition-colors">
+                              <span className="text-3xl">🌟</span>
+                            </div>
+                            <h3 className="text-xl font-medium text-white">Social Learning</h3>
+                            <p className="text-gray-400 text-sm leading-relaxed">
+                              Open discussions, study tips, and collaborative learning with learners from different topics and subjects.
+                            </p>
+                            <div className="flex items-center justify-center space-x-2 text-gray-500 text-xs">
+                              <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
+                              <span>12 active learners</span>
+                            </div>
+                          </div>
+                        </motion.div>
+
+                        {/* Group Study Room */}
+                        <motion.div
+                          whileHover={{ y: -4 }}
+                          transition={{ duration: 0.2 }}
+                          onClick={() => setActiveStudyRoom('group')}
+                          className="bg-gray-800/90 border border-gray-600/50 rounded-3xl p-8 cursor-pointer hover:border-gray-500/70 transition-all group"
+                        >
+                          <div className="space-y-4">
+                            <div className="w-16 h-16 bg-gray-700/50 rounded-2xl flex items-center justify-center mx-auto group-hover:bg-gray-600/50 transition-colors">
+                              <span className="text-3xl">🎯</span>
+                            </div>
+                            <h3 className="text-xl font-medium text-white">Group Study</h3>
+                            <p className="text-gray-400 text-sm leading-relaxed">
+                              Focused study sessions with committed peers working on specific subjects or preparing for exams together.
+                            </p>
+                            <div className="flex items-center justify-center space-x-2 text-gray-500 text-xs">
+                              <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
+                              <span>5 active groups</span>
+                            </div>
+                          </div>
+                        </motion.div>
+                      </div>
+                    </motion.div>
+                  </div>
+                </div>
+              ) : (
+                // Messenger-style Chat Interface
+                <div className="flex-1 flex flex-col">
+                  {/* Chat Header */}
+                  <div className="bg-gray-800/90 border-b border-gray-600/50 px-6 py-4 flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <button
+                        onClick={() => setActiveStudyRoom(null)}
+                        className="w-8 h-8 rounded-full bg-gray-700/50 hover:bg-gray-600/50 transition-colors flex items-center justify-center"
+                      >
+                        <span className="text-gray-400">←</span>
+                      </button>
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gray-700/50 rounded-full flex items-center justify-center">
+                          <span className="text-xl">{activeStudyRoom === 'social' ? '🌟' : '🎯'}</span>
+                        </div>
+                        <div>
+                          <h3 className="text-white font-medium">
+                            {activeStudyRoom === 'social' ? 'Social Learning' : 'Group Study'}
+                          </h3>
+                          <p className="text-gray-400 text-sm">
+                            {activeStudyRoom === 'social' ? '12 learners online' : '5 groups active'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Messages Area */}
+                  <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
+                    {studyMessages[activeStudyRoom].length === 0 ? (
+                      <div className="text-center py-16">
+                        <div className="space-y-4">
+                          <div className="w-16 h-16 bg-gray-700/50 rounded-full flex items-center justify-center mx-auto">
+                            <span className="text-2xl">{activeStudyRoom === 'social' ? '🌟' : '🎯'}</span>
+                          </div>
+                          <h4 className="text-xl text-white">
+                            Welcome to {activeStudyRoom === 'social' ? 'Social Learning' : 'Group Study'}!
+                          </h4>
+                          <p className="text-gray-400 max-w-md mx-auto">
+                            {activeStudyRoom === 'social' 
+                              ? 'Start a conversation, share study tips, or ask questions about any subject.'
+                              : 'Form study groups, collaborate on assignments, and prepare for exams together.'
+                            }
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      studyMessages[activeStudyRoom].map((message, index) => (
+                        <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                          <div className={`max-w-[80%] p-4 rounded-2xl ${
+                            message.role === 'user' 
+                              ? 'bg-teal-600 text-white' 
+                              : 'bg-gray-700/50 text-white'
+                          }`}>
+                            <div className="font-sans leading-relaxed">
+                              {message.content}
+                            </div>
+                            <div className="mt-2 text-xs opacity-70">
+                              {new Date(message.timestamp).toLocaleTimeString('en-US', {
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Message Input */}
+                  <div className="px-6 py-4 bg-gray-900/80 backdrop-blur-sm border-t border-gray-600/50">
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="text"
+                        placeholder={`Message ${activeStudyRoom === 'social' ? 'Social Learning' : 'Group Study'}...`}
+                        className="flex-1 px-4 py-3 bg-gray-800 text-white rounded-2xl border border-gray-700 focus:outline-none focus:border-teal-500 placeholder-gray-400"
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            const target = e.target as HTMLInputElement;
+                            if (target.value.trim()) {
+                              const newMessage: Message = {
+                                id: Date.now(),
+                                role: 'user',
+                                content: target.value.trim(),
+                                timestamp: new Date().toISOString()
+                              };
+                              setStudyMessages(prev => ({
+                                ...prev,
+                                [activeStudyRoom!]: [...prev[activeStudyRoom!], newMessage]
+                              }));
+                              target.value = '';
+                            }
+                          }
+                        }}
+                      />
+                      <button className="w-10 h-10 bg-teal-600 hover:bg-teal-500 rounded-full flex items-center justify-center transition-colors">
+                        <span className="text-white">→</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            // Regular Chat Area for other tabs
+            <div className={`flex-1 flex flex-col h-full ${
+              activeTab?.type === 'code' ? 'bg-gray-900/40' :
+              activeTab?.type === 'quiz' ? 'bg-gray-900/40' :
+              activeTab?.type === 'creative' ? 'bg-gray-900/40' :
+              'bg-gray-900/20'
+            }`}>
             {/* Main Chat with Integrated Workspaces */}
             <div className="w-full flex flex-col">
               <div 
@@ -776,75 +960,6 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
               </motion.div>
             )}
 
-            {/* Study Buddy Tab - Messenger-style with Rooms */}
-            {activeTab && activeTab.type === 'study' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="w-full px-4 lg:px-6"
-              >
-                <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-600/50 rounded-3xl shadow-lg p-4 md:p-6 mb-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
-                      <h3 className="text-white font-medium text-lg">Study Commons</h3>
-                    </div>
-                    <button className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm rounded-xl font-medium transition-colors w-full sm:w-auto">
-                      Create Room
-                    </button>
-                  </div>
-                  
-                  {/* Study Rooms */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-teal-900/30 border border-teal-700 rounded-2xl p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium text-teal-100">Math Study Group</h4>
-                        <span className="text-xs text-teal-300 bg-teal-800 px-2 py-1 rounded-full">3 active</span>
-                      </div>
-                      <p className="text-sm text-teal-200 mb-3">Calculus problem solving session</p>
-                      <button className="w-full bg-teal-600 hover:bg-teal-700 text-white text-sm py-2 rounded-lg font-medium transition-colors">
-                        Join Room
-                      </button>
-                    </div>
-                    
-                    <div className="bg-teal-900/30 border border-teal-700 rounded-2xl p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium text-teal-100">CS Study Hall</h4>
-                        <span className="text-xs text-teal-300 bg-teal-800 px-2 py-1 rounded-full">5 active</span>
-                      </div>
-                      <p className="text-sm text-teal-200 mb-3">Data structures & algorithms</p>
-                      <button className="w-full bg-teal-600 hover:bg-teal-700 text-white text-sm py-2 rounded-lg font-medium transition-colors">
-                        Join Room
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Quick Study Actions */}
-                  <div className="mt-4 pt-4 border-t border-gray-600/50">
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        onClick={() => handleSend('Start a study session for [subject]', activeTab?.id)}
-                        className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
-                      >
-                        Start Study Session
-                      </button>
-                      <button
-                        onClick={() => handleSend('Find study buddies for [topic]', activeTab?.id)}
-                        className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
-                      >
-                        Find Study Buddy
-                      </button>
-                      <button
-                        onClick={() => handleSend('Create study notes for [subject]', activeTab?.id)}
-                        className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
-                      >
-                        Create Notes
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
 
             {/* Exam Tryout Tab - Quiz & Assessment Generator */}
             {activeTab && activeTab.type === 'quiz' && (
@@ -1049,6 +1164,8 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
               </div>
             )}
           </div>
+          )}
+
         </div>
       </div>
     </div>
