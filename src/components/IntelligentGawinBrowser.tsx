@@ -37,12 +37,12 @@ export default function IntelligentGawinBrowser({
   onProgress 
 }: IntelligentGawinBrowserProps) {
   const [browsingState, setBrowsingState] = useState<BrowsingState>({
-    mode: 'iframe',
+    mode: 'iframe', // Always start with iframe but AI agent is ready
     isProcessing: false,
     progress: []
   });
-  const [showIntelligentControls, setShowIntelligentControls] = useState(false);
-  const [userGoal, setUserGoal] = useState(query || 'Browse and explore the website');
+  const [aiAgentActive, setAiAgentActive] = useState(true); // AI agent always active
+  const [userGoal, setUserGoal] = useState(query || 'Assist with browsing this website');
   const abortControllerRef = useRef<AbortController | null>(null);
 
   // Check if domain should be blocked or use intelligent mode
@@ -309,41 +309,16 @@ export default function IntelligentGawinBrowser({
         <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
           <div className="flex items-center space-x-2 mb-3">
             <span className="text-2xl">🤖</span>
-            <h3 className="font-semibold text-purple-900">Try Gawin AI Browser Instead</h3>
+            <h3 className="font-semibold text-purple-900">AI Agent Available</h3>
           </div>
           <p className="text-purple-800 text-sm mb-4">
-            Even blocked sites can be browsed intelligently with AI automation.
+            Even blocked sites can be analyzed by the AI agent through the floating chat bubble.
           </p>
-          <button
-            onClick={() => setShowIntelligentControls(true)}
-            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
-          >
-            Enable AI Browsing
-          </button>
+          <p className="text-purple-700 text-xs">
+            Try asking questions about this website using the chat interface. 
+            The AI agent is always ready to help analyze content and find information.
+          </p>
         </div>
-
-        {showIntelligentControls && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="font-semibold text-blue-900 mb-3">AI Browsing Goal</h4>
-            <textarea
-              value={userGoal}
-              onChange={(e) => setUserGoal(e.target.value)}
-              className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 mb-3"
-              rows={3}
-              placeholder="What would you like me to find on this website?"
-            />
-            <button
-              onClick={() => {
-                setBrowsingState(prev => ({ ...prev, mode: 'intelligent' }));
-                startIntelligentBrowsing();
-              }}
-              disabled={browsingState.isProcessing}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors font-medium"
-            >
-              {browsingState.isProcessing ? 'Starting...' : 'Start AI Browsing'}
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -355,18 +330,31 @@ export default function IntelligentGawinBrowser({
         className="w-full h-full border-0"
         title="Gawin Browser"
         sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation"
-        onError={() => setBrowsingState(prev => ({ ...prev, mode: 'intelligent' }))}
+        onError={() => setBrowsingState(prev => ({ ...prev, mode: 'blocked' }))}
       />
       
-      {/* Floating AI Enhancement Button */}
+      {/* AI Agent Status Indicator */}
       <div className="absolute top-4 right-4">
-        <button
-          onClick={() => setBrowsingState(prev => ({ ...prev, mode: 'intelligent' }))}
-          className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg shadow-lg hover:shadow-xl transition-all font-medium"
-        >
-          🤖 Enable AI Browsing
-        </button>
+        <div className="flex items-center space-x-2 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <span className="text-sm font-medium text-gray-700">🤖 AI Agent Active</span>
+        </div>
       </div>
+
+      {/* AI Agent Insights Panel (when processing) */}
+      {browsingState.isProcessing && (
+        <div className="absolute bottom-4 right-4 w-80 bg-white/95 backdrop-blur-sm rounded-lg shadow-xl border border-gray-200 p-4">
+          <div className="flex items-center space-x-2 mb-3">
+            <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+            <span className="text-sm font-semibold text-purple-700">AI Agent Working</span>
+          </div>
+          <div className="space-y-2 max-h-32 overflow-y-auto">
+            {browsingState.progress.slice(-3).map((step, index) => (
+              <p key={index} className="text-xs text-gray-600">{step}</p>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -382,14 +370,13 @@ export default function IntelligentGawinBrowser({
           </div>
           <div className="flex-1 bg-white rounded-lg px-3 py-1 border border-gray-300">
             <div className="flex items-center space-x-2">
-              <span className="text-green-600 text-sm">
-                {browsingState.mode === 'intelligent' ? '🤖' : '🔒'}
-              </span>
+              <span className="text-purple-600 text-sm">🤖</span>
               <span className="text-gray-700 text-sm font-mono">{new URL(url).hostname}</span>
               <div className="flex-1"></div>
-              <span className="text-xs text-gray-500">
-                {browsingState.mode === 'intelligent' ? 'AI Browser' : 'Gawin Browser'}
-              </span>
+              <div className="flex items-center space-x-1">
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-xs text-gray-500">Gawin AI Agent</span>
+              </div>
             </div>
           </div>
         </div>
