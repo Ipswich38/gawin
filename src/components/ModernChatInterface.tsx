@@ -55,6 +55,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
   ]);
   const [activeTabId, setActiveTabId] = useState('general-1');
   const [codeContent, setCodeContent] = useState('');
+  const [showCodeWorkspace, setShowCodeWorkspace] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -203,9 +204,12 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
     
     if (isCodingQuery && !tabs.some(tab => tab.type === 'code' && tab.isActive)) {
       createNewTab('code');
+      setShowCodeWorkspace(true); // Show workspace when code-related query is detected
       // Get the newly created tab
       const codeTab = tabs.find(tab => tab.type === 'code');
       if (codeTab) currentActiveTab = codeTab;
+    } else if (isCodingQuery && tabs.some(tab => tab.type === 'code' && tab.isActive)) {
+      setShowCodeWorkspace(true); // Show workspace if already on code tab
     } else if (isQuizQuery && !tabs.some(tab => tab.type === 'quiz' && tab.isActive)) {
       createNewTab('quiz');
       const quizTab = tabs.find(tab => tab.type === 'quiz');
@@ -682,7 +686,32 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
             </div>
           ) : (
             <div>
-              {/* No messages - show specialized workspace content immediately */}
+              {/* Show prompt to access workspace for empty code tabs */}
+              {activeTab && activeTab.type === 'code' && !showCodeWorkspace && (
+                <div className="h-full flex items-center justify-center py-16">
+                  <div className="text-center max-w-2xl px-6">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6 }}
+                      className="space-y-4"
+                    >
+                      <h2 className="font-serif text-3xl text-white mb-4">
+                        ⚡ Code Workspace
+                      </h2>
+                      <p className="text-xl text-gray-300 leading-relaxed">
+                        Ask me anything about programming, or share your code for analysis and debugging.
+                      </p>
+                      <button
+                        onClick={() => setShowCodeWorkspace(true)}
+                        className="mt-6 px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-2xl font-medium transition-colors shadow-lg"
+                      >
+                        Open Code Editor
+                      </button>
+                    </motion.div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
               </div>
@@ -690,13 +719,13 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
 
             {/* Always show specialized content for active tabs (both with and without messages) */}
             {/* Specialized Content for Active Tab */}
-            {activeTab && activeTab.type === 'code' && (
+            {activeTab && activeTab.type === 'code' && showCodeWorkspace && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="w-full px-4 lg:px-6"
               >
-                <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-600/50 rounded-3xl shadow-lg p-6 mb-6 max-h-96 overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-600/50 rounded-3xl shadow-lg p-4 md:p-6 mb-6 max-h-96 overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                   <div className="space-y-4">
                     <div className="flex items-center space-x-3 mb-4">
                       <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
@@ -719,24 +748,24 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                         spellCheck={false}
                       />
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <button
                         onClick={() => handleSend(`Review this code:\n\`\`\`\n${codeContent}\n\`\`\``, activeTab?.id)}
-                        className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                        className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm rounded-xl font-medium transition-colors shadow-sm w-full sm:w-auto"
                         disabled={!codeContent.trim()}
                       >
                         Review Code
                       </button>
                       <button
                         onClick={() => handleSend(`Explain this code:\n\`\`\`\n${codeContent}\n\`\`\``, activeTab?.id)}
-                        className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                        className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded-xl font-medium transition-colors shadow-sm w-full sm:w-auto"
                         disabled={!codeContent.trim()}
                       >
                         Explain
                       </button>
                       <button
                         onClick={() => handleSend(`Debug this code:\n\`\`\`\n${codeContent}\n\`\`\``, activeTab?.id)}
-                        className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                        className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded-xl font-medium transition-colors shadow-sm w-full sm:w-auto"
                         disabled={!codeContent.trim()}
                       >
                         Debug
@@ -754,13 +783,13 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                 animate={{ opacity: 1, y: 0 }}
                 className="w-full px-4 lg:px-6"
               >
-                <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-600/50 rounded-3xl shadow-lg p-6 mb-6">
-                  <div className="flex items-center justify-between mb-4">
+                <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-600/50 rounded-3xl shadow-lg p-4 md:p-6 mb-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
                     <div className="flex items-center space-x-3">
                       <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
                       <h3 className="text-white font-medium text-lg">Study Commons</h3>
                     </div>
-                    <button className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm rounded-full font-medium transition-colors">
+                    <button className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm rounded-xl font-medium transition-colors w-full sm:w-auto">
                       Create Room
                     </button>
                   </div>
@@ -824,7 +853,7 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                 animate={{ opacity: 1, y: 0 }}
                 className="w-full px-4 lg:px-6"
               >
-                <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-600/50 rounded-3xl shadow-lg p-6 mb-6">
+                <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-600/50 rounded-3xl shadow-lg p-4 md:p-6 mb-6">
                   <div className="space-y-4">
                     <div className="flex items-center space-x-3 mb-4">
                       <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
@@ -832,81 +861,78 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                     </div>
 
                     {/* Quiz Configuration */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-3">
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-gray-300 text-sm font-medium mb-2">Quiz Topic</label>
+                        <input
+                          type="text"
+                          placeholder="Enter the topic for your quiz..."
+                          className="w-full bg-gray-700/80 border border-gray-600 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 placeholder-gray-400 text-white"
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-gray-300 text-sm font-medium mb-2">Quiz Topic</label>
-                          <input
-                            type="text"
-                            placeholder="Enter the topic for your quiz..."
-                            className="w-full bg-gray-700/80 border border-gray-600 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 placeholder-gray-400 text-white"
-                          />
+                          <label className="block text-gray-300 text-sm font-medium mb-2">Questions</label>
+                          <select className="w-full bg-gray-700/80 border border-gray-600 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 text-white">
+                            <option value="5">5 Questions</option>
+                            <option value="10">10 Questions</option>
+                            <option value="15">15 Questions</option>
+                            <option value="20">20 Questions</option>
+                          </select>
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-gray-300 text-sm font-medium mb-2">Questions</label>
-                            <select className="w-full bg-gray-700/80 border border-gray-600 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 text-white">
-                              <option value="5">5 Questions</option>
-                              <option value="10">10 Questions</option>
-                              <option value="15">15 Questions</option>
-                              <option value="20">20 Questions</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label className="block text-gray-300 text-sm font-medium mb-2">Difficulty</label>
-                            <select className="w-full bg-gray-700/80 border border-gray-600 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 text-white">
-                              <option value="easy">Easy</option>
-                              <option value="medium">Medium</option>
-                              <option value="hard">Hard</option>
-                            </select>
-                          </div>
+                        <div>
+                          <label className="block text-gray-300 text-sm font-medium mb-2">Difficulty</label>
+                          <select className="w-full bg-gray-700/80 border border-gray-600 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 text-white">
+                            <option value="easy">Easy</option>
+                            <option value="medium">Medium</option>
+                            <option value="hard">Hard</option>
+                          </select>
                         </div>
                       </div>
                       
-                      <div className="space-y-3">
-                        <div>
-                          <label className="block text-gray-300 text-sm font-medium mb-2">Question Types</label>
-                          <div className="space-y-2">
-                            <label className="flex items-center space-x-2">
-                              <input type="checkbox" className="rounded border-gray-600 text-teal-600" defaultChecked />
-                              <span className="text-gray-300 text-sm">Multiple Choice</span>
-                            </label>
-                            <label className="flex items-center space-x-2">
-                              <input type="checkbox" className="rounded border-gray-600 text-teal-600" />
-                              <span className="text-gray-300 text-sm">True/False</span>
-                            </label>
-                            <label className="flex items-center space-x-2">
-                              <input type="checkbox" className="rounded border-gray-600 text-teal-600" />
-                              <span className="text-gray-300 text-sm">Short Answer</span>
-                            </label>
-                          </div>
+                      <div>
+                        <label className="block text-gray-300 text-sm font-medium mb-2">Question Types</label>
+                        <div className="flex flex-wrap gap-4">
+                          <label className="flex items-center space-x-2">
+                            <input type="checkbox" className="rounded border-gray-600 text-teal-600" defaultChecked />
+                            <span className="text-gray-300 text-sm">Multiple Choice</span>
+                          </label>
+                          <label className="flex items-center space-x-2">
+                            <input type="checkbox" className="rounded border-gray-600 text-teal-600" />
+                            <span className="text-gray-300 text-sm">True/False</span>
+                          </label>
+                          <label className="flex items-center space-x-2">
+                            <input type="checkbox" className="rounded border-gray-600 text-teal-600" />
+                            <span className="text-gray-300 text-sm">Short Answer</span>
+                          </label>
                         </div>
                       </div>
                     </div>
 
                     {/* Quick Quiz Actions */}
-                    <div className="flex flex-wrap gap-2 pt-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
                       <button
                         onClick={() => handleSend('Generate a quiz about [topic] with [number] questions at [difficulty] level', activeTab?.id)}
-                        className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                        className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm rounded-xl font-medium transition-colors shadow-sm"
                       >
                         Generate Quiz
                       </button>
                       <button
                         onClick={() => handleSend('Create practice questions for studying [topic]', activeTab?.id)}
-                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-xl font-medium transition-colors shadow-sm"
                       >
                         Practice Mode
                       </button>
                       <button
                         onClick={() => handleSend('Make flashcards for [topic]', activeTab?.id)}
-                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-xl font-medium transition-colors shadow-sm"
                       >
                         Flashcards
                       </button>
                       <button
                         onClick={() => handleSend('Create a mock exam for [subject]', activeTab?.id)}
-                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-full font-medium transition-colors shadow-sm"
+                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-xl font-medium transition-colors shadow-sm"
                       >
                         Mock Exam
                       </button>
@@ -1019,18 +1045,6 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                     </button>
                   </div>
                   
-                  <div className="flex items-center justify-between mt-4 px-4">
-                    <p className="text-xs text-gray-400">
-                      Press Enter to send • Tab: {activeTab.title}
-                    </p>
-                    <div className="flex items-center space-x-4 text-xs text-gray-400">
-                      <span>Powered by AI Orchestrator</span>
-                      <div className="flex items-center space-x-1">
-                        <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
-                        <span>Online</span>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             )}
