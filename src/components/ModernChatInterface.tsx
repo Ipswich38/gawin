@@ -68,6 +68,19 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
   const [showGawinBubble, setShowGawinBubble] = useState(false);
   const [gawinChatOpen, setGawinChatOpen] = useState(false);
   const [currentPageContent, setCurrentPageContent] = useState('');
+  
+  // Quiz Generator States
+  const [quizState, setQuizState] = useState<'setup' | 'taking' | 'completed'>('setup');
+  const [quizData, setQuizData] = useState<any>(null);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [userAnswers, setUserAnswers] = useState<any[]>([]);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [quizResults, setQuizResults] = useState<any>(null);
+  
+  // Browser States
+  const [browserUrl, setBrowserUrl] = useState('');
+  const [isPageLoading, setIsPageLoading] = useState(false);
+  
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -347,6 +360,42 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
     setShowSuggestions(true);
   };
 
+  // Timer for quiz
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (quizState === 'taking' && timeLeft > 0) {
+      timer = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            // Time's up - auto-finish quiz
+            const results = quizData.questions.map((q: any, idx: number) => ({
+              question: q.question,
+              userAnswer: userAnswers[idx],
+              correctAnswer: q.correct,
+              isCorrect: userAnswers[idx] === q.correct,
+              explanation: q.explanation,
+              options: q.options
+            }));
+            
+            const score = results.filter((r: any) => r.isCorrect).length;
+            setQuizResults({
+              results,
+              score,
+              total: quizData.questions.length,
+              percentage: Math.round((score / quizData.questions.length) * 100)
+            });
+            setQuizState('completed');
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [quizState, timeLeft, quizData, userAnswers]);
+
   // Auto-scroll effect (moved after activeTab declaration)
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -596,6 +645,16 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
                     <span>🎨</span>
                     <span>Creative & Design</span>
                   </button>
+                  <button
+                    onClick={() => {
+                      createNewTab('browser');
+                      document.getElementById('tab-dropdown')?.classList.add('hidden');
+                    }}
+                    className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center space-x-3 text-gray-300 hover:text-white"
+                  >
+                    <span>🌐</span>
+                    <span>Web Browser</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -778,13 +837,531 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
               )}
             </div>
           ) : (
-            // Regular Chat Area for other tabs
-            <div className={`flex-1 flex flex-col h-full ${
-              activeTab?.type === 'code' ? 'bg-gray-900/40' :
-              activeTab?.type === 'quiz' ? 'bg-gray-900/40' :
-              activeTab?.type === 'creative' ? 'bg-gray-900/40' :
-              'bg-gray-900/20'
-            }`}>
+            // Regular Chat Area for other tabs OR Pure Exam Interface
+            {activeTab && activeTab.type === 'quiz' ? (
+              // PURE EXAM/QUIZ GENERATOR - NO CHAT INTERFACE
+              <div className="flex-1 bg-gray-900/20 p-6">
+                {quizState === 'setup' ? (
+                  // Quiz Setup Phase
+                  <div className="max-w-md mx-auto space-y-6">
+                    <div className="text-center space-y-2 mb-8">
+                      <h2 className="text-3xl font-semibold text-white">🎯 Quiz Generator</h2>
+                      <p className="text-gray-400">Create your personalized quiz</p>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-white text-sm font-medium block mb-2">Topic</label>
+                        <input
+                          id="quiz-topic"
+                          type="text"
+                          placeholder="e.g., Philippine History, Mathematics, Science..."
+                          className="w-full px-4 py-3 bg-gray-800 text-white rounded-2xl border border-gray-700 focus:outline-none focus:border-teal-500 placeholder-gray-500"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-white text-sm font-medium block mb-2">Questions</label>
+                          <select id="quiz-count" className="w-full px-4 py-3 bg-gray-800 text-white rounded-2xl border border-gray-700 focus:outline-none focus:border-teal-500">
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="15">15</option>
+                            <option value="20">20</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-white text-sm font-medium block mb-2">Time (min)</label>
+                          <select id="quiz-time" className="w-full px-4 py-3 bg-gray-800 text-white rounded-2xl border border-gray-700 focus:outline-none focus:border-teal-500">
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="15">15</option>
+                            <option value="30">30</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-white text-sm font-medium block mb-2">Difficulty</label>
+                        <select id="quiz-difficulty" className="w-full px-4 py-3 bg-gray-800 text-white rounded-2xl border border-gray-700 focus:outline-none focus:border-teal-500">
+                          <option value="easy">Easy</option>
+                          <option value="medium">Medium</option>
+                          <option value="hard">Hard</option>
+                        </select>
+                      </div>
+
+                      <button
+                        onClick={async () => {
+                          const topic = (document.getElementById('quiz-topic') as HTMLInputElement).value;
+                          const count = (document.getElementById('quiz-count') as HTMLSelectElement).value;
+                          const time = (document.getElementById('quiz-time') as HTMLSelectElement).value;
+                          const difficulty = (document.getElementById('quiz-difficulty') as HTMLSelectElement).value;
+                          
+                          if (!topic.trim()) {
+                            alert('Please enter a topic');
+                            return;
+                          }
+
+                          // Generate quiz via API
+                          try {
+                            const response = await fetch('/api/groq', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                messages: [{
+                                  role: 'user',
+                                  content: `Generate ${count} multiple choice questions about ${topic} at ${difficulty} difficulty level. Return ONLY a JSON array with this exact format: [{"question":"Question text","options":["A","B","C","D"],"correct":0,"explanation":"Why this answer is correct"}]. Use Philippine education standards. Make questions test critical thinking and practical application.`
+                                }],
+                                model: 'llama-3.1-70b-versatile',
+                                temperature: 0.7,
+                                max_tokens: 2048,
+                              }),
+                            });
+                            
+                            const result = await response.json();
+                            if (result.success) {
+                              try {
+                                const quizContent = result.choices[0].message.content;
+                                const jsonMatch = quizContent.match(/\[[\s\S]*\]/);
+                                const questions = JSON.parse(jsonMatch ? jsonMatch[0] : quizContent);
+                                
+                                setQuizData({
+                                  topic,
+                                  questions,
+                                  timeLimit: parseInt(time) * 60,
+                                  difficulty
+                                });
+                                setTimeLeft(parseInt(time) * 60);
+                                setUserAnswers(new Array(questions.length).fill(null));
+                                setQuizState('taking');
+                                setCurrentQuestion(0);
+                              } catch (parseError) {
+                                alert('Failed to generate quiz. Please try again.');
+                              }
+                            }
+                          } catch (error) {
+                            alert('Failed to generate quiz. Please try again.');
+                          }
+                        }}
+                        className="w-full py-4 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-2xl transition-colors shadow-lg mt-6"
+                      >
+                        Generate Quiz
+                      </button>
+                    </div>
+                  </div>
+                ) : quizState === 'taking' ? (
+                  // Quiz Taking Phase
+                  <div className="max-w-4xl mx-auto">
+                    {/* Quiz Header */}
+                    <div className="flex justify-between items-center mb-6 p-4 bg-gray-800/50 rounded-2xl">
+                      <div>
+                        <h3 className="text-xl font-semibold text-white">{quizData?.topic}</h3>
+                        <p className="text-gray-400">Question {currentQuestion + 1} of {quizData?.questions?.length}</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-mono text-teal-400">
+                          {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+                        </div>
+                        <p className="text-gray-400 text-sm">Time Left</p>
+                      </div>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="w-full bg-gray-700 rounded-full h-2 mb-8">
+                      <div 
+                        className="bg-teal-600 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${((currentQuestion + 1) / quizData?.questions?.length) * 100}%` }}
+                      ></div>
+                    </div>
+
+                    {/* Current Question */}
+                    {quizData?.questions?.[currentQuestion] && (
+                      <div className="space-y-6">
+                        <div className="bg-gray-800/50 rounded-2xl p-6">
+                          <h4 className="text-xl text-white mb-6">
+                            {quizData.questions[currentQuestion].question}
+                          </h4>
+                          
+                          <div className="space-y-3">
+                            {quizData.questions[currentQuestion].options.map((option: string, index: number) => (
+                              <button
+                                key={index}
+                                onClick={() => {
+                                  const newAnswers = [...userAnswers];
+                                  newAnswers[currentQuestion] = index;
+                                  setUserAnswers(newAnswers);
+                                }}
+                                className={`w-full p-4 text-left rounded-xl border transition-all ${
+                                  userAnswers[currentQuestion] === index
+                                    ? 'bg-teal-600/20 border-teal-500 text-teal-100'
+                                    : 'bg-gray-700/50 border-gray-600 text-gray-300 hover:bg-gray-700 hover:border-gray-500'
+                                }`}
+                              >
+                                <span className="font-medium mr-3">{String.fromCharCode(65 + index)}.</span>
+                                {option}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Navigation */}
+                        <div className="flex justify-between">
+                          <button
+                            onClick={() => setCurrentQuestion(Math.max(0, currentQuestion - 1))}
+                            disabled={currentQuestion === 0}
+                            className="px-6 py-3 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:text-gray-500 text-white rounded-xl transition-colors"
+                          >
+                            Previous
+                          </button>
+                          
+                          {currentQuestion === quizData.questions.length - 1 ? (
+                            <button
+                              onClick={() => {
+                                // Calculate results
+                                const results = quizData.questions.map((q: any, idx: number) => ({
+                                  question: q.question,
+                                  userAnswer: userAnswers[idx],
+                                  correctAnswer: q.correct,
+                                  isCorrect: userAnswers[idx] === q.correct,
+                                  explanation: q.explanation,
+                                  options: q.options
+                                }));
+                                
+                                const score = results.filter((r: any) => r.isCorrect).length;
+                                setQuizResults({
+                                  results,
+                                  score,
+                                  total: quizData.questions.length,
+                                  percentage: Math.round((score / quizData.questions.length) * 100)
+                                });
+                                setQuizState('completed');
+                              }}
+                              className="px-8 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-xl transition-colors font-semibold"
+                            >
+                              Finish Quiz
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => setCurrentQuestion(Math.min(quizData.questions.length - 1, currentQuestion + 1))}
+                              className="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-xl transition-colors"
+                            >
+                              Next
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  // Quiz Results Phase with AI Explainer
+                  <div className="max-w-4xl mx-auto space-y-6">
+                    {/* Results Header */}
+                    <div className="text-center space-y-4 mb-8">
+                      <h2 className="text-3xl font-semibold text-white">🎯 Quiz Complete!</h2>
+                      <div className="bg-gray-800/50 rounded-2xl p-6">
+                        <div className="text-4xl font-bold text-teal-400 mb-2">
+                          {quizResults?.score}/{quizResults?.total}
+                        </div>
+                        <div className="text-xl text-gray-300">
+                          {quizResults?.percentage}% Score
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Incorrect Answers with AI Explanations */}
+                    <div className="space-y-4">
+                      <h3 className="text-xl font-semibold text-white mb-4">📚 Review Incorrect Answers</h3>
+                      {quizResults?.results?.filter((r: any) => !r.isCorrect).map((result: any, idx: number) => (
+                        <div key={idx} className="bg-gray-800/50 rounded-2xl p-6 space-y-4">
+                          <div className="border-l-4 border-red-500 pl-4">
+                            <h4 className="text-lg text-white font-medium mb-2">{result.question}</h4>
+                            <div className="space-y-2 text-sm">
+                              <div className="text-red-400">
+                                Your answer: {result.userAnswer !== null ? `${String.fromCharCode(65 + result.userAnswer)}. ${result.options[result.userAnswer]}` : 'No answer'}
+                              </div>
+                              <div className="text-green-400">
+                                Correct answer: {String.fromCharCode(65 + result.correctAnswer)}. {result.options[result.correctAnswer]}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* AI Explanation */}
+                          <div className="bg-teal-900/20 border border-teal-700/50 rounded-xl p-4">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <span className="text-teal-400">🤖</span>
+                              <span className="text-teal-100 font-medium">Gawin AI Explanation</span>
+                            </div>
+                            <p className="text-gray-300 text-sm">{result.explanation}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-4 justify-center mt-8">
+                      <button
+                        onClick={() => {
+                          setQuizState('setup');
+                          setQuizData(null);
+                          setQuizResults(null);
+                          setUserAnswers([]);
+                          setCurrentQuestion(0);
+                        }}
+                        className="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-xl transition-colors"
+                      >
+                        Take Another Quiz
+                      </button>
+                      <button
+                        onClick={() => {
+                          // Enable follow-up questions by switching to general chat
+                          createNewTab('general');
+                          // Add initial context about the quiz
+                          setTimeout(() => {
+                            const generalTab = tabs.find(tab => tab.type === 'general' && tab.isActive);
+                            if (generalTab) {
+                              handleSend(`I just completed a quiz on ${quizData?.topic} and scored ${quizResults?.percentage}%. I'd like to ask follow-up questions about the topics I got wrong.`, generalTab.id);
+                            }
+                          }, 100);
+                        }}
+                        className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition-colors"
+                      >
+                        Ask Follow-up Questions
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : activeTab && activeTab.type === 'browser' ? (
+              // WEB BROWSER WITH GAWIN AI INTEGRATION
+              <div className="flex-1 flex flex-col bg-gray-900/20">
+                {/* Browser URL Bar */}
+                <div className="bg-gray-800/90 border-b border-gray-600/50 p-4">
+                  <div className="flex items-center space-x-3">
+                    <button 
+                      onClick={() => {
+                        if (browserUrl) {
+                          setIsPageLoading(true);
+                          // Simulate loading
+                          setTimeout(() => setIsPageLoading(false), 1500);
+                        }
+                      }}
+                      className="w-8 h-8 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors flex items-center justify-center text-gray-300"
+                    >
+                      ↻
+                    </button>
+                    
+                    <div className="flex-1 relative">
+                      <input
+                        type="text"
+                        value={browserUrl}
+                        onChange={(e) => setBrowserUrl(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            let url = browserUrl.trim();
+                            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                              url = 'https://' + url;
+                            }
+                            setBrowserUrl(url);
+                            setIsPageLoading(true);
+                            setTimeout(() => setIsPageLoading(false), 1500);
+                          }
+                        }}
+                        placeholder="Enter URL or search term..."
+                        className="w-full px-4 py-2 bg-gray-700 text-white rounded-xl border border-gray-600 focus:outline-none focus:border-teal-500 placeholder-gray-400"
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <span className="text-gray-400 text-sm">🔒</span>
+                      </div>
+                    </div>
+                    
+                    <button className="w-8 h-8 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors flex items-center justify-center text-gray-300">
+                      ⋯
+                    </button>
+                  </div>
+                </div>
+
+                {/* Browser Content Area */}
+                <div className="flex-1 relative">
+                  {!browserUrl ? (
+                    // Landing page
+                    <div className="h-full flex items-center justify-center">
+                      <div className="text-center space-y-6 max-w-2xl px-6">
+                        <h2 className="text-4xl font-semibold text-white">🌐 Gawin Browser</h2>
+                        <p className="text-xl text-gray-300">
+                          Browse the web with AI assistance
+                        </p>
+                        <p className="text-gray-400">
+                          Enter any URL above or try these popular sites:
+                        </p>
+                        
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+                          {[
+                            { name: 'Google', url: 'google.com', icon: '🔍' },
+                            { name: 'Wikipedia', url: 'wikipedia.org', icon: '📚' },
+                            { name: 'YouTube', url: 'youtube.com', icon: '🎥' },
+                            { name: 'GitHub', url: 'github.com', icon: '💻' }
+                          ].map((site) => (
+                            <button
+                              key={site.name}
+                              onClick={() => {
+                                setBrowserUrl(`https://${site.url}`);
+                                setIsPageLoading(true);
+                                setTimeout(() => setIsPageLoading(false), 1500);
+                              }}
+                              className="p-4 bg-gray-800/50 hover:bg-gray-700/50 rounded-2xl border border-gray-600/50 hover:border-gray-500/50 transition-all group"
+                            >
+                              <div className="text-2xl mb-2">{site.icon}</div>
+                              <div className="text-white font-medium">{site.name}</div>
+                              <div className="text-gray-400 text-sm">{site.url}</div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ) : isPageLoading ? (
+                    // Loading state
+                    <div className="h-full flex items-center justify-center">
+                      <div className="text-center space-y-4">
+                        <div className="w-16 h-16 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                        <p className="text-gray-300">Loading {new URL(browserUrl).hostname}...</p>
+                      </div>
+                    </div>
+                  ) : (
+                    // Simulated website content
+                    <div className="h-full">
+                      {/* Website Simulation */}
+                      <div className="h-full bg-white text-black p-8 overflow-y-auto">
+                        <div className="max-w-4xl mx-auto">
+                          <div className="border-b pb-4 mb-6">
+                            <h1 className="text-3xl font-bold text-gray-900">{new URL(browserUrl).hostname}</h1>
+                            <p className="text-gray-600 mt-2">This is a simulated webpage for demonstration purposes.</p>
+                          </div>
+                          
+                          <div className="space-y-6">
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                              <h3 className="font-semibold text-blue-900 mb-2">🤖 Gawin AI Integration</h3>
+                              <p className="text-blue-800 text-sm">
+                                While browsing this page, you can ask me questions about the content, 
+                                request summaries, or get explanations about anything you see here.
+                              </p>
+                            </div>
+                            
+                            <div>
+                              <h2 className="text-2xl font-semibold mb-4">Sample Content</h2>
+                              <p className="text-gray-700 leading-relaxed mb-4">
+                                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor 
+                                incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud 
+                                exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                              </p>
+                              <p className="text-gray-700 leading-relaxed">
+                                Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu 
+                                fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in 
+                                culpa qui officia deserunt mollit anim id est laborum.
+                              </p>
+                            </div>
+                            
+                            <div className="bg-gray-50 rounded-lg p-6">
+                              <h3 className="font-semibold mb-3">Key Features:</h3>
+                              <ul className="space-y-2 text-gray-700">
+                                <li>• Interactive content analysis</li>
+                                <li>• Real-time Q&A support</li>
+                                <li>• Context-aware assistance</li>
+                                <li>• Educational explanations</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Floating Gawin AI Bubble */}
+                  {browserUrl && !isPageLoading && (
+                    <>
+                      <motion.button
+                        onClick={() => setGawinChatOpen(!gawinChatOpen)}
+                        className="fixed bottom-6 right-6 w-16 h-16 bg-teal-600 hover:bg-teal-700 rounded-full shadow-lg z-50 flex items-center justify-center transition-colors"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <span className="text-white text-2xl">🤖</span>
+                      </motion.button>
+
+                      {/* Floating Chat Interface */}
+                      {gawinChatOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          className="fixed bottom-24 right-6 w-80 h-96 bg-gray-800 rounded-2xl shadow-2xl z-40 border border-gray-600"
+                        >
+                          {/* Chat Header */}
+                          <div className="bg-teal-600 rounded-t-2xl p-4 flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-white text-lg">🤖</span>
+                              <span className="text-white font-medium">Gawin AI</span>
+                            </div>
+                            <button
+                              onClick={() => setGawinChatOpen(false)}
+                              className="text-white hover:bg-teal-700 rounded-full w-6 h-6 flex items-center justify-center transition-colors"
+                            >
+                              ×
+                            </button>
+                          </div>
+
+                          {/* Chat Content */}
+                          <div className="flex-1 p-4 space-y-3 overflow-y-auto" style={{ height: 'calc(100% - 120px)' }}>
+                            <div className="bg-gray-700 rounded-lg p-3">
+                              <p className="text-gray-300 text-sm">
+                                Hi! I can see you're browsing <strong>{new URL(browserUrl).hostname}</strong>. 
+                                Ask me anything about this page or request summaries and explanations!
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Chat Input */}
+                          <div className="p-4 border-t border-gray-600">
+                            <div className="flex space-x-2">
+                              <input
+                                type="text"
+                                placeholder="Ask about this page..."
+                                onKeyPress={(e) => {
+                                  if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    const target = e.target as HTMLInputElement;
+                                    if (target.value.trim()) {
+                                      // Create new general tab with context
+                                      createNewTab('general');
+                                      setTimeout(() => {
+                                        const generalTab = tabs.find(tab => tab.type === 'general' && tab.isActive);
+                                        if (generalTab) {
+                                          handleSend(`I'm currently viewing ${browserUrl}. ${target.value.trim()}`, generalTab.id);
+                                        }
+                                      }, 100);
+                                      setGawinChatOpen(false);
+                                      target.value = '';
+                                    }
+                                  }
+                                }}
+                                className="flex-1 px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:outline-none focus:border-teal-500 text-sm placeholder-gray-400"
+                              />
+                              <button className="w-8 h-8 bg-teal-600 hover:bg-teal-700 rounded-lg flex items-center justify-center transition-colors">
+                                <span className="text-white text-sm">→</span>
+                              </button>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            ) : (
+              // Regular Chat Area for other tabs
+              <div className={`flex-1 flex flex-col h-full ${
+                activeTab?.type === 'code' ? 'bg-gray-900/40' :
+                activeTab?.type === 'creative' ? 'bg-gray-900/40' :
+                'bg-gray-900/20'
+              }`}>
             {/* Main Chat with Integrated Workspaces */}
             <div className="w-full flex flex-col">
               <div 
@@ -975,95 +1552,6 @@ export default function ModernChatInterface({ user, onLogout, onBackToLanding }:
               </motion.div>
             )}
 
-            {/* Exam Tryout Tab - Mobile-First Quiz Generator */}
-            {activeTab && activeTab.type === 'quiz' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="w-full px-4 py-4"
-              >
-                <div className="max-w-md mx-auto space-y-4">
-                  {/* Header */}
-                  <div className="text-center space-y-2 mb-6">
-                    <h2 className="text-2xl font-semibold text-white">🎯 Quiz Generator</h2>
-                    <p className="text-gray-400 text-sm">Create personalized quizzes instantly</p>
-                  </div>
-
-                  {/* Topic Input */}
-                  <div className="space-y-2">
-                    <label className="text-white text-sm font-medium">What topic?</label>
-                    <input
-                      type="text"
-                      placeholder="e.g., Math, History, Science..."
-                      className="w-full px-4 py-3 bg-gray-800 text-white rounded-2xl border border-gray-700 focus:outline-none focus:border-teal-500 placeholder-gray-500"
-                    />
-                  </div>
-
-                  {/* Quick Settings */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2">
-                      <label className="text-white text-sm font-medium">Questions</label>
-                      <select className="w-full px-4 py-3 bg-gray-800 text-white rounded-2xl border border-gray-700 focus:outline-none focus:border-teal-500">
-                        <option value="5">5</option>
-                        <option value="10">10</option>
-                        <option value="15">15</option>
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-white text-sm font-medium">Level</label>
-                      <select className="w-full px-4 py-3 bg-gray-800 text-white rounded-2xl border border-gray-700 focus:outline-none focus:border-teal-500">
-                        <option value="easy">Easy</option>
-                        <option value="medium">Medium</option>
-                        <option value="hard">Hard</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Question Types */}
-                  <div className="space-y-3">
-                    <label className="text-white text-sm font-medium">Question Types</label>
-                    <div className="space-y-2">
-                      <label className="flex items-center space-x-3 p-3 bg-gray-800 rounded-2xl border border-gray-700">
-                        <input type="checkbox" className="w-4 h-4 text-teal-600 bg-gray-700 border-gray-600 rounded focus:ring-teal-500" defaultChecked />
-                        <span className="text-white text-sm">Multiple Choice</span>
-                      </label>
-                      <label className="flex items-center space-x-3 p-3 bg-gray-800 rounded-2xl border border-gray-700">
-                        <input type="checkbox" className="w-4 h-4 text-teal-600 bg-gray-700 border-gray-600 rounded focus:ring-teal-500" />
-                        <span className="text-white text-sm">True/False</span>
-                      </label>
-                      <label className="flex items-center space-x-3 p-3 bg-gray-800 rounded-2xl border border-gray-700">
-                        <input type="checkbox" className="w-4 h-4 text-teal-600 bg-gray-700 border-gray-600 rounded focus:ring-teal-500" />
-                        <span className="text-white text-sm">Short Answer</span>
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Generate Button */}
-                  <button
-                    onClick={() => handleSend('Create a comprehensive quiz on [topic] with [number] multiple choice and written questions at [difficulty] level. Use current Philippine education standards and include recent developments in the field. Focus on critical thinking and practical application of concepts. Ensure questions test both theoretical knowledge and real-world understanding.', activeTab?.id)}
-                    className="w-full py-4 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-2xl transition-colors shadow-lg mt-6"
-                  >
-                    Create Quiz
-                  </button>
-
-                  {/* Quick Actions */}
-                  <div className="grid grid-cols-2 gap-3 mt-6">
-                    <button
-                      onClick={() => handleSend('Design practice exercises and review questions for [topic] that help students master key concepts through repetition and varied problem-solving approaches. Include explanations for each answer.', activeTab?.id)}
-                      className="py-3 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-2xl transition-colors"
-                    >
-                      Practice Mode
-                    </button>
-                    <button
-                      onClick={() => handleSend('Build interactive flashcards for [topic] with clear definitions, examples, and memory aids. Include both front-to-back and back-to-front review options for comprehensive learning.', activeTab?.id)}
-                      className="py-3 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-2xl transition-colors"
-                    >
-                      Flashcards
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            )}
 
             {/* Creative Tab - Unleash Creativity Space */}
             {activeTab && activeTab.type === 'creative' && (
