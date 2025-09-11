@@ -29,7 +29,6 @@ interface MobileChatInterfaceProps {
   onLogout: () => void;
   onBackToLanding: () => void;
 }
-}
 
 export default function MobileChatInterface({ user, onLogout, onBackToLanding }: MobileChatInterfaceProps) {
   // States
