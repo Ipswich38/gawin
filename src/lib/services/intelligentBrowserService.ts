@@ -65,6 +65,10 @@ class IntelligentBrowserService {
       });
 
       if (!browserResponse.ok) {
+        const errorData = await browserResponse.json();
+        if (errorData.fallback) {
+          throw new Error('Browser automation not available - Playwright not supported in this environment. Please try the iframe mode instead.');
+        }
         throw new Error('Failed to start browser session');
       }
 

@@ -146,12 +146,17 @@ export default function IntelligentGawinBrowser({
       }
 
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Browsing failed';
+      const isPlaywrightError = errorMessage.includes('Playwright not supported');
+      
       setBrowsingState(prev => ({
         ...prev,
         isProcessing: false,
-        error: error instanceof Error ? error.message : 'Browsing failed'
+        error: isPlaywrightError 
+          ? 'AI browsing requires Playwright which is not available in this deployment environment. Please use the iframe mode instead.' 
+          : errorMessage
       }));
-      onProgress?.(`Error: ${error instanceof Error ? error.message : 'Browsing failed'}`);
+      onProgress?.(`Error: ${errorMessage}`);
     }
   };
 

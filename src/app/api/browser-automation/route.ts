@@ -1,10 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { chromium, Browser, Page, BrowserContext } from 'playwright';
+
+// Conditional import to prevent crashes in serverless environments
+let chromium: any;
+let playwrightInitialized = false;
+
+async function initializePlaywright() {
+  if (playwrightInitialized) return;
+  
+  try {
+    if (process.env.NODE_ENV === 'development' || process.env.PLAYWRIGHT_ENABLED === 'true') {
+      const playwright = await import('playwright');
+      chromium = playwright.chromium;
+      playwrightInitialized = true;
+    }
+  } catch (error) {
+    console.warn('Playwright not available in this environment:', error);
+  }
+}
 
 interface BrowserSession {
-  browser: Browser;
-  context: BrowserContext;
-  page: Page;
+  browser: any;
+  context: any;
+  page: any;
   sessionId: string;
   lastActivity: number;
 }
@@ -26,6 +43,18 @@ setInterval(() => {
 }, 5 * 60 * 1000); // Check every 5 minutes
 
 export async function POST(request: NextRequest) {
+  // Initialize Playwright if not already done
+  await initializePlaywright();
+  
+  // Check if Playwright is available
+  if (!chromium) {
+    return NextResponse.json({
+      error: 'Browser automation not available in this environment',
+      fallback: true,
+      message: 'Playwright requires binary installations not available in serverless environments'
+    }, { status: 503 });
+  }
+
   try {
     const { action, sessionId, url, query, coordinates, elementSelector } = await request.json();
     
@@ -158,11 +187,11 @@ async function scrollPage(session: BrowserSession, coordinates?: { x: number; y:
   
   if (coordinates) {
     if (coordinates.direction === 'down') {
-      await session.page.evaluate((amount) => window.scrollBy(0, amount || 500), coordinates.amount);
+      await session.page.evaluate((amount: number) => window.scrollBy(0, amount || 500), coordinates.amount);
     } else if (coordinates.direction === 'up') {
-      await session.page.evaluate((amount) => window.scrollBy(0, -(amount || 500)), coordinates.amount);
+      await session.page.evaluate((amount: number) => window.scrollBy(0, -(amount || 500)), coordinates.amount);
     } else {
-      await session.page.evaluate(({ x, y }) => window.scrollTo(x, y), coordinates);
+      await session.page.evaluate(({ x, y }: { x: number; y: number }) => window.scrollTo(x, y), coordinates);
     }
   } else {
     // Default scroll down
