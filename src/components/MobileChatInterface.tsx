@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MessageRenderer from './MessageRenderer';
 import GawinBrowser from './GawinBrowser';
+import IntelligentGawinBrowser from './IntelligentGawinBrowser';
 
 interface Message {
   id: number;
@@ -129,8 +130,16 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
       // Close the chat bubble and show loading
       setGawinChatOpen(false);
       
-      // Create a contextual message for browser chat
-      const contextMessage = `I'm browsing ${url}. ${message}`;
+      // Enhanced context message with browsing capabilities
+      const contextMessage = `I'm browsing ${url}. ${message}
+
+🤖 **Available AI Browsing Commands:**
+- "browse intelligently" - Let me navigate and search this website for you
+- "find [specific info]" - I'll search for specific information on this site
+- "analyze this page" - I'll examine the current page content
+- "extract key data" - I'll pull out important information from this site
+
+How would you like me to help with this website?`;
       
       // Find or create a general tab for browser chat
       let targetTab = tabs.find(tab => tab.type === 'general' && tab.isActive);
@@ -153,12 +162,11 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
         targetTab = newTab;
       }
       
-      // Send the message through the normal chat system
+      // Send the enhanced message through the normal chat system
       await handleSend(contextMessage);
       
     } catch (error) {
       console.error('Browser chat error:', error);
-      // Show error in a simple alert for now
       alert('Sorry, I encountered an error. Please try again.');
     }
   };
@@ -726,7 +734,28 @@ Number of questions: ${count}`
             </div>
           </div>
         ) : (
-          <GawinBrowser url={browserUrl} />
+          <IntelligentGawinBrowser 
+            url={browserUrl} 
+            query={activeTab?.messages?.slice(-1)[0]?.content}
+            onResult={(result) => {
+              // When AI browsing finds a result, add it as an assistant message
+              const newMessage: Message = {
+                id: Date.now(),
+                role: 'assistant',
+                content: `🤖 **AI Browsing Result from ${new URL(browserUrl).hostname}:**\n\n${result}`,
+                timestamp: new Date().toISOString()
+              };
+              setTabs(prev => prev.map(tab => 
+                tab.id === activeTabId 
+                  ? { ...tab, messages: [...tab.messages, newMessage] }
+                  : tab
+              ));
+            }}
+            onProgress={(step) => {
+              console.log('Browser progress:', step);
+              // Could add real-time progress updates to UI if desired
+            }}
+          />
         )}
 
         {/* Gawin Bubble */}

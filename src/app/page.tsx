@@ -15,7 +15,6 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [showGoogleAuth, setShowGoogleAuth] = useState(false); // Disabled until Google OAuth is configured in Supabase
   const auth = useAuth();
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
