@@ -29,6 +29,7 @@ interface MobileChatInterfaceProps {
   onLogout: () => void;
   onBackToLanding: () => void;
 }
+}
 
 export default function MobileChatInterface({ user, onLogout, onBackToLanding }: MobileChatInterfaceProps) {
   // States
@@ -1132,7 +1133,7 @@ Number of questions: ${count}`
         <h2 className="text-2xl font-semibold text-white">🎨 Creative Studio</h2>
         <p className="text-gray-300">Unleash your creativity with AI assistance</p>
         
-        <div className="bg-gradient-to-r from-teal-900/30 to-purple-900/30 border border-teal-700/50 rounded-2xl p-4">
+        <div className="bg-gradient-to-r from-teal-900/30 to-teal-700/30 border border-teal-700/50 rounded-2xl p-4">
           <div className="flex items-center justify-center space-x-2 mb-3">
             <span className="text-xl">🖼️</span>
             <h5 className="text-lg font-medium text-teal-100">Image Generation</h5>
@@ -1423,6 +1424,7 @@ Number of questions: ${count}`
           </>
         )}
       </AnimatePresence>
+      
     </div>
   );
 }

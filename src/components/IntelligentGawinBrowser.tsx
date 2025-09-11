@@ -3,6 +3,39 @@
 import { useState, useEffect, useRef } from 'react';
 import { intelligentBrowserService } from '@/lib/services/intelligentBrowserService';
 
+// Accessible AI principles
+interface AccessibilityState {
+  voiceEnabled: boolean;
+  brailleEnabled: boolean;
+  highContrast: boolean;
+  screenReaderMode: boolean;
+  announcements: string[];
+}
+
+// Voice synthesis for accessibility
+const speakText = (text: string, priority: 'low' | 'high' = 'low') => {
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    window.speechSynthesis.cancel(); // Cancel any current speech
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.8;
+    utterance.volume = priority === 'high' ? 1.0 : 0.7;
+    window.speechSynthesis.speak(utterance);
+  }
+};
+
+// Braille translation service (simplified implementation)
+const translateToBraille = (text: string): string => {
+  // Basic Braille Grade 1 mapping for common characters
+  const brailleMap: { [key: string]: string } = {
+    'a': '⠁', 'b': '⠃', 'c': '⠉', 'd': '⠙', 'e': '⠑', 'f': '⠋', 'g': '⠛', 'h': '⠓',
+    'i': '⠊', 'j': '⠚', 'k': '⠅', 'l': '⠇', 'm': '⠍', 'n': '⠝', 'o': '⠕', 'p': '⠏',
+    'q': '⠟', 'r': '⠗', 's': '⠎', 't': '⠞', 'u': '⠥', 'v': '⠧', 'w': '⠺', 'x': '⠭',
+    'y': '⠽', 'z': '⠵', ' ': '⠀', '.': '⠲', ',': '⠂', '?': '⠦', '!': '⠖', ':': '⠒'
+  };
+  
+  return text.toLowerCase().split('').map(char => brailleMap[char] || char).join('');
+};
+
 interface IntelligentGawinBrowserProps {
   url: string;
   query?: string;
@@ -44,6 +77,18 @@ export default function IntelligentGawinBrowser({
   const [aiAgentActive, setAiAgentActive] = useState(true); // AI agent always active
   const [userGoal, setUserGoal] = useState(query || 'Assist with browsing this website');
   const abortControllerRef = useRef<AbortController | null>(null);
+  
+  // Accessibility state for partnership DNA mission: serve underserved communities
+  const [accessibility, setAccessibility] = useState<AccessibilityState>({
+    voiceEnabled: false,
+    brailleEnabled: false,
+    highContrast: false,
+    screenReaderMode: false,
+    announcements: []
+  });
+  
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [currentAnnouncement, setCurrentAnnouncement] = useState<string>('');
 
   // Check if domain should be blocked or use intelligent mode
   const isUrlBlocked = (url: string): boolean => {
@@ -79,8 +124,10 @@ export default function IntelligentGawinBrowser({
   useEffect(() => {
     if (isUrlBlocked(url)) {
       setBrowsingState(prev => ({ ...prev, mode: 'blocked' }));
+      announceToUser('Domain blocked for security. AI agent remains active to help.', 'high');
     } else {
       setBrowsingState(prev => ({ ...prev, mode: 'iframe' }));
+      announceToUser(`Loading website: ${new URL(url).hostname}. AI agent is monitoring and ready to assist.`, 'low');
     }
 
     // Cleanup on unmount
@@ -93,9 +140,65 @@ export default function IntelligentGawinBrowser({
       }
     };
   }, [url]);
+  
+  // Accessibility helper functions
+  const announceToUser = (message: string, priority: 'low' | 'high' = 'low') => {
+    setCurrentAnnouncement(message);
+    setAccessibility(prev => ({
+      ...prev,
+      announcements: [...prev.announcements.slice(-4), message] // Keep last 5 announcements
+    }));
+    
+    if (accessibility.voiceEnabled) {
+      speakText(message, priority);
+    }
+    
+    // Clear announcement after 5 seconds for screen readers
+    setTimeout(() => setCurrentAnnouncement(''), 5000);
+  };
+  
+  const toggleAccessibilityFeature = (feature: keyof AccessibilityState) => {
+    setAccessibility(prev => {
+      const newState = { ...prev, [feature]: !prev[feature] };
+      
+      // Announce the change
+      const featureName = feature.replace(/([A-Z])/g, ' $1').toLowerCase();
+      const status = newState[feature] ? 'enabled' : 'disabled';
+      announceToUser(`${featureName} ${status}`, 'high');
+      
+      return newState;
+    });
+  };
+  
+  // Keyboard navigation support
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.altKey) {
+      switch (event.key) {
+        case '1':
+          event.preventDefault();
+          toggleAccessibilityFeature('voiceEnabled');
+          break;
+        case '2':
+          event.preventDefault();
+          toggleAccessibilityFeature('brailleEnabled');
+          break;
+        case '3':
+          event.preventDefault();
+          toggleAccessibilityFeature('highContrast');
+          break;
+        case '4':
+          event.preventDefault();
+          toggleAccessibilityFeature('screenReaderMode');
+          break;
+      }
+    }
+  };
 
   const startIntelligentBrowsing = async () => {
     if (browsingState.isProcessing) return;
+
+    // Accessible announcement
+    announceToUser('Starting AI-powered browsing session. This will help analyze the website for you.', 'high');
 
     setBrowsingState(prev => ({
       ...prev,
@@ -126,6 +229,7 @@ export default function IntelligentGawinBrowser({
       }));
 
       onProgress?.(`AI Analysis: ${analysis.understanding}`);
+      announceToUser(`AI has started analyzing the website. Understanding: ${analysis.understanding}`, 'low');
 
       // Run autonomous browsing
       const result = await intelligentBrowserService.runAutonomousBrowsing(sessionId, 8);
@@ -143,24 +247,30 @@ export default function IntelligentGawinBrowser({
       if (result.result) {
         onResult?.(result.result);
         onProgress?.(`Completed: ${result.result}`);
+        announceToUser(`AI browsing completed successfully. Result: ${result.result}`, 'high');
       }
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Browsing failed';
       const isPlaywrightError = errorMessage.includes('Playwright not supported');
       
+      const accessibleErrorMessage = isPlaywrightError 
+        ? 'AI browsing requires Playwright which is not available in this deployment environment. Please use the iframe mode instead.' 
+        : errorMessage;
+      
       setBrowsingState(prev => ({
         ...prev,
         isProcessing: false,
-        error: isPlaywrightError 
-          ? 'AI browsing requires Playwright which is not available in this deployment environment. Please use the iframe mode instead.' 
-          : errorMessage
+        error: accessibleErrorMessage
       }));
       onProgress?.(`Error: ${errorMessage}`);
+      announceToUser(`Error occurred: ${accessibleErrorMessage}`, 'high');
     }
   };
 
   const stopIntelligentBrowsing = () => {
+    announceToUser('Stopping AI browsing session', 'high');
+    
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -174,26 +284,76 @@ export default function IntelligentGawinBrowser({
     }));
     onProgress?.('Browsing stopped');
   };
+  
+  // Accessibility Controls Component
+  const renderAccessibilityControls = () => (
+    <div className={`fixed top-4 left-4 z-50 ${accessibility.highContrast ? 'bg-black text-white' : 'bg-white/95'} backdrop-blur-sm rounded-lg shadow-lg border p-3`}>
+      <div className="flex items-center space-x-2 mb-2">
+        <span className="text-sm font-semibold" aria-label="Accessibility Controls">♿ Accessibility</span>
+      </div>
+      <div className="grid grid-cols-2 gap-2 text-xs">
+        <button
+          onClick={() => toggleAccessibilityFeature('voiceEnabled')}
+          className={`px-2 py-1 rounded ${accessibility.voiceEnabled ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700'} transition-colors`}
+          aria-label={`Voice narration ${accessibility.voiceEnabled ? 'enabled' : 'disabled'}`}
+          title="Alt+1 to toggle"
+        >
+          🔊 Voice
+        </button>
+        <button
+          onClick={() => toggleAccessibilityFeature('brailleEnabled')}
+          className={`px-2 py-1 rounded ${accessibility.brailleEnabled ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700'} transition-colors`}
+          aria-label={`Braille output ${accessibility.brailleEnabled ? 'enabled' : 'disabled'}`}
+          title="Alt+2 to toggle"
+        >
+          ⠃ Braille
+        </button>
+        <button
+          onClick={() => toggleAccessibilityFeature('highContrast')}
+          className={`px-2 py-1 rounded ${accessibility.highContrast ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700'} transition-colors`}
+          aria-label={`High contrast ${accessibility.highContrast ? 'enabled' : 'disabled'}`}
+          title="Alt+3 to toggle"
+        >
+          🌗 Contrast
+        </button>
+        <button
+          onClick={() => toggleAccessibilityFeature('screenReaderMode')}
+          className={`px-2 py-1 rounded ${accessibility.screenReaderMode ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700'} transition-colors`}
+          aria-label={`Screen reader mode ${accessibility.screenReaderMode ? 'enabled' : 'disabled'}`}
+          title="Alt+4 to toggle"
+        >
+          📖 Screen Reader
+        </button>
+      </div>
+      {accessibility.brailleEnabled && currentAnnouncement && (
+        <div className="mt-2 p-2 bg-gray-100 rounded text-lg font-mono" aria-label="Braille output">
+          {translateToBraille(currentAnnouncement)}
+        </div>
+      )}
+    </div>
+  );
 
   const renderIntelligentMode = () => (
-    <div className="h-full bg-gray-50">
+    <div className={`h-full ${accessibility.highContrast ? 'bg-black text-white' : 'bg-gray-50'}`} onKeyDown={handleKeyDown} tabIndex={0}>
       {/* AI Browser Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4">
+      <div className={`${accessibility.highContrast ? 'bg-gray-800' : 'bg-gradient-to-r from-purple-600 to-blue-600'} text-white p-4`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-              <span className="text-sm font-bold">🤖</span>
+              <span className="text-sm font-bold" role="img" aria-label="Robot emoji">🤖</span>
             </div>
             <div>
-              <h3 className="font-semibold">Gawin AI Browser</h3>
-              <p className="text-sm opacity-90">Intelligent web navigation</p>
+              <h3 className="font-semibold" id="browser-title">Gawin AI Browser</h3>
+              <p className="text-sm opacity-90">Accessible intelligent web navigation</p>
             </div>
           </div>
           <div className="flex items-center space-x-2">
             {browsingState.isProcessing && (
               <button
                 onClick={stopIntelligentBrowsing}
-                className="px-3 py-1 bg-red-500 hover:bg-red-600 rounded-lg text-sm font-medium transition-colors"
+                className={`px-3 py-1 ${accessibility.highContrast ? 'bg-red-700 hover:bg-red-800' : 'bg-red-500 hover:bg-red-600'} rounded-lg text-sm font-medium transition-colors focus:ring-2 focus:ring-red-300`}
+                aria-label="Stop AI browsing session"
+                type="button"
               >
                 Stop
               </button>
@@ -206,85 +366,122 @@ export default function IntelligentGawinBrowser({
         {/* Screenshot/Visual Area */}
         <div className="flex-1 p-4">
           {browsingState.screenshot ? (
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-              <div className="bg-gray-100 px-4 py-2 border-b">
-                <div className="text-sm text-gray-600">Live Screenshot</div>
+            <div className={`${accessibility.highContrast ? 'bg-gray-800 border-white' : 'bg-white'} rounded-lg shadow-lg overflow-hidden`}>
+              <div className={`${accessibility.highContrast ? 'bg-gray-700 text-white' : 'bg-gray-100'} px-4 py-2 border-b`}>
+                <div className={`text-sm ${accessibility.highContrast ? 'text-white' : 'text-gray-600'}`}>Live Screenshot</div>
               </div>
               <img
                 src={`data:image/png;base64,${browsingState.screenshot}`}
-                alt="Browser Screenshot"
+                alt="Current browser screenshot showing the website being analyzed by AI"
                 className="w-full h-auto max-h-96 object-contain"
+                role="img"
+                aria-describedby="screenshot-description"
               />
+              <div id="screenshot-description" className="sr-only">
+                Screenshot of the website currently being analyzed by the AI browser agent
+              </div>
             </div>
           ) : (
-            <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🌐</span>
+            <div className={`${accessibility.highContrast ? 'bg-gray-800 text-white border-white' : 'bg-white'} rounded-lg shadow-lg p-8 text-center`}>
+              <div className={`w-16 h-16 ${accessibility.highContrast ? 'bg-gray-600' : 'bg-teal-100'} rounded-full flex items-center justify-center mx-auto mb-4`}>
+                <span className="text-2xl" role="img" aria-label="Globe icon">🌐</span>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                AI-Powered Web Browsing
+              <h3 className={`text-lg font-semibold ${accessibility.highContrast ? 'text-white' : 'text-gray-900'} mb-2`}>
+                Accessible AI-Powered Web Browsing
               </h3>
-              <p className="text-gray-600 mb-6">
-                Let Gawin AI navigate and extract information from websites for you
+              <p className={`${accessibility.highContrast ? 'text-gray-300' : 'text-gray-600'} mb-6`}>
+                Let Gawin AI navigate and extract information from websites for you.
               </p>
               
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label 
+                  htmlFor="user-goal-input"
+                  className={`block text-sm font-medium ${accessibility.highContrast ? 'text-white' : 'text-gray-700'} mb-2`}
+                >
                   What would you like me to do on this website?
                 </label>
                 <textarea
+                  id="user-goal-input"
                   value={userGoal}
                   onChange={(e) => setUserGoal(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className={`w-full px-3 py-2 border ${accessibility.highContrast ? 'bg-gray-700 border-white text-white' : 'border-gray-300 bg-white'} rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent`}
                   rows={3}
                   placeholder="e.g., Find contact information, search for specific topics, extract key data..."
+                  aria-describedby="goal-help"
                 />
+                <div id="goal-help" className={`text-xs ${accessibility.highContrast ? 'text-gray-400' : 'text-gray-500'} mt-1`}>
+                  Describe your browsing goal for the AI to understand what you need
+                </div>
               </div>
 
               <button
                 onClick={startIntelligentBrowsing}
                 disabled={browsingState.isProcessing}
-                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className={`px-6 py-3 ${accessibility.highContrast ? 'bg-purple-700 hover:bg-purple-800' : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700'} text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all focus:ring-2 focus:ring-purple-300`}
+                type="button"
+                aria-describedby="start-button-help"
               >
                 {browsingState.isProcessing ? 'AI is Browsing...' : 'Start AI Browsing'}
               </button>
+              <div id="start-button-help" className={`text-xs ${accessibility.highContrast ? 'text-gray-400' : 'text-gray-500'} mt-2`}>
+                Press to begin AI-powered website navigation and analysis
+              </div>
             </div>
           )}
         </div>
 
-        {/* Progress Panel */}
-        <div className="w-80 bg-white border-l border-gray-200 flex flex-col">
+        {/* Accessible Progress Panel */}
+        <div className={`w-80 ${accessibility.highContrast ? 'bg-gray-800 border-white text-white' : 'bg-white border-gray-200'} border-l flex flex-col`} role="region" aria-labelledby="progress-heading">
           <div className="p-4 border-b">
-            <h4 className="font-semibold text-gray-900">AI Progress</h4>
+            <h4 id="progress-heading" className={`font-semibold ${accessibility.highContrast ? 'text-white' : 'text-gray-900'}`}>AI Progress</h4>
+            <p className={`text-xs ${accessibility.highContrast ? 'text-gray-400' : 'text-gray-600'} mt-1`}>Real-time updates from AI browsing session</p>
           </div>
           
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3" role="log" aria-live="polite" aria-label="AI browsing progress updates">
             {browsingState.progress.map((step, index) => (
               <div key={index} className="flex items-start space-x-2">
-                <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-xs font-semibold text-purple-600">{index + 1}</span>
+                <div className={`w-6 h-6 rounded-full ${accessibility.highContrast ? 'bg-purple-600' : 'bg-purple-100'} flex items-center justify-center flex-shrink-0 mt-0.5`} role="presentation">
+                  <span className={`text-xs font-semibold ${accessibility.highContrast ? 'text-white' : 'text-purple-600'}`} aria-hidden="true">{index + 1}</span>
                 </div>
-                <p className="text-sm text-gray-700">{step}</p>
+                <p className={`text-sm ${accessibility.highContrast ? 'text-gray-300' : 'text-gray-700'}`} role="status">
+                  {step}
+                  {accessibility.brailleEnabled && (
+                    <div className="mt-1 text-lg font-mono" aria-label={`Braille: ${step}`}>
+                      {translateToBraille(step.substring(0, 50))}
+                    </div>
+                  )}
+                </p>
               </div>
             ))}
             
             {browsingState.isProcessing && (
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-sm text-purple-600 font-medium">Processing...</p>
+              <div className="flex items-center space-x-2" role="status" aria-label="AI is currently processing">
+                <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" aria-hidden="true"></div>
+                <p className={`text-sm ${accessibility.highContrast ? 'text-purple-400' : 'text-purple-600'} font-medium`}>Processing...</p>
               </div>
             )}
 
             {browsingState.error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-800">{browsingState.error}</p>
+              <div className={`p-3 ${accessibility.highContrast ? 'bg-red-900 border-red-600 text-red-200' : 'bg-red-50 border-red-200'} border rounded-lg`} role="alert" aria-live="assertive">
+                <h5 className="font-semibold mb-1">Error Occurred</h5>
+                <p className={`text-sm ${accessibility.highContrast ? 'text-red-200' : 'text-red-800'}`}>{browsingState.error}</p>
+                {accessibility.brailleEnabled && (
+                  <div className="mt-2 text-lg font-mono" aria-label={`Braille error: ${browsingState.error}`}>
+                    {translateToBraille(browsingState.error.substring(0, 100))}
+                  </div>
+                )}
               </div>
             )}
 
             {browsingState.result && (
-              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                <h5 className="font-semibold text-green-900 mb-1">Result Found!</h5>
-                <p className="text-sm text-green-800">{browsingState.result}</p>
+              <div className={`p-3 ${accessibility.highContrast ? 'bg-green-900 border-green-600 text-green-200' : 'bg-green-50 border-green-200'} border rounded-lg`} role="alert" aria-live="polite">
+                <h5 className="font-semibold mb-1">Result Found!</h5>
+                <p className={`text-sm ${accessibility.highContrast ? 'text-green-200' : 'text-green-800'}`}>{browsingState.result}</p>
+                {accessibility.brailleEnabled && (
+                  <div className="mt-2 text-lg font-mono" aria-label={`Braille result: ${browsingState.result}`}>
+                    {translateToBraille(browsingState.result.substring(0, 100))}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -294,63 +491,89 @@ export default function IntelligentGawinBrowser({
   );
 
   const renderBlockedDomain = () => (
-    <div className="h-full p-6 overflow-y-auto">
+    <div className={`h-full p-6 overflow-y-auto ${accessibility.highContrast ? 'bg-black text-white' : ''}`} onKeyDown={handleKeyDown} tabIndex={0} role="main" aria-labelledby="blocked-domain-heading">
       <div className="max-w-2xl mx-auto space-y-6">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className={`${accessibility.highContrast ? 'bg-red-900 border-red-600 text-red-200' : 'bg-red-50 border-red-200'} border rounded-lg p-4`} role="alert" aria-live="polite">
           <div className="flex items-center space-x-2 mb-2">
-            <span className="text-red-600">🚫</span>
-            <h3 className="font-semibold text-red-900">Domain Blocked</h3>
+            <span className="text-red-600" role="img" aria-label="Blocked symbol">🚫</span>
+            <h3 id="blocked-domain-heading" className={`font-semibold ${accessibility.highContrast ? 'text-red-200' : 'text-red-900'}`}>Domain Blocked</h3>
           </div>
-          <p className="text-red-800 text-sm mb-3">
+          <p className={`${accessibility.highContrast ? 'text-red-200' : 'text-red-800'} text-sm mb-3`}>
             <strong>{new URL(url).hostname}</strong> cannot be loaded for security reasons.
+            {accessibility.brailleEnabled && (
+              <div className="mt-2 text-lg font-mono" aria-label={`Braille: Domain ${new URL(url).hostname} blocked`}>
+                {translateToBraille(`Domain ${new URL(url).hostname} blocked`)}
+              </div>
+            )}
           </p>
         </div>
 
-        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+        <div className={`${accessibility.highContrast ? 'bg-purple-900 border-purple-600 text-purple-200' : 'bg-purple-50 border-purple-200'} border rounded-lg p-4`} role="region" aria-labelledby="ai-agent-available">
           <div className="flex items-center space-x-2 mb-3">
-            <span className="text-2xl">🤖</span>
-            <h3 className="font-semibold text-purple-900">AI Agent Available</h3>
+            <span className="text-2xl" role="img" aria-label="Robot emoji">🤖</span>
+            <h3 id="ai-agent-available" className={`font-semibold ${accessibility.highContrast ? 'text-purple-200' : 'text-purple-900'}`}>AI Agent Available</h3>
           </div>
-          <p className="text-purple-800 text-sm mb-4">
+          <p className={`${accessibility.highContrast ? 'text-purple-300' : 'text-purple-800'} text-sm mb-4`}>
             Even blocked sites can be analyzed by the AI agent through the floating chat bubble.
           </p>
-          <p className="text-purple-700 text-xs">
+          <p className={`${accessibility.highContrast ? 'text-purple-400' : 'text-purple-700'} text-xs`}>
             Try asking questions about this website using the chat interface. 
             The AI agent is always ready to help analyze content and find information.
+            {accessibility.brailleEnabled && (
+              <div className="mt-2 text-lg font-mono" aria-label="Braille: AI agent available for assistance">
+                {translateToBraille('AI agent available for assistance')}
+              </div>
+            )}
           </p>
+          <div className="mt-3 text-xs text-gray-500 border-t pt-2">
+            <p>Accessibility shortcuts: Alt+1 (Voice), Alt+2 (Braille), Alt+3 (High Contrast), Alt+4 (Screen Reader)</p>
+          </div>
         </div>
       </div>
     </div>
   );
 
   const renderIframeMode = () => (
-    <div className="h-full relative">
+    <div className="h-full relative" onKeyDown={handleKeyDown} tabIndex={0} role="application" aria-label="AI-Enhanced Web Browser">
       <iframe
+        ref={iframeRef}
         src={url}
         className="w-full h-full border-0"
-        title="Gawin Browser"
+        title={`AI-Enhanced Gawin Browser viewing ${new URL(url).hostname}`}
         sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation"
         onError={() => setBrowsingState(prev => ({ ...prev, mode: 'blocked' }))}
+        aria-describedby="iframe-description"
       />
+      <div id="iframe-description" className="sr-only">
+        Website content is displayed here with AI agent monitoring for accessibility and assistance
+      </div>
       
-      {/* AI Agent Status Indicator */}
-      <div className="absolute top-4 right-4">
-        <div className="flex items-center space-x-2 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-          <span className="text-sm font-medium text-gray-700">🤖 AI Agent Active</span>
+      {/* Accessible AI Agent Status Indicator */}
+      <div className="absolute top-4 right-4" role="status" aria-live="polite">
+        <div className={`flex items-center space-x-2 ${accessibility.highContrast ? 'bg-black/90 border border-white text-white' : 'bg-white/90 text-gray-700'} backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg`}>
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" aria-hidden="true"></div>
+          <span className="text-sm font-medium" role="img" aria-label="Robot emoji">🤖</span>
+          <span className="text-sm font-medium">AI Agent Active</span>
         </div>
       </div>
 
-      {/* AI Agent Insights Panel (when processing) */}
+      {/* Accessible AI Agent Insights Panel */}
       {browsingState.isProcessing && (
-        <div className="absolute bottom-4 right-4 w-80 bg-white/95 backdrop-blur-sm rounded-lg shadow-xl border border-gray-200 p-4">
+        <div className={`absolute bottom-4 right-4 w-80 ${accessibility.highContrast ? 'bg-black/95 border-white text-white' : 'bg-white/95 border-gray-200'} backdrop-blur-sm rounded-lg shadow-xl border p-4`} role="region" aria-labelledby="ai-insights" aria-live="polite">
           <div className="flex items-center space-x-2 mb-3">
-            <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-            <span className="text-sm font-semibold text-purple-700">AI Agent Working</span>
+            <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" aria-hidden="true"></div>
+            <span id="ai-insights" className={`text-sm font-semibold ${accessibility.highContrast ? 'text-purple-400' : 'text-purple-700'}`}>AI Agent Working</span>
           </div>
-          <div className="space-y-2 max-h-32 overflow-y-auto">
+          <div className="space-y-2 max-h-32 overflow-y-auto" role="log" aria-label="AI agent progress updates">
             {browsingState.progress.slice(-3).map((step, index) => (
-              <p key={index} className="text-xs text-gray-600">{step}</p>
+              <div key={index}>
+                <p className={`text-xs ${accessibility.highContrast ? 'text-gray-300' : 'text-gray-600'}`}>{step}</p>
+                {accessibility.brailleEnabled && (
+                  <div className="text-lg font-mono mt-1" aria-label={`Braille: ${step}`}>
+                    {translateToBraille(step.substring(0, 40))}
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         </div>
@@ -359,23 +582,33 @@ export default function IntelligentGawinBrowser({
   );
 
   return (
-    <div className="h-full bg-white">
-      {/* Browser Chrome */}
-      <div className="bg-gray-100 border-b border-gray-300 px-4 py-2">
+    <div className={`h-full ${accessibility.highContrast ? 'bg-black text-white' : 'bg-white'}`} role="application" aria-label="Gawin AI-Enhanced Browser">
+      {/* Screen reader announcement area */}
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {currentAnnouncement}
+      </div>
+      
+      {/* Accessibility Controls - Always available */}
+      {renderAccessibilityControls()}
+      
+      {/* Accessible Browser Chrome */}
+      <div className={`${accessibility.highContrast ? 'bg-gray-800 border-white' : 'bg-gray-100 border-gray-300'} border-b px-4 py-2`} role="navigation" aria-label="Browser chrome">
         <div className="flex items-center space-x-3">
-          <div className="flex space-x-2">
-            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-            <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+          <div className="flex space-x-2" role="presentation" aria-label="Window controls">
+            <div className="w-3 h-3 bg-red-500 rounded-full" aria-label="Close"></div>
+            <div className="w-3 h-3 bg-yellow-500 rounded-full" aria-label="Minimize"></div>
+            <div className="w-3 h-3 bg-green-500 rounded-full" aria-label="Maximize"></div>
           </div>
-          <div className="flex-1 bg-white rounded-lg px-3 py-1 border border-gray-300">
+          <div className={`flex-1 ${accessibility.highContrast ? 'bg-gray-700 border-white' : 'bg-white border-gray-300'} rounded-lg px-3 py-1 border`} role="textbox" aria-label="Address bar">
             <div className="flex items-center space-x-2">
-              <span className="text-purple-600 text-sm">🤖</span>
-              <span className="text-gray-700 text-sm font-mono">{new URL(url).hostname}</span>
+              <span className="text-purple-600 text-sm" role="img" aria-label="Robot emoji">🤖</span>
+              <span className={`${accessibility.highContrast ? 'text-white' : 'text-gray-700'} text-sm font-mono`} aria-label={`Currently viewing ${new URL(url).hostname}`}>
+                {new URL(url).hostname}
+              </span>
               <div className="flex-1"></div>
-              <div className="flex items-center space-x-1">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-xs text-gray-500">Gawin AI Agent</span>
+              <div className="flex items-center space-x-1" role="status">
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" aria-hidden="true"></div>
+                <span className={`text-xs ${accessibility.highContrast ? 'text-gray-300' : 'text-gray-500'}`}>Gawin AI Agent</span>
               </div>
             </div>
           </div>
@@ -383,7 +616,7 @@ export default function IntelligentGawinBrowser({
       </div>
 
       {/* Main Content */}
-      <div className="h-full">
+      <div className="h-full" role="main">
         {browsingState.mode === 'blocked' && renderBlockedDomain()}
         {browsingState.mode === 'iframe' && renderIframeMode()}
         {browsingState.mode === 'intelligent' && renderIntelligentMode()}

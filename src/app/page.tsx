@@ -45,30 +45,30 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-white to-stone-50 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 via-white to-gray-50 flex items-center justify-center p-6">
       <div className="max-w-md w-full">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-stone-900 to-zinc-700 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+          <div className="w-16 h-16 bg-gradient-to-br from-teal-600 to-teal-700 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
             <span className="text-white text-2xl font-bold">G</span>
           </div>
-          <h1 className="font-serif text-2xl text-stone-900 mb-2">Welcome to Gawin</h1>
-          <p className="text-stone-600">Your AI Learning Assistant</p>
+          <h1 className="font-serif text-2xl text-gray-900 mb-2">Welcome to Gawin</h1>
+          <p className="text-gray-600">Your AI Learning Assistant</p>
         </div>
 
         {/* Auth Form - Material 3 inspired elevated surface */}
-        <div className="bg-white/60 backdrop-blur-sm shadow-lg border border-stone-200/50 rounded-2xl p-8">
+        <div className="bg-white/60 backdrop-blur-sm shadow-lg border border-gray-200/50 rounded-2xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {isSignUp && (
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Full Name
                 </label>
                 <input
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-50/50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400 transition-all duration-200 text-slate-800 placeholder-slate-400 hover:bg-slate-50"
+                  className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400 transition-all duration-200 text-gray-800 placeholder-gray-400 hover:bg-gray-50"
                   placeholder="Enter your full name"
                   required
                 />

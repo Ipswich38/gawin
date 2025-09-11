@@ -282,7 +282,7 @@ export default function GawinBrowser({ url }: GawinBrowserProps) {
                             // This would summarize the website
                             console.log('Summarize website');
                           }}
-                          className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
+                          className="px-3 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm"
                         >
                           📝 Summarize
                         </button>
@@ -302,7 +302,7 @@ export default function GawinBrowser({ url }: GawinBrowserProps) {
                         <span>AI-powered page analysis and summarization</span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span className="w-4 h-4 bg-purple-500 rounded-full flex-shrink-0"></span>
+                        <span className="w-4 h-4 bg-teal-500 rounded-full flex-shrink-0"></span>
                         <span>Smart content extraction and Q&A</span>
                       </div>
                       <div className="flex items-center space-x-2">
