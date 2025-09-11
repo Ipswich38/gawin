@@ -103,6 +103,45 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
     }
   }, [activeTab?.messages]);
 
+  const handleBrowserChat = async (message: string, url: string) => {
+    try {
+      // Close the chat bubble and show loading
+      setGawinChatOpen(false);
+      
+      // Create a contextual message for browser chat
+      const contextMessage = `I'm browsing ${url}. ${message}`;
+      
+      // Find or create a general tab for browser chat
+      let targetTab = tabs.find(tab => tab.type === 'general' && tab.isActive);
+      if (!targetTab) {
+        // Create a new general tab
+        const newTabId = `general-${Date.now()}`;
+        const newTab: Tab = {
+          id: newTabId,
+          type: 'general',
+          title: 'Chat',
+          icon: '💬',
+          isActive: true,
+          messages: [],
+          isLoading: false
+        };
+        
+        // Switch to general tab
+        setTabs(prev => prev.map(tab => ({ ...tab, isActive: false })).concat([newTab]));
+        setActiveTabId(newTabId);
+        targetTab = newTab;
+      }
+      
+      // Send the message through the normal chat system
+      await handleSend(contextMessage);
+      
+    } catch (error) {
+      console.error('Browser chat error:', error);
+      // Show error in a simple alert for now
+      alert('Sorry, I encountered an error. Please try again.');
+    }
+  };
+
   const finishQuiz = () => {
     if (!quizData) return;
     
@@ -712,22 +751,34 @@ Number of questions: ${count}`
                 <div className="p-3 border-t border-gray-600">
                   <div className="flex space-x-2">
                     <input
+                      id="browser-chat-input"
                       type="text"
                       placeholder="Ask about this page..."
                       onKeyPress={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
                           const target = e.target as HTMLInputElement;
-                          if (target.value.trim()) {
-                            createNewTab('general');
-                            setGawinChatOpen(false);
+                          const userMessage = target.value.trim();
+                          if (userMessage) {
+                            // Handle browser chat within the current context
+                            handleBrowserChat(userMessage, browserUrl);
                             target.value = '';
                           }
                         }
                       }}
                       className="flex-1 px-2 py-1 bg-gray-700 text-white rounded-lg border border-gray-600 focus:outline-none focus:border-teal-500 text-xs placeholder-gray-400"
                     />
-                    <button className="w-6 h-6 bg-teal-600 hover:bg-teal-700 rounded-lg flex items-center justify-center transition-colors">
+                    <button 
+                      onClick={() => {
+                        const input = document.getElementById('browser-chat-input') as HTMLInputElement;
+                        const userMessage = input?.value.trim();
+                        if (userMessage) {
+                          handleBrowserChat(userMessage, browserUrl);
+                          input.value = '';
+                        }
+                      }}
+                      className="w-6 h-6 bg-teal-600 hover:bg-teal-700 rounded-lg flex items-center justify-center transition-colors"
+                    >
                       <span className="text-white text-xs">→</span>
                     </button>
                   </div>
