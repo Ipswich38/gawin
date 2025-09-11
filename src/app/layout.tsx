@@ -39,6 +39,17 @@ export default function RootLayout({
             </main>
           </div>
         </AuthProvider>
+        
+        {/* X-Frame-Bypass for enhanced browser functionality */}
+        <script 
+          type="module" 
+          src="https://unpkg.com/x-frame-bypass" 
+          async
+        />
+        <script 
+          src="https://unpkg.com/@ungap/custom-elements-builtin" 
+          async
+        />
       </body>
     </html>
   );

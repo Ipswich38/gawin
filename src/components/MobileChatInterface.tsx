@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MessageRenderer from './MessageRenderer';
+import GawinBrowser from './GawinBrowser';
 
 interface Message {
   id: number;
@@ -665,66 +666,7 @@ Number of questions: ${count}`
             </div>
           </div>
         ) : (
-          <div className="h-full relative">
-            <iframe
-              src={browserUrl}
-              className="w-full h-full border-0"
-              title="Web Browser"
-              sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
-              onError={() => {
-                // Fallback for sites that block iframe embedding
-                console.log('iframe blocked, showing fallback');
-              }}
-            />
-            
-            {/* Overlay for sites that block iframe */}
-            <div className="absolute inset-0 bg-white text-black p-4 overflow-y-auto hidden" id="browser-fallback">
-              <div className="max-w-full">
-                <div className="flex items-center space-x-2 mb-4">
-                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="ml-4 text-gray-600 text-sm">{browserUrl}</span>
-                </div>
-                
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-                  <h3 className="font-semibold text-yellow-900 text-sm flex items-center">
-                    <span className="mr-2">⚠️</span>
-                    Site Blocked Embedding
-                  </h3>
-                  <p className="text-yellow-800 text-xs mt-1">
-                    This website prevents embedding. Click the link below to open in a new tab.
-                  </p>
-                  <a 
-                    href={browserUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="inline-block mt-2 px-3 py-1 bg-yellow-600 text-white rounded text-xs hover:bg-yellow-700 transition-colors"
-                  >
-                    Open in New Tab →
-                  </a>
-                </div>
-                
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                  <h3 className="font-semibold text-blue-900 text-sm">🤖 Gawin AI Integration</h3>
-                  <p className="text-blue-800 text-xs mt-1">
-                    Ask me questions about web content, and I'll help you understand it!
-                  </p>
-                </div>
-                
-                <div className="space-y-3">
-                  <h2 className="text-lg font-semibold">How to Use Web Browser</h2>
-                  <div className="space-y-2 text-sm text-gray-700">
-                    <p>• Enter any URL in the address bar above</p>
-                    <p>• Most sites will load directly in the browser</p>
-                    <p>• Some sites block embedding for security reasons</p>
-                    <p>• Use the floating Gawin AI button to analyze pages</p>
-                    <p>• Ask questions about content you're reading</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <GawinBrowser url={browserUrl} />
         )}
 
         {/* Gawin Bubble */}
