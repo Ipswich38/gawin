@@ -305,6 +305,7 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
             </div>
 
             <button
+              id="create-quiz-btn"
               onClick={async () => {
                 const topic = (document.getElementById('quiz-topic') as HTMLInputElement).value;
                 const count = (document.getElementById('quiz-count') as HTMLSelectElement).value;
@@ -315,6 +316,13 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
                   return;
                 }
 
+                // Show loading state
+                const button = document.querySelector('#create-quiz-btn') as HTMLButtonElement;
+                if (button) {
+                  button.textContent = 'Creating Quiz...';
+                  button.disabled = true;
+                }
+
                 try {
                   const response = await fetch('/api/groq', {
                     method: 'POST',
@@ -322,36 +330,90 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
                     body: JSON.stringify({
                       messages: [{
                         role: 'user',
-                        content: `Generate ${count} multiple choice questions about ${topic}. Return ONLY a JSON array with this format: [{"question":"Question text","options":["A","B","C","D"],"correct":0,"explanation":"Why this answer is correct"}]. Use Philippine education standards.`
+                        content: `You are a quiz generator. Generate ${count} multiple choice questions about ${topic}. 
+
+IMPORTANT: Your response must be ONLY a valid JSON array with NO additional text before or after. Format:
+[{"question":"Question text here","options":["Option A","Option B","Option C","Option D"],"correct":0,"explanation":"Why this answer is correct"}]
+
+The "correct" field should be the index (0-3) of the correct option.
+Make questions appropriate for Philippine education standards.
+
+Topic: ${topic}
+Number of questions: ${count}`
                       }],
                       model: 'llama-3.1-70b-versatile',
-                      temperature: 0.7,
-                      max_tokens: 2048,
+                      temperature: 0.3,
+                      max_tokens: 3000,
                     }),
                   });
                   
                   const result = await response.json();
-                  if (result.success) {
+                  console.log('Quiz API Response:', result);
+                  
+                  if (result.success && result.choices && result.choices[0]) {
                     try {
-                      const quizContent = result.choices[0].message.content;
-                      const jsonMatch = quizContent.match(/\[[\s\S]*\]/);
-                      const questions = JSON.parse(jsonMatch ? jsonMatch[0] : quizContent);
+                      let quizContent = result.choices[0].message.content.trim();
+                      console.log('Quiz Content:', quizContent);
                       
-                      setQuizData({
-                        topic,
-                        questions,
-                        timeLimit: parseInt(time) * 60
-                      });
-                      setTimeLeft(parseInt(time) * 60);
-                      setUserAnswers(new Array(questions.length).fill(null));
-                      setQuizState('taking');
-                      setCurrentQuestion(0);
+                      // Clean the content to extract JSON
+                      let jsonStr = quizContent;
+                      
+                      // Remove any markdown code blocks
+                      jsonStr = jsonStr.replace(/```json\s*|\s*```/g, '');
+                      jsonStr = jsonStr.replace(/```\s*|\s*```/g, '');
+                      
+                      // Find JSON array pattern
+                      const jsonMatch = jsonStr.match(/\[[\s\S]*?\]/);
+                      if (jsonMatch) {
+                        jsonStr = jsonMatch[0];
+                      }
+                      
+                      console.log('Parsing JSON:', jsonStr);
+                      const questions = JSON.parse(jsonStr);
+                      
+                      if (Array.isArray(questions) && questions.length > 0) {
+                        // Validate question format
+                        const validQuestions = questions.filter(q => 
+                          q.question && Array.isArray(q.options) && 
+                          q.options.length >= 4 && 
+                          typeof q.correct === 'number' && 
+                          q.correct >= 0 && q.correct < q.options.length
+                        );
+                        
+                        if (validQuestions.length > 0) {
+                          setQuizData({
+                            topic,
+                            questions: validQuestions,
+                            timeLimit: parseInt(time) * 60
+                          });
+                          setTimeLeft(parseInt(time) * 60);
+                          setUserAnswers(new Array(validQuestions.length).fill(null));
+                          setQuizState('taking');
+                          setCurrentQuestion(0);
+                          console.log('Quiz successfully created:', validQuestions.length, 'questions');
+                        } else {
+                          throw new Error('No valid questions generated');
+                        }
+                      } else {
+                        throw new Error('Invalid response format');
+                      }
                     } catch (parseError) {
-                      alert('Failed to generate quiz. Please try again.');
+                      console.error('Parse Error:', parseError);
+                      alert('Failed to parse quiz data. Please try again with a simpler topic.');
                     }
+                  } else {
+                    throw new Error(result.error || 'No response from AI');
                   }
                 } catch (error) {
-                  alert('Failed to generate quiz. Please try again.');
+                  console.error('Quiz Generation Error:', error);
+                  alert('Failed to generate quiz. Please check your connection and try again.');
+                } finally {
+                  // Reset button state
+                  const button = document.querySelector('#create-quiz-btn') as HTMLButtonElement;
+                  if (button) {
+                    button.textContent = 'Create Quiz';
+                    button.disabled = false;
+                  }
                 }
               }}
               className="w-full py-4 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-2xl transition-colors shadow-lg"
@@ -603,24 +665,63 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
             </div>
           </div>
         ) : (
-          <div className="h-full bg-white text-black p-4 overflow-y-auto">
-            <div className="max-w-full">
-              <h1 className="text-xl font-bold text-gray-900 mb-2">{new URL(browserUrl).hostname}</h1>
-              <p className="text-gray-600 text-sm mb-4">Simulated webpage for demonstration</p>
-              
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                <h3 className="font-semibold text-blue-900 text-sm">🤖 Gawin AI Integration</h3>
-                <p className="text-blue-800 text-xs mt-1">
-                  Ask me questions about this page content!
-                </p>
-              </div>
-              
-              <div className="space-y-3">
-                <h2 className="text-lg font-semibold">Sample Content</h2>
-                <p className="text-gray-700 text-sm leading-relaxed">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor 
-                  incididunt ut labore et dolore magna aliqua.
-                </p>
+          <div className="h-full relative">
+            <iframe
+              src={browserUrl}
+              className="w-full h-full border-0"
+              title="Web Browser"
+              sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
+              onError={() => {
+                // Fallback for sites that block iframe embedding
+                console.log('iframe blocked, showing fallback');
+              }}
+            />
+            
+            {/* Overlay for sites that block iframe */}
+            <div className="absolute inset-0 bg-white text-black p-4 overflow-y-auto hidden" id="browser-fallback">
+              <div className="max-w-full">
+                <div className="flex items-center space-x-2 mb-4">
+                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span className="ml-4 text-gray-600 text-sm">{browserUrl}</span>
+                </div>
+                
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                  <h3 className="font-semibold text-yellow-900 text-sm flex items-center">
+                    <span className="mr-2">⚠️</span>
+                    Site Blocked Embedding
+                  </h3>
+                  <p className="text-yellow-800 text-xs mt-1">
+                    This website prevents embedding. Click the link below to open in a new tab.
+                  </p>
+                  <a 
+                    href={browserUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-block mt-2 px-3 py-1 bg-yellow-600 text-white rounded text-xs hover:bg-yellow-700 transition-colors"
+                  >
+                    Open in New Tab →
+                  </a>
+                </div>
+                
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                  <h3 className="font-semibold text-blue-900 text-sm">🤖 Gawin AI Integration</h3>
+                  <p className="text-blue-800 text-xs mt-1">
+                    Ask me questions about web content, and I'll help you understand it!
+                  </p>
+                </div>
+                
+                <div className="space-y-3">
+                  <h2 className="text-lg font-semibold">How to Use Web Browser</h2>
+                  <div className="space-y-2 text-sm text-gray-700">
+                    <p>• Enter any URL in the address bar above</p>
+                    <p>• Most sites will load directly in the browser</p>
+                    <p>• Some sites block embedding for security reasons</p>
+                    <p>• Use the floating Gawin AI button to analyze pages</p>
+                    <p>• Ask questions about content you're reading</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -942,12 +1043,12 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div className={`
-                  max-w-[85%] p-4 shadow-lg rounded-2xl
+                  max-w-[85%] px-5 py-4 shadow-lg rounded-3xl min-h-[60px] flex flex-col justify-center
                   ${message.role === 'user' 
-                    ? 'bg-gradient-to-br from-teal-600 to-teal-700 text-white' 
-                    : 'bg-gradient-to-br from-gray-700 to-gray-800 text-white ring-1 ring-gray-600/50'
+                    ? 'bg-gradient-to-br from-teal-600 to-teal-700 text-white rounded-br-lg' 
+                    : 'bg-gradient-to-br from-gray-700 to-gray-800 text-white ring-1 ring-gray-600/50 rounded-bl-lg'
                   }
-                  transition-all duration-200
+                  transition-all duration-200 hover:shadow-xl transform hover:scale-[1.01]
                 `}>
                   {message.role === 'assistant' ? (
                     <div className="prose prose-stone max-w-none">
@@ -982,14 +1083,14 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
                 animate={{ opacity: 1, y: 0 }}
                 className="flex justify-start"
               >
-                <div className="max-w-[85%] p-4 bg-gradient-to-br from-gray-700 to-gray-800 rounded-2xl shadow-lg ring-1 ring-gray-600/50">
+                <div className="max-w-[85%] px-5 py-4 bg-gradient-to-br from-gray-700 to-gray-800 rounded-3xl rounded-bl-lg shadow-lg ring-1 ring-gray-600/50 min-h-[60px] flex items-center">
                   <div className="flex items-center space-x-3">
                     <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-teal-400 rounded-full animate-pulse"></div>
-                      <div className="w-2 h-2 bg-teal-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                      <div className="w-2 h-2 bg-teal-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                      <div className="w-2.5 h-2.5 bg-teal-400 rounded-full animate-bounce"></div>
+                      <div className="w-2.5 h-2.5 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2.5 h-2.5 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                     </div>
-                    <span className="text-gray-300 text-sm italic">Thinking...</span>
+                    <span className="text-gray-300 text-sm italic">Gawin is thinking...</span>
                   </div>
                 </div>
               </motion.div>
