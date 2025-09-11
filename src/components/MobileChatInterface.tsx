@@ -137,7 +137,7 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
 
     // Update tab with message and loading
     setTabs(prev => prev.map(tab => 
-      tab.id === activeTab.id 
+      tab.id === activeTab?.id 
         ? { ...tab, messages: [...tab.messages, newMessage], isLoading: true }
         : tab
     ));
@@ -147,7 +147,7 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: [...activeTab.messages, newMessage].map(msg => ({
+          messages: [...(activeTab?.messages || []), newMessage].map(msg => ({
             role: msg.role,
             content: msg.content
           })),
@@ -170,7 +170,7 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
         };
 
         setTabs(prev => prev.map(tab => 
-          tab.id === activeTab.id 
+          tab.id === activeTab?.id 
             ? { ...tab, messages: [...tab.messages, newMessage, aiResponse], isLoading: false }
             : tab
         ));
@@ -188,7 +188,7 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
       };
       
       setTabs(prev => prev.map(tab => 
-        tab.id === activeTab.id 
+        tab.id === activeTab?.id 
           ? { ...tab, messages: [...tab.messages, newMessage, errorResponse], isLoading: false }
           : tab
       ));
@@ -922,7 +922,7 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
         ref={chatContainerRef}
         className="flex-1 overflow-y-auto px-4 py-4 space-y-4"
       >
-        {activeTab && activeTab.messages.length === 0 ? (
+        {activeTab && (activeTab.messages?.length || 0) === 0 ? (
           <div className="h-full flex items-center justify-center">
             <div className="text-center space-y-4">
               <h2 className="text-2xl font-semibold text-white">
@@ -933,7 +933,7 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
           </div>
         ) : (
           <>
-            {activeTab.messages.map((message, index) => (
+            {activeTab?.messages?.map((message, index) => (
               <motion.div
                 key={message.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -976,7 +976,7 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
               </motion.div>
             ))}
 
-            {activeTab.isLoading && (
+            {activeTab?.isLoading && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
