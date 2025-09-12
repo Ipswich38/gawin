@@ -40,7 +40,7 @@ const BehaviorService: React.FC<BehaviorServiceProps> = ({ children }) => {
                 behaviorPrivacyService.recordConsentPrompt();
                 setConsentChecked(true);
               }
-            }, 10000); // Wait 10 seconds after app load
+            }, 30000); // Wait 30 seconds after app load to reduce conflicts
 
             return () => clearTimeout(consentDelay);
           } else {

@@ -247,7 +247,7 @@ You can continue browsing normally while I work. I'll update you with findings s
                   ? { ...tab, messages: [...tab.messages, progressMessage] }
                   : tab
               ));
-            }, i * 2000); // Stagger results every 2 seconds
+            }, i * 3000); // Stagger results every 3 seconds to reduce conflicts
           }
         }
       }, 1000);
@@ -919,7 +919,7 @@ Questions: ${count}`
             onClick={() => {
               if (browserUrl) {
                 setIsPageLoading(true);
-                setTimeout(() => setIsPageLoading(false), 1000);
+                setTimeout(() => setIsPageLoading(false), 800);
               }
             }}
             className="w-8 h-8 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors flex items-center justify-center text-gray-300"
@@ -940,7 +940,7 @@ Questions: ${count}`
                   }
                   setBrowserUrl(url);
                   setIsPageLoading(true);
-                  setTimeout(() => setIsPageLoading(false), 1000);
+                  setTimeout(() => setIsPageLoading(false), 800);
                 }
               }}
               placeholder="Enter URL..."
@@ -970,7 +970,7 @@ Questions: ${count}`
                     onClick={() => {
                       setBrowserUrl(`https://${site.url}`);
                       setIsPageLoading(true);
-                      setTimeout(() => setIsPageLoading(false), 1000);
+                      setTimeout(() => setIsPageLoading(false), 800);
                     }}
                     className="p-3 bg-gray-800/50 hover:bg-gray-700/50 rounded-2xl border border-gray-600/50 transition-all"
                   >
@@ -1353,7 +1353,7 @@ Questions: ${count}`
                 key={message.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.1 }}
+                transition={{ duration: 0.3, delay: Math.min(index * 0.05, 0.5) }}
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div className={`
