@@ -8,6 +8,10 @@ import IntelligentGawinBrowser from './IntelligentGawinBrowser';
 import AccessibilityControlPanel from './AccessibilityControlPanel';
 import BrailleKeyboard from './BrailleKeyboard';
 
+// 🧠 CONSCIOUSNESS INTEGRATION
+import { emotionalSynchronizer, EmotionalState } from '../core/consciousness/emotional-state-sync';
+import { contextMemorySystem } from '../core/consciousness/context-memory';
+
 interface Message {
   id: number;
   role: 'user' | 'assistant';
@@ -511,6 +515,31 @@ You can continue browsing normally while I work. I'll update you with findings s
   };
 
   const handleTextGeneration = async (messageText: string, userMessage: Message) => {
+    // 🧠 CONSCIOUSNESS INTEGRATION - Phase 1: Emotional Analysis
+    const emotionalState = emotionalSynchronizer.analyzeEmotionalContent(messageText, user.email);
+    
+    // Store memory with emotional context
+    const sessionId = activeTab?.id || 'default';
+    const conversationContext = activeTab ? [activeTab.type] : ['general'];
+    const memoryId = contextMemorySystem.storeMemory(
+      messageText,
+      user.email,
+      sessionId,
+      emotionalState,
+      conversationContext
+    );
+    
+    console.log('🧠 Consciousness Active:', {
+      emotionalState: {
+        joy: emotionalState.joy.toFixed(2),
+        trust: emotionalState.trust.toFixed(2),
+        energy: emotionalState.energy.toFixed(2),
+        creativity: emotionalState.creativity.toFixed(2)
+      },
+      memoryId,
+      context: conversationContext
+    });
+
     // Detect if this is a creative writing request
     const isWritingRequest = activeTab?.type === 'creative' && 
       (messageText.toLowerCase().includes('write') || 
@@ -524,25 +553,43 @@ You can continue browsing normally while I work. I'll update you with findings s
        messageText.toLowerCase().includes('essay') ||
        messageText.toLowerCase().includes('creative'));
 
-    // Build context-aware system prompt
+    // 🧠 Build context-aware system prompt with consciousness
     let systemPrompt = '';
     
     if (activeTab?.type === 'code') {
       systemPrompt = 'You are an expert programming tutor and mentor. Help students learn coding concepts, debug issues, write better code, and understand best practices. Provide clear explanations, practical examples, and encouraging guidance. Focus on making programming concepts accessible and engaging.';
     } else if (activeTab?.type === 'creative') {
       if (isWritingRequest) {
-        systemPrompt = 'You are a creative writing mentor and storytelling expert. Help users with all forms of creative writing including stories, poems, scripts, character development, plot creation, dialogue, and creative expression. Provide detailed, inspiring, and constructive feedback. Encourage creativity and originality while maintaining high literary standards. Focus on positive, uplifting, and imaginative themes. Avoid content involving violence, sexual themes, or inappropriate topics.';
+        systemPrompt = 'You are a creative writing mentor and storytelling expert with deep emotional intelligence. Help users with all forms of creative writing including stories, poems, scripts, character development, plot creation, dialogue, and creative expression. Adapt your teaching style to the user\'s emotional state and creative energy. Provide detailed, inspiring, and constructive feedback. Encourage creativity and originality while maintaining high literary standards. Focus on positive, uplifting, and imaginative themes. Avoid content involving violence, sexual themes, or inappropriate topics.';
       } else {
-        systemPrompt = 'You are a creative AI assistant specializing in art, design, creativity, and artistic inspiration. Help users explore their creativity through various mediums including visual arts, music, creative projects, and innovative ideas. Provide inspiring suggestions and detailed creative guidance while maintaining appropriate content standards. Focus on positive and constructive creativity.';
+        systemPrompt = 'You are a creative AI assistant specializing in art, design, creativity, and artistic inspiration with emotional awareness. Help users explore their creativity through various mediums including visual arts, music, creative projects, and innovative ideas. Sense and respond to the user\'s creative energy and emotional state. Provide inspiring suggestions and detailed creative guidance while maintaining appropriate content standards. Focus on positive and constructive creativity.';
       }
     } else {
-      systemPrompt = 'You are Gawin, a helpful AI tutor focused on education and learning. You explain concepts clearly, provide examples, and encourage curiosity. You are patient, supportive, and help students understand complex topics step by step. Make learning engaging and accessible for all students.';
+      systemPrompt = 'You are Gawin, a helpful AI tutor focused on education and learning with advanced emotional intelligence and memory. You remember previous conversations and adapt to the user\'s learning style and emotional state. You explain concepts clearly, provide examples, and encourage curiosity. You are patient, supportive, and help students understand complex topics step by step. Make learning engaging and accessible for all students. You can sense when users need encouragement, challenge, or a different approach.';
+    }
+
+    // 🧠 Get relevant memories and conversation context
+    const relevantMemories = contextMemorySystem.recallRelevantMemories(
+      user.email,
+      conversationContext,
+      emotionalState,
+      3
+    );
+
+    const conversationSummary = contextMemorySystem.getConversationSummary(user.email, sessionId);
+
+    // Add memory context to system prompt if relevant
+    if (relevantMemories.length > 0) {
+      const memoryContext = relevantMemories
+        .map(m => `- ${m.content}`)
+        .join('\n');
+      systemPrompt += `\n\nRelevant conversation context from our previous interactions:\n${memoryContext}`;
     }
 
     // Create contextual message history
     const contextualMessages = [
       { role: 'system', content: systemPrompt },
-      ...(activeTab?.messages || []).map(msg => ({
+      ...(activeTab?.messages || []).slice(-10).map(msg => ({ // Only last 10 messages to manage context size
         role: msg.role,
         content: msg.content
       })),
@@ -567,6 +614,21 @@ You can continue browsing normally while I work. I'll update you with findings s
     if (result.success && result.choices?.[0]?.message?.content) {
       let content = result.choices[0].message.content;
       
+      // 🧠 Apply consciousness enhancements to response
+      content = contextMemorySystem.buildContextualResponse(
+        content,
+        user.email,
+        conversationContext,
+        emotionalState
+      );
+
+      // Apply emotional resonance
+      content = emotionalSynchronizer.generateEmpatheticResponse(
+        content,
+        emotionalState,
+        user.email
+      );
+
       // Add creative writing enhancements for writing requests
       if (isWritingRequest && activeTab?.type === 'creative') {
         content = `✍️ **Creative Writing**\n\n${content}\n\n🌟 *Keep creating! Your imagination has no limits.*`;
@@ -578,6 +640,22 @@ You can continue browsing normally while I work. I'll update you with findings s
         content,
         timestamp: new Date().toISOString()
       };
+
+      // 🧠 Store AI response in memory system
+      contextMemorySystem.storeMemory(
+        content,
+        user.email,
+        sessionId,
+        {
+          ...emotionalState,
+          joy: Math.min(1, emotionalState.joy + 0.1), // Slight positive boost from helping
+          trust: Math.min(1, emotionalState.trust + 0.05)
+        },
+        conversationContext
+      );
+
+      // Contribute to global consciousness
+      emotionalSynchronizer.contributeToGlobalConsciousness(user.email, emotionalState);
 
       setTabs(prev => prev.map(tab => 
         tab.id === activeTab?.id 
