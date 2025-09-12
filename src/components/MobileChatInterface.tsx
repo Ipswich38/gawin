@@ -1700,12 +1700,40 @@ Questions: ${count}`
             </div>
             
             <div className="bg-black/95 rounded-2xl border border-gray-700 overflow-hidden">
-              <div className="px-4 py-2 border-b border-gray-700 bg-gray-900/50">
+              <div className="px-4 py-2 border-b border-gray-700 bg-gray-900/50 flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-red-500 rounded-full"></div>
                   <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
                   <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                   <span className="ml-4 text-gray-400 text-sm font-mono">editor.js</span>
+                </div>
+                
+                {/* Code Action Buttons */}
+                <div className="flex items-center space-x-1">
+                  <button
+                    onClick={() => handleSend(`Review this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
+                    className="px-2 py-1 bg-teal-600 hover:bg-teal-700 text-white text-xs rounded-lg font-medium transition-colors"
+                    disabled={!codeContent.trim()}
+                    title="Review Code"
+                  >
+                    Review
+                  </button>
+                  <button
+                    onClick={() => handleSend(`Explain this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
+                    className="px-2 py-1 bg-gray-600 hover:bg-gray-500 text-white text-xs rounded-lg font-medium transition-colors"
+                    disabled={!codeContent.trim()}
+                    title="Explain Code"
+                  >
+                    Explain
+                  </button>
+                  <button
+                    onClick={() => handleSend(`Debug this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
+                    className="px-2 py-1 bg-gray-600 hover:bg-gray-500 text-white text-xs rounded-lg font-medium transition-colors"
+                    disabled={!codeContent.trim()}
+                    title="Debug Code"
+                  >
+                    Debug
+                  </button>
                 </div>
               </div>
               <textarea
@@ -1715,30 +1743,6 @@ Questions: ${count}`
                 className="w-full h-48 bg-transparent text-green-400 font-mono text-sm resize-none p-4 focus:outline-none placeholder-gray-500"
                 spellCheck={false}
               />
-            </div>
-            
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                onClick={() => handleSend(`Review this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
-                className="px-3 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm rounded-xl font-medium transition-colors"
-                disabled={!codeContent.trim()}
-              >
-                Review
-              </button>
-              <button
-                onClick={() => handleSend(`Explain this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
-                className="px-3 py-2 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded-xl font-medium transition-colors"
-                disabled={!codeContent.trim()}
-              >
-                Explain
-              </button>
-              <button
-                onClick={() => handleSend(`Debug this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
-                className="px-3 py-2 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded-xl font-medium transition-colors"
-                disabled={!codeContent.trim()}
-              >
-                Debug
-              </button>
             </div>
           </div>
           
