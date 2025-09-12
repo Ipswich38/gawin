@@ -795,4 +795,4 @@ class BehavioralPsychologySystem {
 // Global behavioral psychology system instance
 export const behavioralPsychologySystem = new BehavioralPsychologySystem();
 
-export type { PsychologicalProfile, MentalHealthIndicators, LearningPersonality, BehaviorPattern };
+export type { MentalHealthIndicators, LearningPersonality, BehaviorPattern };
