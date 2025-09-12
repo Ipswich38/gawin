@@ -1441,9 +1441,9 @@ Questions: ${count}`
   );
 
   const renderCodeContent = () => (
-    <div className="p-4 space-y-4">
+    <div className="flex flex-col h-full">
       {!showCodeWorkspace ? (
-        <div className="h-full flex items-center justify-center py-16">
+        <div className="flex-1 flex items-center justify-center py-16">
           <div className="text-center space-y-4">
             <h2 className="text-2xl font-semibold text-white">⚡ Code Workspace</h2>
             <p className="text-gray-300">Ask about programming or share code for analysis</p>
@@ -1456,59 +1456,67 @@ Questions: ${count}`
           </div>
         </div>
       ) : (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-white font-medium">Code Workspace</h3>
-            <button
-              onClick={() => setShowCodeWorkspace(false)}
-              className="text-gray-400 hover:text-white"
-            >
-              ×
-            </button>
-          </div>
-          
-          <div className="bg-black/95 rounded-2xl border border-gray-700 overflow-hidden">
-            <div className="px-4 py-2 border-b border-gray-700 bg-gray-900/50">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span className="ml-4 text-gray-400 text-sm font-mono">editor.js</span>
-              </div>
+        <>
+          {/* Code Editor Section */}
+          <div className="p-4 space-y-4 flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <h3 className="text-white font-medium">Code Workspace</h3>
+              <button
+                onClick={() => setShowCodeWorkspace(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                ×
+              </button>
             </div>
-            <textarea
-              value={codeContent}
-              onChange={(e) => setCodeContent(e.target.value)}
-              placeholder="// Write or paste your code here..."
-              className="w-full h-48 bg-transparent text-green-400 font-mono text-sm resize-none p-4 focus:outline-none placeholder-gray-500"
-              spellCheck={false}
-            />
+            
+            <div className="bg-black/95 rounded-2xl border border-gray-700 overflow-hidden">
+              <div className="px-4 py-2 border-b border-gray-700 bg-gray-900/50">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span className="ml-4 text-gray-400 text-sm font-mono">editor.js</span>
+                </div>
+              </div>
+              <textarea
+                value={codeContent}
+                onChange={(e) => setCodeContent(e.target.value)}
+                placeholder="// Write or paste your code here..."
+                className="w-full h-48 bg-transparent text-green-400 font-mono text-sm resize-none p-4 focus:outline-none placeholder-gray-500"
+                spellCheck={false}
+              />
+            </div>
+            
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                onClick={() => handleSend(`Review this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
+                className="px-3 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm rounded-xl font-medium transition-colors"
+                disabled={!codeContent.trim()}
+              >
+                Review
+              </button>
+              <button
+                onClick={() => handleSend(`Explain this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
+                className="px-3 py-2 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded-xl font-medium transition-colors"
+                disabled={!codeContent.trim()}
+              >
+                Explain
+              </button>
+              <button
+                onClick={() => handleSend(`Debug this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
+                className="px-3 py-2 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded-xl font-medium transition-colors"
+                disabled={!codeContent.trim()}
+              >
+                Debug
+              </button>
+            </div>
           </div>
           
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              onClick={() => handleSend(`Review this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
-              className="px-3 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm rounded-xl font-medium transition-colors"
-              disabled={!codeContent.trim()}
-            >
-              Review
-            </button>
-            <button
-              onClick={() => handleSend(`Explain this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
-              className="px-3 py-2 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded-xl font-medium transition-colors"
-              disabled={!codeContent.trim()}
-            >
-              Explain
-            </button>
-            <button
-              onClick={() => handleSend(`Debug this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
-              className="px-3 py-2 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded-xl font-medium transition-colors"
-              disabled={!codeContent.trim()}
-            >
-              Debug
-            </button>
+          {/* Chat Content */}
+          <div className="flex-1 overflow-hidden">
+            {renderChatContent()}
           </div>
-        </div>
+        </>
       )}
     </div>
   );
@@ -1577,7 +1585,32 @@ Questions: ${count}`
                 `}>
                   {message.role === 'assistant' ? (
                     <div className="prose prose-stone max-w-none">
-                      <MessageRenderer text={message.content} />
+                      <MessageRenderer 
+                        text={message.content} 
+                        showActions={true}
+                        onCopy={() => {
+                          // Show copy feedback
+                          console.log('Copied message:', message.id);
+                        }}
+                        onThumbsUp={() => {
+                          console.log('👍 Thumbs up for message:', message.id);
+                          // Here we could send feedback to consciousness system
+                          emotionalSynchronizer.contributeToGlobalConsciousness(user.email, {
+                            ...emotionalSynchronizer.analyzeEmotionalContent('positive feedback', user.email),
+                            joy: 0.8,
+                            trust: 0.9
+                          });
+                        }}
+                        onThumbsDown={() => {
+                          console.log('👎 Thumbs down for message:', message.id);
+                          // Here we could send negative feedback to consciousness system
+                          emotionalSynchronizer.contributeToGlobalConsciousness(user.email, {
+                            ...emotionalSynchronizer.analyzeEmotionalContent('negative feedback', user.email),
+                            sadness: 0.3,
+                            trust: 0.4
+                          });
+                        }}
+                      />
                       {message.imageUrl && (
                         <div className="mt-3 rounded-lg overflow-hidden border border-gray-600">
                           <img 

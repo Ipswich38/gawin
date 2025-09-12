@@ -6,9 +6,13 @@ import 'katex/dist/katex.min.css';
 
 interface MessageRendererProps {
   text: string;
+  showActions?: boolean;
+  onCopy?: () => void;
+  onThumbsUp?: () => void;
+  onThumbsDown?: () => void;
 }
 
-export default function MessageRenderer({ text }: MessageRendererProps) {
+export default function MessageRenderer({ text, showActions, onCopy, onThumbsUp, onThumbsDown }: MessageRendererProps) {
   // For OCR-related messages, render as plain text without any processing
   const isOCRMessage = text.includes('uploaded') || text.includes('PDF') || text.includes('images') || 
                       text.includes('OCR') || text.includes('extraction') || text.includes('convert') ||
@@ -26,9 +30,12 @@ export default function MessageRenderer({ text }: MessageRendererProps) {
     );
   }
   
-  // Preprocess text to handle various fraction formats - only for mathematical content
+  // Preprocess text to handle various fraction formats and clean formatting
   const preprocessText = (input: string) => {
     return input
+      // REMOVE ASTERISKS - Clean up markdown formatting for better readability
+      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove **bold** markers
+      .replace(/\*(.*?)\*/g, '$1')     // Remove *italic* markers
       // Convert simple fractions like 1/2 to LaTeX when they appear to be mathematical
       .replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}')
       // Convert fractions with parentheses like (a+b)/(c+d) to LaTeX
@@ -331,6 +338,44 @@ export default function MessageRenderer({ text }: MessageRendererProps) {
       whiteSpace: 'normal'
     }}>
       {renderText(text)}
+      
+      {/* Action buttons for AI responses */}
+      {showActions && (
+        <div className="flex items-center justify-end space-x-2 mt-3 pt-2 border-t border-gray-600/30">
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(text);
+              onCopy?.();
+            }}
+            className="p-1.5 text-gray-400 hover:text-gray-300 hover:bg-gray-700/30 rounded transition-colors"
+            title="Copy response"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </button>
+          
+          <button
+            onClick={onThumbsUp}
+            className="p-1.5 text-gray-400 hover:text-green-400 hover:bg-green-500/10 rounded transition-colors"
+            title="Good response"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L9 7v13m-5-4v2a2 2 0 002 2h2.5l1-1" />
+            </svg>
+          </button>
+          
+          <button
+            onClick={onThumbsDown}
+            className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
+            title="Poor response"
+          >
+            <svg className="w-3.5 h-3.5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L9 7v13m-5-4v2a2 2 0 002 2h2.5l1-1" />
+            </svg>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
