@@ -14,7 +14,7 @@
  * 4. Effective workflow patterns (routing, orchestration)
  */
 
-import { emotionalSynchronizer } from '../consciousness/emotional-state-sync';
+import { emotionalSynchronizer } from '../../core/consciousness/emotional-state-sync';
 
 // Core Agent Types
 export interface AgentTask {
