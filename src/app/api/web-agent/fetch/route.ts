@@ -187,7 +187,7 @@ export async function POST(request: NextRequest) {
     
     console.log(`🌐 Fetching content from: ${url}`);
     
-    // Fetch content with proper headers
+    // Fetch content with proper headers and timeout
     const fetchResponse = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; GawinAI/1.0; +https://gawin.ai/bot)',
@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
         'Connection': 'keep-alive',
         'Cache-Control': 'no-cache',
       },
-      timeout: 10000, // 10 second timeout
+      signal: AbortSignal.timeout(10000), // 10 second timeout
     });
     
     if (!fetchResponse.ok) {
