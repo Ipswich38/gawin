@@ -253,12 +253,12 @@ Formatting Rules:
       if (false && behaviorPrivacyService.hasValidConsent()) { // Temporarily disabled until privacy service is fixed
         try {
           const userMessage = validatedMessages.find(msg => msg.role === 'user');
-          if (userMessage && typeof userMessage.content === 'string') {
+          if (userMessage && typeof userMessage?.content === 'string') {
             const enhancement = await behaviorEnhancedAI.enhancePrompt({
               originalPrompt: typeof messagesWithSystem.find(msg => msg.role === 'system')?.content === 'string' 
                 ? messagesWithSystem.find(msg => msg.role === 'system')!.content as string
                 : '',
-              userMessage: userMessage.content,
+              userMessage: userMessage!.content as string,
               messageHistory: validatedMessages,
               aiAction: request.action || 'chat'
             });
