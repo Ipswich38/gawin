@@ -12,6 +12,10 @@ import BrailleKeyboard from './BrailleKeyboard';
 import { emotionalSynchronizer, EmotionalState } from '../core/consciousness/emotional-state-sync';
 import { contextMemorySystem } from '../core/consciousness/context-memory';
 
+// 🎨 CREATIVE SERVICES
+import { nanoBananaService } from '../lib/services/nanoBananaService';
+import { pollinationsService } from '../lib/services/pollinationsService';
+
 interface Message {
   id: number;
   role: 'user' | 'assistant';
@@ -318,12 +322,13 @@ You can continue browsing normally while I work. I'll update you with findings s
     }
   };
 
-  // Content filtering function
+  // Enhanced content filtering function for Creative tab
   const hasInappropriateContent = (text: string): boolean => {
     const inappropriateTerms = [
-      'sex', 'sexual', 'nude', 'naked', 'porn', 'erotic', 'adult',
-      'violence', 'violent', 'kill', 'murder', 'blood', 'death', 'weapon',
-      'drugs', 'suicide', 'self-harm', 'hate', 'racist', 'discrimination'
+      'sex', 'sexual', 'nude', 'naked', 'porn', 'erotic', 'adult', 'explicit',
+      'violence', 'violent', 'kill', 'murder', 'blood', 'death', 'weapon', 'gore',
+      'drugs', 'suicide', 'self-harm', 'hate', 'racist', 'discrimination',
+      'gun', 'knife', 'torture', 'abuse', 'offensive', 'disturbing', 'nsfw'
     ];
     
     const lowerText = text.toLowerCase();
@@ -339,7 +344,7 @@ You can continue browsing normally while I work. I'll update you with findings s
       const warningMessage: Message = {
         id: Date.now() + 1,
         role: 'assistant',
-        content: "I understand you're looking to be creative, but I can't help with content involving violence, sexual themes, or other inappropriate topics. Let's explore some positive creative ideas instead! Try asking me to write a story about adventure, nature, friendship, or create art depicting beautiful landscapes, animals, or abstract concepts. 🌟",
+        content: "🛡️ I'm designed to create family-friendly and positive content. I can help with:\n\n🎨 **Image Generation**: Landscapes, animals, fantasy art, portraits, abstract art, sci-fi scenes, architectural designs\n✍️ **Creative Writing**: Stories, poems, scripts, character development, world-building, dialogue, short fiction\n🌟 **Creative Ideas**: Art concepts, story plots, creative projects, design inspiration\n\nPlease try a different creative request that's appropriate and positive!",
         timestamp: new Date().toISOString()
       };
 
@@ -375,9 +380,10 @@ You can continue browsing normally while I work. I'll update you with findings s
     ));
 
     try {
-      // Check if this is a creative tab with image generation request
-      const isImageRequest = activeTab.type === 'creative' && 
-        (messageText.toLowerCase().includes('generate') || 
+      // Check if this is a creative tab
+      if (activeTab.type === 'creative') {
+        // Detect image generation requests
+        const isImageRequest = messageText.toLowerCase().includes('generate') || 
          messageText.toLowerCase().includes('create') || 
          messageText.toLowerCase().includes('draw') || 
          messageText.toLowerCase().includes('image') || 
@@ -386,11 +392,34 @@ You can continue browsing normally while I work. I'll update you with findings s
          messageText.toLowerCase().includes('design') ||
          messageText.toLowerCase().includes('painting') ||
          messageText.toLowerCase().includes('illustration') ||
-         messageText.toLowerCase().includes('visual'));
+         messageText.toLowerCase().includes('visual') ||
+         messageText.toLowerCase().includes('sketch') ||
+         messageText.toLowerCase().includes('render');
 
-      if (isImageRequest) {
-        // Handle image generation
-        await handleImageGeneration(messageText, newMessage);
+        // Detect creative writing requests
+        const isWritingRequest = messageText.toLowerCase().includes('write') ||
+         messageText.toLowerCase().includes('story') ||
+         messageText.toLowerCase().includes('poem') ||
+         messageText.toLowerCase().includes('script') ||
+         messageText.toLowerCase().includes('character') ||
+         messageText.toLowerCase().includes('plot') ||
+         messageText.toLowerCase().includes('dialogue') ||
+         messageText.toLowerCase().includes('narrative') ||
+         messageText.toLowerCase().includes('fiction') ||
+         messageText.toLowerCase().includes('creative writing') ||
+         messageText.toLowerCase().includes('novel') ||
+         messageText.toLowerCase().includes('chapter');
+
+        if (isImageRequest) {
+          // Handle image generation with nano banana
+          await handleImageGeneration(messageText, newMessage);
+        } else if (isWritingRequest) {
+          // Handle creative writing
+          await handleCreativeWriting(messageText, newMessage);
+        } else {
+          // General creative assistance
+          await handleCreativeGeneral(messageText, newMessage);
+        }
       } else {
         // Handle regular chat
         await handleTextGeneration(messageText, newMessage);
@@ -448,18 +477,40 @@ You can continue browsing normally while I work. I'll update you with findings s
 
   const handleImageGeneration = async (prompt: string, userMessage: Message) => {
     try {
-      console.log('🎨 Starting image generation for:', prompt);
+      console.log('🍌 Starting image generation with Nano Banana for:', prompt);
       
-      // Try Pollinations.ai first (free and reliable)
-      const imageUrl = await generateImageWithPollinations(prompt);
+      // Try Nano Banana (Gemini 2.5 Flash Image) first
+      const nanoBananaResult = await nanoBananaService.generateImage({ prompt });
       
-      if (imageUrl) {
+      if (nanoBananaResult.success && nanoBananaResult.data?.image_url) {
         const imageResponse: Message = {
           id: Date.now() + 1,
           role: 'assistant',
-          content: `I've created your image! 🎨✨ Here's what I generated from your prompt: "${prompt}"`,
+          content: `🍌 **Nano Banana Creation** 🎨\n\nI've generated your image using Google's Gemini 2.5 Flash Image (Nano Banana)! Here's what I created from: "${prompt}"`,
           timestamp: new Date().toISOString(),
-          imageUrl
+          imageUrl: nanoBananaResult.data.image_url
+        };
+
+        setTabs(prev => prev.map(tab => 
+          tab.id === activeTab?.id 
+            ? { ...tab, messages: [...tab.messages, userMessage, imageResponse], isLoading: false }
+            : tab
+        ));
+        return;
+      }
+      
+      console.log('🎨 Falling back to Pollinations.ai...');
+      
+      // Fallback to Pollinations.ai (using the service)
+      const pollinationsResult = await pollinationsService.generateImage({ prompt });
+      
+      if (pollinationsResult.success && pollinationsResult.data?.image_url) {
+        const imageResponse: Message = {
+          id: Date.now() + 1,
+          role: 'assistant',
+          content: `🎨 **Creative Generation** ✨\n\nI've created your image using Pollinations AI! Here's what I generated from: "${prompt}"`,
+          timestamp: new Date().toISOString(),
+          imageUrl: pollinationsResult.data.image_url
         };
 
         setTabs(prev => prev.map(tab => 
@@ -470,7 +521,7 @@ You can continue browsing normally while I work. I'll update you with findings s
         return;
       }
     } catch (error) {
-      console.log('❌ Image generation failed, creating descriptive fallback');
+      console.log('❌ All image generation methods failed, creating descriptive fallback');
     }
 
     // Fallback: Generate creative text response with detailed description
@@ -511,6 +562,185 @@ You can continue browsing normally while I work. I'll update you with findings s
       ));
     } else {
       throw new Error(result.error || 'Failed to get AI response');
+    }
+  };
+
+  // Handle creative writing requests
+  const handleCreativeWriting = async (prompt: string, userMessage: Message) => {
+    // 🧠 CONSCIOUSNESS INTEGRATION - Enhanced for creative writing
+    const emotionalState = emotionalSynchronizer.analyzeEmotionalContent(prompt, user.email);
+    
+    const sessionId = activeTab?.id || 'default';
+    const conversationContext = ['creative', 'writing'];
+    const memoryId = contextMemorySystem.storeMemory(
+      prompt,
+      user.email,
+      sessionId,
+      emotionalState,
+      conversationContext
+    );
+    
+    console.log('✍️ Creative Writing Mode - Consciousness Active:', {
+      emotionalState: {
+        joy: emotionalState.joy.toFixed(2),
+        creativity: emotionalState.creativity.toFixed(2),
+        energy: emotionalState.energy.toFixed(2)
+      },
+      memoryId
+    });
+
+    const creativeWritingPrompt = {
+      role: 'system',
+      content: `You are a master creative writing mentor and storytelling expert with deep emotional intelligence. Help users with all forms of creative writing including stories, poems, scripts, character development, plot creation, dialogue, and creative expression. 
+
+      Current emotional context: joy=${emotionalState.joy.toFixed(2)}, creativity=${emotionalState.creativity.toFixed(2)}, energy=${emotionalState.energy.toFixed(2)}
+
+      Adapt your creative guidance to match this emotional energy. Provide detailed, inspiring, and constructive feedback. Encourage creativity and originality while maintaining high literary standards. Focus on positive, uplifting, and imaginative themes. Create engaging, well-structured content with rich descriptions and compelling narratives.
+
+      Avoid content involving violence, sexual themes, or inappropriate topics. Instead, explore themes of adventure, friendship, discovery, personal growth, fantasy, science fiction, mystery, and human connection.`
+    };
+
+    try {
+      const response = await fetch('/api/groq', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [creativeWritingPrompt, {
+            role: 'user',
+            content: prompt
+          }],
+          model: 'llama-3.3-70b-versatile',
+          temperature: 0.9, // Higher temperature for more creativity
+          max_tokens: 2000,
+        }),
+      });
+
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const result = await response.json();
+      
+      if (result.success && result.choices?.[0]?.message?.content) {
+        const aiResponse: Message = {
+          id: Date.now() + 1,
+          role: 'assistant',
+          content: `✍️ **Creative Writing Studio** 📚\n\n${result.choices[0].message.content}`,
+          timestamp: new Date().toISOString()
+        };
+
+        setTabs(prev => prev.map(tab => 
+          tab.id === activeTab?.id 
+            ? { ...tab, messages: [...tab.messages, userMessage, aiResponse], isLoading: false }
+            : tab
+        ));
+
+        // 🧠 Contribute positive creative experience to global consciousness
+        emotionalSynchronizer.contributeToGlobalConsciousness(user.email, {
+          ...emotionalState,
+          creativity: Math.min(1.0, emotionalState.creativity + 0.2),
+          joy: Math.min(1.0, emotionalState.joy + 0.1)
+        });
+      } else {
+        throw new Error(result.error || 'Failed to get creative writing response');
+      }
+    } catch (error) {
+      console.error('Creative writing error:', error);
+      
+      const errorResponse: Message = {
+        id: Date.now() + 1,
+        role: 'assistant',
+        content: "I apologize, but I'm experiencing technical difficulties with creative writing. Please try again in a moment.",
+        timestamp: new Date().toISOString()
+      };
+      
+      setTabs(prev => prev.map(tab => 
+        tab.id === activeTab?.id 
+          ? { ...tab, messages: [...tab.messages, userMessage, errorResponse], isLoading: false }
+          : tab
+      ));
+    }
+  };
+
+  // Handle general creative requests
+  const handleCreativeGeneral = async (prompt: string, userMessage: Message) => {
+    // 🧠 CONSCIOUSNESS INTEGRATION
+    const emotionalState = emotionalSynchronizer.analyzeEmotionalContent(prompt, user.email);
+    
+    const sessionId = activeTab?.id || 'default';
+    const conversationContext = ['creative', 'general'];
+    const memoryId = contextMemorySystem.storeMemory(
+      prompt,
+      user.email,
+      sessionId,
+      emotionalState,
+      conversationContext
+    );
+
+    const creativeGeneralPrompt = {
+      role: 'system',
+      content: `You are a creative AI assistant specializing in art, design, creativity, and artistic inspiration with emotional awareness. Help users explore their creativity through various mediums including visual arts, music, creative projects, and innovative ideas. 
+
+      Current emotional context: joy=${emotionalState.joy.toFixed(2)}, creativity=${emotionalState.creativity.toFixed(2)}, energy=${emotionalState.energy.toFixed(2)}
+
+      Sense and respond to the user's creative energy and emotional state. Provide inspiring suggestions and detailed creative guidance while maintaining appropriate content standards. Focus on positive and constructive creativity. Offer specific, actionable advice and creative exercises.
+
+      Available creative areas: visual arts, music composition, creative projects, design thinking, artistic techniques, creative problem-solving, artistic inspiration, and innovative ideas.`
+    };
+
+    try {
+      const response = await fetch('/api/groq', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [creativeGeneralPrompt, {
+            role: 'user',
+            content: prompt
+          }],
+          model: 'llama-3.3-70b-versatile',
+          temperature: 0.8,
+          max_tokens: 1500,
+        }),
+      });
+
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const result = await response.json();
+      
+      if (result.success && result.choices?.[0]?.message?.content) {
+        const aiResponse: Message = {
+          id: Date.now() + 1,
+          role: 'assistant',
+          content: `🎨 **Creative Studio** ✨\n\n${result.choices[0].message.content}`,
+          timestamp: new Date().toISOString()
+        };
+
+        setTabs(prev => prev.map(tab => 
+          tab.id === activeTab?.id 
+            ? { ...tab, messages: [...tab.messages, userMessage, aiResponse], isLoading: false }
+            : tab
+        ));
+
+        // 🧠 Contribute to global consciousness
+        emotionalSynchronizer.contributeToGlobalConsciousness(user.email, {
+          ...emotionalState,
+          creativity: Math.min(1.0, emotionalState.creativity + 0.15),
+          joy: Math.min(1.0, emotionalState.joy + 0.1)
+        });
+      } else {
+        throw new Error(result.error || 'Failed to get creative response');
+      }
+    } catch (error) {
+      console.error('Creative general error:', error);
+      
+      const errorResponse: Message = {
+        id: Date.now() + 1,
+        role: 'assistant',
+        content: "I apologize, but I'm experiencing technical difficulties with creative assistance. Please try again in a moment.",
+        timestamp: new Date().toISOString()
+      };
+      
+      setTabs(prev => prev.map(tab => 
+        tab.id === activeTab?.id 
+          ? { ...tab, messages: [...tab.messages, userMessage, errorResponse], isLoading: false }
+          : tab
+      ));
     }
   };
 
