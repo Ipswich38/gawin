@@ -1436,86 +1436,30 @@ Questions: ${count}`
   );
 
   const renderCreativeContent = () => (
-    <div className="p-6 space-y-6">
-      <div className="text-center space-y-4">
-        <h2 className="text-2xl font-semibold text-white">🎨 Creative Studio</h2>
-        <p className="text-gray-300">Unleash your creativity with AI assistance</p>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-gradient-to-r from-purple-900/30 to-purple-700/30 border border-purple-700/50 rounded-2xl p-4">
-            <div className="flex items-center justify-center space-x-2 mb-3">
-              <span className="text-xl">🖼️</span>
-              <h5 className="text-lg font-medium text-purple-100">Image Generation</h5>
-            </div>
-            <p className="text-gray-300 text-center text-sm">
-              Create stunning visuals from your imagination using AI-powered image generation.
-            </p>
-            <div className="mt-3 text-center">
-              <span className="inline-block bg-purple-600/20 text-purple-200 px-2 py-1 rounded-full text-xs">
-                Powered by Pollinations.ai
-              </span>
-            </div>
-          </div>
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="p-4 text-center">
+        <h2 className="text-xl font-semibold text-white">🎨 Creative Studio</h2>
+        <p className="text-gray-400 text-sm mt-1">AI-powered creativity tools</p>
+      </div>
 
-          <div className="bg-gradient-to-r from-teal-900/30 to-teal-700/30 border border-teal-700/50 rounded-2xl p-4">
-            <div className="flex items-center justify-center space-x-2 mb-3">
-              <span className="text-xl">✍️</span>
-              <h5 className="text-lg font-medium text-teal-100">Creative Writing</h5>
-            </div>
-            <p className="text-gray-300 text-center text-sm">
-              Craft stories, poems, scripts, and creative content with expert AI guidance.
-            </p>
-            <div className="mt-3 text-center">
-              <span className="inline-block bg-teal-600/20 text-teal-200 px-2 py-1 rounded-full text-xs">
-                Stories • Poems • Scripts
-              </span>
-            </div>
+      {/* Feature Cards */}
+      <div className="px-4 pb-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-gray-800/50 rounded-xl p-3 text-center">
+            <div className="text-2xl mb-1">🖼️</div>
+            <div className="text-white text-sm font-medium">Image Generation</div>
+          </div>
+          <div className="bg-gray-800/50 rounded-xl p-3 text-center">
+            <div className="text-2xl mb-1">✍️</div>
+            <div className="text-white text-sm font-medium">Creative Writing</div>
           </div>
         </div>
+      </div>
 
-        <div className="bg-gradient-to-r from-orange-900/20 to-red-900/20 border border-orange-700/30 rounded-2xl p-4">
-          <div className="flex items-center justify-center space-x-2 mb-2">
-            <span className="text-lg">🛡️</span>
-            <h5 className="text-md font-medium text-orange-100">Safe Creative Space</h5>
-          </div>
-          <p className="text-gray-300 text-center text-sm">
-            Our content filtering ensures all creative work maintains positive, appropriate standards.
-          </p>
-        </div>
-
-        <div className="space-y-2">
-          <h3 className="text-white font-semibold text-lg">Try These Ideas:</h3>
-          <div className="grid grid-cols-2 gap-2 text-sm">
-            <button 
-              onClick={() => setInputValue("Generate a beautiful sunset over mountains")}
-              className="p-2 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg text-gray-300 hover:text-white transition-colors text-left"
-            >
-              🌅 Scenic landscape
-            </button>
-            <button 
-              onClick={() => setInputValue("Write a short story about friendship")}
-              className="p-2 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg text-gray-300 hover:text-white transition-colors text-left"
-            >
-              📚 Friendship story
-            </button>
-            <button 
-              onClick={() => setInputValue("Create art of a magical forest")}
-              className="p-2 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg text-gray-300 hover:text-white transition-colors text-left"
-            >
-              🌲 Fantasy artwork
-            </button>
-            <button 
-              onClick={() => setInputValue("Write a poem about nature")}
-              className="p-2 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg text-gray-300 hover:text-white transition-colors text-left"
-            >
-              🌿 Nature poetry
-            </button>
-          </div>
-        </div>
-
-        <p className="text-gray-400 text-sm">
-          Start chatting below to explore your creativity! 🌟
-        </p>
+      {/* Chat Content */}
+      <div className="flex-1 overflow-hidden">
+        {renderChatContent()}
       </div>
     </div>
   );
@@ -1693,9 +1637,9 @@ Questions: ${count}`
         {renderTabContent()}
       </div>
 
-      {/* Chat Input (only for general/code/creative tabs) */}
+      {/* Chat Input (only for general/code/creative tabs) - Increased height by 50% */}
       {activeTab && ['general', 'code', 'creative'].includes(activeTab.type) && (
-        <div className="px-4 py-4 bg-gray-900/80 backdrop-blur-sm border-t border-gray-600/50">
+        <div className="px-4 py-6 bg-gray-900/80 backdrop-blur-sm border-t border-gray-600/50">
           <div className="relative">
             <input
               type="text"
@@ -1712,16 +1656,16 @@ Questions: ${count}`
                 activeTab.type === 'creative' ? 'creative...' :
                 'about your studies...'
               }`}
-              className="w-full pl-4 pr-12 py-3 bg-gray-800 text-white rounded-2xl border border-gray-700 focus:outline-none focus:border-teal-500 placeholder-gray-400"
+              className="w-full pl-4 pr-12 py-4 bg-gray-800 text-white rounded-2xl border border-gray-700 focus:outline-none focus:border-teal-500 placeholder-gray-400 text-base"
               disabled={activeTab.isLoading}
             />
             
             <button
               onClick={() => handleSend(inputValue)}
               disabled={activeTab.isLoading || !inputValue.trim()}
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-teal-600 hover:bg-teal-500 disabled:bg-gray-600 rounded-full flex items-center justify-center transition-colors"
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-teal-600 hover:bg-teal-500 disabled:bg-gray-600 rounded-full flex items-center justify-center transition-colors"
             >
-              <span className="text-white">
+              <span className="text-white text-lg">
                 {activeTab.isLoading ? '⋯' : '→'}
               </span>
             </button>
