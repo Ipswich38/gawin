@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import MessageRenderer from './MessageRenderer';
 import GawinBrowser from './GawinBrowser';
 import IntelligentGawinBrowser from './IntelligentGawinBrowser';
+import AccessibilityControlPanel from './AccessibilityControlPanel';
+import BrailleKeyboard from './BrailleKeyboard';
 
 interface Message {
   id: number;
@@ -73,6 +75,16 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   // Code states
   const [codeContent, setCodeContent] = useState('');
   const [showCodeWorkspace, setShowCodeWorkspace] = useState(false);
+
+  // Accessibility states
+  const [accessibilitySettings, setAccessibilitySettings] = useState({
+    brailleMode: false,
+    voiceOutput: false,
+    highContrast: false,
+    screenReader: false,
+    largeText: false
+  });
+  const [isBrailleKeyboardOpen, setIsBrailleKeyboardOpen] = useState(false);
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const activeTab = tabs.find(tab => tab.id === activeTabId);
@@ -264,6 +276,41 @@ You can continue browsing normally while I work. I'll update you with findings s
       percentage: Math.round((score / quizData.questions.length) * 100)
     });
     setQuizState('completed');
+  };
+
+  // Handle accessibility settings changes
+  const handleAccessibilityChange = (settings: typeof accessibilitySettings) => {
+    setAccessibilitySettings(settings);
+    
+    // Handle Braille keyboard toggle
+    if (settings.brailleMode && !isBrailleKeyboardOpen) {
+      setIsBrailleKeyboardOpen(true);
+    } else if (!settings.brailleMode && isBrailleKeyboardOpen) {
+      setIsBrailleKeyboardOpen(false);
+    }
+  };
+
+  const handleBrailleInput = (text: string) => {
+    // Append braille input to the current input
+    setInputValue(prev => prev + text);
+    
+    // Optionally announce the input
+    if (accessibilitySettings.voiceOutput && 'speechSynthesis' in window) {
+      const msg = new SpeechSynthesisUtterance(`Entered: ${text}`);
+      msg.volume = 0.7;
+      msg.rate = 0.8;
+      window.speechSynthesis.speak(msg);
+    }
+  };
+
+  const announceToUser = (text: string) => {
+    if (accessibilitySettings.voiceOutput && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const msg = new SpeechSynthesisUtterance(text);
+      msg.volume = 0.8;
+      msg.rate = 0.9;
+      window.speechSynthesis.speak(msg);
+    }
   };
 
   const handleSend = async (text: string) => {
@@ -1423,6 +1470,17 @@ Number of questions: ${count}`
           </>
         )}
       </AnimatePresence>
+
+      {/* Accessibility Control Panel */}
+      <AccessibilityControlPanel onSettingsChange={handleAccessibilityChange} />
+
+      {/* Braille Keyboard */}
+      <BrailleKeyboard 
+        isVisible={isBrailleKeyboardOpen}
+        onInput={handleBrailleInput}
+        onClose={() => setIsBrailleKeyboardOpen(false)}
+        onVoiceAnnounce={announceToUser}
+      />
       
     </div>
   );

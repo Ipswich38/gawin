@@ -250,7 +250,7 @@ Formatting Rules:
       let messagesWithSystem = this.addSystemPrompts(validatedMessages, taskType);
       
       // Enhance with behavior context if available and user has consented
-      if (behaviorPrivacyService.hasValidConsent()) {
+      if (false && behaviorPrivacyService.hasValidConsent()) { // Temporarily disabled until privacy service is fixed
         try {
           const userMessage = validatedMessages.find(msg => msg.role === 'user');
           if (userMessage && typeof userMessage.content === 'string') {
