@@ -30,7 +30,7 @@ const BRAILLE_MAP: { [key: string]: string } = {
   '011001': '.', // period
   '001001': '!', // exclamation
   '011010': '(', // opening parenthesis
-  '010110': ')', // closing parenthesis
+  '100101': ')', // closing parenthesis
   '001010': '?', // question mark
   '001100': '"', // quotation mark
   '000001': "'", // apostrophe
