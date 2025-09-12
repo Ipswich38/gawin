@@ -314,9 +314,47 @@ You can continue browsing normally while I work. I'll update you with findings s
     }
   };
 
+  // Content filtering function
+  const hasInappropriateContent = (text: string): boolean => {
+    const inappropriateTerms = [
+      'sex', 'sexual', 'nude', 'naked', 'porn', 'erotic', 'adult',
+      'violence', 'violent', 'kill', 'murder', 'blood', 'death', 'weapon',
+      'drugs', 'suicide', 'self-harm', 'hate', 'racist', 'discrimination'
+    ];
+    
+    const lowerText = text.toLowerCase();
+    return inappropriateTerms.some(term => lowerText.includes(term));
+  };
+
   const handleSend = async (text: string) => {
     const messageText = text.trim();
     if (!messageText || !activeTab) return;
+
+    // Content filtering for Creative tab
+    if (activeTab.type === 'creative' && hasInappropriateContent(messageText)) {
+      const warningMessage: Message = {
+        id: Date.now() + 1,
+        role: 'assistant',
+        content: "I understand you're looking to be creative, but I can't help with content involving violence, sexual themes, or other inappropriate topics. Let's explore some positive creative ideas instead! Try asking me to write a story about adventure, nature, friendship, or create art depicting beautiful landscapes, animals, or abstract concepts. 🌟",
+        timestamp: new Date().toISOString()
+      };
+
+      const userMessage: Message = {
+        id: Date.now(),
+        role: 'user',
+        content: messageText,
+        timestamp: new Date().toISOString()
+      };
+
+      setTabs(prev => prev.map(tab => 
+        tab.id === activeTab?.id 
+          ? { ...tab, messages: [...tab.messages, userMessage, warningMessage], isLoading: false }
+          : tab
+      ));
+      
+      setInputValue('');
+      return;
+    }
 
     const newMessage: Message = {
       id: Date.now(),
@@ -341,7 +379,10 @@ You can continue browsing normally while I work. I'll update you with findings s
          messageText.toLowerCase().includes('image') || 
          messageText.toLowerCase().includes('picture') || 
          messageText.toLowerCase().includes('art') || 
-         messageText.toLowerCase().includes('design'));
+         messageText.toLowerCase().includes('design') ||
+         messageText.toLowerCase().includes('painting') ||
+         messageText.toLowerCase().includes('illustration') ||
+         messageText.toLowerCase().includes('visual'));
 
       if (isImageRequest) {
         // Handle image generation
@@ -370,28 +411,49 @@ You can continue browsing normally while I work. I'll update you with findings s
     setInputValue('');
   };
 
+  // Generate image using Pollinations.ai API (free, no API key required)
+  const generateImageWithPollinations = async (prompt: string): Promise<string | null> => {
+    try {
+      // Clean and enhance the prompt
+      const cleanPrompt = prompt.replace(/[^a-zA-Z0-9\s\-,.!?]/g, ' ').trim();
+      const encodedPrompt = encodeURIComponent(cleanPrompt);
+      
+      // Pollinations.ai API - completely free, no API key needed
+      const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?model=flux&width=512&height=512&enhance=true&nologo=true`;
+      
+      console.log('🎨 Generating image with Pollinations.ai:', imageUrl);
+      
+      // Test if the image loads successfully
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          console.log('✅ Image generated successfully');
+          resolve(imageUrl);
+        };
+        img.onerror = () => {
+          console.log('❌ Image generation failed');
+          resolve(null);
+        };
+        img.src = imageUrl;
+      });
+    } catch (error) {
+      console.error('❌ Pollinations image generation error:', error);
+      return null;
+    }
+  };
+
   const handleImageGeneration = async (prompt: string, userMessage: Message) => {
     try {
-      // Try HuggingFace Inference API first
-      const hfResponse = await fetch('https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-dev', {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Bearer hf_your_token_here', // This would need to be replaced
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          inputs: prompt,
-        }),
-      });
-
-      if (hfResponse.ok) {
-        const imageBlob = await hfResponse.blob();
-        const imageUrl = URL.createObjectURL(imageBlob);
-        
+      console.log('🎨 Starting image generation for:', prompt);
+      
+      // Try Pollinations.ai first (free and reliable)
+      const imageUrl = await generateImageWithPollinations(prompt);
+      
+      if (imageUrl) {
         const imageResponse: Message = {
           id: Date.now() + 1,
           role: 'assistant',
-          content: `I've generated an image based on your prompt: "${prompt}"`,
+          content: `I've created your image! 🎨✨ Here's what I generated from your prompt: "${prompt}"`,
           timestamp: new Date().toISOString(),
           imageUrl
         };
@@ -404,13 +466,13 @@ You can continue browsing normally while I work. I'll update you with findings s
         return;
       }
     } catch (error) {
-      console.log('HuggingFace image generation failed, falling back to text response');
+      console.log('❌ Image generation failed, creating descriptive fallback');
     }
 
-    // Fallback: Generate creative text response instead of image
+    // Fallback: Generate creative text response with detailed description
     const creativePrompt = {
       role: 'system',
-      content: 'You are a creative AI assistant. When asked to generate images, provide detailed descriptions of what the image would look like, and suggest alternative ways the user can create or find such images. Be encouraging and creative.'
+      content: 'You are a creative AI assistant specializing in visual arts and design. When describing images, be extremely detailed and vivid. Include colors, composition, lighting, mood, style, and artistic techniques. Make your descriptions so detailed that someone could almost see the image from your words alone.'
     };
 
     const response = await fetch('/api/groq', {
@@ -419,11 +481,11 @@ You can continue browsing normally while I work. I'll update you with findings s
       body: JSON.stringify({
         messages: [creativePrompt, {
           role: 'user',
-          content: `I asked you to generate an image with this prompt: "${prompt}". Since I can't generate images directly, please describe what this image would look like in detail and suggest ways I could create or find similar images.`
+          content: `I asked you to generate an image with this prompt: "${prompt}". While I couldn't create the actual image, please provide an extremely detailed visual description of what this image would look like. Include specific details about colors, lighting, composition, style, mood, and artistic elements. Then suggest specific tools or methods someone could use to create this image.`
         }],
         model: 'llama-3.3-70b-versatile',
         temperature: 0.8,
-        max_tokens: 2048,
+        max_tokens: 1500,
       }),
     });
 
@@ -434,7 +496,7 @@ You can continue browsing normally while I work. I'll update you with findings s
       const aiResponse: Message = {
         id: Date.now() + 1,
         role: 'assistant',
-        content: `🎨 **Image Generation Request**\n\n${result.choices[0].message.content}\n\n💡 **Tip**: For actual image generation, try tools like DALL-E, Midjourney, or Stable Diffusion!`,
+        content: `🎨 **Creative Visualization**\n\n${result.choices[0].message.content}\n\n💡 **Try these tools**: DALL-E 3, Midjourney, Stable Diffusion, or Pollinations.ai for actual image generation!`,
         timestamp: new Date().toISOString()
       };
 
@@ -449,17 +511,52 @@ You can continue browsing normally while I work. I'll update you with findings s
   };
 
   const handleTextGeneration = async (messageText: string, userMessage: Message) => {
+    // Detect if this is a creative writing request
+    const isWritingRequest = activeTab?.type === 'creative' && 
+      (messageText.toLowerCase().includes('write') || 
+       messageText.toLowerCase().includes('story') || 
+       messageText.toLowerCase().includes('poem') || 
+       messageText.toLowerCase().includes('script') || 
+       messageText.toLowerCase().includes('character') ||
+       messageText.toLowerCase().includes('plot') ||
+       messageText.toLowerCase().includes('dialogue') ||
+       messageText.toLowerCase().includes('novel') ||
+       messageText.toLowerCase().includes('essay') ||
+       messageText.toLowerCase().includes('creative'));
+
+    // Build context-aware system prompt
+    let systemPrompt = '';
+    
+    if (activeTab?.type === 'code') {
+      systemPrompt = 'You are an expert programming tutor and mentor. Help students learn coding concepts, debug issues, write better code, and understand best practices. Provide clear explanations, practical examples, and encouraging guidance. Focus on making programming concepts accessible and engaging.';
+    } else if (activeTab?.type === 'creative') {
+      if (isWritingRequest) {
+        systemPrompt = 'You are a creative writing mentor and storytelling expert. Help users with all forms of creative writing including stories, poems, scripts, character development, plot creation, dialogue, and creative expression. Provide detailed, inspiring, and constructive feedback. Encourage creativity and originality while maintaining high literary standards. Focus on positive, uplifting, and imaginative themes. Avoid content involving violence, sexual themes, or inappropriate topics.';
+      } else {
+        systemPrompt = 'You are a creative AI assistant specializing in art, design, creativity, and artistic inspiration. Help users explore their creativity through various mediums including visual arts, music, creative projects, and innovative ideas. Provide inspiring suggestions and detailed creative guidance while maintaining appropriate content standards. Focus on positive and constructive creativity.';
+      }
+    } else {
+      systemPrompt = 'You are Gawin, a helpful AI tutor focused on education and learning. You explain concepts clearly, provide examples, and encourage curiosity. You are patient, supportive, and help students understand complex topics step by step. Make learning engaging and accessible for all students.';
+    }
+
+    // Create contextual message history
+    const contextualMessages = [
+      { role: 'system', content: systemPrompt },
+      ...(activeTab?.messages || []).map(msg => ({
+        role: msg.role,
+        content: msg.content
+      })),
+      { role: 'user', content: messageText }
+    ];
+
     const response = await fetch('/api/groq', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        messages: [...(activeTab?.messages || []), userMessage].map(msg => ({
-          role: msg.role,
-          content: msg.content
-        })),
+        messages: contextualMessages,
         model: 'llama-3.3-70b-versatile',
-        temperature: 0.7,
-        max_tokens: 2048,
+        temperature: activeTab?.type === 'creative' ? (isWritingRequest ? 0.9 : 0.8) : 0.7,
+        max_tokens: activeTab?.type === 'creative' ? (isWritingRequest ? 2000 : 1500) : 1500,
       }),
     });
 
@@ -468,10 +565,17 @@ You can continue browsing normally while I work. I'll update you with findings s
     const result = await response.json();
     
     if (result.success && result.choices?.[0]?.message?.content) {
+      let content = result.choices[0].message.content;
+      
+      // Add creative writing enhancements for writing requests
+      if (isWritingRequest && activeTab?.type === 'creative') {
+        content = `✍️ **Creative Writing**\n\n${content}\n\n🌟 *Keep creating! Your imagination has no limits.*`;
+      }
+
       const aiResponse: Message = {
         id: Date.now() + 1,
         role: 'assistant',
-        content: result.choices[0].message.content,
+        content,
         timestamp: new Date().toISOString()
       };
 
@@ -663,10 +767,18 @@ Questions: ${count}`
                       try {
                         questions = JSON.parse(content);
                       } catch (parseErr) {
-                        // Fallback: try to extract questions using regex
-                        const questionMatches = content.match(/"question":\s*"[^"]*"/g);
-                        const optionMatches = content.match(/"options":\s*\[[^\]]*\]/g);
-                        const correctMatches = content.match(/"correct":\s*\d+/g);
+                        console.log('JSON parse failed, trying regex fallback...');
+                        
+                        // More robust regex fallback parsing
+                        const questionMatches = content.match(/"question"\s*:\s*"([^"]+)"/g);
+                        const optionMatches = content.match(/"options"\s*:\s*\[([^\]]+)\]/g);
+                        const correctMatches = content.match(/"correct"\s*:\s*(\d+)/g);
+                        
+                        console.log('Regex matches:', {
+                          questions: questionMatches?.length || 0,
+                          options: optionMatches?.length || 0,
+                          correct: correctMatches?.length || 0
+                        });
                         
                         if (questionMatches && optionMatches && correctMatches && 
                             questionMatches.length === optionMatches.length && 
@@ -674,21 +786,34 @@ Questions: ${count}`
                           
                           questions = [];
                           for (let i = 0; i < questionMatches.length; i++) {
-                            const question = questionMatches[i].match(/"([^"]*)"/)?.[1];
-                            const options = optionMatches[i].match(/\[([^\]]*)\]/)?.[1]
-                              ?.split(',').map((opt: string) => opt.trim().replace(/"/g, ''));
-                            const correct = parseInt(correctMatches[i].match(/\d+/)?.[0] || '0');
+                            // Extract question text more reliably
+                            const questionMatch = questionMatches[i].match(/"question"\s*:\s*"([^"]+)"/);
+                            const question = questionMatch?.[1];
+                            
+                            // Extract options more reliably
+                            const optionMatch = optionMatches[i].match(/"options"\s*:\s*\[([^\]]+)\]/);
+                            const optionsStr = optionMatch?.[1];
+                            const options = optionsStr?.split(',').map((opt: string) => 
+                              opt.trim().replace(/^["']|["']$/g, '')
+                            );
+                            
+                            // Extract correct answer
+                            const correctMatch = correctMatches[i].match(/"correct"\s*:\s*(\d+)/);
+                            const correct = parseInt(correctMatch?.[1] || '0');
+                            
+                            console.log(`Question ${i + 1}:`, { question, options: options?.length, correct });
                             
                             if (question && options && options.length >= 4) {
                               questions.push({
                                 question,
                                 options,
                                 correct,
-                                explanation: `The correct answer is ${options[correct]}.`
+                                explanation: `The correct answer is "${options[correct]}".`
                               });
                             }
                           }
                         } else {
+                          console.error('Regex fallback failed - mismatched counts');
                           throw parseErr;
                         }
                       }
@@ -838,9 +963,9 @@ Questions: ${count}`
 
     if (quizState === 'completed') {
       return (
-        <div className="p-4 space-y-4">
+        <div className="p-4 space-y-4 h-full flex flex-col">
           {/* Results */}
-          <div className="text-center space-y-4">
+          <div className="text-center space-y-4 flex-shrink-0">
             <h2 className="text-2xl font-semibold text-white">🎯 Quiz Complete!</h2>
             <div className="bg-gray-800/50 rounded-2xl p-4">
               <div className="text-3xl font-bold text-teal-400 mb-2">
@@ -852,9 +977,10 @@ Questions: ${count}`
             </div>
           </div>
 
-          {/* Incorrect Answers */}
-          <div className="space-y-3">
-            <h3 className="text-lg font-semibold text-white">📚 Review</h3>
+          {/* Scrollable Review Section */}
+          <div className="flex-1 overflow-y-auto space-y-3">
+            <h3 className="text-lg font-semibold text-white sticky top-0 bg-gray-900/95 py-2">📚 Review</h3>
+            <div className="space-y-3 pb-4">
             {quizResults?.results?.filter((r: any) => !r.isCorrect).map((result: any, idx: number) => (
               <div key={idx} className="bg-gray-800/50 rounded-2xl p-4 space-y-3">
                 <div className="border-l-4 border-red-500 pl-3">
@@ -878,10 +1004,11 @@ Questions: ${count}`
                 </div>
               </div>
             ))}
+            </div>
           </div>
 
           {/* Actions */}
-          <div className="grid grid-cols-2 gap-3 mt-6">
+          <div className="grid grid-cols-2 gap-3 mt-6 flex-shrink-0">
             <button
               onClick={() => {
                 setQuizState('setup');
@@ -1314,18 +1441,80 @@ Questions: ${count}`
         <h2 className="text-2xl font-semibold text-white">🎨 Creative Studio</h2>
         <p className="text-gray-300">Unleash your creativity with AI assistance</p>
         
-        <div className="bg-gradient-to-r from-teal-900/30 to-teal-700/30 border border-teal-700/50 rounded-2xl p-4">
-          <div className="flex items-center justify-center space-x-2 mb-3">
-            <span className="text-xl">🖼️</span>
-            <h5 className="text-lg font-medium text-teal-100">Image Generation</h5>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-gradient-to-r from-purple-900/30 to-purple-700/30 border border-purple-700/50 rounded-2xl p-4">
+            <div className="flex items-center justify-center space-x-2 mb-3">
+              <span className="text-xl">🖼️</span>
+              <h5 className="text-lg font-medium text-purple-100">Image Generation</h5>
+            </div>
+            <p className="text-gray-300 text-center text-sm">
+              Create stunning visuals from your imagination using AI-powered image generation.
+            </p>
+            <div className="mt-3 text-center">
+              <span className="inline-block bg-purple-600/20 text-purple-200 px-2 py-1 rounded-full text-xs">
+                Powered by Pollinations.ai
+              </span>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-r from-teal-900/30 to-teal-700/30 border border-teal-700/50 rounded-2xl p-4">
+            <div className="flex items-center justify-center space-x-2 mb-3">
+              <span className="text-xl">✍️</span>
+              <h5 className="text-lg font-medium text-teal-100">Creative Writing</h5>
+            </div>
+            <p className="text-gray-300 text-center text-sm">
+              Craft stories, poems, scripts, and creative content with expert AI guidance.
+            </p>
+            <div className="mt-3 text-center">
+              <span className="inline-block bg-teal-600/20 text-teal-200 px-2 py-1 rounded-full text-xs">
+                Stories • Poems • Scripts
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-r from-orange-900/20 to-red-900/20 border border-orange-700/30 rounded-2xl p-4">
+          <div className="flex items-center justify-center space-x-2 mb-2">
+            <span className="text-lg">🛡️</span>
+            <h5 className="text-md font-medium text-orange-100">Safe Creative Space</h5>
           </div>
           <p className="text-gray-300 text-center text-sm">
-            Describe any image you can imagine, and I'll create stunning visuals using AI.
+            Our content filtering ensures all creative work maintains positive, appropriate standards.
           </p>
         </div>
 
+        <div className="space-y-2">
+          <h3 className="text-white font-semibold text-lg">Try These Ideas:</h3>
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <button 
+              onClick={() => setInputValue("Generate a beautiful sunset over mountains")}
+              className="p-2 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg text-gray-300 hover:text-white transition-colors text-left"
+            >
+              🌅 Scenic landscape
+            </button>
+            <button 
+              onClick={() => setInputValue("Write a short story about friendship")}
+              className="p-2 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg text-gray-300 hover:text-white transition-colors text-left"
+            >
+              📚 Friendship story
+            </button>
+            <button 
+              onClick={() => setInputValue("Create art of a magical forest")}
+              className="p-2 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg text-gray-300 hover:text-white transition-colors text-left"
+            >
+              🌲 Fantasy artwork
+            </button>
+            <button 
+              onClick={() => setInputValue("Write a poem about nature")}
+              className="p-2 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg text-gray-300 hover:text-white transition-colors text-left"
+            >
+              🌿 Nature poetry
+            </button>
+          </div>
+        </div>
+
         <p className="text-gray-400 text-sm">
-          Use the chat below to start your creative journey!
+          Start chatting below to explore your creativity! 🌟
         </p>
       </div>
     </div>
