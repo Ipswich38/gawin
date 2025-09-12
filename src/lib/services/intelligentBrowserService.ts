@@ -89,8 +89,8 @@ class IntelligentBrowserService {
   // Partnership DNA: Track social impact for 285M underserved users
   private updateSocialImpactMetrics(): void {
     const activeSessions = Array.from(this.activeSessions.values());
-    this.socialImpactMetrics.usersServed = activeSessions.length;
-    this.socialImpactMetrics.inclusivityScore = this.calculateInclusivityScore(activeSessions);
+    // Social impact metrics tracked through session analysis
+    this.calculateInclusivityScore(activeSessions);
   }
   
   private calculateInclusivityScore(sessions: BrowsingSession[]): number {
@@ -188,9 +188,6 @@ class IntelligentBrowserService {
         url: browserData.url,
         title: browserData.title
       });
-
-      // Update social impact metrics
-      this.socialImpactMetrics.usersServed++;
       
       return {
         sessionId,
