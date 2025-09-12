@@ -676,7 +676,7 @@ Questions: ${count}`
                           for (let i = 0; i < questionMatches.length; i++) {
                             const question = questionMatches[i].match(/"([^"]*)"/)?.[1];
                             const options = optionMatches[i].match(/\[([^\]]*)\]/)?.[1]
-                              ?.split(',').map(opt => opt.trim().replace(/"/g, ''));
+                              ?.split(',').map((opt: string) => opt.trim().replace(/"/g, ''));
                             const correct = parseInt(correctMatches[i].match(/\d+/)?.[0] || '0');
                             
                             if (question && options && options.length >= 4) {
