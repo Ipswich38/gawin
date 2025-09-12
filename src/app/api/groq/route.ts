@@ -338,42 +338,43 @@ export async function POST(request: NextRequest) {
           .replace(/(?:generate|create|make|draw|show me|design|sketch|paint|render)\s+(?:an?\s+)?(?:image|picture|illustration|visual|artwork|photo|of\s+)?/gi, '')
           .trim();
 
-        // Call the image API
-        const imageResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/image`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            prompt: cleanPrompt || imagePrompt,
-            provider: 'pollinations'
-          })
+        // Call the image API directly using pollinationsService instead of internal API call
+        const { pollinationsService } = await import('@/lib/services/pollinationsService');
+        const imageResult = await pollinationsService.generateImage({
+          prompt: cleanPrompt || imagePrompt
         });
 
-        if (imageResponse.ok) {
-          const imageBuffer = await imageResponse.arrayBuffer();
-          const base64Image = Buffer.from(imageBuffer).toString('base64');
-          const imageDataUrl = `data:image/jpeg;base64,${base64Image}`;
-
-          return NextResponse.json({
-            success: true,
-            choices: [{
-              message: {
-                role: 'assistant',
-                content: `I've generated an image based on your request: "${cleanPrompt || imagePrompt}"\n\n![Generated Image](${imageDataUrl})\n\nThe image has been created using AI image generation. Would you like me to generate another variation or create something different?`
-              },
-              finish_reason: 'stop',
-              index: 0
-            }],
-            usage: {
-              prompt_tokens: messageContent.length,
-              completion_tokens: 50,
-              total_tokens: messageContent.length + 50
-            }
-          });
-        } else {
-          console.log('🎨 Image generation failed, falling back to text response...');
+        if (!imageResult.success || !imageResult.data) {
+          console.error('Image generation failed:', imageResult.error);
+          return NextResponse.json(
+            { 
+              success: false,
+              error: imageResult.error || 'Image generation failed' 
+            },
+            { status: 500 }
+          );
         }
+
+        // Use the image URL directly from pollinations service
+        const imageDataUrl = imageResult.data.image_url;
+
+        // Return successful image generation response
+        return NextResponse.json({
+          success: true,
+          choices: [{
+            message: {
+              role: 'assistant',
+              content: `I've generated an image based on your request: "${cleanPrompt || imagePrompt}"\n\n![Generated Image](${imageDataUrl})\n\nThe image has been created using AI image generation. Would you like me to generate another variation or create something different?`
+            },
+            finish_reason: 'stop',
+            index: 0
+          }],
+          usage: {
+            prompt_tokens: messageContent.length,
+            completion_tokens: 50,
+            total_tokens: messageContent.length + 50
+          }
+        });
       } catch (imageError) {
         console.error('Image generation error:', imageError);
       }

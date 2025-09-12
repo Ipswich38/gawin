@@ -13,6 +13,7 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
+  imageUrl?: string;
 }
 
 interface Tab {
@@ -332,39 +333,22 @@ You can continue browsing normally while I work. I'll update you with findings s
     ));
 
     try {
-      const response = await fetch('/api/groq', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [...(activeTab?.messages || []), newMessage].map(msg => ({
-            role: msg.role,
-            content: msg.content
-          })),
-          model: 'llama-3.1-70b-versatile',
-          temperature: 0.7,
-          max_tokens: 2048,
-        }),
-      });
+      // Check if this is a creative tab with image generation request
+      const isImageRequest = activeTab.type === 'creative' && 
+        (messageText.toLowerCase().includes('generate') || 
+         messageText.toLowerCase().includes('create') || 
+         messageText.toLowerCase().includes('draw') || 
+         messageText.toLowerCase().includes('image') || 
+         messageText.toLowerCase().includes('picture') || 
+         messageText.toLowerCase().includes('art') || 
+         messageText.toLowerCase().includes('design'));
 
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-      const result = await response.json();
-      
-      if (result.success && result.choices?.[0]?.message?.content) {
-        const aiResponse: Message = {
-          id: Date.now() + 1,
-          role: 'assistant',
-          content: result.choices[0].message.content,
-          timestamp: new Date().toISOString()
-        };
-
-        setTabs(prev => prev.map(tab => 
-          tab.id === activeTab?.id 
-            ? { ...tab, messages: [...tab.messages, newMessage, aiResponse], isLoading: false }
-            : tab
-        ));
+      if (isImageRequest) {
+        // Handle image generation
+        await handleImageGeneration(messageText, newMessage);
       } else {
-        throw new Error(result.error || 'Failed to get AI response');
+        // Handle regular chat
+        await handleTextGeneration(messageText, newMessage);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -384,6 +368,121 @@ You can continue browsing normally while I work. I'll update you with findings s
     }
 
     setInputValue('');
+  };
+
+  const handleImageGeneration = async (prompt: string, userMessage: Message) => {
+    try {
+      // Try HuggingFace Inference API first
+      const hfResponse = await fetch('https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-dev', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer hf_your_token_here', // This would need to be replaced
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          inputs: prompt,
+        }),
+      });
+
+      if (hfResponse.ok) {
+        const imageBlob = await hfResponse.blob();
+        const imageUrl = URL.createObjectURL(imageBlob);
+        
+        const imageResponse: Message = {
+          id: Date.now() + 1,
+          role: 'assistant',
+          content: `I've generated an image based on your prompt: "${prompt}"`,
+          timestamp: new Date().toISOString(),
+          imageUrl
+        };
+
+        setTabs(prev => prev.map(tab => 
+          tab.id === activeTab?.id 
+            ? { ...tab, messages: [...tab.messages, userMessage, imageResponse], isLoading: false }
+            : tab
+        ));
+        return;
+      }
+    } catch (error) {
+      console.log('HuggingFace image generation failed, falling back to text response');
+    }
+
+    // Fallback: Generate creative text response instead of image
+    const creativePrompt = {
+      role: 'system',
+      content: 'You are a creative AI assistant. When asked to generate images, provide detailed descriptions of what the image would look like, and suggest alternative ways the user can create or find such images. Be encouraging and creative.'
+    };
+
+    const response = await fetch('/api/groq', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: [creativePrompt, {
+          role: 'user',
+          content: `I asked you to generate an image with this prompt: "${prompt}". Since I can't generate images directly, please describe what this image would look like in detail and suggest ways I could create or find similar images.`
+        }],
+        model: 'llama-3.3-70b-versatile',
+        temperature: 0.8,
+        max_tokens: 2048,
+      }),
+    });
+
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const result = await response.json();
+    
+    if (result.success && result.choices?.[0]?.message?.content) {
+      const aiResponse: Message = {
+        id: Date.now() + 1,
+        role: 'assistant',
+        content: `🎨 **Image Generation Request**\n\n${result.choices[0].message.content}\n\n💡 **Tip**: For actual image generation, try tools like DALL-E, Midjourney, or Stable Diffusion!`,
+        timestamp: new Date().toISOString()
+      };
+
+      setTabs(prev => prev.map(tab => 
+        tab.id === activeTab?.id 
+          ? { ...tab, messages: [...tab.messages, userMessage, aiResponse], isLoading: false }
+          : tab
+      ));
+    } else {
+      throw new Error(result.error || 'Failed to get AI response');
+    }
+  };
+
+  const handleTextGeneration = async (messageText: string, userMessage: Message) => {
+    const response = await fetch('/api/groq', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: [...(activeTab?.messages || []), userMessage].map(msg => ({
+          role: msg.role,
+          content: msg.content
+        })),
+        model: 'llama-3.3-70b-versatile',
+        temperature: 0.7,
+        max_tokens: 2048,
+      }),
+    });
+
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+    const result = await response.json();
+    
+    if (result.success && result.choices?.[0]?.message?.content) {
+      const aiResponse: Message = {
+        id: Date.now() + 1,
+        role: 'assistant',
+        content: result.choices[0].message.content,
+        timestamp: new Date().toISOString()
+      };
+
+      setTabs(prev => prev.map(tab => 
+        tab.id === activeTab?.id 
+          ? { ...tab, messages: [...tab.messages, userMessage, aiResponse], isLoading: false }
+          : tab
+      ));
+    } else {
+      throw new Error(result.error || 'Failed to get AI response');
+    }
   };
 
   const createNewTab = (type: Tab['type']) => {
@@ -518,55 +617,90 @@ You can continue browsing normally while I work. I'll update you with findings s
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                       messages: [{
+                        role: 'system',
+                        content: 'You are a quiz generator. Always respond with valid JSON arrays only. No additional text, markdown, or explanations.'
+                      }, {
                         role: 'user',
-                        content: `You are a quiz generator. Generate ${count} multiple choice questions about ${topic}. 
+                        content: `Generate ${count} multiple choice questions about ${topic} for Philippine education standards.
 
-IMPORTANT: Your response must be ONLY a valid JSON array with NO additional text before or after. Format:
-[{"question":"Question text here","options":["Option A","Option B","Option C","Option D"],"correct":0,"explanation":"Why this answer is correct"}]
-
-The "correct" field should be the index (0-3) of the correct option.
-Make questions appropriate for Philippine education standards.
+Return ONLY this JSON format:
+[{"question":"Question text","options":["A","B","C","D"],"correct":0,"explanation":"Brief explanation"}]
 
 Topic: ${topic}
-Number of questions: ${count}`
+Questions: ${count}`
                       }],
-                      model: 'llama-3.1-70b-versatile',
-                      temperature: 0.3,
-                      max_tokens: 3000,
+                      model: 'llama-3.3-70b-versatile',
+                      temperature: 0.1,
+                      max_tokens: 4000,
                     }),
                   });
                   
                   const result = await response.json();
                   console.log('Quiz API Response:', result);
                   
-                  if (result.success && result.choices && result.choices[0]) {
+                  if (result.success && result.choices?.[0]?.message?.content) {
                     try {
-                      let quizContent = result.choices[0].message.content.trim();
-                      console.log('Quiz Content:', quizContent);
+                      let content = result.choices[0].message.content.trim();
+                      console.log('Raw quiz content:', content);
                       
-                      // Clean the content to extract JSON
-                      let jsonStr = quizContent;
+                      // More robust JSON extraction
+                      content = content
+                        .replace(/^```(?:json)?\s*/i, '')
+                        .replace(/\s*```$/i, '')
+                        .replace(/^[^[]*/, '')
+                        .replace(/[^}]*$/, '}]');
                       
-                      // Remove any markdown code blocks
-                      jsonStr = jsonStr.replace(/```json\s*|\s*```/g, '');
-                      jsonStr = jsonStr.replace(/```\s*|\s*```/g, '');
+                      // Fix common JSON issues
+                      content = content
+                        .replace(/,\s*}/g, '}')
+                        .replace(/,\s*]/g, ']')
+                        .replace(/\n/g, ' ')
+                        .replace(/\s+/g, ' ');
                       
-                      // Find JSON array pattern
-                      const jsonMatch = jsonStr.match(/\[[\s\S]*?\]/);
-                      if (jsonMatch) {
-                        jsonStr = jsonMatch[0];
+                      console.log('Cleaned content:', content);
+                      
+                      let questions;
+                      try {
+                        questions = JSON.parse(content);
+                      } catch (parseErr) {
+                        // Fallback: try to extract questions using regex
+                        const questionMatches = content.match(/"question":\s*"[^"]*"/g);
+                        const optionMatches = content.match(/"options":\s*\[[^\]]*\]/g);
+                        const correctMatches = content.match(/"correct":\s*\d+/g);
+                        
+                        if (questionMatches && optionMatches && correctMatches && 
+                            questionMatches.length === optionMatches.length && 
+                            questionMatches.length === correctMatches.length) {
+                          
+                          questions = [];
+                          for (let i = 0; i < questionMatches.length; i++) {
+                            const question = questionMatches[i].match(/"([^"]*)"/)?.[1];
+                            const options = optionMatches[i].match(/\[([^\]]*)\]/)?.[1]
+                              ?.split(',').map(opt => opt.trim().replace(/"/g, ''));
+                            const correct = parseInt(correctMatches[i].match(/\d+/)?.[0] || '0');
+                            
+                            if (question && options && options.length >= 4) {
+                              questions.push({
+                                question,
+                                options,
+                                correct,
+                                explanation: `The correct answer is ${options[correct]}.`
+                              });
+                            }
+                          }
+                        } else {
+                          throw parseErr;
+                        }
                       }
                       
-                      console.log('Parsing JSON:', jsonStr);
-                      const questions = JSON.parse(jsonStr);
-                      
                       if (Array.isArray(questions) && questions.length > 0) {
-                        // Validate question format
                         const validQuestions = questions.filter(q => 
-                          q.question && Array.isArray(q.options) && 
+                          q.question && 
+                          Array.isArray(q.options) && 
                           q.options.length >= 4 && 
                           typeof q.correct === 'number' && 
-                          q.correct >= 0 && q.correct < q.options.length
+                          q.correct >= 0 && 
+                          q.correct < q.options.length
                         );
                         
                         if (validQuestions.length > 0) {
@@ -579,23 +713,24 @@ Number of questions: ${count}`
                           setUserAnswers(new Array(validQuestions.length).fill(null));
                           setQuizState('taking');
                           setCurrentQuestion(0);
-                          console.log('Quiz successfully created:', validQuestions.length, 'questions');
+                          console.log('✅ Quiz created successfully:', validQuestions.length, 'questions');
                         } else {
-                          throw new Error('No valid questions generated');
+                          throw new Error('No valid questions were generated');
                         }
                       } else {
-                        throw new Error('Invalid response format');
+                        throw new Error('Invalid response format - not an array');
                       }
                     } catch (parseError) {
-                      console.error('Parse Error:', parseError);
-                      alert('Failed to parse quiz data. Please try again with a simpler topic.');
+                      console.error('❌ Parse Error:', parseError);
+                      console.error('Content that failed to parse:', result.choices[0].message.content);
+                      alert('Failed to generate quiz. The AI response was not in the expected format. Please try a different topic or try again.');
                     }
                   } else {
-                    throw new Error(result.error || 'No response from AI');
+                    throw new Error(result.error || 'No response received from AI service');
                   }
                 } catch (error) {
-                  console.error('Quiz Generation Error:', error);
-                  alert('Failed to generate quiz. Please check your connection and try again.');
+                  console.error('❌ Quiz Generation Error:', error);
+                  alert(`Failed to generate quiz: ${error instanceof Error ? error.message : 'Unknown error'}. Please check your connection and try again.`);
                 } finally {
                   // Reset button state
                   const button = document.querySelector('#create-quiz-btn') as HTMLButtonElement;
@@ -1232,10 +1367,28 @@ Number of questions: ${count}`
                   {message.role === 'assistant' ? (
                     <div className="prose prose-stone max-w-none">
                       <MessageRenderer text={message.content} />
+                      {message.imageUrl && (
+                        <div className="mt-3 rounded-lg overflow-hidden border border-gray-600">
+                          <img 
+                            src={message.imageUrl} 
+                            alt="Generated image"
+                            className="w-full h-auto max-w-sm max-h-64 object-contain"
+                          />
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="leading-relaxed">
                       {message.content}
+                      {message.imageUrl && (
+                        <div className="mt-3 rounded-lg overflow-hidden border border-white/20">
+                          <img 
+                            src={message.imageUrl} 
+                            alt="Generated image"
+                            className="w-full h-auto max-w-sm max-h-64 object-contain"
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
                   

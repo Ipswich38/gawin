@@ -285,53 +285,6 @@ export default function IntelligentGawinBrowser({
     onProgress?.('Browsing stopped');
   };
   
-  // Accessibility Controls Component
-  const renderAccessibilityControls = () => (
-    <div className={`fixed top-4 left-4 z-50 ${accessibility.highContrast ? 'bg-black text-white' : 'bg-white/95'} backdrop-blur-sm rounded-lg shadow-lg border p-3`}>
-      <div className="flex items-center space-x-2 mb-2">
-        <span className="text-sm font-semibold" aria-label="Accessibility Controls">♿ Accessibility</span>
-      </div>
-      <div className="grid grid-cols-2 gap-2 text-xs">
-        <button
-          onClick={() => toggleAccessibilityFeature('voiceEnabled')}
-          className={`px-2 py-1 rounded ${accessibility.voiceEnabled ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700'} transition-colors`}
-          aria-label={`Voice narration ${accessibility.voiceEnabled ? 'enabled' : 'disabled'}`}
-          title="Alt+1 to toggle"
-        >
-          🔊 Voice
-        </button>
-        <button
-          onClick={() => toggleAccessibilityFeature('brailleEnabled')}
-          className={`px-2 py-1 rounded ${accessibility.brailleEnabled ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700'} transition-colors`}
-          aria-label={`Braille output ${accessibility.brailleEnabled ? 'enabled' : 'disabled'}`}
-          title="Alt+2 to toggle"
-        >
-          ⠃ Braille
-        </button>
-        <button
-          onClick={() => toggleAccessibilityFeature('highContrast')}
-          className={`px-2 py-1 rounded ${accessibility.highContrast ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700'} transition-colors`}
-          aria-label={`High contrast ${accessibility.highContrast ? 'enabled' : 'disabled'}`}
-          title="Alt+3 to toggle"
-        >
-          🌗 Contrast
-        </button>
-        <button
-          onClick={() => toggleAccessibilityFeature('screenReaderMode')}
-          className={`px-2 py-1 rounded ${accessibility.screenReaderMode ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700'} transition-colors`}
-          aria-label={`Screen reader mode ${accessibility.screenReaderMode ? 'enabled' : 'disabled'}`}
-          title="Alt+4 to toggle"
-        >
-          📖 Screen Reader
-        </button>
-      </div>
-      {accessibility.brailleEnabled && currentAnnouncement && (
-        <div className="mt-2 p-2 bg-gray-100 rounded text-lg font-mono" aria-label="Braille output">
-          {translateToBraille(currentAnnouncement)}
-        </div>
-      )}
-    </div>
-  );
 
   const renderIntelligentMode = () => (
     <div className={`h-full ${accessibility.highContrast ? 'bg-black text-white' : 'bg-gray-50'}`} onKeyDown={handleKeyDown} tabIndex={0}>
@@ -588,8 +541,6 @@ export default function IntelligentGawinBrowser({
         {currentAnnouncement}
       </div>
       
-      {/* Accessibility Controls - Always available */}
-      {renderAccessibilityControls()}
       
       {/* Accessible Browser Chrome */}
       <div className={`${accessibility.highContrast ? 'bg-gray-800 border-white' : 'bg-gray-100 border-gray-300'} border-b px-4 py-2`} role="navigation" aria-label="Browser chrome">
