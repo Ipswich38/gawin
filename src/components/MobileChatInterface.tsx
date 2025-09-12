@@ -3,8 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MessageRenderer from './MessageRenderer';
-import GawinBrowser from './GawinBrowser';
-import IntelligentGawinBrowser from './IntelligentGawinBrowser';
+import AIWebBrowser from './AIWebBrowser';
 import AccessibilityControlPanel from './AccessibilityControlPanel';
 import BrailleKeyboard from './BrailleKeyboard';
 
@@ -1424,9 +1423,8 @@ Questions: ${count}`
             </div>
           </div>
         ) : (
-          <IntelligentGawinBrowser 
-            url={browserUrl} 
-            query={activeTab?.messages?.slice(-1)[0]?.content}
+          <AIWebBrowser 
+            userEmail={user.email}
             onResult={(result) => {
               // When AI browsing finds a result, add it to the AI Agent tab
               const agentTab = tabs.find(tab => tab.type === 'general' && tab.title === 'AI Agent');
@@ -1434,7 +1432,7 @@ Questions: ${count}`
                 const newMessage: Message = {
                   id: Date.now(),
                   role: 'assistant',
-                  content: `🎯 **Found Information**: ${result}`,
+                  content: result,
                   timestamp: new Date().toISOString()
                 };
                 setTabs(prev => prev.map(tab => 
