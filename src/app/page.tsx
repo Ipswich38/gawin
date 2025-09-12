@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import MobileChatInterface from '@/components/MobileChatInterface';
-import BehaviorService from '@/components/BehaviorService';
+// import BehaviorService from '@/components/BehaviorService'; // Temporarily disabled to fix flickering
 
 // Auth Components
 function LoginPage({ onLogin }: { onLogin: () => void }) {
@@ -239,7 +239,7 @@ export default function HomePage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-stone-50 via-neutral-50 to-zinc-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-stone-900 to-zinc-700 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
+          <div className="w-16 h-16 bg-gradient-to-br from-stone-900 to-zinc-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <span className="text-white text-2xl font-bold">G</span>
           </div>
           <p className="text-stone-600">Loading...</p>
@@ -251,29 +251,16 @@ export default function HomePage() {
   // Show login if not authenticated
   if (!user) {
     return (
-      <>
-        <LoginPage onLogin={handleLogin} />
-        {/* Behavior Service for unauthenticated users */}
-        <BehaviorService>
-          <div />
-        </BehaviorService>
-      </>
+      <LoginPage onLogin={handleLogin} />
     );
   }
 
   // Show chat interface directly for authenticated users
   return (
-    <>
-      <MobileChatInterface
-        user={user}
-        onLogout={handleLogout}
-        onBackToLanding={handleBackToLanding}
-      />
-      
-      {/* Behavior Service for authenticated users */}
-      <BehaviorService>
-        <div />
-      </BehaviorService>
-    </>
+    <MobileChatInterface
+      user={user}
+      onLogout={handleLogout}
+      onBackToLanding={handleBackToLanding}
+    />
   );
 }
