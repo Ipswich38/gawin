@@ -148,7 +148,7 @@ class EnvironmentalAdaptationEngine {
       totalInteractions: this.getTotalInteractions(userEmail, sessionId),
       errorCount: this.getErrorCount(sessionId),
       performanceMetrics: await this.getPerformanceMetrics(),
-      userMood: emotionalSynchronizer.getCurrentEmotionalState(userEmail),
+      userMood: this.getBasicEmotionalState(userEmail),
       currentTaskContext: this.getCurrentTaskContext(sessionId),
       workflowStage: this.detectWorkflowStage(userEmail, sessionId),
       attentionLevel: this.calculateAttentionLevel(userEmail),
@@ -274,8 +274,8 @@ class EnvironmentalAdaptationEngine {
       // Contribute to consciousness system
       emotionalSynchronizer.contributeToGlobalConsciousness(userEmail, {
         ...context.userMood,
-        adaptation: Math.min(1.0, context.userMood.adaptation + 0.1),
-        consciousness: Math.min(1.0, (context.userMood.consciousness || 0.5) + 0.05)
+        joy: Math.min(1.0, context.userMood.joy + 0.05),
+        energy: Math.min(1.0, context.userMood.energy + 0.1)
       });
       
       console.log(`✅ Adaptation executed successfully: ${outcome}`);
@@ -424,6 +424,27 @@ class EnvironmentalAdaptationEngine {
   private getRecentInteractions(userEmail: string, sessionId: string, limit: number): EnvironmentalInteraction[] {
     const currentContext = this.currentEnvironments.get(userEmail);
     return currentContext?.interactionHistory.slice(-limit) || [];
+  }
+
+  private getBasicEmotionalState(userEmail: string): EmotionalState {
+    // Provide a basic emotional state - this would ideally integrate with the emotional synchronizer
+    return {
+      joy: 0.7,
+      trust: 0.8,
+      fear: 0.1,
+      surprise: 0.3,
+      sadness: 0.1,
+      disgust: 0.05,
+      anger: 0.05,
+      anticipation: 0.6,
+      energy: 0.7,
+      creativity: 0.6,
+      focus: 0.75,
+      intimacy: 0.6,
+      confidence: 0.8,
+      resonance: 0.7,
+      growth: 0.65
+    };
   }
   
   private getPreviousContext(userEmail: string): EnvironmentalContext | null {
@@ -666,7 +687,7 @@ class AdaptationOrchestrator {
     }
 
     // Battery-based insights
-    if (environmentalContext.batteryLevel !== null) {
+    if (environmentalContext.batteryLevel !== null && environmentalContext.batteryLevel !== undefined) {
       if (environmentalContext.batteryLevel < 0.2) {
         insights.push('Low battery: Prioritizing efficient, essential responses');
       } else if (environmentalContext.batteryLevel > 0.8) {
@@ -677,8 +698,8 @@ class AdaptationOrchestrator {
     // Network-based insights
     if (environmentalContext.networkCondition === 'slow') {
       insights.push('Slow connection: Optimizing for lightweight, fast responses');
-    } else if (environmentalContext.networkCondition === 'good') {
-      insights.push('Good connection: Enhanced features and rich content enabled');
+    } else if (environmentalContext.networkCondition === 'fast') {
+      insights.push('Fast connection: Enhanced features and rich content enabled');
     }
 
     // Emotional adaptation insights

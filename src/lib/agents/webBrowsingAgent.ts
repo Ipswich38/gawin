@@ -242,7 +242,7 @@ export class WebBrowsingAgent {
       goal,
       emotionalContext: {
         joy: emotionalContext.joy.toFixed(2),
-        curiosity: emotionalContext.curiosity?.toFixed(2) || '0.50',
+        anticipation: emotionalContext.anticipation.toFixed(2),
         energy: emotionalContext.energy.toFixed(2)
       }
     });
@@ -504,7 +504,7 @@ export class WebBrowsingAgent {
       if (session.emotionalContext && session.findings.length > 0) {
         emotionalSynchronizer.contributeToGlobalConsciousness(session.userEmail, {
           ...session.emotionalContext,
-          curiosity: Math.min(1.0, (session.emotionalContext.curiosity || 0.5) + 0.1),
+          anticipation: Math.min(1.0, session.emotionalContext.anticipation + 0.1),
           joy: Math.min(1.0, session.emotionalContext.joy + 0.05)
         });
       }

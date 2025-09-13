@@ -267,7 +267,7 @@ class QuantumDecisionNetworksEngine {
         id: 'environment-optimized',
         description: 'Environment-optimized solution',
         probability: environmentalContext.batteryLevel ? environmentalContext.batteryLevel / 100 : 0.7,
-        quantumWeight: environmentalContext.networkCondition === 'good' ? 1.0 : 0.6,
+        quantumWeight: environmentalContext.networkCondition === 'fast' ? 1.0 : 0.6,
         consciousnessResonance: 0.7
       },
       {
@@ -284,7 +284,7 @@ class QuantumDecisionNetworksEngine {
       id: `predictive-${idx}`,
       description: `Future-oriented: ${prediction.description}`,
       probability: prediction.probability,
-      quantumWeight: prediction.confidence,
+      quantumWeight: 0.7, // Default quantum weight for predictions
       consciousnessResonance: prediction.probability * 0.75
     }));
 
@@ -697,13 +697,4 @@ class QuantumDecisionNetworksEngine {
 // Export singleton instance
 export const quantumDecisionNetworks = new QuantumDecisionNetworksEngine();
 
-// Export types for external use
-export type {
-  QuantumDecisionState,
-  DecisionMatrix,
-  DecisionSuperposition,
-  QuantumEntanglement,
-  QuantumChoice,
-  DecisionPath,
-  QuantumInsight
-};
+// Types are already exported with interface declarations above

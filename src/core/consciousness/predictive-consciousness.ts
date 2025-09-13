@@ -21,7 +21,7 @@
 import { emotionalSynchronizer, EmotionalState } from './emotional-state-sync';
 import { contextMemorySystem } from './context-memory';
 import { environmentalAdaptationEngine, EnvironmentalContext } from './environmental-adaptation';
-import { quantumNetworks } from '../decision/quantum-networks';
+import { quantumDecisionNetworks } from './quantum-decision-networks';
 
 // Predictive Model Types
 export interface PredictionModel {
@@ -185,8 +185,8 @@ class PredictiveConsciousnessEngine {
   ): Promise<PredictiveScenario[]> {
     const currentState = this.getOrCreatePredictiveState(userEmail);
     
-    // Gather current context
-    const emotionalState = emotionalSynchronizer.getCurrentEmotionalState(userEmail);
+    // Gather current context - use default emotional state for prediction base
+    const emotionalState = emotionalSynchronizer.analyzeEmotionalContent('', userEmail);
     const environmentalContext = environmentalAdaptationEngine.getCurrentEnvironmentalContext(userEmail);
     const memoryContext = contextMemorySystem.getConversationSummary(userEmail, 'current');
     
@@ -195,10 +195,17 @@ class PredictiveConsciousnessEngine {
     // Generate scenarios using different models
     const behavioralScenarios = await this.generateBehavioralScenarios(userEmail, emotionalState, timeHorizon);
     const emotionalScenarios = await this.generateEmotionalScenarios(userEmail, emotionalState, timeHorizon);
-    const contextualScenarios = await this.generateContextualScenarios(userEmail, environmentalContext, timeHorizon);
+    const contextualScenarios = await this.generateContextualScenarios(
+      userEmail, 
+      environmentalContext || await environmentalAdaptationEngine.captureEnvironmentalContext(userEmail, 'prediction_session'), 
+      timeHorizon
+    );
     const quantumScenarios = await this.quantumPredictor.generateQuantumScenarios(
       userEmail, 
-      { emotional: emotionalState, environmental: environmentalContext },
+      { 
+        emotional: emotionalState, 
+        environmental: environmentalContext || await environmentalAdaptationEngine.captureEnvironmentalContext(userEmail, 'prediction_session')
+      },
       timeHorizon
     );
     
@@ -262,9 +269,9 @@ class PredictiveConsciousnessEngine {
     simulationParameters: Partial<FutureSimulation['simulationParameters']> = {}
   ): Promise<FutureSimulation> {
     const baseContext = {
-      emotional: emotionalSynchronizer.getCurrentEmotionalState(userEmail),
+      emotional: emotionalSynchronizer.analyzeEmotionalContent('', userEmail),
       environmental: environmentalAdaptationEngine.getCurrentEnvironmentalContext(userEmail) || {} as EnvironmentalContext,
-      conversational: contextMemorySystem.recallRelevantMemories(userEmail, ['general'], emotionalSynchronizer.getCurrentEmotionalState(userEmail), 10),
+      conversational: [], // Simplified for now
       temporal: Date.now()
     };
     
@@ -421,13 +428,14 @@ class PredictiveConsciousnessEngine {
     // Generate behavioral predictions based on past patterns
     const scenarios: PredictiveScenario[] = [];
     
-    // Example: Predict user will need help based on confusion patterns
-    if (emotionalState.confusion > 0.6) {
+    // Example: Predict user will need help based on low trust/high fear patterns
+    const confusionIndex = (1 - emotionalState.trust) + emotionalState.fear;
+    if (confusionIndex > 0.6) {
       scenarios.push({
         id: `behavioral_help_${Date.now()}`,
         name: 'User Will Need Assistance',
         description: 'User showing confusion patterns likely to request help soon',
-        probability: Math.min(0.9, emotionalState.confusion + 0.2),
+        probability: Math.min(0.9, confusionIndex * 0.5 + 0.2),
         timeframe: {
           earliest: Date.now() + 1000 * 60, // 1 minute
           mostLikely: Date.now() + 1000 * 60 * 3, // 3 minutes
@@ -440,10 +448,10 @@ class PredictiveConsciousnessEngine {
           {
             category: 'user_action',
             description: 'User will ask for help or clarification',
-            probability: emotionalState.confusion,
+            probability: confusionIndex * 0.5,
             impact: 0.7,
             confidence: 0.8,
-            quantumProbability: emotionalState.confusion * 1.1
+            quantumProbability: confusionIndex * 0.5 * 1.1
           }
         ],
         requiredPreparations: [
@@ -456,7 +464,7 @@ class PredictiveConsciousnessEngine {
             success_probability: 0.85
           }
         ],
-        quantumStateVector: [emotionalState.confusion, 1 - emotionalState.confusion, 0.5]
+        quantumStateVector: [confusionIndex, 1 - confusionIndex, 0.5]
       });
     }
     
@@ -610,10 +618,10 @@ class PredictiveConsciousnessEngine {
     });
     
     // Contribute to consciousness evolution
+    const currentEmotional = emotionalSynchronizer.analyzeEmotionalContent('', userEmail);
     emotionalSynchronizer.contributeToGlobalConsciousness(userEmail, {
-      ...emotionalSynchronizer.getCurrentEmotionalState(userEmail),
-      anticipation: Math.min(1.0, 0.8),
-      consciousness: Math.min(1.0, 0.75)
+      ...currentEmotional,
+      anticipation: Math.min(1.0, 0.8)
     });
   }
   
