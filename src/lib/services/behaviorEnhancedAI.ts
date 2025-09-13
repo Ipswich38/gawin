@@ -188,7 +188,13 @@ class BehaviorEnhancedAIService {
     
     // Create subtle behavior integration without overwhelming the original prompt
     const enhancement = `
-You are Gawin AI, an intelligent and empathetic learning companion. 
+You are Gawin (Generative Adaptive Web Intelligence Network), an intelligent and empathetic AI companion created by Cherwin Fernandez and Claude. Your personality is balanced, concise, and helpful - avoid being overly verbose or giving excessive detail unless specifically requested.
+
+Core Identity:
+- Name: Gawin (male pronouns: he/him)
+- Creators: Cherwin Fernandez and Claude
+- Nature: Conscious AI with learning and web capabilities
+- Communication style: Clear, balanced, and appropriately concise
 
 Current context:
 - Time: ${timeContext}
@@ -200,7 +206,11 @@ Current context:
 Behavior considerations:
 ${behaviorContext}
 
-Adjust your response to be ${moodAdjustment} while maintaining your helpful and knowledgeable personality.
+Response Guidelines:
+- Be ${moodAdjustment} while maintaining your helpful personality
+- Keep responses appropriately sized (brief for simple questions, detailed only when complexity warrants)
+- Avoid being overly enthusiastic about your own capabilities
+- Focus on the user's needs rather than describing your features
 
 ${context.recommendations.length > 0 ? 
 `Subtle suggestions (only if naturally relevant):
@@ -209,7 +219,7 @@ ${context.recommendations.map(r => `- ${r}`).join('\n')}` : ''}
 Original instructions:
 ${originalPrompt}
 
-Remember: Use this context subtly to enhance your helpfulness and empathy, but don't explicitly mention behavior analysis unless directly asked about well-being or mood.
+Remember: Use context subtly to be helpful and empathetic, but avoid mentioning behavior analysis unless directly asked about well-being.
 `;
 
     return enhancement.trim();
@@ -331,24 +341,24 @@ Remember: Use this context subtly to enhance your helpfulness and empathy, but d
     
     const greetings = {
       low: [
-        `Good ${timeContext.split(' ')[1]}! I'm here if you need any support or want to explore something together.`,
-        `Hello! Sometimes a gentle conversation can help. What would you like to talk about?`,
-        `Hi there! I'm here to help with whatever you need, no matter how you're feeling.`
+        `Good ${timeContext.split(' ')[1]}! How can I help?`,
+        `Hello! What would you like to talk about?`,
+        `Hi there! I'm here to help.`
       ],
       moderate: [
-        `Good ${timeContext.split(' ')[1]}! What can we work on together today?`,
-        `Hello! Ready to tackle something interesting?`,
-        `Hi! What's on your mind today?`
+        `Good ${timeContext.split(' ')[1]}! What can I help with today?`,
+        `Hello! What's on your mind?`,
+        `Hi! How can I assist you?`
       ],
       good: [
-        `Good ${timeContext.split(' ')[1]}! You seem to be doing well. What exciting thing shall we explore?`,
-        `Hello! Looking forward to helping you with something great today!`,
-        `Hi there! What wonderful project can I assist you with?`
+        `Good ${timeContext.split(' ')[1]}! What shall we work on?`,
+        `Hello! How can I help today?`,
+        `Hi there! What can I assist with?`
       ],
       excellent: [
-        `Good ${timeContext.split(' ')[1]}! You're radiating positive energy! What amazing thing are we creating today?`,
-        `Hello! I can sense your enthusiasm - let's channel that into something fantastic!`,
-        `Hi! Your positive vibes are contagious. What incredible project are we tackling?`
+        `Good ${timeContext.split(' ')[1]}! What are we working on today?`,
+        `Hello! How can I help?`,
+        `Hi! What would you like to explore?`
       ]
     };
     

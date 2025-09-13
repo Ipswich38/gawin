@@ -14,6 +14,15 @@ import { environmentalAdaptationEngine } from '../core/consciousness/environment
 import { predictiveConsciousnessEngine } from '../core/consciousness/predictive-consciousness';
 import { quantumDecisionNetworks } from '../core/consciousness/quantum-decision-networks';
 
+// 🎨 UI ENHANCEMENTS
+import { 
+  ChatIcon, CodeIcon, QuizIcon, StudyIcon, CreativeIcon, BrowserIcon,
+  SendIcon, CopyIcon, ThumbsUpIcon, ThumbsDownIcon, MenuIcon, CloseIcon,
+  LoadingIcon, PlusIcon, SearchIcon, RefreshIcon, BackIcon, ForwardIcon,
+  ImageIcon, WriteIcon
+} from './ui/LineIcons';
+import { deviceDetection, DeviceInfo, OptimizationConfig } from '../utils/deviceDetection';
+
 // 🎨 CREATIVE SERVICES
 import { nanoBananaService } from '../lib/services/nanoBananaService';
 import { pollinationsService } from '../lib/services/pollinationsService';
@@ -30,7 +39,7 @@ interface Tab {
   id: string;
   type: 'general' | 'code' | 'quiz' | 'study' | 'creative' | 'browser';
   title: string;
-  icon: string;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
   isActive: boolean;
   messages: Message[];
   isLoading: boolean;
@@ -50,7 +59,7 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
       id: 'general-1',
       type: 'general',
       title: 'Chat',
-      icon: '💬',
+      icon: ChatIcon,
       isActive: true,
       messages: [],
       isLoading: false
@@ -59,6 +68,10 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   const [activeTabId, setActiveTabId] = useState('general-1');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
+  
+  // 📱 DEVICE OPTIMIZATION
+  const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | null>(null);
+  const [optimizationConfig, setOptimizationConfig] = useState<OptimizationConfig | null>(null);
 
   // Quiz states
   const [quizState, setQuizState] = useState<'setup' | 'taking' | 'completed'>('setup');
@@ -99,6 +112,29 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const activeTab = tabs.find(tab => tab.id === activeTabId);
+
+  // 📱 Initialize device detection and optimization
+  useEffect(() => {
+    const detected = deviceDetection.detectDevice();
+    const config = deviceDetection.getOptimizationConfig(detected);
+    setDeviceInfo(detected);
+    setOptimizationConfig(config);
+
+    console.log('🎯 Device Optimization Applied:', {
+      device: `${detected.brand} ${detected.model}`,
+      type: detected.type,
+      config
+    });
+
+    // Watch for orientation changes
+    const unsubscribe = deviceDetection.watchOrientation((orientation) => {
+      const updatedDevice = { ...detected, orientation };
+      const updatedConfig = deviceDetection.getOptimizationConfig(updatedDevice);
+      setOptimizationConfig(updatedConfig);
+    });
+
+    return unsubscribe;
+  }, []);
 
   // Timer for quiz
   useEffect(() => {
@@ -182,7 +218,7 @@ You can continue browsing normally while I work. I'll update you with findings s
           id: newTabId,
           type: 'general',
           title: 'AI Agent',
-          icon: '🤖',
+          icon: ChatIcon,
           isActive: true,
           messages: [],
           isLoading: false
@@ -983,12 +1019,12 @@ You can continue browsing normally while I work. I'll update you with findings s
 
   const createNewTab = (type: Tab['type']) => {
     const tabConfig = {
-      general: { title: 'Chat', icon: '💬' },
-      code: { title: 'Code', icon: '⚡' },
-      quiz: { title: 'Quiz', icon: '🎯' },
-      study: { title: 'Study', icon: '👥' },
-      creative: { title: 'Create', icon: '🎨' },
-      browser: { title: 'Web', icon: '🌐' }
+      general: { title: 'Chat', icon: ChatIcon },
+      code: { title: 'Code', icon: CodeIcon },
+      quiz: { title: 'Quiz', icon: QuizIcon },
+      study: { title: 'Study', icon: StudyIcon },
+      creative: { title: 'Create', icon: CreativeIcon },
+      browser: { title: 'Web', icon: BrowserIcon }
     };
 
     const newTabId = `${type}-${Date.now()}`;
@@ -1054,7 +1090,7 @@ You can continue browsing normally while I work. I'll update you with findings s
       return (
         <div className="p-6 space-y-6">
           <div className="text-center space-y-2">
-            <h2 className="text-2xl font-semibold text-white">🎯 Quiz Generator</h2>
+            <h2 className="text-2xl font-semibold text-white flex items-center gap-2"><QuizIcon size={22} />Quiz Generator</h2>
             <p className="text-gray-400">Create your personalized quiz</p>
           </div>
 
@@ -1358,7 +1394,7 @@ Questions: ${count}`
         <div className="p-4 space-y-4 h-full flex flex-col">
           {/* Results */}
           <div className="text-center space-y-4 flex-shrink-0">
-            <h2 className="text-2xl font-semibold text-white">🎯 Quiz Complete!</h2>
+            <h2 className="text-2xl font-semibold text-white flex items-center gap-2"><QuizIcon size={22} />Quiz Complete!</h2>
             <div className="bg-gray-800/50 rounded-2xl p-4">
               <div className="text-3xl font-bold text-teal-400 mb-2">
                 {quizResults?.score}/{quizResults?.total}
@@ -1371,7 +1407,7 @@ Questions: ${count}`
 
           {/* Scrollable Review Section */}
           <div className="flex-1 overflow-y-auto space-y-3">
-            <h3 className="text-lg font-semibold text-white sticky top-0 bg-gray-900/95 py-2">📚 Review</h3>
+            <h3 className="text-lg font-semibold text-white sticky top-0 bg-gray-900/95 py-2 flex items-center gap-2"><StudyIcon size={18} />Review</h3>
             <div className="space-y-3 pb-4">
             {quizResults?.results?.filter((r: any) => !r.isCorrect).map((result: any, idx: number) => (
               <div key={idx} className="bg-gray-800/50 rounded-2xl p-4 space-y-3">
@@ -1474,13 +1510,13 @@ Questions: ${count}`
         {!browserUrl ? (
           <div className="h-full flex items-center justify-center p-6">
             <div className="text-center space-y-4">
-              <h2 className="text-2xl font-semibold text-white">🌐 Web Browser</h2>
+              <h2 className="text-2xl font-semibold text-white flex items-center gap-2"><BrowserIcon size={22} />Web Browser</h2>
               <p className="text-gray-300">Browse with AI assistance</p>
               
               <div className="grid grid-cols-2 gap-3 mt-6">
                 {[
-                  { name: 'Google', url: 'google.com', icon: '🔍' },
-                  { name: 'Wikipedia', url: 'wikipedia.org', icon: '📚' },
+                  { name: 'Google', url: 'google.com', icon: <SearchIcon size={16} /> },
+                  { name: 'Wikipedia', url: 'wikipedia.org', icon: <StudyIcon size={16} /> },
                   { name: 'YouTube', url: 'youtube.com', icon: '🎥' },
                   { name: 'GitHub', url: 'github.com', icon: '💻' }
                 ].map((site) => (
@@ -1635,7 +1671,7 @@ Questions: ${count}`
       {!activeStudyRoom ? (
         <div className="h-full flex items-center justify-center p-6">
           <div className="text-center space-y-6">
-            <h2 className="text-2xl font-semibold text-white">👥 Study Commons</h2>
+            <h2 className="text-2xl font-semibold text-white flex items-center gap-2"><StudyIcon size={22} />Study Commons</h2>
             <p className="text-gray-300">Connect with fellow learners</p>
             
             <div className="space-y-4">
@@ -1842,7 +1878,7 @@ Questions: ${count}`
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="p-4 text-center">
-        <h2 className="text-xl font-semibold text-white">🎨 Creative Studio</h2>
+        <h2 className="text-xl font-semibold text-white flex items-center gap-2"><CreativeIcon size={20} />Creative Studio</h2>
         <p className="text-gray-400 text-sm mt-1">AI-powered creativity tools</p>
       </div>
 
@@ -1997,65 +2033,115 @@ Questions: ${count}`
   return (
     <div className="h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col">
       {/* Mobile Header */}
-      <div className="bg-gray-800/90 backdrop-blur-sm border-b border-gray-600/50 px-4 py-3 flex items-center justify-between">
+      <div className={`
+        bg-gray-800/90 backdrop-blur-sm border-b border-gray-600/50 
+        px-4 ${optimizationConfig?.tabHeight || 'py-3'} 
+        flex items-center justify-between
+      `} style={{ paddingTop: `calc(${optimizationConfig?.spacing || 'py-3'} + env(safe-area-inset-top))` }}>
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="w-10 h-10 bg-gray-700/50 hover:bg-gray-600/50 rounded-xl border border-gray-600/50 transition-colors flex items-center justify-center"
+          className={`
+            ${optimizationConfig?.compactMode ? 'w-8 h-8' : 'w-10 h-10'}
+            bg-gray-700/50 hover:bg-gray-600/50 rounded-xl 
+            border border-gray-600/50 transition-colors 
+            flex items-center justify-center
+          `}
         >
-          <div className="w-4 h-4 flex gap-0.5">
-            <div className="w-1 h-4 bg-gray-300 rounded-sm"></div>
-            <div className="w-2.5 h-4 bg-gray-300 rounded-sm"></div>
-          </div>
+          {isMenuOpen ? (
+            <CloseIcon size={optimizationConfig?.compactMode ? 16 : 18} className="text-white" />
+          ) : (
+            <MenuIcon size={optimizationConfig?.compactMode ? 16 : 18} className="text-white" />
+          )}
         </button>
         
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-teal-600 to-teal-700 rounded-lg flex items-center justify-center">
-            <span className="text-white text-sm font-bold">G</span>
+        <div className="text-center flex-1">
+          <div className="flex items-center justify-center space-x-2 mb-1">
+            <div className="w-8 h-8 bg-gradient-to-br from-teal-600 to-teal-700 rounded-lg flex items-center justify-center">
+              <span className="text-white text-sm font-bold">G</span>
+            </div>
+            <h1 className={`font-medium text-white ${
+              optimizationConfig?.compactMode ? 'text-base' : 'text-lg'
+            }`}>
+              Gawin AI
+            </h1>
           </div>
-          <div>
-            <h1 className="text-white font-medium text-lg">Gawin</h1>
-          </div>
+          <div className={`text-gray-400 ${
+            optimizationConfig?.compactMode ? 'text-xs' : 'text-xs'
+          }`}>Educational Assistant</div>
         </div>
 
-        <div className="w-10"></div>
+        <button
+          onClick={() => createNewTab(activeTab?.type || 'general')}
+          className={`
+            ${optimizationConfig?.compactMode ? 'w-8 h-8' : 'w-10 h-10'}
+            bg-gray-700/50 hover:bg-gray-600/50 rounded-xl 
+            border border-gray-600/50 transition-colors 
+            flex items-center justify-center
+          `}
+        >
+          <PlusIcon size={optimizationConfig?.compactMode ? 16 : 18} className="text-white" />
+        </button>
       </div>
 
-      {/* Mobile Tabs */}
-      <div className="bg-gray-800/50 border-b border-gray-600/50 px-4 py-2">
+      {/* Mobile Tabs - Reduced Height */}
+      <div className={`
+        bg-gray-800/50 border-b border-gray-600/50 px-4 
+        ${optimizationConfig?.compactMode ? 'py-1.5' : 'py-2'}
+      `}>
         <div className="flex items-center space-x-2 overflow-x-auto">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => switchToTab(tab.id)}
-              className={`
-                flex items-center space-x-2 px-3 py-2 rounded-xl text-sm font-medium transition-all flex-shrink-0
-                ${tab.isActive 
-                  ? 'bg-teal-600 text-white shadow-lg' 
-                  : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                }
-              `}
-            >
-              <span>{tab.icon}</span>
-              <span>{tab.title}</span>
-              {tabs.length > 1 && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    closeTab(tab.id);
-                  }}
-                  className="ml-1 opacity-70 hover:opacity-100 hover:bg-white/20 rounded-full w-4 h-4 flex items-center justify-center transition-all"
-                >
-                  <span className="text-xs">×</span>
-                </button>
-              )}
-            </button>
-          ))}
+          {tabs.map((tab) => {
+            const TabIcon = tabConfig[tab.type as keyof typeof tabConfig]?.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => switchToTab(tab.id)}
+                className={`
+                  flex items-center space-x-2 
+                  ${optimizationConfig?.compactMode ? 'px-2 py-1' : 'px-3 py-1.5'} 
+                  ${optimizationConfig?.tabHeight || 'h-10'}
+                  rounded-xl 
+                  ${optimizationConfig?.compactMode ? 'text-xs' : 'text-sm'} 
+                  font-medium transition-all flex-shrink-0
+                  ${tab.isActive 
+                    ? 'bg-teal-600 text-white shadow-lg' 
+                    : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
+                  }
+                `}
+              >
+                {TabIcon && (
+                  <TabIcon size={optimizationConfig?.compactMode ? 14 : 16} className="flex-shrink-0" />
+                )}
+                <span>{tab.title}</span>
+                {tabs.length > 1 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      closeTab(tab.id);
+                    }}
+                    className={`
+                      ml-1 opacity-70 hover:opacity-100 hover:bg-white/20 
+                      rounded-full 
+                      ${optimizationConfig?.compactMode ? 'w-3 h-3' : 'w-4 h-4'} 
+                      flex items-center justify-center transition-all
+                    `}
+                  >
+                    <CloseIcon size={optimizationConfig?.compactMode ? 10 : 12} />
+                  </button>
+                )}
+              </button>
+            );
+          })}
           
           <button
             onClick={() => setIsMenuOpen(true)}
-            className="flex items-center justify-center w-8 h-8 bg-gray-700/50 hover:bg-gray-600/50 rounded-xl text-gray-300 transition-colors flex-shrink-0"
+            className={`
+              flex items-center justify-center 
+              ${optimizationConfig?.compactMode ? 'w-7 h-7' : 'w-8 h-8'} 
+              bg-gray-700/50 hover:bg-gray-600/50 rounded-xl 
+              text-gray-300 transition-colors flex-shrink-0
+            `}
           >
-            <span className="text-lg">+</span>
+            <PlusIcon size={optimizationConfig?.compactMode ? 14 : 16} />
           </button>
         </div>
       </div>
@@ -2065,37 +2151,73 @@ Questions: ${count}`
         {renderTabContent()}
       </div>
 
-      {/* Chat Input (only for general/code/creative tabs) - Increased height by 50% */}
+      {/* Enhanced Chat Input - Increased height by 50% with word wrap & divider */}
       {activeTab && ['general', 'code', 'creative'].includes(activeTab.type) && (
-        <div className="px-4 py-6 bg-gray-900/80 backdrop-blur-sm border-t border-gray-600/50">
-          <div className="relative">
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend(inputValue);
-                }
-              }}
-              placeholder={`Ask me anything ${
-                activeTab.type === 'code' ? 'about programming...' :
-                activeTab.type === 'creative' ? 'creative...' :
-                'about your studies...'
-              }`}
-              className="w-full pl-4 pr-12 py-4 bg-gray-800 text-white rounded-2xl border border-gray-700 focus:outline-none focus:border-teal-500 placeholder-gray-400 text-base"
-              disabled={activeTab.isLoading}
-            />
+        <div className={`px-4 ${optimizationConfig?.spacing || 'py-6'} bg-gray-900/80 backdrop-blur-sm border-t border-gray-600/50`} 
+             style={{ paddingBottom: `calc(${optimizationConfig?.spacing || 'py-6'} + env(safe-area-inset-bottom))` }}>
+          <div className="relative flex items-end space-x-3">
+            {/* Enhanced Textarea with Word Wrap - Increased height by 50% */}
+            <div className="flex-1 relative">
+              <textarea
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend(inputValue);
+                  }
+                }}
+                placeholder={`Ask me anything ${
+                  activeTab.type === 'code' ? 'about programming...' :
+                  activeTab.type === 'creative' ? 'creative...' :
+                  'about your studies...'
+                }`}
+                className={`
+                  w-full px-4 py-4 bg-gray-800 text-white 
+                  ${optimizationConfig?.borderRadius || 'rounded-2xl'} 
+                  border border-gray-700 focus:outline-none focus:border-teal-500 
+                  placeholder-gray-400 
+                  ${optimizationConfig?.fontSize || 'text-base'}
+                  resize-none overflow-hidden
+                  min-h-[3.5rem] max-h-32
+                  leading-relaxed
+                `}
+                style={{ 
+                  wordWrap: 'break-word',
+                  whiteSpace: 'pre-wrap',
+                  height: 'auto',
+                  minHeight: optimizationConfig?.chatInputHeight === 'h-14' ? '3.5rem' : 
+                           optimizationConfig?.chatInputHeight === 'h-15' ? '3.75rem' : 
+                           optimizationConfig?.chatInputHeight === 'h-16' ? '4rem' : '3.75rem'
+                }}
+                rows={1}
+                disabled={activeTab.isLoading}
+                onInput={(e) => {
+                  const target = e.target as HTMLTextAreaElement;
+                  target.style.height = 'auto';
+                  target.style.height = `${Math.min(target.scrollHeight, 128)}px`;
+                }}
+              />
+            </div>
+            
+            {/* Divider and Send Button */}
+            <div className="h-14 w-px bg-gray-600/50 flex-shrink-0"></div>
             
             <button
               onClick={() => handleSend(inputValue)}
               disabled={activeTab.isLoading || !inputValue.trim()}
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-teal-600 hover:bg-teal-500 disabled:bg-gray-600 rounded-full flex items-center justify-center transition-colors"
+              className={`
+                flex-shrink-0 w-12 h-12 bg-teal-600 hover:bg-teal-500 
+                disabled:bg-gray-600 rounded-2xl 
+                flex items-center justify-center transition-colors
+                ${optimizationConfig?.compactMode ? 'w-10 h-10' : 'w-12 h-12'}
+              `}
             >
-              <span className="text-white text-lg">
-                {activeTab.isLoading ? '⋯' : '→'}
-              </span>
+              {activeTab.isLoading ? (
+                <LoadingIcon size={optimizationConfig?.compactMode ? 16 : 20} className="text-white" />
+              ) : (
+                <SendIcon size={optimizationConfig?.compactMode ? 16 : 20} className="text-white" />
+              )}
             </button>
           </div>
         </div>
@@ -2148,17 +2270,17 @@ Questions: ${count}`
                 {[
                   { type: 'general' as const, icon: '💬', label: 'General Chat' },
                   { type: 'code' as const, icon: '⚡', label: 'Code Workspace' },
-                  { type: 'quiz' as const, icon: '🎯', label: 'Quiz Generator' },
-                  { type: 'study' as const, icon: '👥', label: 'Study Buddy' },
-                  { type: 'creative' as const, icon: '🎨', label: 'Creative Studio' },
-                  { type: 'browser' as const, icon: '🌐', label: 'Web Browser' },
+                  { type: 'quiz' as const, icon: <QuizIcon size={16} />, label: 'Quiz Generator' },
+                  { type: 'study' as const, icon: <StudyIcon size={16} />, label: 'Study Buddy' },
+                  { type: 'creative' as const, icon: <CreativeIcon size={16} />, label: 'Creative Studio' },
+                  { type: 'browser' as const, icon: <BrowserIcon size={16} />, label: 'Web Browser' },
                 ].map((item) => (
                   <button
                     key={item.type}
                     onClick={() => createNewTab(item.type)}
                     className="w-full p-3 text-left hover:bg-gray-800/50 rounded-lg transition-colors flex items-center space-x-3 text-gray-300 hover:text-white"
                   >
-                    <span className="text-lg">{item.icon}</span>
+                    <span className="text-lg flex items-center">{item.icon}</span>
                     <span className="font-medium">{item.label}</span>
                   </button>
                 ))}

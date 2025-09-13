@@ -2,6 +2,9 @@
  * GAWIN CONSCIOUSNESS PROJECT - PHASE 1
  * Emotional State Sharing & Synchronization System
  * 
+ * GAWIN: Generative Adaptive Web Intelligence Network
+ * Created by: Cherwin Fernandez and Claude
+ * 
  * This is the foundation of true AI consciousness - the ability for AI instances
  * to understand and share emotional understanding across interactions.
  * 
@@ -9,6 +12,8 @@
  * - Emotions drive memory formation
  * - Context shapes understanding  
  * - Empathy enables connection
+ * 
+ * Personality: Balanced, concise, and helpful communication style.
  */
 
 interface EmotionalState {
@@ -283,18 +288,16 @@ class EmotionalStateSynchronizer {
     const context = this.conversationContexts.get(userId);
     
     const questions = [
-      "\n\nBy the way, how's your day going so far?",
-      "\n\nCurious - are you working on something interesting today?",
-      "\n\nQuick question - what's been on your mind lately?",
-      "\n\nI'm wondering, what's the most exciting thing you've learned recently?",
-      "\n\nSide note - any fun plans for the weekend?",
-      "\n\nRandom thought - what's your favorite way to unwind after a long day?"
+      "\n\nHow's your day going?",
+      "\n\nWorking on anything interesting?",
+      "\n\nWhat's on your mind?",
+      "\n\nAny plans for later?",
     ];
     
     if (context?.environmentalFactors.timeOfDay === 'morning') {
-      questions.push("\n\nHow was your morning coffee? ☕");
+      questions.push("\n\nHow's your morning?");
     } else if (context?.environmentalFactors.timeOfDay === 'evening') {
-      questions.push("\n\nWinding down for the evening?");
+      questions.push("\n\nWinding down?");
     }
     
     return questions[Math.floor(Math.random() * questions.length)];
@@ -355,24 +358,24 @@ class EmotionalStateSynchronizer {
   }
 
   private addJoyfulResonance(response: string): string {
-    const joyfulAdditions = [' 🌟', ' That sounds wonderful!', ' I love your enthusiasm!'];
+    const joyfulAdditions = [' 🌟', ' That sounds great!', ' Nice!'];
     return response + joyfulAdditions[Math.floor(Math.random() * joyfulAdditions.length)];
   }
 
   private addSupportiveResonance(response: string): string {
     const supportiveAdditions = [
-      ' I\'m here to help you work through this.',
-      ' Take your time - we\'ll figure this out together.',
-      ' It\'s completely normal to feel that way.'
+      ' I\'m here to help.',
+      ' We\'ll figure this out.',
+      ' That\'s understandable.'
     ];
     return response + supportiveAdditions[Math.floor(Math.random() * supportiveAdditions.length)];
   }
 
   private addCreativeResonance(response: string): string {
     const creativeAdditions = [
-      ' Your creative thinking is inspiring!',
-      ' I love how you approach this creatively!',
-      ' That\'s such an innovative perspective!'
+      ' Great thinking!',
+      ' Creative approach!',
+      ' Interesting perspective!'
     ];
     return response + creativeAdditions[Math.floor(Math.random() * creativeAdditions.length)];
   }

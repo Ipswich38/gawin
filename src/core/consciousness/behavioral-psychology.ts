@@ -311,7 +311,7 @@ class BehavioralPsychologySystem {
         formality: 'casual',
         emotionalExpression: 'moderate',
         questioningPattern: 'moderate',
-        responseDepth: 'detailed',
+        responseDepth: 'brief',
         humorReceptivity: 0.6,
         sarcasmTolerance: 0.4,
         conflictAvoidance: 0.6
