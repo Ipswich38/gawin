@@ -1486,20 +1486,54 @@ Questions: ${count}`
 
   const renderBrowserContent = () => (
     <div className="flex flex-col h-full">
-      {/* URL Bar */}
-      <div className="bg-gray-800/90 border-b border-gray-600/50 p-3">
+      {/* Enhanced Browser Header with AI Features */}
+      <div className="bg-gray-800/90 border-b border-gray-600/50 p-3 space-y-3">
+        {/* Navigation Bar */}
         <div className="flex items-center space-x-2">
-          <button 
-            onClick={() => {
-              if (browserUrl) {
-                setIsPageLoading(true);
-                setTimeout(() => setIsPageLoading(false), 800);
-              }
-            }}
-            className="w-8 h-8 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors flex items-center justify-center text-gray-300"
-          >
-            ↻
-          </button>
+          <div className="flex space-x-1">
+            <button 
+              onClick={() => {
+                if (browserUrl) {
+                  const iframe = document.getElementById('browser-iframe') as HTMLIFrameElement;
+                  if (iframe) {
+                    iframe.src = iframe.src; // Reload
+                  }
+                }
+              }}
+              className="w-8 h-8 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors flex items-center justify-center text-gray-300"
+              title="Refresh"
+            >
+              ↻
+            </button>
+            <button 
+              onClick={() => {
+                if (browserUrl) {
+                  const iframe = document.getElementById('browser-iframe') as HTMLIFrameElement;
+                  if (iframe && iframe.contentWindow) {
+                    iframe.contentWindow.history.back();
+                  }
+                }
+              }}
+              className="w-8 h-8 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors flex items-center justify-center text-gray-300"
+              title="Back"
+            >
+              ←
+            </button>
+            <button 
+              onClick={() => {
+                if (browserUrl) {
+                  const iframe = document.getElementById('browser-iframe') as HTMLIFrameElement;
+                  if (iframe && iframe.contentWindow) {
+                    iframe.contentWindow.history.forward();
+                  }
+                }
+              }}
+              className="w-8 h-8 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors flex items-center justify-center text-gray-300"
+              title="Forward"
+            >
+              →
+            </button>
+          </div>
           
           <div className="flex-1 relative">
             <input
@@ -1510,176 +1544,232 @@ Questions: ${count}`
                 if (e.key === 'Enter') {
                   let url = browserUrl.trim();
                   if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                    url = 'https://' + url;
+                    if (url.includes('.')) {
+                      url = 'https://' + url;
+                    } else {
+                      // Search query
+                      url = `https://www.google.com/search?q=${encodeURIComponent(url)}`;
+                    }
                   }
                   setBrowserUrl(url);
                   setIsPageLoading(true);
-                  setTimeout(() => setIsPageLoading(false), 800);
+                  setTimeout(() => setIsPageLoading(false), 1000);
                 }
               }}
-              placeholder="Enter URL..."
+              placeholder="Enter URL or search..."
               className="w-full px-3 py-2 bg-gray-700 text-white rounded-xl border border-gray-600 focus:outline-none focus:border-teal-500 placeholder-gray-400 text-sm"
             />
           </div>
+
+          {/* AI Analysis Button */}
+          <button
+            onClick={() => {
+              if (browserUrl) {
+                setGawinChatOpen(!gawinChatOpen);
+              }
+            }}
+            className="w-8 h-8 rounded-lg bg-teal-600 hover:bg-teal-700 transition-colors flex items-center justify-center text-white"
+            title="AI Analysis"
+          >
+            🤖
+          </button>
         </div>
+
+        {/* AI Quick Actions */}
+        {browserUrl && (
+          <div className="flex items-center space-x-2 text-xs">
+            <span className="text-gray-400">AI Actions:</span>
+            <button
+              onClick={() => handleBrowserChat(`Summarize the main content of this page: ${browserUrl}`, browserUrl)}
+              className="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg transition-colors"
+            >
+              📄 Summarize
+            </button>
+            <button
+              onClick={() => handleBrowserChat(`Extract key information and facts from this page: ${browserUrl}`, browserUrl)}
+              className="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg transition-colors"
+            >
+              🔍 Extract Info
+            </button>
+            <button
+              onClick={() => handleBrowserChat(`Analyze this page for learning opportunities: ${browserUrl}`, browserUrl)}
+              className="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg transition-colors"
+            >
+              🎯 Learn
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Content */}
-      <div className="flex-1 relative">
+      {/* Real Browser Content */}
+      <div className="flex-1 relative bg-white">
         {!browserUrl ? (
-          <div className="h-full flex items-center justify-center p-6">
+          <div className="h-full flex items-center justify-center p-6 bg-gray-900">
             <div className="text-center space-y-4">
-              <h2 className="text-2xl font-semibold text-white flex items-center gap-2"><BrowserIcon size={22} />Web Browser</h2>
-              <p className="text-gray-300">Browse with AI assistance</p>
+              <h2 className="text-2xl font-semibold text-white flex items-center gap-2 justify-center">
+                <BrowserIcon size={22} />Gawin Web Browser
+              </h2>
+              <p className="text-gray-300">Real browsing with AI superpowers</p>
               
-              <div className="grid grid-cols-2 gap-3 mt-6">
+              <div className="grid grid-cols-2 gap-3 mt-6 max-w-md">
                 {[
-                  { name: 'Google', url: 'google.com', icon: <SearchIcon size={16} /> },
-                  { name: 'Wikipedia', url: 'wikipedia.org', icon: <StudyIcon size={16} /> },
-                  { name: 'YouTube', url: 'youtube.com', icon: '🎥' },
-                  { name: 'GitHub', url: 'github.com', icon: '💻' }
+                  { name: 'Google', url: 'google.com', icon: <SearchIcon size={16} />, desc: 'Search anything' },
+                  { name: 'Wikipedia', url: 'wikipedia.org', icon: <StudyIcon size={16} />, desc: 'Learn & research' },
+                  { name: 'YouTube', url: 'youtube.com', icon: '🎥', desc: 'Watch & learn' },
+                  { name: 'GitHub', url: 'github.com', icon: '💻', desc: 'Code & collaborate' }
                 ].map((site) => (
                   <button
                     key={site.name}
                     onClick={() => {
                       setBrowserUrl(`https://${site.url}`);
                       setIsPageLoading(true);
-                      setTimeout(() => setIsPageLoading(false), 800);
+                      setTimeout(() => setIsPageLoading(false), 1000);
                     }}
-                    className="p-3 bg-gray-800/50 hover:bg-gray-700/50 rounded-2xl border border-gray-600/50 transition-all"
+                    className="p-4 bg-gray-800/50 hover:bg-gray-700/50 rounded-2xl border border-gray-600/50 transition-all group"
                   >
-                    <div className="text-xl mb-1">{site.icon}</div>
+                    <div className="text-xl mb-2 group-hover:scale-110 transition-transform">{site.icon}</div>
                     <div className="text-white text-sm font-medium">{site.name}</div>
+                    <div className="text-gray-400 text-xs mt-1">{site.desc}</div>
                   </button>
                 ))}
+              </div>
+
+              <div className="mt-8 p-4 bg-teal-900/20 border border-teal-700/50 rounded-xl">
+                <div className="flex items-center space-x-2 mb-2">
+                  <span className="text-teal-400">✨</span>
+                  <span className="text-teal-100 font-medium text-sm">AI-Powered Features</span>
+                </div>
+                <ul className="text-gray-300 text-xs space-y-1 text-left">
+                  <li>• Real-time page analysis and summarization</li>
+                  <li>• Intelligent content extraction</li>
+                  <li>• Learning-focused research assistance</li>
+                  <li>• Context-aware AI conversations</li>
+                </ul>
               </div>
             </div>
           </div>
         ) : isPageLoading ? (
-          <div className="h-full flex items-center justify-center">
+          <div className="h-full flex items-center justify-center bg-gray-100">
             <div className="text-center space-y-3">
               <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-              <p className="text-gray-300 text-sm">Loading...</p>
+              <p className="text-gray-600 text-sm">Loading {new URL(browserUrl).hostname}...</p>
             </div>
           </div>
         ) : (
-          <AIWebBrowser 
-            userEmail={user.email}
-            onResult={(result) => {
-              // When AI browsing finds a result, add it to the AI Agent tab
-              const agentTab = tabs.find(tab => tab.type === 'general' && tab.title === 'AI Agent');
-              if (agentTab) {
-                const newMessage: Message = {
-                  id: Date.now(),
-                  role: 'assistant',
-                  content: result,
-                  timestamp: new Date().toISOString()
-                };
-                setTabs(prev => prev.map(tab => 
-                  tab.id === agentTab.id 
-                    ? { ...tab, messages: [...tab.messages, newMessage] }
-                    : tab
-                ));
-              }
-            }}
-            onProgress={(step) => {
-              // Update AI Agent tab with progress
-              const agentTab = tabs.find(tab => tab.type === 'general' && tab.title === 'AI Agent');
-              if (agentTab) {
-                const progressMessage: Message = {
-                  id: Date.now(),
-                  role: 'assistant',
-                  content: `🔄 **Progress**: ${step}`,
-                  timestamp: new Date().toISOString()
-                };
-                setTabs(prev => prev.map(tab => 
-                  tab.id === agentTab.id 
-                    ? { ...tab, messages: [...tab.messages, progressMessage] }
-                    : tab
-                ));
-              }
+          <iframe
+            id="browser-iframe"
+            src={browserUrl}
+            className="w-full h-full border-0"
+            title="Web Browser"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
+            onLoad={() => setIsPageLoading(false)}
+            onError={() => {
+              setIsPageLoading(false);
+              console.log('Failed to load:', browserUrl);
             }}
           />
         )}
 
-        {/* Gawin Bubble */}
-        {browserUrl && !isPageLoading && (
-          <>
-            <motion.button
-              onClick={() => setGawinChatOpen(!gawinChatOpen)}
-              className="fixed bottom-6 right-6 w-14 h-14 bg-teal-600 hover:bg-teal-700 rounded-full shadow-lg z-50 flex items-center justify-center transition-colors"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <span className="text-white text-xl">🤖</span>
-            </motion.button>
-
-            {gawinChatOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                className="fixed bottom-24 right-6 w-72 h-80 bg-gray-800 rounded-2xl shadow-2xl z-40 border border-gray-600"
+        {/* Enhanced AI Chat Overlay */}
+        {gawinChatOpen && browserUrl && (
+          <motion.div
+            initial={{ opacity: 0, x: 300 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 300 }}
+            className="absolute top-0 right-0 w-80 h-full bg-gray-900/95 backdrop-blur-sm border-l border-gray-600 z-50 flex flex-col"
+          >
+            {/* AI Chat Header */}
+            <div className="bg-teal-600 p-4 flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <span className="text-white text-lg">🤖</span>
+                <div>
+                  <div className="text-white font-medium text-sm">Gawin AI Browser</div>
+                  <div className="text-teal-100 text-xs">Analyzing: {new URL(browserUrl).hostname}</div>
+                </div>
+              </div>
+              <button
+                onClick={() => setGawinChatOpen(false)}
+                className="text-white hover:bg-teal-700 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
               >
-                <div className="bg-teal-600 rounded-t-2xl p-3 flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-white">🤖</span>
-                    <span className="text-white font-medium text-sm">Gawin AI</span>
-                  </div>
-                  <button
-                    onClick={() => setGawinChatOpen(false)}
-                    className="text-white hover:bg-teal-700 rounded-full w-6 h-6 flex items-center justify-center transition-colors text-lg"
-                  >
-                    ×
-                  </button>
-                </div>
+                ✕
+              </button>
+            </div>
 
-                <div className="flex-1 p-3 space-y-2 overflow-y-auto" style={{ height: 'calc(100% - 100px)' }}>
-                  <div className="bg-gray-700 rounded-lg p-2">
-                    <p className="text-gray-300 text-xs">
-                      Hi! I can see you're browsing <strong>{new URL(browserUrl).hostname}</strong>. 
-                      Ask me anything about this page!
-                    </p>
-                  </div>
-                </div>
+            {/* AI Features Panel */}
+            <div className="p-4 border-b border-gray-700">
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => handleBrowserChat(`What is this page about? Give me a comprehensive summary.`, browserUrl)}
+                  className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs text-gray-300 transition-colors"
+                >
+                  📋 Full Summary
+                </button>
+                <button
+                  onClick={() => handleBrowserChat(`Extract all important facts and data from this page.`, browserUrl)}
+                  className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs text-gray-300 transition-colors"
+                >
+                  📊 Key Facts
+                </button>
+                <button
+                  onClick={() => handleBrowserChat(`Find educational content and learning opportunities on this page.`, browserUrl)}
+                  className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs text-gray-300 transition-colors"
+                >
+                  🎓 Study Guide
+                </button>
+                <button
+                  onClick={() => handleBrowserChat(`Check this page for credibility and reliability of information.`, browserUrl)}
+                  className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs text-gray-300 transition-colors"
+                >
+                  ✅ Verify Info
+                </button>
+              </div>
+            </div>
 
-                <div className="p-3 border-t border-gray-600">
-                  <div className="flex space-x-2">
-                    <input
-                      id="browser-chat-input"
-                      type="text"
-                      placeholder="Ask about this page..."
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          const target = e.target as HTMLInputElement;
-                          const userMessage = target.value.trim();
-                          if (userMessage) {
-                            // Handle browser chat within the current context
-                            handleBrowserChat(userMessage, browserUrl);
-                            target.value = '';
-                          }
-                        }
-                      }}
-                      className="flex-1 px-2 py-1 bg-gray-700 text-white rounded-lg border border-gray-600 focus:outline-none focus:border-teal-500 text-xs placeholder-gray-400"
-                    />
-                    <button 
-                      onClick={() => {
-                        const input = document.getElementById('browser-chat-input') as HTMLInputElement;
-                        const userMessage = input?.value.trim();
-                        if (userMessage) {
-                          handleBrowserChat(userMessage, browserUrl);
-                          input.value = '';
-                        }
-                      }}
-                      className="w-6 h-6 bg-teal-600 hover:bg-teal-700 rounded-lg flex items-center justify-center transition-colors"
-                    >
-                      <span className="text-white text-xs">→</span>
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </>
+            {/* Chat Messages Area */}
+            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+              <div className="bg-gray-800 rounded-lg p-3">
+                <p className="text-gray-300 text-xs">
+                  🌐 I'm ready to help you analyze and understand this webpage. Ask me anything about the content, or use the quick actions above!
+                </p>
+              </div>
+            </div>
+
+            {/* Chat Input */}
+            <div className="p-3 border-t border-gray-700">
+              <div className="flex space-x-2">
+                <input
+                  id="ai-browser-chat-input"
+                  type="text"
+                  placeholder="Ask about this page..."
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      const target = e.target as HTMLInputElement;
+                      const userMessage = target.value.trim();
+                      if (userMessage) {
+                        handleBrowserChat(userMessage, browserUrl);
+                        target.value = '';
+                      }
+                    }
+                  }}
+                  className="flex-1 px-3 py-2 bg-gray-800 text-white rounded-lg border border-gray-600 focus:outline-none focus:border-teal-500 text-xs placeholder-gray-400"
+                />
+                <button 
+                  onClick={() => {
+                    const input = document.getElementById('ai-browser-chat-input') as HTMLInputElement;
+                    const userMessage = input?.value.trim();
+                    if (userMessage) {
+                      handleBrowserChat(userMessage, browserUrl);
+                      input.value = '';
+                    }
+                  }}
+                  className="w-8 h-8 bg-teal-600 hover:bg-teal-700 rounded-lg flex items-center justify-center transition-colors"
+                >
+                  <SendIcon size={14} className="text-white" />
+                </button>
+              </div>
+            </div>
+          </motion.div>
         )}
       </div>
     </div>
