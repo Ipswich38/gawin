@@ -2055,7 +2055,7 @@ Questions: ${count}`
       {/* Mobile Header */}
       <div className={`
         bg-gray-800/90 backdrop-blur-sm border-b border-gray-600/50 
-        px-4 ${optimizationConfig?.tabHeight || 'py-3'} 
+        px-3 sm:px-4 ${optimizationConfig?.tabHeight || 'py-3'} 
         flex items-center justify-between
       `} style={{ paddingTop: `calc(${optimizationConfig?.spacing || 'py-3'} + env(safe-area-inset-top))` }}>
         <button
@@ -2105,7 +2105,7 @@ Questions: ${count}`
 
       {/* Mobile Tabs - Reduced Height */}
       <div className={`
-        bg-gray-800/50 border-b border-gray-600/50 px-4 
+        bg-gray-800/50 border-b border-gray-600/50 px-3 sm:px-4 
         ${optimizationConfig?.compactMode ? 'py-1.5' : 'py-2'}
       `}>
         <div className="flex items-center space-x-2 overflow-x-auto">
@@ -2171,13 +2171,14 @@ Questions: ${count}`
         {renderTabContent()}
       </div>
 
-      {/* Enhanced Chat Input - Increased height by 50% with word wrap & divider */}
+      {/* Claude AI Inspired Chat Input - Responsive Design */}
       {activeTab && ['general', 'code', 'creative'].includes(activeTab.type) && (
-        <div className={`px-4 ${optimizationConfig?.spacing || 'py-6'} bg-gray-900/80 backdrop-blur-sm border-t border-gray-600/50`} 
-             style={{ paddingBottom: `calc(${optimizationConfig?.spacing || 'py-6'} + env(safe-area-inset-bottom))` }}>
-          <div className="relative flex items-end space-x-3">
-            {/* Enhanced Textarea with Word Wrap - Increased height by 50% */}
-            <div className="flex-1 relative">
+        <div className="px-3 sm:px-4 py-3 sm:py-4 bg-gray-900/80 backdrop-blur-sm border-t border-gray-600/50" 
+             style={{ paddingBottom: `calc(1rem + env(safe-area-inset-bottom))` }}>
+          
+          {/* Claude-style single container with embedded send button */}
+          <div className="relative w-full max-w-4xl mx-auto">
+            <div className="relative bg-gray-800 rounded-2xl border border-gray-700 focus-within:border-teal-500 transition-colors">
               <textarea
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
@@ -2192,23 +2193,15 @@ Questions: ${count}`
                   activeTab.type === 'creative' ? 'creative...' :
                   'about your studies...'
                 }`}
-                className={`
-                  w-full px-4 py-4 bg-gray-800 text-white 
-                  ${optimizationConfig?.borderRadius || 'rounded-2xl'} 
-                  border border-gray-700 focus:outline-none focus:border-teal-500 
-                  placeholder-gray-400 
-                  ${optimizationConfig?.fontSize || 'text-base'}
-                  resize-none overflow-hidden
-                  min-h-[3.5rem] max-h-32
-                  leading-relaxed
-                `}
+                className="
+                  w-full px-4 py-3 pr-12 sm:pr-14 bg-transparent text-white 
+                  resize-none overflow-hidden focus:outline-none
+                  placeholder-gray-400 text-sm sm:text-base
+                  min-h-[2.75rem] max-h-32 leading-relaxed
+                "
                 style={{ 
                   wordWrap: 'break-word',
-                  whiteSpace: 'pre-wrap',
-                  height: 'auto',
-                  minHeight: optimizationConfig?.chatInputHeight === 'h-14' ? '3.5rem' : 
-                           optimizationConfig?.chatInputHeight === 'h-15' ? '3.75rem' : 
-                           optimizationConfig?.chatInputHeight === 'h-16' ? '4rem' : '3.75rem'
+                  whiteSpace: 'pre-wrap'
                 }}
                 rows={1}
                 disabled={activeTab.isLoading}
@@ -2218,27 +2211,25 @@ Questions: ${count}`
                   target.style.height = `${Math.min(target.scrollHeight, 128)}px`;
                 }}
               />
+              
+              {/* Embedded Send Button - Claude style */}
+              <button
+                onClick={() => handleSend(inputValue)}
+                disabled={activeTab.isLoading || !inputValue.trim()}
+                className="
+                  absolute right-2 bottom-2 w-8 h-8 sm:w-9 sm:h-9
+                  bg-teal-600 hover:bg-teal-500 disabled:bg-gray-600 
+                  rounded-lg flex items-center justify-center 
+                  transition-colors flex-shrink-0
+                "
+              >
+                {activeTab.isLoading ? (
+                  <LoadingIcon size={16} className="text-white" />
+                ) : (
+                  <SendIcon size={16} className="text-white" />
+                )}
+              </button>
             </div>
-            
-            {/* Divider and Send Button */}
-            <div className="h-14 w-px bg-gray-600/50 flex-shrink-0"></div>
-            
-            <button
-              onClick={() => handleSend(inputValue)}
-              disabled={activeTab.isLoading || !inputValue.trim()}
-              className={`
-                flex-shrink-0 w-12 h-12 bg-teal-600 hover:bg-teal-500 
-                disabled:bg-gray-600 rounded-2xl 
-                flex items-center justify-center transition-colors
-                ${optimizationConfig?.compactMode ? 'w-10 h-10' : 'w-12 h-12'}
-              `}
-            >
-              {activeTab.isLoading ? (
-                <LoadingIcon size={optimizationConfig?.compactMode ? 16 : 20} className="text-white" />
-              ) : (
-                <SendIcon size={optimizationConfig?.compactMode ? 16 : 20} className="text-white" />
-              )}
-            </button>
           </div>
         </div>
       )}

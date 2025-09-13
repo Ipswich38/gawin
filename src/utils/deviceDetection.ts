@@ -204,6 +204,8 @@ class DeviceDetectionService {
     const ua = this.userAgent;
 
     if (brand === 'Apple') {
+      // Latest iPhone models
+      if (ua.includes('iPhone16')) return 'iPhone 16';
       if (ua.includes('iPhone15')) return 'iPhone 15';
       if (ua.includes('iPhone14')) return 'iPhone 14';
       if (ua.includes('iPhone13')) return 'iPhone 13';
@@ -319,17 +321,22 @@ class DeviceDetectionService {
   // iPhone specific optimizations
   private getIPhoneOptimization(model: string, viewport: any): OptimizationConfig {
     const isSmallPhone = viewport.width <= 375; // iPhone SE, iPhone 12 mini
-    const isProMax = viewport.width >= 428; // iPhone Pro Max models
+    const isStandardPhone = viewport.width > 375 && viewport.width <= 390; // iPhone 14, 15
+    const isProPhone = viewport.width > 390 && viewport.width <= 430; // iPhone 14 Pro, 15 Pro, 16, 16 Pro
+    const isProMax = viewport.width > 430; // iPhone Pro Max models
+
+    // Special handling for iPhone 16 series
+    const isiPhone16Series = model.includes('iPhone 16');
 
     return {
-      chatInputHeight: isSmallPhone ? 'h-14' : isProMax ? 'h-16' : 'h-15',
-      tabHeight: isSmallPhone ? 'h-10' : 'h-12',
-      fontSize: isSmallPhone ? 'text-sm' : 'text-base',
-      spacing: isSmallPhone ? 'p-3' : 'p-4',
+      chatInputHeight: isSmallPhone ? 'h-12' : isiPhone16Series ? 'h-14' : isProMax ? 'h-16' : 'h-14',
+      tabHeight: isSmallPhone ? 'h-8' : isiPhone16Series ? 'h-9' : 'h-10',
+      fontSize: isSmallPhone ? 'text-sm' : isiPhone16Series ? 'text-sm' : 'text-base',
+      spacing: isSmallPhone ? 'p-2' : isiPhone16Series ? 'p-3' : 'p-4',
       borderRadius: 'rounded-2xl',
       maxWidth: 'max-w-full',
-      gridCols: isSmallPhone ? 2 : 3,
-      compactMode: isSmallPhone
+      gridCols: isSmallPhone ? 2 : isiPhone16Series ? 2 : 3,
+      compactMode: isSmallPhone || isiPhone16Series
     };
   }
 
