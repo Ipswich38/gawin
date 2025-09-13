@@ -195,45 +195,20 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
 
   const handleBrowserChat = async (message: string, url: string) => {
     try {
-      // Keep chat bubble open but show the AI is working
-      setGawinChatOpen(true);
-      
-      // Trigger background AI analysis of the current website
-      const browserTab = tabs.find(tab => tab.type === 'browser');
-      if (browserTab) {
-        // Start AI agent analysis in background (non-blocking)
-        triggerBackgroundAIAnalysis(url, message);
-      }
-      
-      // Create contextual response immediately
-      const contextMessage = `🤖 **AI Agent**: I'm analyzing ${new URL(url).hostname} to help you with: "${message}"
-
-I'll examine the page content, navigate if needed, and find the information you're looking for. The website will stay visible while I work in the background.
-
-**What I'm doing:**
-• 🔍 Analyzing current page content
-• 🧠 Understanding your request
-• 🎯 Planning the best approach
-• 📊 Extracting relevant information
-
-You can continue browsing normally while I work. I'll update you with findings shortly.`;
-      
       // Find or create a general tab for browser chat
       let targetTab = tabs.find(tab => tab.type === 'general' && tab.isActive);
       if (!targetTab) {
-        // Create a new general tab
         const newTabId = `general-${Date.now()}`;
         const newTab: Tab = {
           id: newTabId,
           type: 'general',
-          title: 'AI Agent',
+          title: 'AI Browser',
           icon: ChatIcon,
           isActive: true,
           messages: [],
           isLoading: false
         };
         
-        // Switch to general tab
         setTabs(prev => prev.map(tab => ({ ...tab, isActive: false })).concat([newTab]));
         setActiveTabId(newTabId);
         targetTab = newTab;
@@ -243,33 +218,104 @@ You can continue browsing normally while I work. I'll update you with findings s
       const userMessage: Message = {
         id: Date.now(),
         role: 'user',
-        content: `🌐 Browsing ${new URL(url).hostname}: ${message}`,
+        content: `🌐 ${new URL(url).hostname}: ${message}`,
         timestamp: new Date().toISOString()
       };
       
       setTabs(prev => prev.map(tab => 
         tab.id === targetTab!.id 
-          ? { ...tab, messages: [...tab.messages, userMessage] }
+          ? { ...tab, messages: [...tab.messages, userMessage], isLoading: true }
           : tab
       ));
+
+      // Extract page content using our proxy API
+      const analysisResponse = await fetch('/api/browser-proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: url,
+          action: 'analyze',
+          options: { timeout: 15000 }
+        })
+      });
+
+      const analysisData = await analysisResponse.json();
       
-      // Add AI response
-      const aiMessage: Message = {
-        id: Date.now() + 1,
-        role: 'assistant',
-        content: contextMessage,
-        timestamp: new Date().toISOString()
-      };
-      
-      setTabs(prev => prev.map(tab => 
-        tab.id === targetTab!.id 
-          ? { ...tab, messages: [...tab.messages, aiMessage] }
-          : tab
-      ));
+      if (analysisData.success && analysisData.data) {
+        const { text, screenshot, metadata } = analysisData.data;
+        
+        // Create AI prompt with page content
+        const aiPrompt = `You are an AI browser assistant analyzing a webpage. Here's the context:
+
+Page: ${metadata?.title || 'Webpage'}
+URL: ${url}
+Domain: ${metadata?.domain || 'Unknown'}
+
+Page Content (first 4000 chars):
+${text?.substring(0, 4000) || 'No content extracted'}
+
+User Question: ${message}
+
+Please provide a helpful, accurate response based on the page content. If the user is asking for a summary, provide key points. If they want specific information, extract and highlight the relevant details. Be concise but thorough.
+
+${screenshot ? 'Note: I also have a screenshot of the page for visual context if needed.' : ''}`;
+
+        // Get AI response
+        const aiResponse = await fetch('/api/groq', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [{
+              role: 'system',
+              content: 'You are Gawin, an intelligent AI browser assistant. Provide helpful, accurate analysis of web content.'
+            }, {
+              role: 'user',
+              content: aiPrompt
+            }],
+            model: 'llama-3.3-70b-versatile',
+            temperature: 0.3,
+            max_tokens: 1500
+          })
+        });
+
+        const aiResult = await aiResponse.json();
+        
+        if (aiResult.success && aiResult.choices?.[0]?.message?.content) {
+          const aiMessage: Message = {
+            id: Date.now() + 1,
+            role: 'assistant',
+            content: `🤖 **AI Browser Analysis**\n\n${aiResult.choices[0].message.content}`,
+            timestamp: new Date().toISOString(),
+            thinking: `Analyzed page content from ${metadata?.domain || 'webpage'} (${text?.length || 0} characters) with ${screenshot ? 'visual' : 'text-only'} analysis...`
+          };
+
+          setTabs(prev => prev.map(tab => 
+            tab.id === targetTab!.id 
+              ? { ...tab, messages: [...tab.messages, aiMessage], isLoading: false }
+              : tab
+          ));
+        } else {
+          throw new Error('Failed to get AI analysis');
+        }
+      } else {
+        throw new Error('Failed to analyze page content');
+      }
       
     } catch (error) {
       console.error('Browser chat error:', error);
-      alert('Sorry, I encountered an error. Please try again.');
+      
+      const errorMessage: Message = {
+        id: Date.now() + 1,
+        role: 'assistant',
+        content: `❌ I encountered an error analyzing this page. This might be due to:\n\n• Page content restrictions\n• Network connectivity issues\n• Site blocking automated access\n\nPlease try a different page or ask a general question about what you can see.`,
+        timestamp: new Date().toISOString()
+      };
+
+      setTabs(prev => prev.map(tab => 
+        tab.id === targetTab!.id 
+          ? { ...tab, messages: [...tab.messages, errorMessage], isLoading: false }
+          : tab
+      ));
     }
   };
 
@@ -1656,18 +1702,29 @@ Questions: ${count}`
             </div>
           </div>
         ) : (
-          <iframe
-            id="browser-iframe"
-            src={browserUrl}
-            className="w-full h-full border-0"
-            title="Web Browser"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
-            onLoad={() => setIsPageLoading(false)}
-            onError={() => {
-              setIsPageLoading(false);
-              console.log('Failed to load:', browserUrl);
-            }}
-          />
+          <div className="w-full h-full">
+            {/* Proxied Browser Content */}
+            <iframe
+              id="browser-iframe"
+              src={`/api/browser-proxy/render?url=${encodeURIComponent(browserUrl)}`}
+              className="w-full h-full border-0 bg-white"
+              title="Gawin AI Browser"
+              sandbox="allow-scripts allow-same-origin allow-forms"
+              onLoad={() => {
+                setIsPageLoading(false);
+                // Auto-trigger AI analysis of the page
+                if (browserUrl) {
+                  setTimeout(() => {
+                    handleBrowserChat(`I've loaded ${new URL(browserUrl).hostname}. What would you like to know about this page?`, browserUrl);
+                  }, 2000);
+                }
+              }}
+              onError={() => {
+                setIsPageLoading(false);
+                console.log('Failed to load via proxy:', browserUrl);
+              }}
+            />
+          </div>
         )}
 
         {/* Enhanced AI Chat Overlay */}
