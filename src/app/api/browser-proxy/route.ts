@@ -193,9 +193,7 @@ export async function POST(request: NextRequest) {
             // Extract clean text content from the page
             const walker = document.createTreeWalker(
               document.body,
-              NodeFilter.SHOW_TEXT,
-              null,
-              false
+              NodeFilter.SHOW_TEXT
             );
             const textNodes = [];
             let node;
