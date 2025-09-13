@@ -2171,14 +2171,14 @@ Questions: ${count}`
         {renderTabContent()}
       </div>
 
-      {/* Claude AI Inspired Chat Input - Responsive Design */}
+      {/* Capsule-Shaped Chat Input with Transparent Send Button */}
       {activeTab && ['general', 'code', 'creative'].includes(activeTab.type) && (
         <div className="px-3 sm:px-4 py-3 sm:py-4 bg-gray-900/80 backdrop-blur-sm border-t border-gray-600/50" 
              style={{ paddingBottom: `calc(1rem + env(safe-area-inset-bottom))` }}>
           
-          {/* Claude-style single container with embedded send button */}
+          {/* Capsule container with transparent inner send button */}
           <div className="relative w-full max-w-4xl mx-auto">
-            <div className="relative bg-gray-800 rounded-2xl border border-gray-700 focus-within:border-teal-500 transition-colors">
+            <div className="relative bg-gray-800 rounded-full border border-gray-700 focus-within:border-teal-500 transition-colors">
               <textarea
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
@@ -2194,10 +2194,10 @@ Questions: ${count}`
                   'about your studies...'
                 }`}
                 className="
-                  w-full px-4 py-3 pr-12 sm:pr-14 bg-transparent text-white 
+                  w-full px-6 py-4 pr-14 sm:pr-16 bg-transparent text-white 
                   resize-none overflow-hidden focus:outline-none
                   placeholder-gray-400 text-sm sm:text-base
-                  min-h-[2.75rem] max-h-32 leading-relaxed
+                  min-h-[3rem] max-h-32 leading-relaxed rounded-full
                 "
                 style={{ 
                   wordWrap: 'break-word',
@@ -2212,21 +2212,23 @@ Questions: ${count}`
                 }}
               />
               
-              {/* Embedded Send Button - Claude style */}
+              {/* Transparent Send Button positioned at inner end of capsule */}
               <button
                 onClick={() => handleSend(inputValue)}
                 disabled={activeTab.isLoading || !inputValue.trim()}
                 className="
-                  absolute right-2 bottom-2 w-8 h-8 sm:w-9 sm:h-9
-                  bg-teal-600 hover:bg-teal-500 disabled:bg-gray-600 
-                  rounded-lg flex items-center justify-center 
-                  transition-colors flex-shrink-0
+                  absolute right-3 top-1/2 transform -translate-y-1/2 
+                  w-8 h-8 sm:w-9 sm:h-9
+                  bg-transparent hover:bg-teal-500/20 disabled:bg-transparent 
+                  rounded-full flex items-center justify-center 
+                  transition-all duration-200 flex-shrink-0
+                  text-teal-400 hover:text-teal-300 disabled:text-gray-600
                 "
               >
                 {activeTab.isLoading ? (
-                  <LoadingIcon size={16} className="text-white" />
+                  <LoadingIcon size={18} className="animate-spin" />
                 ) : (
-                  <SendIcon size={16} className="text-white" />
+                  <SendIcon size={18} />
                 )}
               </button>
             </div>
