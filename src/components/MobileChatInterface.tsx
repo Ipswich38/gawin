@@ -483,7 +483,7 @@ You can continue browsing normally while I work. I'll update you with findings s
       
       setTabs(prev => prev.map(tab => 
         tab.id === activeTab?.id 
-          ? { ...tab, messages: [...tab.messages, newMessage, errorResponse], isLoading: false }
+          ? { ...tab, messages: [...tab.messages, errorResponse], isLoading: false }
           : tab
       ));
     }
@@ -540,7 +540,7 @@ You can continue browsing normally while I work. I'll update you with findings s
 
         setTabs(prev => prev.map(tab => 
           tab.id === activeTab?.id 
-            ? { ...tab, messages: [...tab.messages, userMessage, imageResponse], isLoading: false }
+            ? { ...tab, messages: [...tab.messages, imageResponse], isLoading: false }
             : tab
         ));
         return;
@@ -562,7 +562,7 @@ You can continue browsing normally while I work. I'll update you with findings s
 
         setTabs(prev => prev.map(tab => 
           tab.id === activeTab?.id 
-            ? { ...tab, messages: [...tab.messages, userMessage, imageResponse], isLoading: false }
+            ? { ...tab, messages: [...tab.messages, imageResponse], isLoading: false }
             : tab
         ));
         return;
@@ -687,7 +687,7 @@ You can continue browsing normally while I work. I'll update you with findings s
 
         setTabs(prev => prev.map(tab => 
           tab.id === activeTab?.id 
-            ? { ...tab, messages: [...tab.messages, userMessage, aiResponse], isLoading: false }
+            ? { ...tab, messages: [...tab.messages, aiResponse], isLoading: false }
             : tab
         ));
 
@@ -712,7 +712,7 @@ You can continue browsing normally while I work. I'll update you with findings s
       
       setTabs(prev => prev.map(tab => 
         tab.id === activeTab?.id 
-          ? { ...tab, messages: [...tab.messages, userMessage, errorResponse], isLoading: false }
+          ? { ...tab, messages: [...tab.messages, errorResponse], isLoading: false }
           : tab
       ));
     }
@@ -782,7 +782,7 @@ You can continue browsing normally while I work. I'll update you with findings s
 
         setTabs(prev => prev.map(tab => 
           tab.id === activeTab?.id 
-            ? { ...tab, messages: [...tab.messages, userMessage, aiResponse], isLoading: false }
+            ? { ...tab, messages: [...tab.messages, aiResponse], isLoading: false }
             : tab
         ));
 
@@ -807,7 +807,7 @@ You can continue browsing normally while I work. I'll update you with findings s
       
       setTabs(prev => prev.map(tab => 
         tab.id === activeTab?.id 
-          ? { ...tab, messages: [...tab.messages, userMessage, errorResponse], isLoading: false }
+          ? { ...tab, messages: [...tab.messages, errorResponse], isLoading: false }
           : tab
       ));
     }
@@ -979,20 +979,20 @@ You can continue browsing normally while I work. I'll update you with findings s
     if (result.success && result.choices?.[0]?.message?.content) {
       let content = result.choices[0].message.content;
       
-      // 🧠 Apply consciousness enhancements to response
-      content = contextMemorySystem.buildContextualResponse(
-        content,
-        user.email,
-        conversationContext,
-        emotionalState
-      );
+      // 🧠 Apply consciousness enhancements to response (temporarily disabled to debug formatting issues)
+      // content = contextMemorySystem.buildContextualResponse(
+      //   content,
+      //   user.email,
+      //   conversationContext,
+      //   emotionalState
+      // );
 
-      // Apply emotional resonance
-      content = emotionalSynchronizer.generateEmpatheticResponse(
-        content,
-        emotionalState,
-        user.email
-      );
+      // Apply emotional resonance (temporarily disabled to debug formatting issues)
+      // content = emotionalSynchronizer.generateEmpatheticResponse(
+      //   content,
+      //   emotionalState,
+      //   user.email
+      // );
 
       // Add creative writing enhancements for writing requests
       if (isWritingRequest && activeTab?.type === 'creative') {
@@ -1037,7 +1037,7 @@ You can continue browsing normally while I work. I'll update you with findings s
 
       setTabs(prev => prev.map(tab => 
         tab.id === activeTab?.id 
-          ? { ...tab, messages: [...tab.messages, userMessage, aiResponse], isLoading: false }
+          ? { ...tab, messages: [...tab.messages, aiResponse], isLoading: false }
           : tab
       ));
     } else {
