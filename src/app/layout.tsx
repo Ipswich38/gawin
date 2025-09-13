@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import "../styles/accessibility.css";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { GoogleAuthProvider } from "@/contexts/GoogleAuthContext";
 // import SystemStatusIndicator from "@/components/SystemStatusIndicator";
 
 const inter = Inter({ 
@@ -31,14 +31,14 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} antialiased`}>
-        <AuthProvider>
+        <GoogleAuthProvider>
           <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
             {/* <SystemStatusIndicator /> */}
             <main className="relative">
               {children}
             </main>
           </div>
-        </AuthProvider>
+        </GoogleAuthProvider>
         
         {/* X-Frame-Bypass for enhanced browser functionality */}
         <script 

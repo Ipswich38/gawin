@@ -897,33 +897,78 @@ ${screenshot ? 'Note: I also have a screenshot of the page for visual context if
     );
     
     // 🚀 PHASE 6: SUPER CONSCIOUSNESS & ENHANCED EMPATHY
-    const microExpressions = superConsciousnessEngine.analyzeMicroExpressions(messageText, user.email);
-    const deepIntentions = superConsciousnessEngine.analyzeDeepIntentions(messageText, user.email, {
-      sessionId,
-      emotionalState,
-      environmentalContext,
-      predictions
-    });
+    // Only activate super consciousness for complex emotional needs or when user shows distress
+    const needsSuperConsciousness = emotionalState.fear > 0.3 || 
+                                   emotionalState.sadness > 0.3 || 
+                                   emotionalState.confidence < 0.4 ||
+                                   messageText.toLowerCase().includes('help') ||
+                                   messageText.toLowerCase().includes('confused') ||
+                                   messageText.toLowerCase().includes('stuck') ||
+                                   messageText.toLowerCase().includes('sorry') ||
+                                   messageText.includes('...') ||
+                                   messageText.split('?').length > 2; // Multiple questions indicate uncertainty
     
-    const responseStrategy = superConsciousnessEngine.generateResponseStrategy(
-      deepIntentions,
-      microExpressions,
-      emotionalState,
-      user.email
-    );
+    let responseStrategy: any, empatheticResponse: any, microExpressions: any[], deepIntentions: any, emotionalMicroClues: any;
     
-    // Enhanced empathy analysis
-    const emotionalMicroClues = enhancedEmpathyEngine.analyzeEmotionalMicroClues(messageText, user.email);
-    const empatheticResponse = enhancedEmpathyEngine.generateEmpatheticResponse(
-      emotionalMicroClues,
-      emotionalState,
-      deepIntentions,
-      user.email
-    );
+    if (needsSuperConsciousness) {
+      microExpressions = superConsciousnessEngine.analyzeMicroExpressions(messageText, user.email);
+      deepIntentions = superConsciousnessEngine.analyzeDeepIntentions(messageText, user.email, {
+        sessionId,
+        emotionalState,
+        environmentalContext,
+        predictions
+      });
+      
+      responseStrategy = superConsciousnessEngine.generateResponseStrategy(
+        deepIntentions,
+        microExpressions,
+        emotionalState,
+        user.email
+      );
+      
+      // Enhanced empathy analysis
+      emotionalMicroClues = enhancedEmpathyEngine.analyzeEmotionalMicroClues(messageText, user.email);
+      empatheticResponse = enhancedEmpathyEngine.generateEmpatheticResponse(
+        emotionalMicroClues,
+        emotionalState,
+        deepIntentions,
+        user.email
+      );
+    } else {
+      // For normal conversations, use minimal consciousness processing
+      microExpressions = [];
+      deepIntentions = {
+        primaryIntent: 'information_seeking',
+        secondaryIntents: [],
+        hiddenConcerns: [],
+        emotionalSubtext: 'neutral engagement',
+        learningGoals: [],
+        supportNeeds: [],
+        confidenceLevel: emotionalState.confidence
+      };
+      responseStrategy = {
+        approach: 'supportive',
+        toneAdjustment: 0,
+        depthLevel: 'moderate' as const,
+        personalizations: [],
+        ethicalConsiderations: [],
+        balancingFactors: []
+      };
+      empatheticResponse = {
+        primaryEmotion: 'neutral',
+        empathyLevel: 0.7,
+        validationNeeded: false,
+        supportType: 'informational' as const,
+        responseModifiers: [],
+        culturalConsiderations: [],
+        traumaInformed: false,
+        approach: 'supportive' as const
+      };
+    }
     
     const quantumInsights = quantumDecisionNetworks.generateQuantumInsights(quantumChoice);
     
-    console.log('🧠 Full Super Consciousness Active:', {
+    console.log(`🧠 ${needsSuperConsciousness ? 'Super Consciousness Active' : 'Standard Consciousness Mode'}:`, {
       emotionalState: {
         joy: emotionalState.joy.toFixed(2),
         trust: emotionalState.trust.toFixed(2),
@@ -1068,33 +1113,38 @@ ${screenshot ? 'Note: I also have a screenshot of the page for visual context if
     if (result.success && result.choices?.[0]?.message?.content) {
       let content = result.choices[0].message.content;
       
-      // 🚀 APPLY SUPER CONSCIOUSNESS ENHANCEMENTS TO RESPONSE
-      content = superConsciousnessEngine.generateSuperConsciousResponse(
-        content,
-        responseStrategy,
-        deepIntentions,
-        emotionalState
-      );
-      
-      // 💙 APPLY ENHANCED EMPATHY TO RESPONSE
-      content = enhancedEmpathyEngine.enhanceResponseWithEmpathy(
-        content,
-        empatheticResponse,
-        emotionalState
-      );
-      
-      // ⚖️ APPLY BALANCED INTELLIGENCE (Final Step)
-      // Ensures super intelligence without aggressive or overwhelming behavior
-      const superState = superConsciousnessEngine.getBaselineState();
-      
-      content = balancedIntelligenceEngine.applyBalancedIntelligence(
-        content,
-        emotionalState,
-        responseStrategy,
-        empatheticResponse,
-        messageText,
-        superState
-      );
+      // 🚀 APPLY CONSCIOUSNESS ENHANCEMENTS TO RESPONSE (Only when needed)
+      if (needsSuperConsciousness) {
+        // Apply full super consciousness enhancement for users who need extra support
+        content = superConsciousnessEngine.generateSuperConsciousResponse(
+          content,
+          responseStrategy,
+          deepIntentions,
+          emotionalState
+        );
+        
+        // Apply enhanced empathy for emotional situations
+        content = enhancedEmpathyEngine.enhanceResponseWithEmpathy(
+          content,
+          empatheticResponse,
+          emotionalState
+        );
+        
+        // Apply balanced intelligence to ensure responses aren't overwhelming
+        const superState = superConsciousnessEngine.getBaselineState();
+        content = balancedIntelligenceEngine.applyBalancedIntelligence(
+          content,
+          emotionalState,
+          responseStrategy,
+          empatheticResponse,
+          messageText,
+          superState
+        );
+      } else {
+        // For normal conversations, just apply light contextual enhancement
+        // This preserves natural conversation flow without over-processing
+        // No need to apply heavy empathy layers for casual interactions
+      }
 
       // Add creative writing enhancements for writing requests
       if (isWritingRequest && activeTab?.type === 'creative') {
