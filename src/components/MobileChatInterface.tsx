@@ -17,9 +17,7 @@ import { quantumDecisionNetworks } from '../core/consciousness/quantum-decision-
 // 🎨 UI ENHANCEMENTS
 import { 
   ChatIcon, CodeIcon, QuizIcon, StudyIcon, CreativeIcon, BrowserIcon,
-  SendIcon, CopyIcon, ThumbsUpIcon, ThumbsDownIcon, MenuIcon, CloseIcon,
-  LoadingIcon, PlusIcon, SearchIcon, RefreshIcon, BackIcon, ForwardIcon,
-  ImageIcon, WriteIcon
+  SendIcon, MenuIcon, CloseIcon, LoadingIcon, PlusIcon, SearchIcon
 } from './ui/LineIcons';
 import { deviceDetection, DeviceInfo, OptimizationConfig } from '../utils/deviceDetection';
 
@@ -85,6 +83,16 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   const [browserUrl, setBrowserUrl] = useState('');
   const [isPageLoading, setIsPageLoading] = useState(false);
   const [gawinChatOpen, setGawinChatOpen] = useState(false);
+
+  // Tab configuration
+  const tabConfig = {
+    general: { title: 'Chat', icon: ChatIcon },
+    code: { title: 'Code', icon: CodeIcon },
+    quiz: { title: 'Quiz', icon: QuizIcon },
+    study: { title: 'Study', icon: StudyIcon },
+    creative: { title: 'Create', icon: CreativeIcon },
+    browser: { title: 'Web', icon: BrowserIcon }
+  };
 
   // Study states
   const [activeStudyRoom, setActiveStudyRoom] = useState<'social' | 'group' | null>(null);
@@ -1018,15 +1026,6 @@ You can continue browsing normally while I work. I'll update you with findings s
   };
 
   const createNewTab = (type: Tab['type']) => {
-    const tabConfig = {
-      general: { title: 'Chat', icon: ChatIcon },
-      code: { title: 'Code', icon: CodeIcon },
-      quiz: { title: 'Quiz', icon: QuizIcon },
-      study: { title: 'Study', icon: StudyIcon },
-      creative: { title: 'Create', icon: CreativeIcon },
-      browser: { title: 'Web', icon: BrowserIcon }
-    };
-
     const newTabId = `${type}-${Date.now()}`;
     const newTab: Tab = {
       id: newTabId,
