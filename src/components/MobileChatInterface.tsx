@@ -194,9 +194,10 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   }, [tabs]);
 
   const handleBrowserChat = async (message: string, url: string) => {
+    // Find or create a general tab for browser chat
+    let targetTab = tabs.find(tab => tab.type === 'general' && tab.isActive);
+    
     try {
-      // Find or create a general tab for browser chat
-      let targetTab = tabs.find(tab => tab.type === 'general' && tab.isActive);
       if (!targetTab) {
         const newTabId = `general-${Date.now()}`;
         const newTab: Tab = {
