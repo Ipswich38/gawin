@@ -10,9 +10,10 @@ interface MessageRendererProps {
   onCopy?: () => void;
   onThumbsUp?: () => void;
   onThumbsDown?: () => void;
+  thinking?: string; // Gawin's internal thought process
 }
 
-export default function MessageRenderer({ text, showActions, onCopy, onThumbsUp, onThumbsDown }: MessageRendererProps) {
+export default function MessageRenderer({ text, showActions, onCopy, onThumbsUp, onThumbsDown, thinking }: MessageRendererProps) {
   // For OCR-related messages, render as plain text without any processing
   const isOCRMessage = text.includes('uploaded') || text.includes('PDF') || text.includes('images') || 
                       text.includes('OCR') || text.includes('extraction') || text.includes('convert') ||
@@ -337,6 +338,14 @@ export default function MessageRenderer({ text, showActions, onCopy, onThumbsUp,
       wordSpacing: 'normal',
       whiteSpace: 'normal'
     }}>
+      {/* Gawin's Thinking Process - Subtle Display */}
+      {thinking && (
+        <div className="mb-3 text-xs italic text-gray-400 opacity-75 border-l-2 border-gray-600/30 pl-3 py-1">
+          <span className="text-gray-500">💭 </span>
+          {thinking}
+        </div>
+      )}
+      
       {renderText(text)}
       
       {/* Action buttons for AI responses */}
