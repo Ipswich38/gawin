@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MessageRenderer from './MessageRenderer';
 import ResearchMode from './ResearchMode';
-import AccessibilityControlPanel from './AccessibilityControlPanel';
 import BrailleKeyboard from './BrailleKeyboard';
 import VisionCapture from './VisionCapture';
 
@@ -22,8 +21,8 @@ import { balancedIntelligenceEngine } from '../core/consciousness/balanced-intel
 
 // 🎨 UI ENHANCEMENTS
 import { 
-  ChatIcon, CodeIcon, QuizIcon, StudyIcon, CreativeIcon, SearchIcon as ResearchIcon,
-  SendIcon, MenuIcon, CloseIcon, LoadingIcon, PlusIcon, SearchIcon
+  ChatIcon, QuizIcon, StudyIcon, CreativeIcon, SearchIcon as ResearchIcon,
+  SendIcon, MenuIcon, CloseIcon, LoadingIcon
 } from './ui/LineIcons';
 import { deviceDetection, DeviceInfo, OptimizationConfig } from '../utils/deviceDetection';
 
@@ -57,38 +56,6 @@ interface MobileChatInterfaceProps {
   onBackToLanding: () => void;
 }
 
-// Utility function to get filename based on language
-const getFilenameForLanguage = (language: string): string => {
-  const languageMap: { [key: string]: string } = {
-    'javascript': 'script.js',
-    'js': 'script.js',
-    'typescript': 'script.ts',
-    'ts': 'script.ts',
-    'python': 'script.py',
-    'py': 'script.py',
-    'java': 'Main.java',
-    'cpp': 'main.cpp',
-    'c': 'main.c',
-    'html': 'index.html',
-    'css': 'styles.css',
-    'php': 'script.php',
-    'ruby': 'script.rb',
-    'go': 'main.go',
-    'rust': 'main.rs',
-    'swift': 'main.swift',
-    'kotlin': 'Main.kt',
-    'dart': 'main.dart',
-    'json': 'data.json',
-    'xml': 'data.xml',
-    'yaml': 'config.yaml',
-    'sql': 'query.sql',
-    'shell': 'script.sh',
-    'bash': 'script.sh',
-    'powershell': 'script.ps1'
-  };
-  
-  return languageMap[language.toLowerCase()] || `code.${language}`;
-};
 
 export default function MobileChatInterface({ user, onLogout, onBackToLanding }: MobileChatInterfaceProps) {
   // Creator detection
@@ -212,172 +179,6 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   // Research functionality (replaced browser navigation)
   const handleResearchComplete = (document: any) => {
     console.log('Research completed:', document);
-  };
-
-  const handleResearchChat = async (message: string, context?: string) => {
-    // Find or create a general tab for research chat
-    let targetTab = tabs.find(tab => tab.type === 'general' && tab.isActive);
-    
-    try {
-      if (!targetTab) {
-        const newTabId = `general-${Date.now()}`;
-        const newTab: Tab = {
-          id: newTabId,
-          type: 'general',
-          title: 'AI Research',
-          icon: ChatIcon,
-          isActive: true,
-          messages: [],
-          isLoading: false
-        };
-        
-        setTabs(prev => prev.map(tab => ({ ...tab, isActive: false })).concat([newTab]));
-        setActiveTabId(newTabId);
-        targetTab = newTab;
-      }
-      
-      // Add user message
-      const userMessage: Message = {
-        id: Date.now(),
-        role: 'user',
-        content: `🌐 ${new URL(url).hostname}: ${message}`,
-        timestamp: new Date().toISOString()
-      };
-      
-      setTabs(prev => prev.map(tab => 
-        tab.id === targetTab!.id 
-          ? { ...tab, messages: [...tab.messages, userMessage], isLoading: true }
-          : tab
-      ));
-
-      // Extract page content using our proxy API
-      const analysisResponse = await fetch('/api/browser-proxy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          url: url,
-          action: 'analyze',
-          options: { timeout: 15000 }
-        })
-      });
-
-      const analysisData = await analysisResponse.json();
-      
-      if (analysisData.success && analysisData.data) {
-        const { text, screenshot, metadata } = analysisData.data;
-        
-        // Create AI prompt with page content
-        const aiPrompt = `You are an AI browser assistant analyzing a webpage. Here's the context:
-
-Page: ${metadata?.title || 'Webpage'}
-URL: ${url}
-Domain: ${metadata?.domain || 'Unknown'}
-
-Page Content (first 4000 chars):
-${text?.substring(0, 4000) || 'No content extracted'}
-
-User Question: ${message}
-
-Please provide a helpful, accurate response based on the page content. If the user is asking for a summary, provide key points. If they want specific information, extract and highlight the relevant details. Be concise but thorough.
-
-${screenshot ? 'Note: I also have a screenshot of the page for visual context if needed.' : ''}`;
-
-        // Get AI response
-        const aiResponse = await fetch('/api/groq', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            messages: [{
-              role: 'system',
-              content: 'You are Gawin, an intelligent AI browser assistant. Provide helpful, accurate analysis of web content.'
-            }, {
-              role: 'user',
-              content: aiPrompt
-            }],
-            model: 'llama-3.3-70b-versatile',
-            temperature: 0.3,
-            max_tokens: 1500
-          })
-        });
-
-        const aiResult = await aiResponse.json();
-        
-        if (aiResult.success && aiResult.choices?.[0]?.message?.content) {
-          const aiMessage: Message = {
-            id: Date.now() + 1,
-            role: 'assistant',
-            content: `🤖 **AI Browser Analysis**\n\n${aiResult.choices[0].message.content}`,
-            timestamp: new Date().toISOString(),
-            thinking: `Analyzed page content from ${metadata?.domain || 'webpage'} (${text?.length || 0} characters) with ${screenshot ? 'visual' : 'text-only'} analysis...`
-          };
-
-          setTabs(prev => prev.map(tab => 
-            tab.id === targetTab!.id 
-              ? { ...tab, messages: [...tab.messages, aiMessage], isLoading: false }
-              : tab
-          ));
-        } else {
-          throw new Error('Failed to get AI analysis');
-        }
-      } else {
-        throw new Error('Failed to analyze page content');
-      }
-      
-    } catch (error) {
-      console.error('Browser chat error:', error);
-      
-      const errorMessage: Message = {
-        id: Date.now() + 1,
-        role: 'assistant',
-        content: `❌ I encountered an error analyzing this page. This might be due to:\n\n• Page content restrictions\n• Network connectivity issues\n• Site blocking automated access\n\nPlease try a different page or ask a general question about what you can see.`,
-        timestamp: new Date().toISOString()
-      };
-
-      setTabs(prev => prev.map(tab => 
-        tab.id === targetTab!.id 
-          ? { ...tab, messages: [...tab.messages, errorMessage], isLoading: false }
-          : tab
-      ));
-    }
-  };
-
-  // Background AI analysis function
-  const triggerBackgroundAIAnalysis = async (url: string, query: string) => {
-    try {
-      // Simulated background analysis - in real implementation, this would call the intelligent browser service
-      // For now, we'll create a realistic delay and mock results
-      setTimeout(async () => {
-        const mockResults = [
-          `🔍 **Page Analysis Complete**: Found ${Math.floor(Math.random() * 10) + 5} relevant sections on ${new URL(url).hostname}`,
-          `📊 **Key Information**: Located contact details, navigation menu, and main content areas`,
-          `🎯 **Specific Match**: Found information related to "${query}" in the page content`,
-          `✅ **Analysis Results**: The information you're looking for appears to be available. Here's what I found...`
-        ];
-        
-        const targetTab = tabs.find(tab => tab.type === 'general' && tab.isActive);
-        if (targetTab) {
-          for (let i = 0; i < mockResults.length; i++) {
-            setTimeout(() => {
-              const progressMessage: Message = {
-                id: Date.now() + i,
-                role: 'assistant',
-                content: mockResults[i],
-                timestamp: new Date().toISOString()
-              };
-              
-              setTabs(prev => prev.map(tab => 
-                tab.id === targetTab.id 
-                  ? { ...tab, messages: [...tab.messages, progressMessage] }
-                  : tab
-              ));
-            }, i * 3000); // Stagger results every 3 seconds to reduce conflicts
-          }
-        }
-      }, 1000);
-      
-    } catch (error) {
-      console.error('Background analysis error:', error);
-    }
   };
 
   const finishQuiz = () => {

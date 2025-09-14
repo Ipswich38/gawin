@@ -322,7 +322,7 @@ class AIResearchService {
     step.progress = 10;
 
     // Use Perplexity for web search
-    const searchResults = await perplexityService.search(document.query);
+    const searchResults = await perplexityService.generateAnswer(document.query);
     step.progress = 50;
 
     if (searchResults) {
@@ -331,14 +331,14 @@ class AIResearchService {
         url: source.url || `https://source-${index}.com`,
         title: source.title || 'Research Source',
         domain: this.extractDomain(source.url || ''),
-        content: source.content || '',
+        content: source.snippet || source.content || '',
         relevanceScore: 0.8,
         credibilityScore: 0.7,
         timestamp: Date.now()
       })) || [];
 
       document.sources.push(...sources);
-      step.results = { sourcesFound: sources.length };
+      step.results = { sourcesFound: sources.length, searchContent: searchResults.content };
     }
 
     step.progress = 100;
@@ -397,7 +397,13 @@ Provide a detailed analysis that:
     step.progress = 50;
 
     try {
-      const synthesis = await groqService.generateResponse([{ role: 'user', content: prompt }]);
+      const response = await groqService.createChatCompletion({
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.7,
+        max_tokens: 2000
+      });
+      
+      const synthesis = response.choices?.[0]?.message?.content || 'Unable to generate synthesis.';
       document.summary = synthesis;
       step.results = { synthesis };
     } catch (error) {
