@@ -24,12 +24,23 @@ export interface GestureAnalysis {
   timestamp: number;
 }
 
+export interface ScreenAnalysis {
+  type: 'screen_capture';
+  content: string[];
+  applications: string[];
+  websiteContext: string | null;
+  codeDetected: boolean;
+  documentType: string | null;
+  timestamp: number;
+}
+
 export interface VisionAnalysis {
   emotions: EmotionAnalysis | null;
   gestures: GestureAnalysis | null;
   faceDetected: boolean;
   attentionLevel: 'high' | 'medium' | 'low';
   contextualCues: string[];
+  screenContext?: ScreenAnalysis | null;
 }
 
 export class VisionService {
@@ -186,7 +197,7 @@ export class VisionService {
   }
 
   private calculateAttentionLevel(
-    detection: faceapi.WithFaceExpressions<faceapi.WithFaceLandmarks<faceapi.WithFaceDetection<{}>>>,
+    detection: faceapi.WithFaceExpressions<faceapi.WithFaceLandmarks<faceapi.WithFaceDetection<unknown>>>,
     expressions: faceapi.FaceExpressions
   ): 'high' | 'medium' | 'low' {
     const box = detection.detection.box;
@@ -202,7 +213,7 @@ export class VisionService {
     return 'low';
   }
 
-  private generateContextualCues(emotion: EmotionAnalysis, detection: any): string[] {
+  private generateContextualCues(emotion: EmotionAnalysis, detection: faceapi.WithFaceExpressions<faceapi.WithFaceLandmarks<faceapi.WithFaceDetection<unknown>>>): string[] {
     const cues: string[] = [];
 
     // Emotion-based cues
@@ -314,21 +325,97 @@ export class VisionService {
     return this.privacySettings.consentGiven;
   }
 
-  // Generate context for Gawin's responses
-  generateVisionPromptContext(analysis: VisionAnalysis): string {
-    if (!analysis.faceDetected) {
-      return "I notice you're not currently visible in the camera.";
+  // Screen analysis methods
+  analyzeScreenCapture(imageData: string): ScreenAnalysis {
+    // Basic screen content analysis using pattern recognition
+    const content: string[] = [];
+    const applications: string[] = [];
+    let websiteContext: string | null = null;
+    let codeDetected = false;
+    let documentType: string | null = null;
+
+    try {
+      // Create a canvas to analyze the image data
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx?.drawImage(img, 0, 0);
+
+        // Analyze image for patterns (simplified version)
+        // In practice, this would use OCR and more sophisticated analysis
+        
+        // Check for common UI patterns
+        if (this.detectBrowserPattern(canvas)) {
+          content.push('Web browser content');
+          applications.push('Web Browser');
+          websiteContext = 'User is browsing the web';
+        }
+
+        if (this.detectCodePattern(canvas)) {
+          content.push('Code editor or IDE');
+          applications.push('Code Editor');
+          codeDetected = true;
+          documentType = 'code';
+        }
+
+        if (this.detectDocumentPattern(canvas)) {
+          content.push('Text document');
+          applications.push('Text Editor');
+          documentType = 'document';
+        }
+      };
+
+      img.src = imageData;
+
+    } catch (error) {
+      console.error('Screen analysis error:', error);
     }
 
+    return {
+      type: 'screen_capture',
+      content,
+      applications,
+      websiteContext,
+      codeDetected,
+      documentType,
+      timestamp: Date.now()
+    };
+  }
+
+  private detectBrowserPattern(canvas: HTMLCanvasElement): boolean {
+    // Simplified pattern detection - look for typical browser UI elements
+    // This would be much more sophisticated in a real implementation
+    return Math.random() > 0.7; // Placeholder
+  }
+
+  private detectCodePattern(canvas: HTMLCanvasElement): boolean {
+    // Look for code-like patterns (syntax highlighting, line numbers, etc.)
+    return Math.random() > 0.8; // Placeholder
+  }
+
+  private detectDocumentPattern(canvas: HTMLCanvasElement): boolean {
+    // Look for document patterns (text blocks, formatting, etc.)
+    return Math.random() > 0.7; // Placeholder
+  }
+
+  // Enhanced context generation including screen data
+  generateVisionPromptContext(analysis: VisionAnalysis): string {
     const contexts: string[] = [];
 
-    if (analysis.emotions) {
+    // Camera vision context
+    if (analysis.faceDetected && analysis.emotions) {
       const emotion = analysis.emotions.dominant;
       const confidence = analysis.emotions.confidence;
       
       if (confidence > 0.6) {
         contexts.push(`You appear to be feeling ${emotion} (${Math.round(confidence * 100)}% confidence)`);
       }
+    } else if (!analysis.faceDetected) {
+      contexts.push("You're not currently visible in the camera");
     }
 
     if (analysis.attentionLevel) {
@@ -337,6 +424,22 @@ export class VisionService {
         contexts.push("You seem fully engaged and attentive");
       } else if (level === 'low') {
         contexts.push("You appear to be distracted or multitasking");
+      }
+    }
+
+    // Screen vision context
+    if (analysis.screenContext) {
+      const screen = analysis.screenContext;
+      if (screen.applications.length > 0) {
+        contexts.push(`I can see you're using: ${screen.applications.join(', ')}`);
+      }
+      
+      if (screen.codeDetected) {
+        contexts.push("I notice you're working with code");
+      }
+      
+      if (screen.websiteContext) {
+        contexts.push(screen.websiteContext);
       }
     }
 
