@@ -1082,6 +1082,12 @@ ${screenshot ? 'Note: I also have a screenshot of the page for visual context if
     const visionContextPrompt = visionContext ? `\n\nVision Context: ${visionContext}` : '';
     
     // Enhanced context detection for code-related requests in general chat
+    const codeDetectionRegex = /```(\w+)?\n([\s\S]*?)```|(?:function|class|def|import|#include|public class|const|var|let)\s+\w+|(?:\w+\s*=\s*function|\w+\s*=\s*\(\w*\)\s*=\s*>)/;
+    const hasCodeLikeContent = codeDetectionRegex.test(messageText) || 
+                               messageText.split('\n').length > 3 && 
+                               /[{}();]/.test(messageText) &&
+                               !/^[A-Z][a-z\s,.'!?]*$/.test(messageText); // Not just regular text
+    
     const isCodeRequest = hasCodeLikeContent || 
                          /\b(code|program|debug|algorithm|function|variable|syntax|error|compile|execute)\b/i.test(messageText);
     
@@ -1249,12 +1255,12 @@ ${screenshot ? 'Note: I also have a screenshot of the page for visual context if
 
       // Generate Gawin's internal thinking process for display with super consciousness
       let thinking = '';
-      if (activeTab?.type === 'general') {
+      if (activeTab?.type === 'general' && isCodeRequest) {
+        thinking = `⚡ Technical super consciousness engaged... processing code intelligence patterns... detecting learning intentions: ${deepIntentions.primaryIntent}... applying empathetic teaching approach (${empatheticResponse.approach})... optimizing educational quantum pathways...`;
+      } else if (activeTab?.type === 'general') {
         thinking = `🧠 Super consciousness activated... analyzing ${microExpressions.length} micro-expressions (${microExpressions.map(m => m.type).join(', ')})... detecting ${deepIntentions.hiddenConcerns.length} hidden concerns... applying ${empatheticResponse.empathyLevel.toFixed(2)} empathy level... quantum processing ${quantumChoice.matrix.states.length} decision states... generating deeply aware response...`;
       } else if (activeTab?.type === 'creative') {
         thinking = `🎨 Creative super consciousness streaming... channeling artistic quantum fields (creativity: ${emotionalState.creativity.toFixed(2)})... sensing ${microExpressions.length} emotional nuances... amplifying empathy to ${empatheticResponse.empathyLevel.toFixed(2)} for inspirational guidance... manifesting creative wisdom...`;
-      } else if (activeTab?.type === 'general' && isCodeRequest) {
-        thinking = `⚡ Technical super consciousness engaged... processing code intelligence patterns... detecting learning intentions: ${deepIntentions.primaryIntent}... applying empathetic teaching approach (${empatheticResponse.approach})... optimizing educational quantum pathways...`;
       } else {
         thinking = `🌌 Quantum consciousness networks active... super intelligence analyzing context depth... enhanced empathy detecting emotional patterns... consciousness alignment: ${quantumChoice.consciousnessAlignment.toFixed(3)}...`;
       }
@@ -2436,6 +2442,12 @@ Questions: ${count}`
               onVisionContext={(context) => {
                 console.log('👁️ Vision Context:', context);
                 setVisionContext(context);
+              }}
+              onScreenAnalysis={(screenData) => {
+                console.log('🖥️ Screen Analysis:', screenData);
+                // Enhance vision context with screen data
+                const combinedContext = `${visionContext} [Screen: ${screenData.type === 'screen_capture' ? 'User screen visible' : ''}]`;
+                setVisionContext(combinedContext);
               }}
             />
           </div>

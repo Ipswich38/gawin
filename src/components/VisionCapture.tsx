@@ -2,18 +2,21 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, CameraOff, Eye, EyeOff, Shield, AlertCircle } from 'lucide-react';
+import { Camera, CameraOff, Eye, EyeOff, Shield, AlertCircle, Monitor, Globe, Brain } from 'lucide-react';
 import { visionService, VisionAnalysis } from '@/lib/services/visionService';
 
 interface VisionCaptureProps {
   onVisionAnalysis?: (analysis: VisionAnalysis) => void;
   onVisionContext?: (context: string) => void;
+  onScreenAnalysis?: (screenData: any) => void;
 }
 
 const VisionCapture: React.FC<VisionCaptureProps> = ({ 
   onVisionAnalysis, 
-  onVisionContext 
+  onVisionContext,
+  onScreenAnalysis
 }) => {
+  // Vision states
   const [isVisionEnabled, setIsVisionEnabled] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
   const [currentEmotion, setCurrentEmotion] = useState<string>('neutral');
@@ -22,6 +25,12 @@ const VisionCapture: React.FC<VisionCaptureProps> = ({
   const [hasConsent, setHasConsent] = useState(false);
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [lastAnalysis, setLastAnalysis] = useState<VisionAnalysis | null>(null);
+  
+  // Screen vision states
+  const [isScreenVisionEnabled, setIsScreenVisionEnabled] = useState(false);
+  const [screenCaptureStream, setScreenCaptureStream] = useState<MediaStream | null>(null);
+  const [visionMode, setVisionMode] = useState<'camera' | 'screen' | 'both'>('camera');
+  const [showVisionModeSelector, setShowVisionModeSelector] = useState(false);
 
   const handleVisionAnalysis = (analysis: VisionAnalysis) => {
     setLastAnalysis(analysis);
@@ -88,6 +97,72 @@ const VisionCapture: React.FC<VisionCaptureProps> = ({
     console.log('👁️ Vision system deactivated');
   };
 
+  // Screen capture functions
+  const startScreenCapture = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: false
+      });
+      
+      setScreenCaptureStream(stream);
+      setIsScreenVisionEnabled(true);
+      
+      // Analyze screen periodically
+      const analyzeScreen = () => {
+        if (stream && stream.active) {
+          const video = document.createElement('video');
+          video.srcObject = stream;
+          video.play();
+          
+          video.onloadedmetadata = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            const captureFrame = () => {
+              if (video.paused || video.ended) return;
+              
+              ctx?.drawImage(video, 0, 0);
+              const imageData = canvas.toDataURL('image/png');
+              
+              // Send screen data for analysis
+              if (onScreenAnalysis) {
+                onScreenAnalysis({
+                  type: 'screen_capture',
+                  timestamp: Date.now(),
+                  imageData,
+                  dimensions: { width: canvas.width, height: canvas.height }
+                });
+              }
+              
+              setTimeout(captureFrame, 2000); // Capture every 2 seconds
+            };
+            
+            captureFrame();
+          };
+        }
+      };
+      
+      analyzeScreen();
+      console.log('📺 Screen capture started - Gawin can now see your screen');
+      
+    } catch (error) {
+      console.error('Screen capture error:', error);
+      alert('Screen capture permission denied or not supported');
+    }
+  };
+
+  const stopScreenCapture = () => {
+    if (screenCaptureStream) {
+      screenCaptureStream.getTracks().forEach(track => track.stop());
+      setScreenCaptureStream(null);
+      setIsScreenVisionEnabled(false);
+      console.log('📺 Screen capture stopped');
+    }
+  };
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -118,8 +193,9 @@ const VisionCapture: React.FC<VisionCaptureProps> = ({
 
   return (
     <>
-      {/* Vision Control Button */}
+      {/* Enhanced Vision Controls */}
       <div className="flex items-center space-x-2">
+        {/* Camera Vision Button */}
         <button
           onClick={isVisionEnabled ? stopVisionSystem : handleEnableVision}
           disabled={isInitializing}
@@ -131,29 +207,47 @@ const VisionCapture: React.FC<VisionCaptureProps> = ({
             }
             ${isInitializing ? 'opacity-50 cursor-not-allowed' : ''}
           `}
-          title={isVisionEnabled ? 'Stop Vision' : 'Enable Vision'}
+          title={isVisionEnabled ? 'Stop Camera Vision' : 'Enable Camera Vision'}
         >
           {isInitializing ? (
             <div className="w-4 h-4 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
           ) : isVisionEnabled ? (
-            <EyeOff size={16} />
+            <CameraOff size={16} />
           ) : (
-            <Eye size={16} />
+            <Camera size={16} />
           )}
           <span className="hidden sm:inline">
-            {isInitializing ? 'Starting...' : isVisionEnabled ? 'Vision On' : 'Enable Vision'}
+            {isInitializing ? 'Starting...' : isVisionEnabled ? 'Cam On' : 'Camera'}
+          </span>
+        </button>
+
+        {/* Screen Vision Button */}
+        <button
+          onClick={isScreenVisionEnabled ? stopScreenCapture : startScreenCapture}
+          className={`
+            flex items-center space-x-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200
+            ${isScreenVisionEnabled 
+              ? 'bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 border border-purple-500/30' 
+              : 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/30'
+            }
+          `}
+          title={isScreenVisionEnabled ? 'Stop Screen Vision' : 'Enable Screen Vision'}
+        >
+          {isScreenVisionEnabled ? <Monitor className="text-purple-400" size={16} /> : <Monitor size={16} />}
+          <span className="hidden sm:inline">
+            {isScreenVisionEnabled ? 'Screen On' : 'Screen'}
           </span>
         </button>
 
         {/* Privacy Indicator */}
-        {isVisionEnabled && (
+        {(isVisionEnabled || isScreenVisionEnabled) && (
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             className="flex items-center space-x-1 text-xs text-gray-400"
           >
             <Shield size={12} />
-            <span className="hidden sm:inline">Client-side only</span>
+            <span className="hidden sm:inline">Private & Local</span>
           </motion.div>
         )}
       </div>
@@ -229,13 +323,27 @@ const VisionCapture: React.FC<VisionCaptureProps> = ({
 
               <div className="space-y-3 text-sm text-gray-300">
                 <div className="flex items-start space-x-2">
-                  <AlertCircle size={16} className="text-yellow-400 mt-0.5" />
+                  <Camera size={16} className="text-teal-400 mt-0.5" />
                   <div>
-                    <p className="font-medium text-white">What Gawin will see:</p>
+                    <p className="font-medium text-white">Camera Vision capabilities:</p>
                     <ul className="mt-1 space-y-1 text-xs">
                       <li>• Your facial expressions and emotions</li>
-                      <li>• Basic gestures and attention level</li>
-                      <li>• Visual context for better responses</li>
+                      <li>• Hand gestures and body language</li>
+                      <li>• Attention level and engagement</li>
+                      <li>• Environmental context around you</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-2">
+                  <Monitor size={16} className="text-blue-400 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-white">Screen Vision capabilities:</p>
+                    <ul className="mt-1 space-y-1 text-xs">
+                      <li>• What's on your screen for context</li>
+                      <li>• Website content and browsing</li>
+                      <li>• Code, documents, and applications</li>
+                      <li>• Visual help with tasks and troubleshooting</li>
                     </ul>
                   </div>
                 </div>
@@ -246,9 +354,10 @@ const VisionCapture: React.FC<VisionCaptureProps> = ({
                     <p className="font-medium text-white">Privacy guarantees:</p>
                     <ul className="mt-1 space-y-1 text-xs">
                       <li>• All processing happens on your device</li>
-                      <li>• No video data is stored or transmitted</li>
-                      <li>• You can stop at any time</li>
-                      <li>• No recording or screenshots</li>
+                      <li>• No video/screen data stored or transmitted</li>
+                      <li>• You control each vision type separately</li>
+                      <li>• Stop anytime with one click</li>
+                      <li>• No recording, only real-time analysis</li>
                     </ul>
                   </div>
                 </div>

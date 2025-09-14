@@ -141,8 +141,8 @@ export class VisionService {
     try {
       const detections = await faceapi
         .detectAllFaces(this.videoElement, new faceapi.TinyFaceDetectorOptions())
-        .withFaceExpressions()
-        .withFaceLandmarks();
+        .withFaceLandmarks()
+        .withFaceExpressions();
 
       if (detections.length === 0) {
         // No face detected
