@@ -1,4 +1,5 @@
-import * as faceapi from '@vladmandic/face-api';
+// Dynamic import to prevent SSR issues
+let faceapi: any = null;
 
 // Privacy-first vision service for Gawin
 // All processing happens client-side - no data leaves the user's device
@@ -62,6 +63,16 @@ export class VisionService {
   async initialize(): Promise<boolean> {
     try {
       console.log('🔬 Initializing Gawin Vision System...');
+      
+      // Dynamic import face-api to prevent SSR issues
+      if (!faceapi && typeof window !== 'undefined') {
+        faceapi = await import('@vladmandic/face-api');
+      }
+      
+      if (!faceapi) {
+        console.log('⏭️ Skipping vision initialization in SSR environment');
+        return false;
+      }
       
       // Load face-api models (runs client-side only)
       await Promise.all([
@@ -136,7 +147,7 @@ export class VisionService {
   }
 
   private async performAnalysis(): Promise<void> {
-    if (!this.videoElement || !this.onAnalysisCallback) return;
+    if (!this.videoElement || !this.onAnalysisCallback || !faceapi) return;
 
     try {
       const detections = await faceapi
@@ -197,8 +208,8 @@ export class VisionService {
   }
 
   private calculateAttentionLevel(
-    detection: faceapi.WithFaceExpressions<faceapi.WithFaceLandmarks<faceapi.WithFaceDetection<unknown>>>,
-    expressions: faceapi.FaceExpressions
+    detection: any,
+    expressions: any
   ): 'high' | 'medium' | 'low' {
     const box = detection.detection.box;
     const centerX = box.x + box.width / 2;
@@ -213,7 +224,7 @@ export class VisionService {
     return 'low';
   }
 
-  private generateContextualCues(emotion: EmotionAnalysis, detection: faceapi.WithFaceExpressions<faceapi.WithFaceLandmarks<faceapi.WithFaceDetection<unknown>>>): string[] {
+  private generateContextualCues(emotion: EmotionAnalysis, detection: any): string[] {
     const cues: string[] = [];
 
     // Emotion-based cues
@@ -251,7 +262,7 @@ export class VisionService {
     return cues;
   }
 
-  private analyzeSimpleGestures(landmarks: faceapi.FaceLandmarks68): GestureAnalysis {
+  private analyzeSimpleGestures(landmarks: any): GestureAnalysis {
     // Simple gesture detection based on facial landmarks
     const gestures: string[] = [];
     let totalConfidence = 0;
