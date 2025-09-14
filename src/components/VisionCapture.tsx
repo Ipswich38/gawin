@@ -25,6 +25,7 @@ const VisionCapture: React.FC<VisionCaptureProps> = ({
   const [hasConsent, setHasConsent] = useState(false);
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [lastAnalysis, setLastAnalysis] = useState<VisionAnalysis | null>(null);
+  const [initializationError, setInitializationError] = useState<string | null>(null);
   
   // Screen vision states
   const [isScreenVisionEnabled, setIsScreenVisionEnabled] = useState(false);
@@ -69,8 +70,10 @@ const VisionCapture: React.FC<VisionCaptureProps> = ({
 
   const startVisionSystem = async () => {
     setIsInitializing(true);
+    setInitializationError(null);
     
     try {
+      console.log('🚀 Starting vision system...');
       const cameraAccess = await visionService.requestCameraAccess(true);
       
       if (cameraAccess) {
@@ -78,10 +81,12 @@ const VisionCapture: React.FC<VisionCaptureProps> = ({
         setIsVisionEnabled(true);
         console.log('👁️ Vision system activated - Gawin can now see you');
       } else {
-        console.log('❌ Camera access denied');
+        setInitializationError('Camera access was denied or models failed to load. Please check browser permissions and refresh the page.');
+        console.log('❌ Camera access denied or initialization failed');
       }
     } catch (error) {
       console.error('Vision system error:', error);
+      setInitializationError(`Vision system failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsInitializing(false);
     }
@@ -292,6 +297,32 @@ const VisionCapture: React.FC<VisionCaptureProps> = ({
                 </span>
               </div>
             )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Error Display */}
+      <AnimatePresence>
+        {initializationError && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="absolute top-16 right-4 bg-red-900/90 backdrop-blur-lg rounded-xl border border-red-500/50 p-3 max-w-xs text-xs"
+          >
+            <div className="flex items-start space-x-2">
+              <AlertCircle size={16} className="text-red-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-red-300 font-medium mb-1">Vision System Error</p>
+                <p className="text-red-200 text-xs leading-relaxed">{initializationError}</p>
+                <button
+                  onClick={() => setInitializationError(null)}
+                  className="mt-2 text-xs text-red-400 hover:text-red-300 underline"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
