@@ -119,11 +119,7 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
 
   // Accessibility states
   const [accessibilitySettings, setAccessibilitySettings] = useState({
-    brailleMode: false,
-    voiceOutput: false,
-    highContrast: false,
-    screenReader: false,
-    largeText: false
+    brailleMode: false
   });
   const [isBrailleKeyboardOpen, setIsBrailleKeyboardOpen] = useState(false);
 
@@ -405,23 +401,31 @@ ${screenshot ? 'Note: I also have a screenshot of the page for visual context if
     // Append braille input to the current input
     setInputValue(prev => prev + text);
     
-    // Optionally announce the input
-    if (accessibilitySettings.voiceOutput && 'speechSynthesis' in window) {
-      const msg = new SpeechSynthesisUtterance(`Entered: ${text}`);
-      msg.volume = 0.7;
-      msg.rate = 0.8;
-      window.speechSynthesis.speak(msg);
-    }
+    // Announce to screen readers if device accessibility is enabled
+    announceToUser(`Entered: ${text}`);
   };
 
   const announceToUser = (text: string) => {
-    if (accessibilitySettings.voiceOutput && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const msg = new SpeechSynthesisUtterance(text);
-      msg.volume = 0.8;
-      msg.rate = 0.9;
-      window.speechSynthesis.speak(msg);
-    }
+    // Create an aria-live region for screen readers to announce
+    // This works with device accessibility settings (like VoiceOver, TalkBack)
+    const announcement = document.createElement('div');
+    announcement.setAttribute('aria-live', 'polite');
+    announcement.setAttribute('aria-atomic', 'true');
+    announcement.style.position = 'absolute';
+    announcement.style.left = '-10000px';
+    announcement.style.width = '1px';
+    announcement.style.height = '1px';
+    announcement.style.overflow = 'hidden';
+    announcement.textContent = text;
+    
+    document.body.appendChild(announcement);
+    
+    // Remove after screen reader has had time to announce
+    setTimeout(() => {
+      if (document.body.contains(announcement)) {
+        document.body.removeChild(announcement);
+      }
+    }, 1000);
   };
 
   // Enhanced content filtering function for Creative tab

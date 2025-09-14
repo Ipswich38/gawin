@@ -4,10 +4,6 @@ import React, { useState, useEffect } from 'react';
 
 interface AccessibilitySettings {
   brailleMode: boolean;
-  voiceOutput: boolean;
-  highContrast: boolean;
-  screenReader: boolean;
-  largeText: boolean;
 }
 
 interface AccessibilityControlPanelProps {
@@ -17,11 +13,7 @@ interface AccessibilityControlPanelProps {
 export default function AccessibilityControlPanel({ onSettingsChange }: AccessibilityControlPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [settings, setSettings] = useState<AccessibilitySettings>({
-    brailleMode: false,
-    voiceOutput: false,
-    highContrast: false,
-    screenReader: false,
-    largeText: false
+    brailleMode: false
   });
 
   // Load settings from localStorage
@@ -43,58 +35,10 @@ export default function AccessibilityControlPanel({ onSettingsChange }: Accessib
     try {
       localStorage.setItem('gawin-accessibility-settings', JSON.stringify(settings));
       onSettingsChange(settings);
-      
-      // Apply document-level accessibility settings
-      applyGlobalAccessibilitySettings(settings);
     } catch (error) {
       console.warn('Failed to save accessibility settings:', error);
     }
   }, [settings, onSettingsChange]);
-
-  const applyGlobalAccessibilitySettings = (settings: AccessibilitySettings) => {
-    const root = document.documentElement;
-    
-    // High contrast mode
-    if (settings.highContrast) {
-      root.style.setProperty('--accessibility-bg', '#000000');
-      root.style.setProperty('--accessibility-text', '#ffffff');
-      root.style.setProperty('--accessibility-primary', '#00ff00');
-      root.style.setProperty('--accessibility-secondary', '#ffff00');
-      document.body.classList.add('accessibility-high-contrast');
-    } else {
-      root.style.removeProperty('--accessibility-bg');
-      root.style.removeProperty('--accessibility-text');
-      root.style.removeProperty('--accessibility-primary');
-      root.style.removeProperty('--accessibility-secondary');
-      document.body.classList.remove('accessibility-high-contrast');
-    }
-
-    // Large text
-    if (settings.largeText) {
-      root.style.setProperty('--accessibility-font-scale', '1.4');
-      document.body.classList.add('accessibility-large-text');
-    } else {
-      root.style.removeProperty('--accessibility-font-scale');
-      document.body.classList.remove('accessibility-large-text');
-    }
-
-    // Voice output
-    if (settings.voiceOutput && 'speechSynthesis' in window) {
-      // Announce accessibility changes
-      const msg = new SpeechSynthesisUtterance('Accessibility settings updated');
-      msg.volume = 0.7;
-      msg.rate = 0.8;
-      window.speechSynthesis.speak(msg);
-    }
-
-    // Screen reader optimizations
-    if (settings.screenReader) {
-      document.body.classList.add('accessibility-screen-reader');
-      // Add more semantic markup and ARIA labels
-    } else {
-      document.body.classList.remove('accessibility-screen-reader');
-    }
-  };
 
   const toggleSetting = (key: keyof AccessibilitySettings) => {
     setSettings(prev => ({
@@ -103,29 +47,28 @@ export default function AccessibilityControlPanel({ onSettingsChange }: Accessib
     }));
   };
 
-  const speakText = (text: string) => {
-    if (settings.voiceOutput && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const msg = new SpeechSynthesisUtterance(text);
-      msg.volume = 0.8;
-      msg.rate = 0.9;
-      window.speechSynthesis.speak(msg);
+  const openDeviceSettings = () => {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /Android/.test(navigator.userAgent);
+    
+    if (isIOS) {
+      // Try to open iOS Settings app (may not work due to security restrictions)
+      window.location.href = 'App-Prefs:root=ACCESSIBILITY';
+    } else if (isAndroid) {
+      // Try to open Android accessibility settings
+      window.location.href = 'intent:#Intent;action=android.settings.ACCESSIBILITY_SETTINGS;end';
+    } else {
+      // For desktop, show instructions
+      alert('Please open your system accessibility settings:\n\n• Windows: Settings > Ease of Access\n• Mac: System Preferences > Accessibility\n• Linux: Settings > Universal Access');
     }
   };
 
   return (
     <>
-      {/* Main Accessibility Toggle Button - positioned opposite to sidebar */}
+      {/* Main Accessibility Toggle Button */}
       <button
-        onClick={() => {
-          setIsOpen(!isOpen);
-          speakText(isOpen ? 'Accessibility panel closed' : 'Accessibility panel opened');
-        }}
-        className={`fixed top-4 right-4 z-50 w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 ${
-          settings.highContrast 
-            ? 'bg-yellow-400 text-black hover:bg-yellow-300' 
-            : 'bg-teal-600 text-white hover:bg-teal-700'
-        } ${isOpen ? 'rotate-180' : ''}`}
+        onClick={() => setIsOpen(!isOpen)}
+        className="fixed top-4 right-4 z-50 w-12 h-12 bg-teal-600 hover:bg-teal-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-300"
         title="Accessibility Settings"
         aria-label="Open accessibility settings"
         tabIndex={0}
@@ -143,7 +86,6 @@ export default function AccessibilityControlPanel({ onSettingsChange }: Accessib
           fill="none" 
           stroke="currentColor" 
           strokeWidth="2"
-          className="transition-transform duration-300"
         >
           {/* Universal accessibility symbol */}
           <circle cx="12" cy="12" r="10"/>
@@ -165,17 +107,13 @@ export default function AccessibilityControlPanel({ onSettingsChange }: Accessib
           
           {/* Panel */}
           <div 
-            className={`fixed top-20 right-4 z-50 w-80 max-w-[calc(100vw-2rem)] rounded-2xl shadow-2xl border transition-all duration-300 ${
-              settings.highContrast 
-                ? 'bg-black text-white border-yellow-400' 
-                : 'bg-white text-gray-900 border-gray-200'
-            }`}
+            className="fixed top-20 right-4 z-50 w-80 max-w-[calc(100vw-2rem)] bg-white text-gray-900 rounded-2xl shadow-2xl border border-gray-200 transition-all duration-300"
             role="dialog"
             aria-labelledby="accessibility-panel-title"
             aria-modal="true"
           >
             {/* Header */}
-            <div className={`p-6 border-b ${settings.highContrast ? 'border-yellow-400' : 'border-gray-200'}`}>
+            <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h2 
                   id="accessibility-panel-title" 
@@ -191,11 +129,7 @@ export default function AccessibilityControlPanel({ onSettingsChange }: Accessib
                 </h2>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className={`p-2 rounded-lg transition-colors ${
-                    settings.highContrast 
-                      ? 'hover:bg-gray-800' 
-                      : 'hover:bg-gray-100'
-                  }`}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
                   aria-label="Close accessibility panel"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -204,26 +138,24 @@ export default function AccessibilityControlPanel({ onSettingsChange }: Accessib
                   </svg>
                 </button>
               </div>
-              <p className={`text-sm mt-2 ${settings.highContrast ? 'text-gray-300' : 'text-gray-600'}`}>
-                Customize your accessibility experience
+              <p className="text-sm mt-2 text-gray-600">
+                Gawin's innovative accessibility features
               </p>
             </div>
 
             {/* Settings */}
             <div className="p-6 space-y-6">
-              {/* Braille Mode */}
+              {/* Braille Keyboard - Our Innovation */}
               <div>
                 <label className="flex items-center justify-between cursor-pointer group">
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      settings.highContrast ? 'bg-gray-800' : 'bg-gray-100'
-                    }`}>
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-teal-100">
                       <span className="text-lg">⠃</span>
                     </div>
                     <div>
                       <div className="font-medium">Braille Keyboard</div>
-                      <div className={`text-sm ${settings.highContrast ? 'text-gray-400' : 'text-gray-500'}`}>
-                        On-screen Braille input
+                      <div className="text-sm text-gray-500">
+                        Innovative on-screen Braille input
                       </div>
                     </div>
                   </div>
@@ -231,18 +163,13 @@ export default function AccessibilityControlPanel({ onSettingsChange }: Accessib
                     <input
                       type="checkbox"
                       checked={settings.brailleMode}
-                      onChange={() => {
-                        toggleSetting('brailleMode');
-                        speakText(settings.brailleMode ? 'Braille mode disabled' : 'Braille mode enabled');
-                      }}
+                      onChange={() => toggleSetting('brailleMode')}
                       className="sr-only"
                       tabIndex={0}
                       aria-describedby="braille-description"
                     />
                     <div className={`w-12 h-6 rounded-full transition-colors ${
-                      settings.brailleMode 
-                        ? (settings.highContrast ? 'bg-yellow-400' : 'bg-teal-600') 
-                        : (settings.highContrast ? 'bg-gray-700' : 'bg-gray-300')
+                      settings.brailleMode ? 'bg-teal-600' : 'bg-gray-300'
                     }`}>
                       <div className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${
                         settings.brailleMode ? 'translate-x-6' : 'translate-x-0.5'
@@ -250,207 +177,65 @@ export default function AccessibilityControlPanel({ onSettingsChange }: Accessib
                     </div>
                   </div>
                 </label>
+                <div className="mt-2 ml-13 text-xs text-teal-600 font-medium">
+                  ✨ Exclusive Gawin Innovation
+                </div>
               </div>
 
-              {/* Voice Output */}
-              <div>
-                <label className="flex items-center justify-between cursor-pointer group">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      settings.highContrast ? 'bg-gray-800' : 'bg-gray-100'
-                    }`}>
-                      <span className="text-lg">🔊</span>
-                    </div>
-                    <div>
-                      <div className="font-medium">Voice Output</div>
-                      <div className={`text-sm ${settings.highContrast ? 'text-gray-400' : 'text-gray-500'}`}>
-                        Spoken feedback and narration
-                      </div>
-                    </div>
+              {/* Device Settings Guidance */}
+              <div className="bg-gray-50 rounded-xl p-4 space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center bg-blue-100 flex-shrink-0 mt-1">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10"/>
+                      <path d="m9 12 2 2 4-4"/>
+                    </svg>
                   </div>
-                  <div className="relative">
-                    <input
-                      type="checkbox"
-                      checked={settings.voiceOutput}
-                      onChange={() => {
-                        toggleSetting('voiceOutput');
-                        // This will be announced by the effect
-                      }}
-                      className="sr-only"
-                      tabIndex={0}
-                    />
-                    <div className={`w-12 h-6 rounded-full transition-colors ${
-                      settings.voiceOutput 
-                        ? (settings.highContrast ? 'bg-yellow-400' : 'bg-teal-600') 
-                        : (settings.highContrast ? 'bg-gray-700' : 'bg-gray-300')
-                    }`}>
-                      <div className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${
-                        settings.voiceOutput ? 'translate-x-6' : 'translate-x-0.5'
-                      } mt-0.5`} />
-                    </div>
+                  <div className="flex-1">
+                    <h3 className="font-medium text-gray-900 mb-2">Additional Accessibility Features</h3>
+                    <p className="text-sm text-gray-600 mb-3">
+                      For voice output, high contrast, large text, and screen reader support, use your device's built-in accessibility settings:
+                    </p>
+                    <ul className="text-sm text-gray-600 space-y-1 mb-4">
+                      <li>• <strong>iOS:</strong> Settings → Accessibility</li>
+                      <li>• <strong>Android:</strong> Settings → Accessibility</li>
+                      <li>• <strong>Windows:</strong> Settings → Ease of Access</li>
+                      <li>• <strong>Mac:</strong> System Preferences → Accessibility</li>
+                    </ul>
+                    <button
+                      onClick={openDeviceSettings}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-4 rounded-lg transition-colors duration-200"
+                    >
+                      Open Device Settings
+                    </button>
                   </div>
-                </label>
+                </div>
               </div>
 
-              {/* High Contrast */}
-              <div>
-                <label className="flex items-center justify-between cursor-pointer group">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      settings.highContrast ? 'bg-gray-800' : 'bg-gray-100'
-                    }`}>
-                      <span className="text-lg">⚫</span>
-                    </div>
-                    <div>
-                      <div className="font-medium">High Contrast</div>
-                      <div className={`text-sm ${settings.highContrast ? 'text-gray-400' : 'text-gray-500'}`}>
-                        Enhanced visibility mode
-                      </div>
-                    </div>
+              {/* Why Device Settings */}
+              <div className="bg-green-50 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full flex items-center justify-center bg-green-100 flex-shrink-0 mt-0.5">
+                    <span className="text-xs">💡</span>
                   </div>
-                  <div className="relative">
-                    <input
-                      type="checkbox"
-                      checked={settings.highContrast}
-                      onChange={() => {
-                        toggleSetting('highContrast');
-                        speakText(settings.highContrast ? 'High contrast disabled' : 'High contrast enabled');
-                      }}
-                      className="sr-only"
-                      tabIndex={0}
-                    />
-                    <div className={`w-12 h-6 rounded-full transition-colors ${
-                      settings.highContrast 
-                        ? 'bg-yellow-400'
-                        : 'bg-gray-300'
-                    }`}>
-                      <div className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${
-                        settings.highContrast ? 'translate-x-6' : 'translate-x-0.5'
-                      } mt-0.5`} />
-                    </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-green-800">
+                      <strong>Why use device settings?</strong> Your device's accessibility features work across all apps and are optimized for your specific needs. This ensures consistency and the best experience.
+                    </p>
                   </div>
-                </label>
-              </div>
-
-              {/* Screen Reader */}
-              <div>
-                <label className="flex items-center justify-between cursor-pointer group">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      settings.highContrast ? 'bg-gray-800' : 'bg-gray-100'
-                    }`}>
-                      <span className="text-lg">👁️</span>
-                    </div>
-                    <div>
-                      <div className="font-medium">Screen Reader</div>
-                      <div className={`text-sm ${settings.highContrast ? 'text-gray-400' : 'text-gray-500'}`}>
-                        Enhanced semantic markup
-                      </div>
-                    </div>
-                  </div>
-                  <div className="relative">
-                    <input
-                      type="checkbox"
-                      checked={settings.screenReader}
-                      onChange={() => {
-                        toggleSetting('screenReader');
-                        speakText(settings.screenReader ? 'Screen reader mode disabled' : 'Screen reader mode enabled');
-                      }}
-                      className="sr-only"
-                      tabIndex={0}
-                    />
-                    <div className={`w-12 h-6 rounded-full transition-colors ${
-                      settings.screenReader 
-                        ? (settings.highContrast ? 'bg-yellow-400' : 'bg-teal-600') 
-                        : (settings.highContrast ? 'bg-gray-700' : 'bg-gray-300')
-                    }`}>
-                      <div className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${
-                        settings.screenReader ? 'translate-x-6' : 'translate-x-0.5'
-                      } mt-0.5`} />
-                    </div>
-                  </div>
-                </label>
-              </div>
-
-              {/* Large Text */}
-              <div>
-                <label className="flex items-center justify-between cursor-pointer group">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      settings.highContrast ? 'bg-gray-800' : 'bg-gray-100'
-                    }`}>
-                      <span className="text-lg font-bold">A</span>
-                    </div>
-                    <div>
-                      <div className="font-medium">Large Text</div>
-                      <div className={`text-sm ${settings.highContrast ? 'text-gray-400' : 'text-gray-500'}`}>
-                        Increase font size
-                      </div>
-                    </div>
-                  </div>
-                  <div className="relative">
-                    <input
-                      type="checkbox"
-                      checked={settings.largeText}
-                      onChange={() => {
-                        toggleSetting('largeText');
-                        speakText(settings.largeText ? 'Large text disabled' : 'Large text enabled');
-                      }}
-                      className="sr-only"
-                      tabIndex={0}
-                    />
-                    <div className={`w-12 h-6 rounded-full transition-colors ${
-                      settings.largeText 
-                        ? (settings.highContrast ? 'bg-yellow-400' : 'bg-teal-600') 
-                        : (settings.highContrast ? 'bg-gray-700' : 'bg-gray-300')
-                    }`}>
-                      <div className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${
-                        settings.largeText ? 'translate-x-6' : 'translate-x-0.5'
-                      } mt-0.5`} />
-                    </div>
-                  </div>
-                </label>
+                </div>
               </div>
             </div>
 
             {/* Footer */}
-            <div className={`p-6 border-t ${settings.highContrast ? 'border-yellow-400' : 'border-gray-200'}`}>
-              <div className={`text-xs ${settings.highContrast ? 'text-gray-400' : 'text-gray-500'} text-center`}>
-                Accessibility settings are saved locally and persist across sessions
+            <div className="p-6 border-t border-gray-200">
+              <div className="text-xs text-gray-500 text-center">
+                Braille keyboard settings are saved locally
               </div>
             </div>
           </div>
         </>
       )}
-
-      {/* Global CSS for accessibility features */}
-      <style jsx global>{`
-        .accessibility-high-contrast {
-          filter: contrast(1.5);
-        }
-        
-        .accessibility-large-text {
-          font-size: calc(1rem * var(--accessibility-font-scale, 1));
-        }
-        
-        .accessibility-large-text h1 { font-size: calc(2rem * var(--accessibility-font-scale, 1)); }
-        .accessibility-large-text h2 { font-size: calc(1.5rem * var(--accessibility-font-scale, 1)); }
-        .accessibility-large-text h3 { font-size: calc(1.25rem * var(--accessibility-font-scale, 1)); }
-        .accessibility-large-text p { font-size: calc(1rem * var(--accessibility-font-scale, 1)); }
-        
-        .accessibility-screen-reader *:focus {
-          outline: 3px solid #ffff00 !important;
-          outline-offset: 2px !important;
-        }
-        
-        /* Enhanced focus styles for accessibility */
-        .accessibility-screen-reader button:focus,
-        .accessibility-screen-reader input:focus,
-        .accessibility-screen-reader textarea:focus,
-        .accessibility-screen-reader select:focus {
-          box-shadow: 0 0 0 3px rgba(255, 255, 0, 0.5) !important;
-        }
-      `}</style>
     </>
   );
 }
