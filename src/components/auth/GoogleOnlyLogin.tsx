@@ -123,19 +123,36 @@ export default function GoogleOnlyLogin({ onSuccess, onError }: GoogleOnlyLoginP
   };
 
   return (
-    <div className="min-h-screen bg-[#121212] flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden">
+      {/* Background Video */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover z-0"
+        poster="/background/loginbg-poster.jpg" // Optional: add a poster image as fallback
+      >
+        <source src="/background/loginbg.mp4" type="video/mp4" />
+        {/* Fallback for browsers that don't support video */}
+        <div className="absolute inset-0 bg-[#121212]"></div>
+      </video>
+      
+      {/* Dark overlay for better readability */}
+      <div className="absolute inset-0 bg-black/50 z-10"></div>
+      
+      <div className="w-full max-w-md relative z-20">
         {/* App Logo and Title */}
         <div className="text-center mb-12">
-          <div className="w-20 h-20 bg-gradient-to-br from-[#00C2A8] to-[#00A693] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-[#00C2A8]/20">
+          <div className="w-20 h-20 bg-gradient-to-br from-[#00C2A8] to-[#00A693] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-[#00C2A8]/30 backdrop-blur-sm">
             <span className="text-white text-3xl font-bold">G</span>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Welcome to Gawin</h1>
-          <p className="text-gray-400 text-lg">Your AI-powered learning assistant</p>
+          <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">Welcome to Gawin</h1>
+          <p className="text-gray-200 text-lg drop-shadow-md">Your AI-powered learning assistant</p>
         </div>
 
         {/* Login Card */}
-        <div className="bg-[#1E1E1E] rounded-2xl p-8 shadow-2xl border border-gray-800">
+        <div className="bg-[#1E1E1E]/80 backdrop-blur-xl rounded-2xl p-8 shadow-2xl border border-gray-800/50">
           <div className="text-center mb-8">
             <h2 className="text-xl font-semibold text-white mb-2">Sign in to continue</h2>
             <p className="text-gray-400">Secure authentication with Google</p>
