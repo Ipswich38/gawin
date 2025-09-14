@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MessageRenderer from './MessageRenderer';
-import AIWebBrowser from './AIWebBrowser';
+import ResearchMode from './ResearchMode';
 import AccessibilityControlPanel from './AccessibilityControlPanel';
 import BrailleKeyboard from './BrailleKeyboard';
 import VisionCapture from './VisionCapture';
@@ -22,7 +22,7 @@ import { balancedIntelligenceEngine } from '../core/consciousness/balanced-intel
 
 // 🎨 UI ENHANCEMENTS
 import { 
-  ChatIcon, CodeIcon, QuizIcon, StudyIcon, CreativeIcon, BrowserIcon,
+  ChatIcon, CodeIcon, QuizIcon, StudyIcon, CreativeIcon, SearchIcon as ResearchIcon,
   SendIcon, MenuIcon, CloseIcon, LoadingIcon, PlusIcon, SearchIcon
 } from './ui/LineIcons';
 import { deviceDetection, DeviceInfo, OptimizationConfig } from '../utils/deviceDetection';
@@ -42,7 +42,7 @@ interface Message {
 
 interface Tab {
   id: string;
-  type: 'general' | 'quiz' | 'study' | 'creative' | 'browser';
+  type: 'general' | 'quiz' | 'study' | 'creative' | 'research';
   title: string;
   icon: React.ComponentType<{ size?: number; className?: string }>;
   isActive: boolean;
@@ -122,10 +122,8 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   const [timeLeft, setTimeLeft] = useState(0);
   const [quizResults, setQuizResults] = useState<any>(null);
 
-  // Browser states
-  const [browserUrl, setBrowserUrl] = useState('');
-  const [isPageLoading, setIsPageLoading] = useState(false);
-  const [gawinChatOpen, setGawinChatOpen] = useState(false);
+  // Research states (replaced browser)
+  const [activeResearchId, setActiveResearchId] = useState<string | null>(null);
 
   // Tab configuration
   const tabConfig = {
@@ -133,7 +131,7 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
     quiz: { title: 'Quiz', icon: QuizIcon },
     study: { title: 'Study', icon: StudyIcon },
     creative: { title: 'Create', icon: CreativeIcon },
-    browser: { title: 'Web', icon: BrowserIcon }
+    research: { title: 'Research', icon: ResearchIcon }
   };
 
   // Study states
@@ -146,8 +144,7 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
     group: []
   });
 
-  // Dynamic code editor states (appears when Gawin generates code)
-  const [generatedCode, setGeneratedCode] = useState<{ id: string; code: string; language: string; filename: string } | null>(null);
+  // Removed redundant dynamic code editor - now handled inline in chat messages
 
   // Accessibility states
   const [accessibilitySettings, setAccessibilitySettings] = useState({
@@ -212,29 +209,13 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
     }
   }, [activeTab?.messages]);
 
-  // Browser navigation event listener
-  useEffect(() => {
-    const handleBrowserNavigate = (event: CustomEvent) => {
-      const { url } = event.detail;
-      const browserTab = tabs.find(tab => tab.type === 'browser');
-      if (browserTab) {
-        setBrowserUrl(url);
-        setTabs(prev => prev.map(tab => 
-          tab.id === browserTab.id 
-            ? { ...tab, url }
-            : tab
-        ));
-      }
-    };
+  // Research functionality (replaced browser navigation)
+  const handleResearchComplete = (document: any) => {
+    console.log('Research completed:', document);
+  };
 
-    window.addEventListener('gawin-browser-navigate', handleBrowserNavigate as EventListener);
-    return () => {
-      window.removeEventListener('gawin-browser-navigate', handleBrowserNavigate as EventListener);
-    };
-  }, [tabs]);
-
-  const handleBrowserChat = async (message: string, url: string) => {
-    // Find or create a general tab for browser chat
+  const handleResearchChat = async (message: string, context?: string) => {
+    // Find or create a general tab for research chat
     let targetTab = tabs.find(tab => tab.type === 'general' && tab.isActive);
     
     try {
@@ -243,7 +224,7 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
         const newTab: Tab = {
           id: newTabId,
           type: 'general',
-          title: 'AI Browser',
+          title: 'AI Research',
           icon: ChatIcon,
           isActive: true,
           messages: [],
@@ -1273,23 +1254,7 @@ ${screenshot ? 'Note: I also have a screenshot of the page for visual context if
         thinking
       };
 
-      // 🔍 Detect code blocks and open dynamic editor
-      const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/;
-      const codeMatch = content.match(codeBlockRegex);
-      
-      if (codeMatch) {
-        const [, language, code] = codeMatch;
-        const detectedLang = language || 'text';
-        const filename = getFilenameForLanguage(detectedLang);
-        
-        // Auto-open dynamic code editor with generated code
-        setGeneratedCode({
-          id: `code-${Date.now()}`,
-          code: code.trim(),
-          language: detectedLang,
-          filename: filename
-        });
-      }
+      // Code blocks are now handled inline in MessageRenderer - no redundant editor
 
       // 🧠 Store AI response in memory system
       contextMemorySystem.storeMemory(
@@ -1363,8 +1328,8 @@ ${screenshot ? 'Note: I also have a screenshot of the page for visual context if
     switch (activeTab.type) {
       case 'quiz':
         return renderQuizContent();
-      case 'browser':
-        return renderBrowserContent();
+      case 'research':
+        return <ResearchMode />;
       case 'study':
         return renderStudyContent();
       case 'creative':
@@ -1754,307 +1719,6 @@ Questions: ${count}`
     return null;
   };
 
-  const renderBrowserContent = () => (
-    <div className="flex flex-col h-full">
-      {/* Enhanced Browser Header with AI Features */}
-      <div className="bg-gray-800/90 border-b border-gray-600/50 p-3 space-y-3">
-        {/* Navigation Bar */}
-        <div className="flex items-center space-x-2">
-          <div className="flex space-x-1">
-            <button 
-              onClick={() => {
-                if (browserUrl) {
-                  const iframe = document.getElementById('browser-iframe') as HTMLIFrameElement;
-                  if (iframe) {
-                    iframe.src = iframe.src; // Reload
-                  }
-                }
-              }}
-              className="w-8 h-8 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors flex items-center justify-center text-gray-300"
-              title="Refresh"
-            >
-              ↻
-            </button>
-            <button 
-              onClick={() => {
-                if (browserUrl) {
-                  const iframe = document.getElementById('browser-iframe') as HTMLIFrameElement;
-                  if (iframe && iframe.contentWindow) {
-                    iframe.contentWindow.history.back();
-                  }
-                }
-              }}
-              className="w-8 h-8 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors flex items-center justify-center text-gray-300"
-              title="Back"
-            >
-              ←
-            </button>
-            <button 
-              onClick={() => {
-                if (browserUrl) {
-                  const iframe = document.getElementById('browser-iframe') as HTMLIFrameElement;
-                  if (iframe && iframe.contentWindow) {
-                    iframe.contentWindow.history.forward();
-                  }
-                }
-              }}
-              className="w-8 h-8 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors flex items-center justify-center text-gray-300"
-              title="Forward"
-            >
-              →
-            </button>
-          </div>
-          
-          <div className="flex-1 relative">
-            <input
-              type="text"
-              value={browserUrl}
-              onChange={(e) => setBrowserUrl(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  let url = browserUrl.trim();
-                  if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                    if (url.includes('.')) {
-                      url = 'https://' + url;
-                    } else {
-                      // Search query
-                      url = `https://www.google.com/search?q=${encodeURIComponent(url)}`;
-                    }
-                  }
-                  setBrowserUrl(url);
-                  setIsPageLoading(true);
-                  setTimeout(() => setIsPageLoading(false), 1000);
-                }
-              }}
-              placeholder="Enter URL or search..."
-              className="w-full px-3 py-2 bg-gray-700 text-white rounded-xl border border-gray-600 focus:outline-none focus:border-teal-500 placeholder-gray-400 text-sm"
-            />
-          </div>
-
-          {/* AI Analysis Button */}
-          <button
-            onClick={() => {
-              if (browserUrl) {
-                setGawinChatOpen(!gawinChatOpen);
-              }
-            }}
-            className="w-8 h-8 rounded-lg bg-teal-600 hover:bg-teal-700 transition-colors flex items-center justify-center text-white"
-            title="AI Analysis"
-          >
-            🤖
-          </button>
-        </div>
-
-        {/* AI Quick Actions */}
-        {browserUrl && (
-          <div className="flex items-center space-x-2 text-xs">
-            <span className="text-gray-400">AI Actions:</span>
-            <button
-              onClick={() => handleBrowserChat(`Summarize the main content of this page: ${browserUrl}`, browserUrl)}
-              className="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg transition-colors"
-            >
-              📄 Summarize
-            </button>
-            <button
-              onClick={() => handleBrowserChat(`Extract key information and facts from this page: ${browserUrl}`, browserUrl)}
-              className="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg transition-colors"
-            >
-              🔍 Extract Info
-            </button>
-            <button
-              onClick={() => handleBrowserChat(`Analyze this page for learning opportunities: ${browserUrl}`, browserUrl)}
-              className="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg transition-colors"
-            >
-              🎯 Learn
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Real Browser Content */}
-      <div className="flex-1 relative bg-white">
-        {!browserUrl ? (
-          <div className="h-full flex items-center justify-center p-6 bg-gray-900">
-            <div className="text-center space-y-4">
-              <h2 className="text-2xl font-semibold text-white flex items-center gap-2 justify-center">
-                <BrowserIcon size={22} />Gawin Web Browser
-              </h2>
-              <p className="text-gray-300">Real browsing with AI superpowers</p>
-              
-              <div className="grid grid-cols-2 gap-3 mt-6 max-w-md">
-                {[
-                  { name: 'Google', url: 'google.com', icon: <SearchIcon size={16} />, desc: 'Search anything' },
-                  { name: 'Wikipedia', url: 'wikipedia.org', icon: <StudyIcon size={16} />, desc: 'Learn & research' },
-                  { name: 'YouTube', url: 'youtube.com', icon: '🎥', desc: 'Watch & learn' },
-                  { name: 'GitHub', url: 'github.com', icon: '💻', desc: 'Code & collaborate' }
-                ].map((site) => (
-                  <button
-                    key={site.name}
-                    onClick={() => {
-                      setBrowserUrl(`https://${site.url}`);
-                      setIsPageLoading(true);
-                      setTimeout(() => setIsPageLoading(false), 1000);
-                    }}
-                    className="p-4 bg-gray-800/50 hover:bg-gray-700/50 rounded-2xl border border-gray-600/50 transition-all group"
-                  >
-                    <div className="text-xl mb-2 group-hover:scale-110 transition-transform">{site.icon}</div>
-                    <div className="text-white text-sm font-medium">{site.name}</div>
-                    <div className="text-gray-400 text-xs mt-1">{site.desc}</div>
-                  </button>
-                ))}
-              </div>
-
-              <div className="mt-8 p-4 bg-teal-900/20 border border-teal-700/50 rounded-xl">
-                <div className="flex items-center space-x-2 mb-2">
-                  <span className="text-teal-400">✨</span>
-                  <span className="text-teal-100 font-medium text-sm">AI-Powered Features</span>
-                </div>
-                <ul className="text-gray-300 text-xs space-y-1 text-left">
-                  <li>• Real-time page analysis and summarization</li>
-                  <li>• Intelligent content extraction</li>
-                  <li>• Learning-focused research assistance</li>
-                  <li>• Context-aware AI conversations</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        ) : isPageLoading ? (
-          <div className="h-full flex items-center justify-center bg-gray-100">
-            <div className="text-center space-y-3">
-              <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-              <p className="text-gray-600 text-sm">Loading {new URL(browserUrl).hostname}...</p>
-            </div>
-          </div>
-        ) : (
-          <div className="w-full h-full">
-            {/* Proxied Browser Content */}
-            <iframe
-              id="browser-iframe"
-              src={`/api/browser-proxy/render?url=${encodeURIComponent(browserUrl)}`}
-              className="w-full h-full border-0 bg-white"
-              title="Gawin AI Browser"
-              sandbox="allow-scripts allow-same-origin allow-forms"
-              onLoad={() => {
-                setIsPageLoading(false);
-                // Auto-trigger AI analysis of the page
-                if (browserUrl) {
-                  setTimeout(() => {
-                    handleBrowserChat(`I've loaded ${new URL(browserUrl).hostname}. What would you like to know about this page?`, browserUrl);
-                  }, 2000);
-                }
-              }}
-              onError={() => {
-                setIsPageLoading(false);
-                console.log('Failed to load via proxy:', browserUrl);
-              }}
-            />
-          </div>
-        )}
-
-        {/* Enhanced AI Chat Overlay */}
-        {gawinChatOpen && browserUrl && (
-          <motion.div
-            initial={{ opacity: 0, x: 300 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 300 }}
-            className="absolute top-0 right-0 w-80 h-full bg-gray-900/95 backdrop-blur-sm border-l border-gray-600 z-50 flex flex-col"
-          >
-            {/* AI Chat Header */}
-            <div className="bg-teal-600 p-4 flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <span className="text-white text-lg">🤖</span>
-                <div>
-                  <div className="text-white font-medium text-sm">Gawin AI Browser</div>
-                  <div className="text-teal-100 text-xs">Analyzing: {new URL(browserUrl).hostname}</div>
-                </div>
-              </div>
-              <button
-                onClick={() => setGawinChatOpen(false)}
-                className="text-white hover:bg-teal-700 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* AI Features Panel */}
-            <div className="p-4 border-b border-gray-700">
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => handleBrowserChat(`What is this page about? Give me a comprehensive summary.`, browserUrl)}
-                  className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs text-gray-300 transition-colors"
-                >
-                  📋 Full Summary
-                </button>
-                <button
-                  onClick={() => handleBrowserChat(`Extract all important facts and data from this page.`, browserUrl)}
-                  className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs text-gray-300 transition-colors"
-                >
-                  📊 Key Facts
-                </button>
-                <button
-                  onClick={() => handleBrowserChat(`Find educational content and learning opportunities on this page.`, browserUrl)}
-                  className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs text-gray-300 transition-colors"
-                >
-                  🎓 Study Guide
-                </button>
-                <button
-                  onClick={() => handleBrowserChat(`Check this page for credibility and reliability of information.`, browserUrl)}
-                  className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs text-gray-300 transition-colors"
-                >
-                  ✅ Verify Info
-                </button>
-              </div>
-            </div>
-
-            {/* Chat Messages Area */}
-            <div className="flex-1 overflow-y-auto p-3 space-y-2">
-              <div className="bg-gray-800 rounded-lg p-3">
-                <p className="text-gray-300 text-xs">
-                  🌐 I'm ready to help you analyze and understand this webpage. Ask me anything about the content, or use the quick actions above!
-                </p>
-              </div>
-            </div>
-
-            {/* Chat Input */}
-            <div className="p-3 border-t border-gray-700">
-              <div className="flex space-x-2">
-                <input
-                  id="ai-browser-chat-input"
-                  type="text"
-                  placeholder="Ask about this page..."
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      const target = e.target as HTMLInputElement;
-                      const userMessage = target.value.trim();
-                      if (userMessage) {
-                        handleBrowserChat(userMessage, browserUrl);
-                        target.value = '';
-                      }
-                    }
-                  }}
-                  className="flex-1 px-3 py-2 bg-gray-800 text-white rounded-lg border border-gray-600 focus:outline-none focus:border-teal-500 text-xs placeholder-gray-400"
-                />
-                <button 
-                  onClick={() => {
-                    const input = document.getElementById('ai-browser-chat-input') as HTMLInputElement;
-                    const userMessage = input?.value.trim();
-                    if (userMessage) {
-                      handleBrowserChat(userMessage, browserUrl);
-                      input.value = '';
-                    }
-                  }}
-                  className="w-8 h-8 bg-teal-600 hover:bg-teal-700 rounded-lg flex items-center justify-center transition-colors"
-                >
-                  <SendIcon size={14} className="text-white" />
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </div>
-    </div>
-  );
 
   const renderStudyContent = () => (
     <div className="h-full">
@@ -2613,7 +2277,7 @@ Questions: ${count}`
                   { type: 'quiz' as const, icon: <QuizIcon size={16} />, label: 'Quiz Generator' },
                   { type: 'study' as const, icon: <StudyIcon size={16} />, label: 'Study Buddy' },
                   { type: 'creative' as const, icon: <CreativeIcon size={16} />, label: 'Creative Studio' },
-                  { type: 'browser' as const, icon: <BrowserIcon size={16} />, label: 'Web Browser' },
+                  { type: 'research' as const, icon: <ResearchIcon size={16} />, label: 'Research Mode' },
                 ].map((item) => (
                   <button
                     key={item.type}
@@ -2648,62 +2312,7 @@ Questions: ${count}`
       </AnimatePresence>
 
 
-      {/* Dynamic Code Editor - appears when Gawin generates code */}
-      <AnimatePresence>
-        {generatedCode && (
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-0 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-lg border-t border-gray-600/50"
-            style={{ maxHeight: '60vh' }}
-          >
-            <div className="flex flex-col h-full">
-              {/* Code Editor Header */}
-              <div className="px-4 py-2 border-b border-gray-700/50 bg-gray-800/50 flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="ml-4 text-gray-300 text-sm font-mono">{generatedCode.filename}</span>
-                  <span className="text-xs text-gray-500 bg-gray-700 px-2 py-1 rounded">{generatedCode.language}</span>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(generatedCode.code);
-                      // Could add a toast notification here
-                    }}
-                    className="px-2 py-1 bg-teal-600 hover:bg-teal-700 text-white text-xs rounded-lg font-medium transition-colors"
-                    title="Copy Code"
-                  >
-                    Copy
-                  </button>
-                  <button
-                    onClick={() => setGeneratedCode(null)}
-                    className="text-gray-400 hover:text-white w-6 h-6 flex items-center justify-center"
-                    title="Close Editor"
-                  >
-                    ×
-                  </button>
-                </div>
-              </div>
-              
-              {/* Code Editor Content */}
-              <div className="flex-1 overflow-hidden">
-                <textarea
-                  value={generatedCode.code}
-                  onChange={(e) => setGeneratedCode({ ...generatedCode, code: e.target.value })}
-                  className="w-full h-full bg-black/95 text-green-400 font-mono text-sm resize-none p-4 focus:outline-none"
-                  spellCheck={false}
-                  style={{ minHeight: '200px', maxHeight: '400px' }}
-                />
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Removed redundant code editor - now handled inline in MessageRenderer */}
 
       {/* Braille Keyboard */}
         <BrailleKeyboard 
