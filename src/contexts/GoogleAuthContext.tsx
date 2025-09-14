@@ -41,9 +41,9 @@ export const GoogleAuthProvider: React.FC<GoogleAuthProviderProps> = ({ children
       setIsLoading(true);
       console.log('🔐 Initializing Google authentication...');
       
-      // Add timeout to prevent infinite loading
+      // Add short timeout to prevent infinite loading
       const timeout = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Auth initialization timeout')), 10000)
+        setTimeout(() => reject(new Error('Auth initialization timeout')), 3000)
       );
       
       const authCheck = supabaseAuth.getCurrentUser();
