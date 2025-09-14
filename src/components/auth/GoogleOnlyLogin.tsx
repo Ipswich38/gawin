@@ -5,7 +5,7 @@ import { useGoogleAuth } from '@/contexts/GoogleAuthContext';
 import { supabaseAuth } from '@/lib/services/supabaseAuth';
 
 // Creator email for bypass
-const CREATOR_EMAIL = 'cherwin.fernandez@gmail.com'; // Replace with your actual email
+const CREATOR_EMAIL = 'kreativloops@gmail.com';
 
 interface GoogleOnlyLoginProps {
   onSuccess?: () => void;
@@ -40,7 +40,7 @@ export default function GoogleOnlyLogin({ onSuccess, onError }: GoogleOnlyLoginP
           data: {
             is_creator: true,
             email: CREATOR_EMAIL,
-            full_name: 'Cherwin Fernandez (Creator)',
+            full_name: 'Kreativ Loops (Creator)',
             role: 'creator'
           }
         });
@@ -138,8 +138,8 @@ export default function GoogleOnlyLogin({ onSuccess, onError }: GoogleOnlyLoginP
         <div className="absolute inset-0 bg-[#121212]"></div>
       </video>
       
-      {/* Dark overlay for better readability */}
-      <div className="absolute inset-0 bg-black/50 z-10"></div>
+      {/* Subtle dark overlay for readability while showing nostalgic background */}
+      <div className="absolute inset-0 bg-black/30 z-10"></div>
       
       <div className="w-full max-w-md relative z-20">
         {/* App Logo and Title */}
@@ -151,8 +151,8 @@ export default function GoogleOnlyLogin({ onSuccess, onError }: GoogleOnlyLoginP
           <p className="text-gray-200 text-lg drop-shadow-md">Your AI-powered learning assistant</p>
         </div>
 
-        {/* Login Card */}
-        <div className="bg-[#1E1E1E]/80 backdrop-blur-xl rounded-2xl p-8 shadow-2xl border border-gray-800/50">
+        {/* Login Card with subtle transparency to show nostalgic background */}
+        <div className="bg-[#1E1E1E]/60 backdrop-blur-lg rounded-2xl p-8 shadow-2xl border border-gray-700/40">
           <div className="text-center mb-8">
             <h2 className="text-xl font-semibold text-white mb-2">Sign in to continue</h2>
             <p className="text-gray-400">Secure authentication with Google</p>
@@ -257,7 +257,7 @@ export default function GoogleOnlyLogin({ onSuccess, onError }: GoogleOnlyLoginP
                   <div className="w-full border-t border-gray-600"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-[#1E1E1E] text-gray-400">or</span>
+                  <span className="px-2 bg-[#1E1E1E]/60 backdrop-blur-sm text-gray-400">or</span>
                 </div>
               </div>
 

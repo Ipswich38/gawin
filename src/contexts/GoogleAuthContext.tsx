@@ -41,16 +41,25 @@ export const GoogleAuthProvider: React.FC<GoogleAuthProviderProps> = ({ children
       setIsLoading(true);
       console.log('🔐 Initializing Google authentication...');
       
-      const currentUser = await supabaseAuth.getCurrentUser();
+      // Add timeout to prevent infinite loading
+      const timeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Auth initialization timeout')), 10000)
+      );
+      
+      const authCheck = supabaseAuth.getCurrentUser();
+      
+      const currentUser = await Promise.race([authCheck, timeout]) as UserProfile | null;
       setUser(currentUser);
       
       if (currentUser) {
         console.log('✅ User authenticated:', currentUser.email);
       } else {
-        console.log('❌ No authenticated user found');
+        console.log('❌ No authenticated user found - showing login');
       }
     } catch (error) {
       console.error('Auth initialization error:', error);
+      // Set loading to false even on error so user can see login
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
