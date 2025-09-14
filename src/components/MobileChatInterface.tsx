@@ -2215,10 +2215,12 @@ Questions: ${count}`
   );
 
   const renderChatContent = () => (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative">
+      {/* Additional subtle transparency layer to show video silhouette */}
+      <div className="absolute inset-0 bg-black/20 z-0" />
       <div 
         ref={chatContainerRef}
-        className="flex-1 overflow-y-auto px-4 py-4 space-y-4"
+        className="flex-1 overflow-y-auto px-4 py-4 space-y-4 relative z-10"
       >
         {activeTab && (activeTab.messages?.length || 0) === 0 ? (
           <div className="h-full flex items-center justify-center">
@@ -2242,8 +2244,8 @@ Questions: ${count}`
                 <div className={`
                   max-w-[85%] px-5 py-4 shadow-lg rounded-3xl min-h-[60px] flex flex-col justify-center
                   ${message.role === 'user' 
-                    ? 'bg-gradient-to-br from-teal-600 to-teal-700 text-white rounded-br-lg' 
-                    : 'bg-gradient-to-br from-gray-700 to-gray-800 text-white ring-1 ring-gray-600/50 rounded-bl-lg'
+                    ? 'bg-gradient-to-br from-teal-600/90 to-teal-700/90 text-white rounded-br-lg backdrop-blur-sm' 
+                    : 'bg-gradient-to-br from-gray-700/80 to-gray-800/80 text-white ring-1 ring-gray-600/50 rounded-bl-lg backdrop-blur-sm'
                   }
                   transition-all duration-200 hover:shadow-xl transform hover:scale-[1.01]
                 `}>
@@ -2324,7 +2326,7 @@ Questions: ${count}`
                 animate={{ opacity: 1, y: 0 }}
                 className="flex justify-start"
               >
-                <div className="max-w-[85%] px-5 py-4 bg-gradient-to-br from-gray-700 to-gray-800 rounded-3xl rounded-bl-lg shadow-lg ring-1 ring-gray-600/50 min-h-[60px] flex items-center">
+                <div className="max-w-[85%] px-5 py-4 bg-gradient-to-br from-gray-700/80 to-gray-800/80 rounded-3xl rounded-bl-lg shadow-lg ring-1 ring-gray-600/50 min-h-[60px] flex items-center backdrop-blur-sm">
                   <div className="flex items-center space-x-3">
                     <div className="flex space-x-1">
                       <div className="w-2.5 h-2.5 bg-teal-400 rounded-full animate-bounce"></div>
@@ -2361,56 +2363,6 @@ Questions: ${count}`
       
       {/* Main App Content with transparency */}
       <div className="relative z-20 h-full flex flex-col">
-        {/* Mobile Header */}
-        <div className={`
-          bg-gray-800/60 backdrop-blur-lg border-b border-gray-600/30 
-          px-3 sm:px-4 ${optimizationConfig?.tabHeight || 'py-3'} 
-          flex items-center justify-between
-        `} style={{ paddingTop: `calc(${optimizationConfig?.spacing || 'py-3'} + env(safe-area-inset-top))` }}>
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className={`
-              ${optimizationConfig?.compactMode ? 'w-8 h-8' : 'w-10 h-10'}
-              bg-gray-700/30 hover:bg-gray-600/40 rounded-xl 
-              border border-gray-600/30 transition-colors backdrop-blur-sm
-              flex items-center justify-center
-            `}
-          >
-          {isMenuOpen ? (
-            <CloseIcon size={optimizationConfig?.compactMode ? 16 : 18} className="text-white" />
-          ) : (
-            <MenuIcon size={optimizationConfig?.compactMode ? 16 : 18} className="text-white" />
-          )}
-          </button>
-          
-          <div className="text-center flex-1">
-            <div className="flex items-center justify-center space-x-2 mb-1">
-              <div className="w-8 h-8 bg-gradient-to-br from-teal-600 to-teal-700 rounded-lg flex items-center justify-center shadow-lg backdrop-blur-sm">
-                <span className="text-white text-sm font-bold">G</span>
-              </div>
-            <h1 className={`font-medium text-white ${
-              optimizationConfig?.compactMode ? 'text-base' : 'text-lg'
-            }`}>
-              Gawin AI
-            </h1>
-          </div>
-          <div className={`text-gray-400 ${
-            optimizationConfig?.compactMode ? 'text-xs' : 'text-xs'
-          }`}>Educational Assistant</div>
-        </div>
-
-          <button
-            onClick={() => createNewTab(activeTab?.type || 'general')}
-            className={`
-              ${optimizationConfig?.compactMode ? 'w-8 h-8' : 'w-10 h-10'}
-              bg-gray-700/30 hover:bg-gray-600/40 rounded-xl 
-              border border-gray-600/30 transition-colors backdrop-blur-sm
-              flex items-center justify-center
-            `}
-          >
-          <PlusIcon size={optimizationConfig?.compactMode ? 16 : 18} className="text-white" />
-        </button>
-      </div>
 
         {/* Mobile Tabs - Reduced Height */}
         <div className={`
@@ -2418,6 +2370,30 @@ Questions: ${count}`
           ${optimizationConfig?.compactMode ? 'py-1.5' : 'py-2'}
         `}>
         <div className="flex items-center space-x-2 overflow-x-auto">
+          {/* Fixed Sidebar Toggle Tab */}
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className={`
+              flex items-center space-x-2 
+              ${optimizationConfig?.compactMode ? 'px-2 py-1' : 'px-3 py-1.5'} 
+              ${optimizationConfig?.tabHeight || 'h-10'}
+              rounded-xl 
+              ${optimizationConfig?.compactMode ? 'text-xs' : 'text-sm'} 
+              font-medium transition-all flex-shrink-0
+              ${isMenuOpen 
+                ? 'bg-teal-600 text-white shadow-lg backdrop-blur-sm' 
+                : 'bg-gray-700/30 text-gray-300 hover:bg-gray-600/40 backdrop-blur-sm'
+              }
+            `}
+          >
+            {isMenuOpen ? (
+              <CloseIcon size={optimizationConfig?.compactMode ? 14 : 16} className="flex-shrink-0" />
+            ) : (
+              <MenuIcon size={optimizationConfig?.compactMode ? 14 : 16} className="flex-shrink-0" />
+            )}
+            <span>Menu</span>
+          </button>
+
           {tabs.map((tab) => {
             const TabIcon = tabConfig[tab.type as keyof typeof tabConfig]?.icon;
             return (
@@ -2460,18 +2436,6 @@ Questions: ${count}`
               </button>
             );
           })}
-          
-            <button
-              onClick={() => setIsMenuOpen(true)}
-              className={`
-                flex items-center justify-center 
-                ${optimizationConfig?.compactMode ? 'w-7 h-7' : 'w-8 h-8'} 
-                bg-gray-700/30 hover:bg-gray-600/40 rounded-xl 
-                text-gray-300 transition-colors flex-shrink-0 backdrop-blur-sm
-              `}
-            >
-            <PlusIcon size={optimizationConfig?.compactMode ? 14 : 16} />
-          </button>
         </div>
       </div>
 
@@ -2587,6 +2551,47 @@ Questions: ${count}`
                 </div>
               </div>
               
+              {/* Accessibility Settings */}
+              <div className="space-y-3">
+                <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wide">Accessibility</h3>
+                <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center bg-teal-100">
+                        <span className="text-base">⠃</span>
+                      </div>
+                      <div>
+                        <div className="text-white font-medium text-sm">Braille Keyboard</div>
+                        <div className="text-gray-400 text-xs">Touch-based Braille input</div>
+                      </div>
+                    </div>
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        checked={accessibilitySettings.brailleMode}
+                        onChange={() => handleAccessibilityChange({
+                          brailleMode: !accessibilitySettings.brailleMode
+                        })}
+                        className="sr-only"
+                      />
+                      <div className={`w-10 h-5 rounded-full transition-colors ${
+                        accessibilitySettings.brailleMode ? 'bg-teal-600' : 'bg-gray-600'
+                      }`}>
+                        <div className={`w-4 h-4 rounded-full bg-white shadow-md transform transition-transform ${
+                          accessibilitySettings.brailleMode ? 'translate-x-5' : 'translate-x-0.5'
+                        } mt-0.5`} />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-3 text-xs text-teal-600 font-medium">
+                    ✨ Gawin Innovation
+                  </div>
+                  <div className="mt-2 text-xs text-gray-500">
+                    For other accessibility features, use your device settings: Settings → Accessibility
+                  </div>
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wide">New Tab</h3>
                 {[
@@ -2629,8 +2634,6 @@ Questions: ${count}`
         )}
       </AnimatePresence>
 
-      {/* Accessibility Control Panel */}
-      <AccessibilityControlPanel onSettingsChange={handleAccessibilityChange} />
 
       {/* Braille Keyboard */}
         <BrailleKeyboard 
