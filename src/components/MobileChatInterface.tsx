@@ -56,6 +56,39 @@ interface MobileChatInterfaceProps {
   onBackToLanding: () => void;
 }
 
+// Utility function to get filename based on language
+const getFilenameForLanguage = (language: string): string => {
+  const languageMap: { [key: string]: string } = {
+    'javascript': 'script.js',
+    'js': 'script.js',
+    'typescript': 'script.ts',
+    'ts': 'script.ts',
+    'python': 'script.py',
+    'py': 'script.py',
+    'java': 'Main.java',
+    'cpp': 'main.cpp',
+    'c': 'main.c',
+    'html': 'index.html',
+    'css': 'styles.css',
+    'php': 'script.php',
+    'ruby': 'script.rb',
+    'go': 'main.go',
+    'rust': 'main.rs',
+    'swift': 'main.swift',
+    'kotlin': 'Main.kt',
+    'dart': 'main.dart',
+    'json': 'data.json',
+    'xml': 'data.xml',
+    'yaml': 'config.yaml',
+    'sql': 'query.sql',
+    'shell': 'script.sh',
+    'bash': 'script.sh',
+    'powershell': 'script.ps1'
+  };
+  
+  return languageMap[language.toLowerCase()] || `code.${language}`;
+};
+
 export default function MobileChatInterface({ user, onLogout, onBackToLanding }: MobileChatInterfaceProps) {
   // Creator detection
   const isCreator = user.isCreator || user.email === 'kreativloops@gmail.com';
@@ -113,9 +146,8 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
     group: []
   });
 
-  // Code states
-  const [codeContent, setCodeContent] = useState('');
-  const [showCodeWorkspace, setShowCodeWorkspace] = useState(false);
+  // Dynamic code editor states (appears when Gawin generates code)
+  const [generatedCode, setGeneratedCode] = useState<{ id: string; code: string; language: string; filename: string } | null>(null);
 
   // Accessibility states
   const [accessibilitySettings, setAccessibilitySettings] = useState({
@@ -477,6 +509,20 @@ ${screenshot ? 'Note: I also have a screenshot of the page for visual context if
       content: messageText,
       timestamp: new Date().toISOString()
     };
+
+    // 🔍 Detect if user pasted code and enhance the message for better analysis
+    const codeDetectionRegex = /```(\w+)?\n([\s\S]*?)```|(?:function|class|def|import|#include|public class|const|var|let)\s+\w+|(?:\w+\s*=\s*function|\w+\s*=\s*\(\w*\)\s*=\s*>)/;
+    const hasCodeLikeContent = codeDetectionRegex.test(messageText) || 
+                               messageText.split('\n').length > 3 && 
+                               /[{}();]/.test(messageText) &&
+                               !/^[A-Z][a-z\s,.'!?]*$/.test(messageText); // Not just regular text
+    
+    // If user pasted code, intelligently format the prompt for better analysis
+    if (hasCodeLikeContent && activeTab.type === 'code') {
+      // Enhance the prompt to help Gawin analyze the code better
+      const enhancedContent = `I have some code that I'd like you to analyze. Please help me understand what this code does, identify any potential issues, and suggest improvements if needed:\n\n${messageText}`;
+      newMessage.content = enhancedContent;
+    }
 
     // Update tab with message and loading
     setTabs(prev => prev.map(tab => 
@@ -1209,6 +1255,24 @@ ${screenshot ? 'Note: I also have a screenshot of the page for visual context if
         timestamp: new Date().toISOString(),
         thinking
       };
+
+      // 🔍 Detect code blocks and open dynamic editor
+      const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/;
+      const codeMatch = content.match(codeBlockRegex);
+      
+      if (codeMatch) {
+        const [, language, code] = codeMatch;
+        const detectedLang = language || 'text';
+        const filename = getFilenameForLanguage(detectedLang);
+        
+        // Auto-open dynamic code editor with generated code
+        setGeneratedCode({
+          id: `code-${Date.now()}`,
+          code: code.trim(),
+          language: detectedLang,
+          filename: filename
+        });
+      }
 
       // 🧠 Store AI response in memory system
       contextMemorySystem.storeMemory(
@@ -2102,86 +2166,16 @@ Questions: ${count}`
 
   const renderCodeContent = () => (
     <div className="flex flex-col h-full">
-      {!showCodeWorkspace ? (
-        <div className="flex-1 flex items-center justify-center py-16">
-          <div className="text-center space-y-4">
-            <h2 className="text-2xl font-semibold text-white">⚡ Code Workspace</h2>
-            <p className="text-gray-300">Ask about programming or share code for analysis</p>
-            <button
-              onClick={() => setShowCodeWorkspace(true)}
-              className="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-2xl font-medium transition-colors"
-            >
-              Open Code Editor
-            </button>
-          </div>
-        </div>
-      ) : (
-        <>
-          {/* Code Editor Section */}
-          <div className="p-4 space-y-4 flex-shrink-0">
-            <div className="flex items-center justify-between">
-              <h3 className="text-white font-medium">Code Workspace</h3>
-              <button
-                onClick={() => setShowCodeWorkspace(false)}
-                className="text-gray-400 hover:text-white"
-              >
-                ×
-              </button>
-            </div>
-            
-            <div className="bg-black/95 rounded-2xl border border-gray-700 overflow-hidden">
-              <div className="px-4 py-2 border-b border-gray-700 bg-gray-900/50 flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="ml-4 text-gray-400 text-sm font-mono">editor.js</span>
-                </div>
-                
-                {/* Code Action Buttons */}
-                <div className="flex items-center space-x-1">
-                  <button
-                    onClick={() => handleSend(`Review this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
-                    className="px-2 py-1 bg-teal-600 hover:bg-teal-700 text-white text-xs rounded-lg font-medium transition-colors"
-                    disabled={!codeContent.trim()}
-                    title="Review Code"
-                  >
-                    Review
-                  </button>
-                  <button
-                    onClick={() => handleSend(`Explain this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
-                    className="px-2 py-1 bg-gray-600 hover:bg-gray-500 text-white text-xs rounded-lg font-medium transition-colors"
-                    disabled={!codeContent.trim()}
-                    title="Explain Code"
-                  >
-                    Explain
-                  </button>
-                  <button
-                    onClick={() => handleSend(`Debug this code:\n\`\`\`\n${codeContent}\n\`\`\``)}
-                    className="px-2 py-1 bg-gray-600 hover:bg-gray-500 text-white text-xs rounded-lg font-medium transition-colors"
-                    disabled={!codeContent.trim()}
-                    title="Debug Code"
-                  >
-                    Debug
-                  </button>
-                </div>
-              </div>
-              <textarea
-                value={codeContent}
-                onChange={(e) => setCodeContent(e.target.value)}
-                placeholder="// Write or paste your code here..."
-                className="w-full h-48 bg-transparent text-green-400 font-mono text-sm resize-none p-4 focus:outline-none placeholder-gray-500"
-                spellCheck={false}
-              />
-            </div>
-          </div>
-          
-          {/* Chat Content */}
-          <div className="flex-1 overflow-hidden">
-            {renderChatContent()}
-          </div>
-        </>
-      )}
+      {/* Header */}
+      <div className="p-4 text-center">
+        <h2 className="text-xl font-semibold text-white flex items-center gap-2 justify-center"><CodeIcon size={20} />Code Assistant</h2>
+        <p className="text-gray-400 text-sm mt-1">Paste code directly in chat for analysis, debugging, or explanations</p>
+      </div>
+
+      {/* Chat Content */}
+      <div className="flex-1 overflow-hidden">
+        {renderChatContent()}
+      </div>
     </div>
   );
 
@@ -2634,6 +2628,63 @@ Questions: ${count}`
         )}
       </AnimatePresence>
 
+
+      {/* Dynamic Code Editor - appears when Gawin generates code */}
+      <AnimatePresence>
+        {generatedCode && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-0 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-lg border-t border-gray-600/50"
+            style={{ maxHeight: '60vh' }}
+          >
+            <div className="flex flex-col h-full">
+              {/* Code Editor Header */}
+              <div className="px-4 py-2 border-b border-gray-700/50 bg-gray-800/50 flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span className="ml-4 text-gray-300 text-sm font-mono">{generatedCode.filename}</span>
+                  <span className="text-xs text-gray-500 bg-gray-700 px-2 py-1 rounded">{generatedCode.language}</span>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(generatedCode.code);
+                      // Could add a toast notification here
+                    }}
+                    className="px-2 py-1 bg-teal-600 hover:bg-teal-700 text-white text-xs rounded-lg font-medium transition-colors"
+                    title="Copy Code"
+                  >
+                    Copy
+                  </button>
+                  <button
+                    onClick={() => setGeneratedCode(null)}
+                    className="text-gray-400 hover:text-white w-6 h-6 flex items-center justify-center"
+                    title="Close Editor"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+              
+              {/* Code Editor Content */}
+              <div className="flex-1 overflow-hidden">
+                <textarea
+                  value={generatedCode.code}
+                  onChange={(e) => setGeneratedCode({ ...generatedCode, code: e.target.value })}
+                  className="w-full h-full bg-black/95 text-green-400 font-mono text-sm resize-none p-4 focus:outline-none"
+                  spellCheck={false}
+                  style={{ minHeight: '200px', maxHeight: '400px' }}
+                />
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Braille Keyboard */}
         <BrailleKeyboard 
