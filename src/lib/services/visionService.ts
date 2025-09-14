@@ -66,10 +66,11 @@ export class VisionService {
       
       // Dynamic import face-api to prevent SSR issues
       if (!faceapi && typeof window !== 'undefined') {
-        faceapi = await import('@vladmandic/face-api');
+        const faceApiModule = await import('@vladmandic/face-api');
+        faceapi = faceApiModule.default || faceApiModule;
       }
       
-      if (!faceapi) {
+      if (!faceapi || typeof window === 'undefined') {
         console.log('⏭️ Skipping vision initialization in SSR environment');
         return false;
       }

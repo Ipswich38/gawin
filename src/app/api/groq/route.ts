@@ -3,6 +3,7 @@ import { groqService, GroqRequest, GroqMessage } from '@/lib/services/groqServic
 import { huggingFaceService } from '@/lib/services/huggingFaceService';
 import { deepseekService } from '@/lib/services/deepseekService';
 import { validationService } from '@/lib/services/validationService';
+import { responseFilterService } from '@/lib/services/responseFilterService';
 
 /**
  * Enhanced AI Context Analyzer - Provides deep conversation understanding
@@ -453,6 +454,23 @@ export async function POST(request: NextRequest) {
         }
       }, 0);
       
+      // Filter response for quality and consistency
+      if (groqResult.choices?.[0]?.message?.content) {
+        const filteredResponse = responseFilterService.filterResponse(groqResult.choices[0].message.content);
+        
+        // Log filtering results for monitoring
+        if (filteredResponse.wasFiltered) {
+          console.log('🧹 Response filtered:', {
+            originalLength: groqResult.choices[0].message.content.length,
+            filteredLength: filteredResponse.content.length,
+            filtersApplied: filteredResponse.filtersApplied
+          });
+        }
+        
+        // Update the response content
+        groqResult.choices[0].message.content = filteredResponse.content;
+      }
+      
       return NextResponse.json(groqResult);
     }
 
@@ -480,12 +498,25 @@ export async function POST(request: NextRequest) {
 
       if (hfResult.success) {
         console.log('✅ HuggingFace AI fallback successful');
+        
+        // Filter HuggingFace response as well
+        let content = hfResult.data?.response || 'I understand your question and I\'m here to help you learn!';
+        const filteredResponse = responseFilterService.filterResponse(content);
+        
+        if (filteredResponse.wasFiltered) {
+          console.log('🧹 HuggingFace response filtered:', {
+            originalLength: content.length,
+            filteredLength: filteredResponse.content.length,
+            filtersApplied: filteredResponse.filtersApplied
+          });
+        }
+        
         return NextResponse.json({
           success: true,
           choices: [{
             message: {
               role: 'assistant',
-              content: hfResult.data?.response || 'I understand your question and I\'m here to help you learn!'
+              content: filteredResponse.content
             }
           }],
           model: 'HuggingFace-AI-Fallback',
@@ -508,6 +539,22 @@ export async function POST(request: NextRequest) {
 
       if (groqDeepSeekResult.success) {
         console.log('✅ Groq DeepSeek AI fallback successful');
+        
+        // Filter DeepSeek response as well
+        if (groqDeepSeekResult.choices?.[0]?.message?.content) {
+          const filteredResponse = responseFilterService.filterResponse(groqDeepSeekResult.choices[0].message.content);
+          
+          if (filteredResponse.wasFiltered) {
+            console.log('🧹 DeepSeek response filtered:', {
+              originalLength: groqDeepSeekResult.choices[0].message.content.length,
+              filteredLength: filteredResponse.content.length,
+              filtersApplied: filteredResponse.filtersApplied
+            });
+          }
+          
+          groqDeepSeekResult.choices[0].message.content = filteredResponse.content;
+        }
+        
         return NextResponse.json(groqDeepSeekResult);
       }
       
