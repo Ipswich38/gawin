@@ -317,15 +317,45 @@ export async function POST(request: NextRequest) {
       ? lastMessage.content.find(item => item.type === 'text')?.text || ''
       : String(lastMessage.content);
 
+    // Enhanced context-aware image detection
+    const hasCodeContexts = /\b(code|program|function|algorithm|script|software|javascript|python|html|css|programming|coding|development)\b/i.test(messageContent);
+    
     const imageKeywords = [
       'generate image', 'create image', 'make image', 'draw', 'picture', 
-      'illustration', 'visual', 'artwork', 'photo', 'generate a', 'create a',
-      'make a', 'show me', 'design', 'sketch', 'paint', 'render'
+      'illustration', 'visual', 'artwork', 'photo', 'design', 'sketch', 'paint', 'render'
     ];
     
-    const isImageRequest = imageKeywords.some(keyword => 
+    // More specific image detection - avoid false positives with code requests
+    const isExplicitImageRequest = imageKeywords.some(keyword => 
       messageContent.toLowerCase().includes(keyword.toLowerCase())
     );
+    
+    // Check for ambiguous "generate a" or "create a" patterns
+    const hasAmbiguousGenerate = /\b(generate|create|make)\s+a\b/i.test(messageContent);
+    
+    // Final decision: only treat as image request if explicit OR (ambiguous AND no code context)
+    const isImageRequest = isExplicitImageRequest || (hasAmbiguousGenerate && !hasCodeContexts);
+    
+    // Add clarification system for ambiguous requests
+    if (hasAmbiguousGenerate && hasCodeContexts && isExplicitImageRequest) {
+      // This is a truly ambiguous case - ask for clarification
+      return NextResponse.json({
+        success: true,
+        choices: [{
+          message: {
+            role: 'assistant',
+            content: `I notice you mentioned both "${messageContent.match(/\b(generate|create|make)\s+a\b/i)?.[0] || 'generate'}" and programming-related terms. To help you better, could you clarify what you'd like me to do?\n\n🖼️ **Generate an image** - Create a visual representation\n💻 **Generate code** - Write programming code or scripts\n\nJust let me know which one you had in mind, and I'll be happy to help!`
+          },
+          finish_reason: 'stop',
+          index: 0
+        }],
+        usage: {
+          prompt_tokens: messageContent.length,
+          completion_tokens: 50,
+          total_tokens: messageContent.length + 50
+        }
+      });
+    }
 
     if (isImageRequest) {
       console.log('🎨 Image generation request detected, using Pollinations API...');

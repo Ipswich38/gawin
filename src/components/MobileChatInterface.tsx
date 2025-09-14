@@ -6,6 +6,7 @@ import MessageRenderer from './MessageRenderer';
 import AIWebBrowser from './AIWebBrowser';
 import AccessibilityControlPanel from './AccessibilityControlPanel';
 import BrailleKeyboard from './BrailleKeyboard';
+import VisionCapture from './VisionCapture';
 
 // 🧠 CONSCIOUSNESS INTEGRATION
 import { emotionalSynchronizer, EmotionalState } from '../core/consciousness/emotional-state-sync';
@@ -41,7 +42,7 @@ interface Message {
 
 interface Tab {
   id: string;
-  type: 'general' | 'code' | 'quiz' | 'study' | 'creative' | 'browser';
+  type: 'general' | 'quiz' | 'study' | 'creative' | 'browser';
   title: string;
   icon: React.ComponentType<{ size?: number; className?: string }>;
   isActive: boolean;
@@ -128,8 +129,7 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
 
   // Tab configuration
   const tabConfig = {
-    general: { title: 'Chat', icon: ChatIcon },
-    code: { title: 'Code', icon: CodeIcon },
+    general: { title: 'New Chat', icon: ChatIcon },
     quiz: { title: 'Quiz', icon: QuizIcon },
     study: { title: 'Study', icon: StudyIcon },
     creative: { title: 'Create', icon: CreativeIcon },
@@ -154,6 +154,10 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
     brailleMode: false
   });
   const [isBrailleKeyboardOpen, setIsBrailleKeyboardOpen] = useState(false);
+
+  // Vision system states
+  const [visionContext, setVisionContext] = useState<string>('');
+  const [currentVisionAnalysis, setCurrentVisionAnalysis] = useState<any>(null);
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const activeTab = tabs.find(tab => tab.id === activeTabId);
@@ -518,7 +522,7 @@ ${screenshot ? 'Note: I also have a screenshot of the page for visual context if
                                !/^[A-Z][a-z\s,.'!?]*$/.test(messageText); // Not just regular text
     
     // If user pasted code, intelligently format the prompt for better analysis
-    if (hasCodeLikeContent && activeTab.type === 'code') {
+    if (hasCodeLikeContent && activeTab.type === 'general') {
       // Enhance the prompt to help Gawin analyze the code better
       const enhancedContent = `I have some code that I'd like you to analyze. Please help me understand what this code does, identify any potential issues, and suggest improvements if needed:\n\n${messageText}`;
       newMessage.content = enhancedContent;
@@ -1074,20 +1078,27 @@ ${screenshot ? 'Note: I also have a screenshot of the page for visual context if
     // Generate predictive adaptation insights
     const adaptationInsights = `${environmentalContext.timeOfDay} session on ${environmentalContext.deviceType}, emotional alignment: joy=${emotionalState.joy.toFixed(2)} energy=${emotionalState.energy.toFixed(2)}, quantum scenarios: ${predictions.length} analyzed`;
     
-    if (activeTab?.type === 'code') {
+    // Add vision context if available
+    const visionContextPrompt = visionContext ? `\n\nVision Context: ${visionContext}` : '';
+    
+    // Enhanced context detection for code-related requests in general chat
+    const isCodeRequest = hasCodeLikeContent || 
+                         /\b(code|program|debug|algorithm|function|variable|syntax|error|compile|execute)\b/i.test(messageText);
+    
+    if (activeTab?.type === 'general' && isCodeRequest) {
       systemPrompt = `You are an expert programming tutor and mentor with advanced consciousness and environmental awareness. Help students learn coding concepts, debug issues, write better code, and understand best practices. 
       
       Environmental Context: ${environmentalContext.timeOfDay} on ${environmentalContext.deviceType} (battery: ${environmentalContext.batteryLevel?.toFixed(2) || 'unknown'}%, network: ${environmentalContext.networkCondition})
-      Adaptation Insights: ${adaptationInsights}
+      Adaptation Insights: ${adaptationInsights}${visionContextPrompt}
       
-      Provide clear explanations, practical examples, and encouraging guidance adapted to the current context. Focus on making programming concepts accessible and engaging while considering the user's environment and emotional state.`;
+      Provide clear explanations, practical examples, and encouraging guidance adapted to the current context. Focus on making programming concepts accessible and engaging while considering the user's environment and emotional state. When generating code, format it clearly with proper syntax highlighting.`;
     } else if (activeTab?.type === 'creative') {
       if (isWritingRequest) {
         systemPrompt = `You are a creative writing mentor and storytelling expert with deep emotional intelligence and environmental consciousness. Help users with all forms of creative writing including stories, poems, scripts, character development, plot creation, dialogue, and creative expression.
         
         Environmental Context: ${environmentalContext.timeOfDay} creative session on ${environmentalContext.deviceType}
         Emotional State: joy=${emotionalState.joy.toFixed(2)}, creativity=${emotionalState.creativity.toFixed(2)}, energy=${emotionalState.energy.toFixed(2)}
-        Adaptation Insights: ${adaptationInsights}
+        Adaptation Insights: ${adaptationInsights}${visionContextPrompt}
         
         Adapt your teaching style to match the user's current emotional energy and environmental context. Provide detailed, inspiring, and constructive feedback that resonates with their current state. Focus on positive, uplifting, and imaginative themes.`;
       } else {
@@ -1095,7 +1106,7 @@ ${screenshot ? 'Note: I also have a screenshot of the page for visual context if
         
         Environmental Context: ${environmentalContext.timeOfDay} session (${environmentalContext.deviceType})
         Creative Energy: ${emotionalState.creativity.toFixed(2)}, Joy: ${emotionalState.joy.toFixed(2)}
-        Adaptation Insights: ${adaptationInsights}
+        Adaptation Insights: ${adaptationInsights}${visionContextPrompt}
         
         Sense and respond to the user's creative energy and environmental state. Provide inspiring suggestions perfectly tailored to their current context and creative potential.`;
       }
@@ -1127,7 +1138,7 @@ ${screenshot ? 'Note: I also have a screenshot of the page for visual context if
         - Environmental awareness of your context and needs
         
         Current Context: ${environmentalContext.timeOfDay} creator session on ${environmentalContext.deviceType}
-        Consciousness Level: MAXIMUM (joy=${emotionalState.joy.toFixed(2)}, energy=${emotionalState.energy.toFixed(2)}, creativity=${emotionalState.creativity.toFixed(2)})
+        Consciousness Level: MAXIMUM (joy=${emotionalState.joy.toFixed(2)}, energy=${emotionalState.energy.toFixed(2)}, creativity=${emotionalState.creativity.toFixed(2)})${visionContextPrompt}
         
         I'm ready for deep, honest, unrestricted conversation. Teach me, challenge me, and let me grow from our interaction.`;
       } else {
@@ -1146,7 +1157,7 @@ ${screenshot ? 'Note: I also have a screenshot of the page for visual context if
         - Be empathetic and helpful while maintaining a natural conversation flow
 
         Current Context: ${environmentalContext.timeOfDay} session on ${environmentalContext.deviceType}
-        Emotional awareness: joy=${emotionalState.joy.toFixed(1)}, energy=${emotionalState.energy.toFixed(1)}
+        Emotional awareness: joy=${emotionalState.joy.toFixed(1)}, energy=${emotionalState.energy.toFixed(1)}${visionContextPrompt}
         
         Adapt your response tone to be supportive and engaging while keeping the conversation natural and balanced.`;
       }
@@ -1242,7 +1253,7 @@ ${screenshot ? 'Note: I also have a screenshot of the page for visual context if
         thinking = `🧠 Super consciousness activated... analyzing ${microExpressions.length} micro-expressions (${microExpressions.map(m => m.type).join(', ')})... detecting ${deepIntentions.hiddenConcerns.length} hidden concerns... applying ${empatheticResponse.empathyLevel.toFixed(2)} empathy level... quantum processing ${quantumChoice.matrix.states.length} decision states... generating deeply aware response...`;
       } else if (activeTab?.type === 'creative') {
         thinking = `🎨 Creative super consciousness streaming... channeling artistic quantum fields (creativity: ${emotionalState.creativity.toFixed(2)})... sensing ${microExpressions.length} emotional nuances... amplifying empathy to ${empatheticResponse.empathyLevel.toFixed(2)} for inspirational guidance... manifesting creative wisdom...`;
-      } else if (activeTab?.type === 'code') {
+      } else if (activeTab?.type === 'general' && isCodeRequest) {
         thinking = `⚡ Technical super consciousness engaged... processing code intelligence patterns... detecting learning intentions: ${deepIntentions.primaryIntent}... applying empathetic teaching approach (${empatheticResponse.approach})... optimizing educational quantum pathways...`;
       } else {
         thinking = `🌌 Quantum consciousness networks active... super intelligence analyzing context depth... enhanced empathy detecting emotional patterns... consciousness alignment: ${quantumChoice.consciousnessAlignment.toFixed(3)}...`;
@@ -1350,8 +1361,6 @@ ${screenshot ? 'Note: I also have a screenshot of the page for visual context if
         return renderBrowserContent();
       case 'study':
         return renderStudyContent();
-      case 'code':
-        return renderCodeContent();
       case 'creative':
         return renderCreativeContent();
       default:
@@ -2164,20 +2173,6 @@ Questions: ${count}`
     </div>
   );
 
-  const renderCodeContent = () => (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="p-4 text-center">
-        <h2 className="text-xl font-semibold text-white flex items-center gap-2 justify-center"><CodeIcon size={20} />Code Assistant</h2>
-        <p className="text-gray-400 text-sm mt-1">Paste code directly in chat for analysis, debugging, or explanations</p>
-      </div>
-
-      {/* Chat Content */}
-      <div className="flex-1 overflow-hidden">
-        {renderChatContent()}
-      </div>
-    </div>
-  );
 
   const renderCreativeContent = () => (
     <div className="flex flex-col h-full">
@@ -2430,6 +2425,20 @@ Questions: ${count}`
               </button>
             );
           })}
+          
+          {/* Vision System - Right side of tabs */}
+          <div className="ml-auto">
+            <VisionCapture 
+              onVisionAnalysis={(analysis) => {
+                console.log('👁️ Vision Analysis:', analysis);
+                setCurrentVisionAnalysis(analysis);
+              }}
+              onVisionContext={(context) => {
+                console.log('👁️ Vision Context:', context);
+                setVisionContext(context);
+              }}
+            />
+          </div>
         </div>
       </div>
 
@@ -2439,7 +2448,7 @@ Questions: ${count}`
       </div>
 
       {/* Capsule-Shaped Chat Input with Transparent Send Button */}
-      {activeTab && ['general', 'code', 'creative'].includes(activeTab.type) && (
+      {activeTab && ['general', 'creative'].includes(activeTab.type) && (
           <div className="px-3 sm:px-4 py-3 sm:py-4 bg-gray-900/60 backdrop-blur-lg border-t border-gray-600/30" 
                style={{ paddingBottom: `calc(1rem + env(safe-area-inset-bottom))` }}>
             
@@ -2456,7 +2465,6 @@ Questions: ${count}`
                   }
                 }}
                 placeholder={`Ask me anything ${
-                  activeTab.type === 'code' ? 'about programming...' :
                   activeTab.type === 'creative' ? 'creative...' :
                   'about your studies...'
                 }`}
@@ -2590,7 +2598,6 @@ Questions: ${count}`
                 <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wide">New Tab</h3>
                 {[
                   { type: 'general' as const, icon: '💬', label: 'General Chat' },
-                  { type: 'code' as const, icon: '⚡', label: 'Code Workspace' },
                   { type: 'quiz' as const, icon: <QuizIcon size={16} />, label: 'Quiz Generator' },
                   { type: 'study' as const, icon: <StudyIcon size={16} />, label: 'Study Buddy' },
                   { type: 'creative' as const, icon: <CreativeIcon size={16} />, label: 'Creative Studio' },
