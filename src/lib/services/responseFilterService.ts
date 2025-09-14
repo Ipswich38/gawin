@@ -13,26 +13,26 @@ export interface FilteredResponse {
 class ResponseFilterService {
   private formulaicPatterns = [
     // Repetitive opening phrases
-    /^You're asking great questions!.*?natural when learning something new\./gis,
-    /^I can sense you might be feeling.*?completely natural/gis,
-    /^That's.*?great question.*?let me help/gis,
-    /^I understand your.*?I'm here to help/gis,
+    /^You're asking great questions!.*?natural when learning something new\./gi,
+    /^I can sense you might be feeling.*?completely natural/gi,
+    /^That's.*?great question.*?let me help/gi,
+    /^I understand your.*?I'm here to help/gi,
     
     // Repetitive closing phrases  
-    /Remember, learning is a process.*?trust yourself as you learn\./gis,
-    /You're capable of understanding this.*?trust yourself.*?learn\./gis,
-    /Feel free to ask.*?staying curious.*?great.*?questions/gis,
-    /I'm here to support.*?learning journey.*?ask.*?questions/gis,
+    /Remember, learning is a process.*?trust yourself as you learn\./gi,
+    /You're capable of understanding this.*?trust yourself.*?learn\./gi,
+    /Feel free to ask.*?staying curious.*?great.*?questions/gi,
+    /I'm here to support.*?learning journey.*?ask.*?questions/gi,
   ];
 
   private thinkingPatterns = [
     // Thinking process leakage
-    /<think>.*?<\/think>/gis,
-    /<thinking>.*?<\/thinking>/gis,
-    /\[thinking\].*?\[\/thinking\]/gis,
-    /\*thinks\*.*?\*\/thinks\*/gis,
-    /\(thinking:.*?\)/gis,
-    /Let me think.*?\.{3,}/gis,
+    /<think>.*?<\/think>/gi,
+    /<thinking>.*?<\/thinking>/gi,
+    /\[thinking\].*?\[\/thinking\]/gi,
+    /\*thinks\*.*?\*\/thinks\*/gi,
+    /\(thinking:.*?\)/gi,
+    /Let me think.*?\.{3,}/gi,
   ];
 
   private regexArtifacts = [
