@@ -71,6 +71,44 @@ class SupabaseAuthService {
   }
 
   /**
+   * Sign in anonymously
+   */
+  async signInAnonymously(): Promise<AuthResult> {
+    try {
+      const { data, error } = await this.supabase.auth.signInAnonymously();
+
+      if (error) {
+        console.error('Anonymous sign-in error:', error);
+        return {
+          success: false,
+          error: this.getErrorMessage(error)
+        };
+      }
+
+      if (data.user) {
+        console.log('👤 Anonymous user signed in:', data.user.id);
+        
+        // Create profile for anonymous user
+        const profile = await this.createAnonymousProfile(data.user);
+        
+        return {
+          success: true,
+          user: profile || undefined
+        };
+      }
+
+      return { success: false, error: 'Failed to create anonymous user' };
+
+    } catch (error) {
+      console.error('Unexpected anonymous sign-in error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Anonymous authentication failed'
+      };
+    }
+  }
+
+  /**
    * Sign in with Google OAuth
    */
   async signInWithGoogle(): Promise<AuthResult> {
@@ -119,13 +157,22 @@ class SupabaseAuthService {
       }
 
       // Get user profile from database
-      const profile = await this.getUserProfile(user.id);
+      let profile = await this.getUserProfile(user.id);
       
       if (!profile) {
         console.log('User authenticated but no profile found, creating profile...');
-        // Create profile if it doesn't exist (fallback)
-        const newProfile = await this.createUserProfile(user);
-        return newProfile;
+        
+        // Check if this is an anonymous user
+        if (user.is_anonymous) {
+          profile = await this.createAnonymousProfile(user);
+        } else {
+          // Regular OAuth user
+          profile = await this.createUserProfile(user);
+        }
+        
+        if (!profile) {
+          return null;
+        }
       }
 
       // Update last login
@@ -140,7 +187,7 @@ class SupabaseAuthService {
   }
 
   /**
-   * Get user profile from profiles table
+   * Get user profile from profiles table or create for anonymous/creator users
    */
   private async getUserProfile(userId: string): Promise<UserProfile | null> {
     try {
@@ -162,6 +209,45 @@ class SupabaseAuthService {
       return data;
     } catch (error) {
       console.error('Unexpected error fetching user profile:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Create profile for anonymous user
+   */
+  private async createAnonymousProfile(user: User): Promise<UserProfile | null> {
+    try {
+      const isCreator = user.user_metadata?.is_creator === true;
+      
+      const profileData = {
+        user_id: user.id,
+        email: user.user_metadata?.email || `anonymous-${user.id.slice(0, 8)}@gawin.local`,
+        full_name: user.user_metadata?.full_name || (isCreator ? 'Cherwin Fernandez (Creator)' : 'Anonymous User'),
+        avatar_url: user.user_metadata?.avatar_url || null,
+        email_verified: false,
+        preferences: isCreator ? { role: 'creator', is_creator: true } : { role: 'anonymous' },
+        credits: isCreator ? 10000 : 50, // Creator gets more credits
+        subscription_tier: isCreator ? 'enterprise' : 'free',
+        last_login: new Date().toISOString(),
+      };
+
+      const { data, error } = await this.supabase
+        .from('user_profiles')
+        .insert(profileData)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating anonymous profile:', error);
+        return null;
+      }
+
+      console.log(`✅ ${isCreator ? 'Creator' : 'Anonymous'} profile created:`, data.email);
+      return data;
+
+    } catch (error) {
+      console.error('Unexpected error creating anonymous profile:', error);
       return null;
     }
   }

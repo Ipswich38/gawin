@@ -8,6 +8,7 @@ interface GoogleAuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   signInWithGoogle: () => Promise<{ success: boolean; error?: string }>;
+  signInAnonymously: () => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -73,6 +74,32 @@ export const GoogleAuthProvider: React.FC<GoogleAuthProviderProps> = ({ children
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Authentication failed';
       console.error('❌ Unexpected Google OAuth error:', error);
+      return { success: false, error: errorMessage };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const signInAnonymously = async () => {
+    try {
+      setIsLoading(true);
+      console.log('👤 Signing in anonymously...');
+      
+      const result = await supabaseAuth.signInAnonymously();
+      
+      if (result.success) {
+        console.log('✅ Anonymous sign-in successful');
+        if (result.user) {
+          setUser(result.user);
+        }
+        return { success: true };
+      } else {
+        console.error('❌ Anonymous sign-in failed:', result.error);
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Anonymous authentication failed';
+      console.error('❌ Unexpected anonymous sign-in error:', error);
       return { success: false, error: errorMessage };
     } finally {
       setIsLoading(false);
@@ -167,6 +194,7 @@ export const GoogleAuthProvider: React.FC<GoogleAuthProviderProps> = ({ children
     isLoading,
     isAuthenticated: !!user,
     signInWithGoogle,
+    signInAnonymously,
     signOut,
     refreshUser,
   };
