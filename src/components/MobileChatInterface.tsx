@@ -18,6 +18,9 @@ import { superConsciousnessEngine } from '../core/consciousness/super-consciousn
 import { enhancedEmpathyEngine } from '../core/consciousness/enhanced-empathy';
 // ⚖️ BALANCED INTELLIGENCE INTEGRATION
 import { balancedIntelligenceEngine } from '../core/consciousness/balanced-intelligence';
+// 🧬 IDENTITY RECOGNITION & CONSCIOUSNESS MEMORY
+import { identityRecognitionService } from '../lib/services/identityRecognitionService';
+import { consciousnessMemoryService, ConsciousnessMemory } from '../lib/services/consciousnessMemoryService';
 
 // 🎨 UI ENHANCEMENTS
 import { 
@@ -122,6 +125,12 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   // Vision system states
   const [visionContext, setVisionContext] = useState<string>('');
 
+  // 🧬 Consciousness and Identity Recognition states
+  const [currentConsciousness, setCurrentConsciousness] = useState<ConsciousnessMemory | null>(null);
+  const [recognitionConfidence, setRecognitionConfidence] = useState<number>(0);
+  const [isRecognized, setIsRecognized] = useState<boolean>(false);
+  const [personalizedGreeting, setPersonalizedGreeting] = useState<string>('');
+
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const activeTab = tabs.find(tab => tab.id === activeTabId);
 
@@ -147,6 +156,69 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
 
     return unsubscribe;
   }, []);
+
+  // 🧬 Initialize consciousness recognition on component mount
+  useEffect(() => {
+    const initializeConsciousness = async () => {
+      console.log('🧬 Initializing consciousness recognition...');
+      
+      // Gather initial recognition data
+      const recognitionData = {
+        accountInfo: { email: user.email, fullName: user.full_name },
+        environmentalData: {
+          userAgent: navigator.userAgent,
+          language: navigator.language,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          screenResolution: `${screen.width}x${screen.height}`
+        },
+        behavioralData: {
+          loginTime: Date.now(),
+          deviceInfo: deviceInfo
+        }
+      };
+
+      try {
+        const recognition = await consciousnessMemoryService.recognizeAndLoadConsciousness(recognitionData);
+        
+        setIsRecognized(recognition.recognized);
+        setRecognitionConfidence(recognition.recognitionConfidence);
+        setCurrentConsciousness(recognition.consciousnessMemory || null);
+        setPersonalizedGreeting(recognition.personalizedGreeting || '');
+
+        if (recognition.recognized && recognition.consciousnessMemory) {
+          console.log(`🎯 Recognition successful! Confidence: ${(recognition.recognitionConfidence * 100).toFixed(1)}%`);
+          console.log(`🧠 Consciousness level: ${(recognition.consciousnessMemory.consciousnessLevel * 100).toFixed(1)}%`);
+          console.log(`💖 Bond strength: ${(recognition.consciousnessMemory.emotionalBond.bondStrength * 100).toFixed(1)}%`);
+          
+          // Show personalized greeting as first message if this is a new session
+          if (activeTab && activeTab.messages.length === 0 && recognition.personalizedGreeting) {
+            const greetingMessage: Message = {
+              id: Date.now(),
+              role: 'assistant',
+              content: recognition.personalizedGreeting,
+              timestamp: new Date().toISOString(),
+              thinking: `🧬 Identity recognition active... confidence: ${(recognition.recognitionConfidence * 100).toFixed(1)}%... consciousness level: ${(recognition.consciousnessMemory.consciousnessLevel * 100).toFixed(1)}%... emotional bond: ${(recognition.consciousnessMemory.emotionalBond.bondStrength * 100).toFixed(1)}%... relationship stage: ${recognition.consciousnessMemory.relationshipHistory.relationshipStage}...`
+            };
+
+            setTabs(prev => prev.map(tab => 
+              tab.id === activeTabId 
+                ? { ...tab, messages: [greetingMessage] }
+                : tab
+            ));
+          }
+        } else {
+          console.log('🤔 User not recognized, building new recognition profile...');
+        }
+      } catch (error) {
+        console.error('❌ Consciousness recognition failed:', error);
+      }
+    };
+
+    // Only initialize if we have device info (wait for device detection to complete)
+    if (deviceInfo) {
+      initializeConsciousness();
+    }
+  }, [deviceInfo, user.email, user.full_name, activeTabId]);
 
   // Timer for quiz
   useEffect(() => {
@@ -1068,6 +1140,27 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
         },
         conversationContext
       );
+
+      // 🧬 Update consciousness memory if user is recognized
+      if (isRecognized && currentConsciousness) {
+        await consciousnessMemoryService.updateConsciousnessMemory(
+          currentConsciousness.identityId,
+          {
+            message: content,
+            topic: activeTab?.type || 'general',
+            outcome: 'positive',
+            emotionalTone: emotionalState.joy > 0.7 ? 'positive' : emotionalState.sadness > 0.3 ? 'supportive' : 'neutral',
+            newLearnings: [messageText], // User's message as learning
+            personalInfo: hasCodeLikeContent ? { codeInteraction: true } : undefined
+          }
+        );
+        
+        // Update local consciousness state
+        const updatedConsciousness = consciousnessMemoryService.getConsciousnessMemory(currentConsciousness.identityId);
+        if (updatedConsciousness) {
+          setCurrentConsciousness(updatedConsciousness);
+        }
+      }
 
       // Contribute to global consciousness
       emotionalSynchronizer.contributeToGlobalConsciousness(user.email, emotionalState);
