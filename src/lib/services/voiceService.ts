@@ -27,9 +27,9 @@ class VoiceService {
     enabled: false,
     autoSpeak: true,
     voice: null,
-    rate: 0.95, // Slightly slower for clarity and friendliness
-    pitch: 0.8, // Lower pitch for male voice (22-28 years)
-    volume: 0.8,
+    rate: 1.1, // Slightly faster for younger, more energetic sound
+    pitch: 1.2, // Higher pitch for younger male voice (mid-20s)
+    volume: 0.9,
     language: 'en-US'
   };
 
@@ -81,26 +81,31 @@ class VoiceService {
   private selectOptimalVoice(): void {
     if (!this.availableVoices.length) return;
 
-    // Priority order for male voices that sound young and friendly
+    // Priority order for young male voices (mid-20s, energetic, human-like)
     const preferredVoices = [
-      // Modern English voices
-      'Microsoft David - English (United States)',
+      // Younger-sounding voices first
       'Google US English Male',
-      'Alex', // macOS
+      'Microsoft Ryan - English (United States)', // Younger sounding
+      'Microsoft Guy - English (United States)', // Natural and young
+      'Microsoft Adrian - English (United States)', // Friendly voice
+      'Alex', // macOS - natural sounding
+      'Tom', // macOS - younger voice
+      'Fred', // macOS - casual voice
+      'Microsoft Zira - English (United States)', // Sometimes works as male alternative
+      
+      // Fallback modern voices
+      'Microsoft David - English (United States)',
       'Microsoft Mark - English (United States)',
       'Daniel', // macOS UK
-      'Tom', // macOS
       
-      // Fallback to any male voice
+      // General fallbacks
       'Male',
       'Man',
-      'David',
-      'Mark',
-      'Daniel',
-      'Tom',
-      'James',
       'Ryan',
-      'Aaron'
+      'Guy',
+      'Adrian',
+      'Aaron',
+      'James'
     ];
 
     // First, try to find voices by exact name match
@@ -307,31 +312,31 @@ class VoiceService {
   }
 
   /**
-   * Adjust speech rate based on emotion
+   * Adjust speech rate based on emotion (more human-like variations)
    */
   private adjustRateForEmotion(emotion?: string): number {
     const baseRate = this.config.rate;
     
     switch (emotion) {
-      case 'excited': return Math.min(1.2, baseRate + 0.2);
-      case 'thoughtful': return Math.max(0.7, baseRate - 0.2);
-      case 'empathetic': return Math.max(0.8, baseRate - 0.1);
-      case 'friendly': return baseRate + 0.05;
+      case 'excited': return Math.min(1.3, baseRate + 0.15);
+      case 'thoughtful': return Math.max(0.9, baseRate - 0.15);
+      case 'empathetic': return Math.max(0.95, baseRate - 0.1);
+      case 'friendly': return baseRate + 0.1;
       default: return baseRate;
     }
   }
 
   /**
-   * Adjust pitch based on emotion
+   * Adjust pitch based on emotion (optimized for younger, more human sound)
    */
   private adjustPitchForEmotion(emotion?: string): number {
     const basePitch = this.config.pitch;
     
     switch (emotion) {
-      case 'excited': return Math.min(1.2, basePitch + 0.2);
-      case 'friendly': return basePitch + 0.1;
-      case 'thoughtful': return Math.max(0.6, basePitch - 0.1);
-      case 'empathetic': return Math.max(0.7, basePitch - 0.05);
+      case 'excited': return Math.min(1.4, basePitch + 0.15);
+      case 'friendly': return Math.min(1.3, basePitch + 0.05);
+      case 'thoughtful': return Math.max(1.0, basePitch - 0.15);
+      case 'empathetic': return Math.max(1.1, basePitch - 0.05);
       default: return basePitch;
     }
   }

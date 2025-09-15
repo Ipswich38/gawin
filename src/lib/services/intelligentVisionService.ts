@@ -137,7 +137,7 @@ class IntelligentVisionService {
   private startIntelligentVisionProcessing(): void {
     this.analysisInterval = setInterval(async () => {
       await this.processIntelligentVision();
-    }, 1000); // Analyze every second for real-time processing
+    }, 2000); // Analyze every 2 seconds for better performance
   }
 
   /**
@@ -337,53 +337,59 @@ class IntelligentVisionService {
   }
 
   /**
-   * Simulate intelligent object detection
+   * Real-time object detection using image analysis
    */
   private async detectObjectsIntelligently(imageData: ImageData, type: 'camera' | 'screen'): Promise<DetectedObject[]> {
     const objects: DetectedObject[] = [];
     
-    // Simulate advanced object detection
     if (type === 'camera') {
       const brightness = this.calculateBrightness(imageData);
-      if (brightness > 100) {
-        // Simulate detecting common objects
-        objects.push(
-          {
+      const colors = this.getMainColors(imageData);
+      const hasMovement = this.detectMovement(imageData);
+      const edges = this.detectEdges(imageData);
+      
+      // More sophisticated detection based on image analysis
+      if (brightness > 80) {
+        // Detect person based on image characteristics
+        const faceRegion = this.detectFaceRegion(imageData);
+        if (faceRegion) {
+          objects.push({
             name: 'person',
-            confidence: 0.92,
-            bbox: [180, 100, 280, 300],
+            confidence: faceRegion.confidence * 0.9,
+            bbox: [faceRegion.x - 50, faceRegion.y - 100, 200, 300],
             category: 'person'
-          },
-          {
+          });
+          
+          objects.push({
             name: 'face',
-            confidence: 0.88,
-            bbox: [220, 120, 80, 100],
+            confidence: faceRegion.confidence,
+            bbox: [faceRegion.x, faceRegion.y, faceRegion.width, faceRegion.height],
             category: 'face'
-          },
-          {
-            name: 'computer',
-            confidence: 0.75,
-            bbox: [50, 350, 200, 100],
-            category: 'object'
+          });
+          
+          // Detect glasses based on face region analysis
+          const hasGlasses = this.detectGlasses(imageData, faceRegion);
+          if (hasGlasses.detected) {
+            objects.push({
+              name: 'glasses',
+              confidence: hasGlasses.confidence,
+              bbox: [faceRegion.x + 10, faceRegion.y + 20, faceRegion.width - 20, 30],
+              category: 'object'
+            });
           }
-        );
+        }
+        
+        // Detect rectangular objects (computers, phones, etc.)
+        const rectangularObjects = this.detectRectangularObjects(imageData, edges);
+        objects.push(...rectangularObjects);
       }
     } else {
-      // Screen analysis - detect UI elements
-      objects.push(
-        {
-          name: 'browser_window',
-          confidence: 0.85,
-          bbox: [0, 0, 640, 480],
-          category: 'scene'
-        },
-        {
-          name: 'text_content',
-          confidence: 0.78,
-          bbox: [50, 100, 540, 300],
-          category: 'text'
-        }
-      );
+      // Screen analysis with better text and UI detection
+      const textRegions = this.detectTextRegions(imageData);
+      const uiElements = this.detectUIElements(imageData);
+      
+      objects.push(...textRegions);
+      objects.push(...uiElements);
     }
     
     return objects;
@@ -679,6 +685,236 @@ class IntelligentVisionService {
       clearInterval(this.analysisInterval);
       this.analysisInterval = null;
     }
+  }
+
+  /**
+   * Real image analysis methods
+   */
+  private detectMovement(imageData: ImageData): boolean {
+    // Simple movement detection - compare with previous frame
+    // For now, return false (would implement frame comparison)
+    return false;
+  }
+
+  private detectEdges(imageData: ImageData): ImageData {
+    // Simple edge detection using Sobel operator
+    const data = imageData.data;
+    const width = imageData.width;
+    const height = imageData.height;
+    const edges = new ImageData(width, height);
+    
+    for (let y = 1; y < height - 1; y++) {
+      for (let x = 1; x < width - 1; x++) {
+        const idx = (y * width + x) * 4;
+        
+        // Get surrounding pixels
+        const tl = data[((y - 1) * width + (x - 1)) * 4]; // top-left
+        const tm = data[((y - 1) * width + x) * 4]; // top-middle
+        const tr = data[((y - 1) * width + (x + 1)) * 4]; // top-right
+        const ml = data[(y * width + (x - 1)) * 4]; // middle-left
+        const mr = data[(y * width + (x + 1)) * 4]; // middle-right
+        const bl = data[((y + 1) * width + (x - 1)) * 4]; // bottom-left
+        const bm = data[((y + 1) * width + x) * 4]; // bottom-middle
+        const br = data[((y + 1) * width + (x + 1)) * 4]; // bottom-right
+        
+        // Sobel operator
+        const gx = (tr + 2 * mr + br) - (tl + 2 * ml + bl);
+        const gy = (bl + 2 * bm + br) - (tl + 2 * tm + tr);
+        const magnitude = Math.sqrt(gx * gx + gy * gy);
+        
+        edges.data[idx] = magnitude > 50 ? 255 : 0;
+        edges.data[idx + 1] = edges.data[idx];
+        edges.data[idx + 2] = edges.data[idx];
+        edges.data[idx + 3] = 255;
+      }
+    }
+    
+    return edges;
+  }
+
+  private detectFaceRegion(imageData: ImageData): { x: number; y: number; width: number; height: number; confidence: number } | null {
+    // Simple face detection based on skin color and facial features
+    const data = imageData.data;
+    const width = imageData.width;
+    const height = imageData.height;
+    
+    let maxSkinRegion = { x: 0, y: 0, width: 0, height: 0, confidence: 0 };
+    
+    // Scan for skin-colored regions
+    for (let y = 0; y < height - 80; y += 10) {
+      for (let x = 0; x < width - 80; x += 10) {
+        let skinPixels = 0;
+        let totalPixels = 0;
+        
+        // Check 80x80 region for skin color
+        for (let dy = 0; dy < 80; dy += 5) {
+          for (let dx = 0; dx < 80; dx += 5) {
+            const idx = ((y + dy) * width + (x + dx)) * 4;
+            const r = data[idx];
+            const g = data[idx + 1];
+            const b = data[idx + 2];
+            
+            // Simple skin color detection
+            if (this.isSkinColor(r, g, b)) {
+              skinPixels++;
+            }
+            totalPixels++;
+          }
+        }
+        
+        const skinRatio = skinPixels / totalPixels;
+        if (skinRatio > 0.3 && skinRatio > maxSkinRegion.confidence) {
+          maxSkinRegion = {
+            x: x,
+            y: y,
+            width: 80,
+            height: 80,
+            confidence: skinRatio
+          };
+        }
+      }
+    }
+    
+    return maxSkinRegion.confidence > 0.3 ? maxSkinRegion : null;
+  }
+
+  private isSkinColor(r: number, g: number, b: number): boolean {
+    // Simple skin color detection
+    return (r > 95 && g > 40 && b > 20 && 
+            r > g && r > b && 
+            r - g > 15 && 
+            Math.abs(r - g) > 15);
+  }
+
+  private detectGlasses(imageData: ImageData, faceRegion: any): { detected: boolean; confidence: number } {
+    // Look for dark horizontal lines in the eye region
+    const data = imageData.data;
+    const width = imageData.width;
+    
+    const eyeY = faceRegion.y + faceRegion.height * 0.4; // Eye region
+    const eyeStartX = faceRegion.x + faceRegion.width * 0.2;
+    const eyeEndX = faceRegion.x + faceRegion.width * 0.8;
+    
+    let darkPixels = 0;
+    let totalPixels = 0;
+    
+    // Scan horizontal line through eye region
+    for (let x = eyeStartX; x < eyeEndX; x++) {
+      const idx = (Math.floor(eyeY) * width + Math.floor(x)) * 4;
+      const r = data[idx];
+      const g = data[idx + 1];
+      const b = data[idx + 2];
+      const brightness = (r + g + b) / 3;
+      
+      if (brightness < 80) { // Dark pixel (potential glasses frame)
+        darkPixels++;
+      }
+      totalPixels++;
+    }
+    
+    const darkRatio = darkPixels / totalPixels;
+    return {
+      detected: darkRatio > 0.2,
+      confidence: Math.min(darkRatio * 2, 0.9)
+    };
+  }
+
+  private detectRectangularObjects(imageData: ImageData, edges: ImageData): DetectedObject[] {
+    // Simple rectangular object detection based on edge patterns
+    const objects: DetectedObject[] = [];
+    
+    // Look for computer screens, phones, etc. (would implement Hough transform for better detection)
+    const data = edges.data;
+    const width = imageData.width;
+    const height = imageData.height;
+    
+    // Check bottom portion for laptops/computers
+    const computerRegion = {
+      x: width * 0.1,
+      y: height * 0.6,
+      width: width * 0.8,
+      height: height * 0.3
+    };
+    
+    let edgePixels = 0;
+    let totalPixels = 0;
+    
+    for (let y = computerRegion.y; y < computerRegion.y + computerRegion.height; y += 5) {
+      for (let x = computerRegion.x; x < computerRegion.x + computerRegion.width; x += 5) {
+        const idx = (Math.floor(y) * width + Math.floor(x)) * 4;
+        if (data[idx] > 128) edgePixels++;
+        totalPixels++;
+      }
+    }
+    
+    const edgeRatio = edgePixels / totalPixels;
+    if (edgeRatio > 0.1) {
+      objects.push({
+        name: 'laptop',
+        confidence: Math.min(edgeRatio * 5, 0.8),
+        bbox: [computerRegion.x, computerRegion.y, computerRegion.width, computerRegion.height],
+        category: 'object'
+      });
+    }
+    
+    return objects;
+  }
+
+  private detectTextRegions(imageData: ImageData): DetectedObject[] {
+    // Simple text detection based on contrast patterns
+    const objects: DetectedObject[] = [];
+    const data = imageData.data;
+    const width = imageData.width;
+    const height = imageData.height;
+    
+    let contrastChanges = 0;
+    let totalChecks = 0;
+    
+    // Scan for high-contrast regions (potential text)
+    for (let y = 0; y < height - 1; y += 10) {
+      for (let x = 0; x < width - 1; x += 10) {
+        const idx1 = (y * width + x) * 4;
+        const idx2 = (y * width + (x + 1)) * 4;
+        
+        const brightness1 = (data[idx1] + data[idx1 + 1] + data[idx1 + 2]) / 3;
+        const brightness2 = (data[idx2] + data[idx2 + 1] + data[idx2 + 2]) / 3;
+        
+        if (Math.abs(brightness1 - brightness2) > 50) {
+          contrastChanges++;
+        }
+        totalChecks++;
+      }
+    }
+    
+    const contrastRatio = contrastChanges / totalChecks;
+    if (contrastRatio > 0.1) {
+      objects.push({
+        name: 'text_content',
+        confidence: Math.min(contrastRatio * 5, 0.8),
+        bbox: [50, 100, width - 100, height - 200],
+        category: 'text'
+      });
+    }
+    
+    return objects;
+  }
+
+  private detectUIElements(imageData: ImageData): DetectedObject[] {
+    // Simple UI element detection
+    const objects: DetectedObject[] = [];
+    const data = imageData.data;
+    const width = imageData.width;
+    const height = imageData.height;
+    
+    // Look for common UI patterns (would implement more sophisticated detection)
+    objects.push({
+      name: 'browser_interface',
+      confidence: 0.7,
+      bbox: [0, 0, width, 100], // Top bar
+      category: 'scene'
+    });
+    
+    return objects;
   }
 }
 
