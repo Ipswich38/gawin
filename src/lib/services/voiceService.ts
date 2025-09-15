@@ -4,6 +4,8 @@
  * Configured for male voice aged 22-28 with friendly, intelligent tone
  */
 
+import { huggingFaceService } from './huggingFaceService';
+
 export interface VoiceConfig {
   enabled: boolean;
   autoSpeak: boolean;
@@ -245,6 +247,63 @@ class VoiceService {
       return;
     }
 
+    // Try Hugging Face TTS first for better quality (especially for Tagalog)
+    if (huggingFaceService.hasProAccess() && (languageDetection.hasTagalog || options.language === 'fil-PH')) {
+      try {
+        const hfLanguage = languageDetection.primary === 'tagalog' ? 'fil' : 
+                          languageDetection.primary === 'taglish' ? 'fil' : 'en';
+        
+        const ttsResult = await huggingFaceService.generateSpeech(processedText, {
+          voice: 'male', // Match Gawin's personality
+          language: hfLanguage as any,
+          emotion: options.emotion === 'neutral' ? 'friendly' : options.emotion as any,
+          speed: 1.0
+        });
+
+        if (ttsResult.success && ttsResult.audioUrl) {
+          // Play the high-quality TTS audio
+          const audio = new Audio(ttsResult.audioUrl);
+          
+          audio.onplay = () => {
+            console.log('🎤 Gawin started speaking (HuggingFace TTS):', processedText.substring(0, 50) + '...');
+            this.callbacks.onStart?.();
+          };
+
+          audio.onended = () => {
+            console.log('🎤 Gawin finished speaking (HuggingFace TTS)');
+            this.currentUtterance = null;
+            this.callbacks.onEnd?.();
+            
+            // Clean up audio URL
+            URL.revokeObjectURL(ttsResult.audioUrl!);
+            
+            // Process next item in queue
+            setTimeout(() => this.processVoiceQueue(), 200);
+          };
+
+          audio.onerror = () => {
+            console.error('❌ HuggingFace TTS audio playback error, falling back to browser TTS');
+            this.fallbackToBrowserTTS(processedText, languageDetection, options);
+          };
+
+          // Store reference for stopping capability
+          this.currentUtterance = { audio } as any;
+          audio.play();
+          return;
+        }
+      } catch (error) {
+        console.error('HuggingFace TTS failed, falling back to browser TTS:', error);
+      }
+    }
+
+    // Fallback to browser TTS
+    this.fallbackToBrowserTTS(processedText, languageDetection, options);
+  }
+
+  /**
+   * Fallback to browser text-to-speech
+   */
+  private fallbackToBrowserTTS(processedText: string, languageDetection: any, options: SpeechOptions): void {
     const utterance = new SpeechSynthesisUtterance(processedText);
     
     // Configure voice settings based on detected language with natural variation
@@ -256,12 +315,12 @@ class VoiceService {
 
     // Set up event listeners
     utterance.onstart = () => {
-      console.log('🎤 Gawin started speaking:', processedText.substring(0, 50) + '...');
+      console.log('🎤 Gawin started speaking (Browser TTS):', processedText.substring(0, 50) + '...');
       this.callbacks.onStart?.();
     };
 
     utterance.onend = () => {
-      console.log('🎤 Gawin finished speaking');
+      console.log('🎤 Gawin finished speaking (Browser TTS)');
       this.currentUtterance = null;
       this.callbacks.onEnd?.();
       
@@ -279,7 +338,7 @@ class VoiceService {
     };
 
     this.currentUtterance = utterance;
-    this.synthesis.speak(utterance);
+    this.synthesis!.speak(utterance);
   }
 
   /**

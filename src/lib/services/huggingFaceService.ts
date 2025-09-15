@@ -43,6 +43,15 @@ export interface TextAnalysisResult {
   features?: any;
 }
 
+export interface TTSResult {
+  success: boolean;
+  audioUrl?: string;
+  audioBlob?: Blob;
+  error?: string;
+  voice?: string;
+  language?: string;
+}
+
 export interface HuggingFaceMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
@@ -949,6 +958,271 @@ class HuggingFaceService {
       }
     } catch (error) {
       return { status: 'offline', message: 'Service unavailable' };
+    }
+  }
+
+  /**
+   * Generate natural speech using Hugging Face TTS models
+   */
+  async generateSpeech(text: string, options: {
+    voice?: 'male' | 'female';
+    language?: 'en' | 'fil' | 'tl';
+    emotion?: 'neutral' | 'friendly' | 'excited' | 'calm';
+    speed?: number;
+  } = {}): Promise<TTSResult> {
+    if (!this.hasProAccess()) {
+      return {
+        success: false,
+        error: 'TTS requires Pro access. Please configure your API key.'
+      };
+    }
+
+    try {
+      const { voice = 'male', language = 'en', emotion = 'neutral', speed = 1.0 } = options;
+      
+      // Select appropriate TTS model based on language and voice
+      const model = this.selectTTSModel(language, voice);
+      
+      // Prepare text with prosody markers for more natural speech
+      const processedText = this.prepareTextForTTS(text, language, emotion);
+      
+      const response = await this.queryInferenceAPI(`/models/${model}`, {
+        inputs: processedText,
+        parameters: {
+          return_tensors: false,
+          sampling_rate: 16000,
+          speed: speed,
+          emotion: emotion
+        }
+      });
+
+      if (response && response instanceof ArrayBuffer) {
+        const audioBlob = new Blob([response], { type: 'audio/wav' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        
+        return {
+          success: true,
+          audioUrl,
+          audioBlob,
+          voice: `${voice}-${language}`,
+          language
+        };
+      }
+
+      // Fallback: Use Azure TTS if available
+      return await this.useAzureTTS(text, options);
+      
+    } catch (error) {
+      console.error('HuggingFace TTS error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'TTS generation failed'
+      };
+    }
+  }
+
+  /**
+   * Select optimal TTS model based on language and voice preferences
+   */
+  private selectTTSModel(language: string, voice: string): string {
+    const models = {
+      'en-male': 'microsoft/speecht5_tts',
+      'en-female': 'facebook/mms-tts-eng',
+      'fil-male': 'facebook/mms-tts-tgl',
+      'fil-female': 'facebook/mms-tts-tgl',
+      'tl-male': 'facebook/mms-tts-tgl',
+      'tl-female': 'facebook/mms-tts-tgl'
+    };
+
+    const key = `${language}-${voice}` as keyof typeof models;
+    return models[key] || models['en-male'];
+  }
+
+  /**
+   * Prepare text for more natural TTS with prosody
+   */
+  private prepareTextForTTS(text: string, language: string, emotion: string): string {
+    let processedText = text;
+
+    // Clean up text for speech
+    processedText = processedText
+      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove markdown bold
+      .replace(/\*(.*?)\*/g, '$1') // Remove markdown italic
+      .replace(/`(.*?)`/g, '$1') // Remove code backticks
+      .replace(/#{1,6}\s*/g, '') // Remove headers
+      .replace(/\n+/g, '. ') // Convert newlines to periods
+      .replace(/\s+/g, ' ') // Normalize spaces
+      .trim();
+
+    // Add natural pauses and emphasis based on language
+    if (language === 'fil' || language === 'tl') {
+      // Filipino prosody patterns
+      processedText = processedText
+        .replace(/\b(kumusta|salamat|pakisuyo|makakakuha)\b/gi, '$& ') // Natural pauses
+        .replace(/\b(naman|lang|kasi|talaga)\b/gi, ' $&') // Particle emphasis
+        .replace(/\b(po|opo|hindi po)\b/gi, '$& '); // Respectful markers
+    }
+
+    // Emotion-based adjustments
+    switch (emotion) {
+      case 'friendly':
+        processedText = `<speak rate="medium" volume="medium">${processedText}</speak>`;
+        break;
+      case 'excited':
+        processedText = `<speak rate="fast" volume="loud">${processedText}</speak>`;
+        break;
+      case 'calm':
+        processedText = `<speak rate="slow" volume="soft">${processedText}</speak>`;
+        break;
+      default:
+        processedText = `<speak rate="medium" volume="medium">${processedText}</speak>`;
+    }
+
+    return processedText;
+  }
+
+  /**
+   * Fallback to Azure TTS for better quality when needed
+   */
+  private async useAzureTTS(text: string, options: any): Promise<TTSResult> {
+    try {
+      // This would require Azure Speech Services key
+      // For now, return error to fall back to browser TTS
+      return {
+        success: false,
+        error: 'Azure TTS not configured - falling back to browser speech'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: 'Azure TTS fallback failed'
+      };
+    }
+  }
+
+  /**
+   * Enhanced voice recognition with Tagalog/Taglish support
+   */
+  async enhanceVoiceRecognition(audioBlob: Blob): Promise<{
+    transcription: string;
+    confidence: number;
+    language: string;
+    emotion?: string;
+    intent?: string;
+  }> {
+    if (!this.hasProAccess()) {
+      throw new Error('Enhanced voice recognition requires Pro access');
+    }
+
+    try {
+      // Use Whisper model for high-quality transcription
+      const formData = new FormData();
+      formData.append('file', audioBlob, 'audio.wav');
+      
+      const response = await fetch('https://api-inference.huggingface.co/models/openai/whisper-large-v3', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error(`Whisper API error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      const transcription = result.text || '';
+
+      // Analyze language and emotion
+      const languageAnalysis = this.detectLanguageAdvanced(transcription);
+      const emotionAnalysis = await this.analyzeEmotionFromText(transcription);
+
+      return {
+        transcription,
+        confidence: result.confidence || 0.8,
+        language: languageAnalysis.primary,
+        emotion: emotionAnalysis.primary,
+        intent: this.detectIntent(transcription)
+      };
+
+    } catch (error) {
+      console.error('Enhanced voice recognition error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Advanced language detection for Filipino/English/Taglish
+   */
+  private detectLanguageAdvanced(text: string): { primary: string; confidence: number; mixed: boolean } {
+    const filipinoWords = [
+      'ako', 'ikaw', 'siya', 'kami', 'kayo', 'sila', 'ang', 'ng', 'sa', 'ko', 'mo', 'niya',
+      'kumusta', 'salamat', 'oo', 'hindi', 'tara', 'kaya', 'naman', 'lang', 'mga', 'para',
+      'gusto', 'ayaw', 'mahal', 'galit', 'tuwa', 'lungkot', 'takot', 'sulit', 'maganda',
+      'pangit', 'mabait', 'masama', 'malaki', 'maliit', 'mahaba', 'maikli', 'matanda'
+    ];
+
+    const words = text.toLowerCase().split(/\s+/);
+    const filipinoCount = words.filter(word => 
+      filipinoWords.includes(word.replace(/[^\w]/g, ''))
+    ).length;
+    
+    const totalWords = words.length;
+    const filipinoRatio = filipinoCount / totalWords;
+
+    if (filipinoRatio > 0.7) {
+      return { primary: 'filipino', confidence: 0.9, mixed: false };
+    } else if (filipinoRatio > 0.3) {
+      return { primary: 'taglish', confidence: 0.8, mixed: true };
+    } else {
+      return { primary: 'english', confidence: 0.85, mixed: false };
+    }
+  }
+
+  /**
+   * Detect emotion from text content
+   */
+  private async analyzeEmotionFromText(text: string): Promise<{ primary: string; confidence: number }> {
+    try {
+      const response = await this.queryInferenceAPI('/models/j-hartmann/emotion-english-distilroberta-base', {
+        inputs: text
+      });
+
+      if (response && Array.isArray(response) && response.length > 0) {
+        const emotions = response[0];
+        const topEmotion = emotions.reduce((max: any, current: any) => 
+          current.score > max.score ? current : max
+        );
+
+        return {
+          primary: topEmotion.label.toLowerCase(),
+          confidence: topEmotion.score
+        };
+      }
+    } catch (error) {
+      console.error('Emotion analysis error:', error);
+    }
+
+    return { primary: 'neutral', confidence: 0.5 };
+  }
+
+  /**
+   * Detect intent from transcribed text
+   */
+  private detectIntent(text: string): string {
+    const lowerText = text.toLowerCase();
+    
+    if (lowerText.includes('search') || lowerText.includes('find') || lowerText.includes('hanap')) {
+      return 'search';
+    } else if (lowerText.includes('help') || lowerText.includes('tulong')) {
+      return 'help';
+    } else if (lowerText.includes('create') || lowerText.includes('make') || lowerText.includes('gawa')) {
+      return 'create';
+    } else if (lowerText.includes('question') || lowerText.includes('ask') || lowerText.includes('tanong')) {
+      return 'question';
+    } else {
+      return 'conversation';
     }
   }
 }
