@@ -23,6 +23,8 @@ import { identityRecognitionService } from '../lib/services/identityRecognitionS
 import { consciousnessMemoryService, ConsciousnessMemory } from '../lib/services/consciousnessMemoryService';
 // 🇵🇭 FILIPINO LANGUAGE SUPPORT
 import { filipinoLanguageService, LanguageDetectionResult, ResponseGenerationConfig } from '../lib/services/filipinoLanguageService';
+// 👁️ VISION PROCESSING SERVICE
+import { visionProcessingService, VisionContext } from '../lib/services/visionProcessingService';
 
 // 🎨 UI ENHANCEMENTS
 import { 
@@ -124,8 +126,14 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   });
   const [isBrailleKeyboardOpen, setIsBrailleKeyboardOpen] = useState(false);
 
-  // Vision system states
-  const [visionContext, setVisionContext] = useState<string>('');
+  // 👁️ Vision Processing states  
+  const [visionContext, setVisionContext] = useState<VisionContext>({
+    cameraActive: false,
+    screenActive: false,
+    currentAnalysis: null,
+    recentAnalyses: [],
+    visualContext: ''
+  });
 
   // 🧬 Consciousness and Identity Recognition states
   const [currentConsciousness, setCurrentConsciousness] = useState<ConsciousnessMemory | null>(null);
@@ -136,6 +144,7 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   // 🇵🇭 Filipino Language Support states
   const [currentLanguageDetection, setCurrentLanguageDetection] = useState<LanguageDetectionResult | null>(null);
   const [userLanguagePreference, setUserLanguagePreference] = useState<'auto' | 'english' | 'filipino' | 'taglish'>('auto');
+
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const activeTab = tabs.find(tab => tab.id === activeTabId);
@@ -225,6 +234,21 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
       initializeConsciousness();
     }
   }, [deviceInfo, user.email, user.full_name, activeTabId]);
+
+  // 👁️ Initialize vision processing
+  useEffect(() => {
+    const unsubscribeVision = visionProcessingService.subscribe((context) => {
+      setVisionContext(context);
+      console.log('👁️ Vision Context Updated:', {
+        camera: context.cameraActive,
+        screen: context.screenActive,
+        analysis: context.currentAnalysis?.type,
+        context: context.visualContext
+      });
+    });
+
+    return unsubscribeVision;
+  }, []);
 
   // Timer for quiz
   useEffect(() => {
@@ -952,7 +976,7 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
     const adaptationInsights = `${environmentalContext.timeOfDay} session on ${environmentalContext.deviceType}, emotional alignment: joy=${emotionalState.joy.toFixed(2)} energy=${emotionalState.energy.toFixed(2)}, quantum scenarios: ${predictions.length} analyzed`;
     
     // Add vision context if available
-    const visionContextPrompt = visionContext ? `\n\nVision Context: ${visionContext}` : '';
+    const visionContextPrompt = visionContext.visualContext ? `\n\nVision Context: ${visionContext.visualContext}` : '';
     
     // Enhanced context detection for code-related requests in general chat
     const codeDetectionRegex = /```(\w+)?\n([\s\S]*?)```|(?:function|class|def|import|#include|public class|const|var|let)\s+\w+|(?:\w+\s*=\s*function|\w+\s*=\s*\(\w*\)\s*=\s*>)/;
