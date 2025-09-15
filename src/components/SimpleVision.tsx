@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Camera, CameraOff, Monitor, MonitorOff } from 'lucide-react';
+import { Camera, CameraOff, Monitor, MonitorOff, Volume2, VolumeX } from 'lucide-react';
 import { simpleVisionService, SimpleVisionState } from '@/lib/services/simpleVisionService';
+import { voiceService } from '@/lib/services/voiceService';
 
 const SimpleVision: React.FC = () => {
   const [visionState, setVisionState] = useState<SimpleVisionState>({
@@ -11,6 +12,7 @@ const SimpleVision: React.FC = () => {
     stream: null,
     screenStream: null
   });
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
 
   useEffect(() => {
     // Subscribe to vision state changes
@@ -18,6 +20,7 @@ const SimpleVision: React.FC = () => {
     
     // Get initial state
     setVisionState(simpleVisionService.getState());
+    setVoiceEnabled(voiceService.isVoiceEnabled());
     
     return unsubscribe;
   }, []);
@@ -40,6 +43,19 @@ const SimpleVision: React.FC = () => {
       const success = await simpleVisionService.enableScreen();
       if (!success) {
         alert('Screen capture denied or not supported.');
+      }
+    }
+  };
+
+  const handleVoiceToggle = async () => {
+    if (voiceEnabled) {
+      voiceService.disableVoice();
+      setVoiceEnabled(false);
+    } else {
+      const success = await voiceService.enableVoice();
+      setVoiceEnabled(success);
+      if (!success) {
+        alert('Voice synthesis not supported in this browser.');
       }
     }
   };
@@ -86,8 +102,26 @@ const SimpleVision: React.FC = () => {
         </span>
       </button>
 
+      {/* Voice Button */}
+      <button
+        onClick={handleVoiceToggle}
+        className={`
+          flex items-center space-x-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200
+          ${voiceEnabled 
+            ? 'bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 border border-purple-500/30' 
+            : 'bg-gray-500/20 text-gray-400 hover:bg-gray-500/30 border border-gray-500/30'
+          }
+        `}
+        title={voiceEnabled ? 'Disable Voice' : 'Enable Voice'}
+      >
+        {voiceEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+        <span className="hidden sm:inline">
+          {voiceEnabled ? 'Voice On' : 'Voice'}
+        </span>
+      </button>
+
       {/* Status Indicator */}
-      {(visionState.cameraEnabled || visionState.screenEnabled) && (
+      {(visionState.cameraEnabled || visionState.screenEnabled || voiceEnabled) && (
         <div className="flex items-center space-x-1 text-xs text-green-400">
           <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
           <span className="hidden sm:inline">Active</span>

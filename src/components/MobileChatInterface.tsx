@@ -25,6 +25,8 @@ import { consciousnessMemoryService, ConsciousnessMemory } from '../lib/services
 import { filipinoLanguageService, LanguageDetectionResult, ResponseGenerationConfig } from '../lib/services/filipinoLanguageService';
 // 👁️ VISION PROCESSING SERVICE
 import { visionProcessingService, VisionContext } from '../lib/services/visionProcessingService';
+// 🎙️ VOICE SERVICE
+import { voiceService } from '../lib/services/voiceService';
 
 // 🎨 UI ENHANCEMENTS
 import { 
@@ -1255,6 +1257,17 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
           ? { ...tab, messages: [...tab.messages, aiResponse], isLoading: false }
           : tab
       ));
+
+      // 🎙️ AUTO-SPEAK GAWIN'S RESPONSE
+      if (voiceService.isVoiceEnabled()) {
+        const languageForSpeech = languageDetection.primary === 'tagalog' || languageDetection.primary === 'filipino' 
+          ? 'filipino' 
+          : languageDetection.mixedLanguage 
+            ? 'taglish' 
+            : 'english';
+        
+        await voiceService.autoSpeak(content, languageForSpeech);
+      }
     } else {
       throw new Error(result.error || 'Failed to get AI response');
     }
