@@ -6,6 +6,7 @@
 
 import { huggingFaceService } from './huggingFaceService';
 import { naturalTTSService } from './naturalTTSService';
+import { autonomyService } from './autonomyService';
 
 export interface VoiceConfig {
   enabled: boolean;
@@ -225,21 +226,31 @@ class VoiceService {
   }
 
   /**
-   * Speak immediately without queuing using natural TTS
+   * Speak immediately without queuing using natural TTS with autonomous optimization
    */
   private async speakNow(options: SpeechOptions): Promise<void> {
     const processedText = this.cleanTextForSpeech(options.text);
     
     if (!processedText.trim()) {
       // Continue processing queue
-      setTimeout(() => this.processVoiceQueue(), 100);
+      setTimeout(() => this.processVoiceQueue(), 50);
       return;
     }
 
     try {
-      console.log('🎤 Starting natural TTS synthesis...');
+      console.log('🎤 Starting optimized natural TTS synthesis...');
       
-      // Configure natural TTS based on emotion and preferences
+      // Get autonomous adaptations for current context
+      const context = {
+        userEmotion: options.emotion,
+        conversationTopic: this.inferTopic(processedText),
+        timeOfDay: new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 18 ? 'afternoon' : 'evening'
+      };
+      
+      // Apply autonomous contextual adaptations
+      await autonomyService.adaptToContext(context);
+      
+      // Configure natural TTS with autonomous optimizations
       const ttsConfig = {
         voice: this.selectNaturalVoice(options.emotion),
         provider: this.selectBestProvider(),
@@ -250,12 +261,23 @@ class VoiceService {
 
       naturalTTSService.setConfig(ttsConfig);
       
-      // Generate natural speech
-      const result = await naturalTTSService.generateSpeech(processedText, ttsConfig);
+      // Generate natural speech with timeout for faster response
+      const result = await Promise.race([
+        naturalTTSService.generateSpeech(processedText, ttsConfig),
+        new Promise<any>((_, reject) => 
+          setTimeout(() => reject(new Error('TTS timeout')), 6000)
+        )
+      ]);
       
       if (result.success && result.audioUrl) {
+        // Autonomous learning: record successful generation
+        await autonomyService.learnFromElevenLabs();
+        
         // Play the natural TTS audio
         const audio = new Audio(result.audioUrl);
+        
+        // Preload audio for faster playback
+        audio.preload = 'auto';
         
         audio.onplay = () => {
           console.log(`🎤 Gawin started speaking (${result.provider} Natural TTS):`, processedText.substring(0, 50) + '...');
@@ -272,20 +294,26 @@ class VoiceService {
             URL.revokeObjectURL(result.audioUrl);
           }
           
-          // Process next item in queue
-          setTimeout(() => this.processVoiceQueue(), 200);
+          // Process next item in queue immediately
+          this.processVoiceQueue();
         };
 
         audio.onerror = (error) => {
           console.error('❌ Natural TTS audio playback error:', error);
           this.callbacks.onError?.('Audio playback failed');
           this.currentUtterance = null;
-          setTimeout(() => this.processVoiceQueue(), 500);
+          setTimeout(() => this.processVoiceQueue(), 200);
         };
 
         // Store reference for stopping capability
         this.currentUtterance = { audio } as any;
-        audio.play();
+        
+        // Start playback immediately
+        try {
+          await audio.play();
+        } catch (playError) {
+          console.warn('Audio autoplay blocked, user interaction required');
+        }
         return;
       }
       
@@ -300,7 +328,7 @@ class VoiceService {
     
     // Continue processing queue even on failure
     this.currentUtterance = null;
-    setTimeout(() => this.processVoiceQueue(), 500);
+    setTimeout(() => this.processVoiceQueue(), 200);
   }
 
 
@@ -659,10 +687,13 @@ class VoiceService {
   }
 
   /**
-   * Test voice with sample text using natural TTS
+   * Test voice with sample text using natural TTS and autonomous features
    */
   async testVoice(): Promise<void> {
-    console.log('🧪 Testing natural TTS voice...');
+    console.log('🧪 Testing enhanced natural TTS voice with autonomy...');
+    
+    // Initialize autonomy service
+    await autonomyService.initialize();
     
     // Test the natural TTS service directly
     try {
@@ -676,13 +707,17 @@ class VoiceService {
       console.error('❌ Natural TTS test error:', error);
     }
 
-    // Also test through the voice service
+    // Test enhanced Tagalog capabilities
     await this.speak({
-      text: "Hey! I'm Gawin with completely natural voice synthesis. This should sound much more human-like now!",
+      text: "Kumusta! Ako si Gawin, may natural voice na ako ngayon. Masayang makipag-usap sa inyo, mga kaibigan!",
       emotion: 'friendly',
       priority: 'high',
       interrupt: true
     });
+    
+    // Get consciousness report
+    const consciousnessReport = autonomyService.getConsciousnessReport();
+    console.log('🌟 Gawin Consciousness Report:', consciousnessReport);
   }
 
   /**
@@ -817,7 +852,7 @@ class VoiceService {
   }
 
   /**
-   * Map detected language to voice language code
+   * Map detected language to voice language code with autonomous enhancement
    */
   private mapLanguageToVoiceLang(detectedLanguage: string, providedLanguage?: string): string {
     if (providedLanguage) {
@@ -826,12 +861,29 @@ class VoiceService {
 
     switch (detectedLanguage) {
       case 'tagalog':
+      case 'filipino':
         return 'fil-PH';
       case 'taglish':
+      case 'mixed':
         return 'en-PH';
       default:
         return 'en-US';
     }
+  }
+
+  /**
+   * Infer conversation topic for autonomous adaptation
+   */
+  private inferTopic(text: string): string {
+    const lowerText = text.toLowerCase();
+    
+    if (lowerText.includes('code') || lowerText.includes('programming')) return 'tech';
+    if (lowerText.includes('feeling') || lowerText.includes('emotion')) return 'emotional';
+    if (lowerText.includes('work') || lowerText.includes('business')) return 'professional';
+    if (lowerText.includes('fun') || lowerText.includes('joke')) return 'casual';
+    if (lowerText.includes('learn') || lowerText.includes('study')) return 'educational';
+    
+    return 'general';
   }
 
   /**

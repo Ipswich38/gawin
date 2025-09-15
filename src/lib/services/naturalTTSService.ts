@@ -84,7 +84,7 @@ class NaturalTTSService {
   }
 
   /**
-   * ElevenLabs - Premium natural TTS
+   * ElevenLabs - Premium natural TTS with optimized speed and Tagalog support
    */
   private async useElevenLabs(text: string, config: NaturalTTSConfig): Promise<TTSResult> {
     if (!this.ELEVENLABS_API_KEY) {
@@ -93,44 +93,62 @@ class NaturalTTSService {
 
     const startTime = Date.now();
     
-    // Get voice ID for the specified voice
-    const voiceId = await this.getElevenLabsVoiceId(config.voice);
+    // Get voice ID for the specified voice (cached for speed)
+    const voiceId = this.getElevenLabsVoiceId(config.voice);
+    
+    // Enhanced Tagalog text processing
+    const processedText = this.enhanceTagalogText(text);
     
     const requestBody = {
-      text,
+      text: processedText,
       model_id: config.model || 'eleven_multilingual_v2',
       voice_settings: {
-        stability: config.stability || 0.5,
+        stability: config.stability || 0.7,
         similarity_boost: config.similarityBoost || 0.8,
-        style: config.style || 0.0,
+        style: config.style || 0.25,
         use_speaker_boost: config.useSpeakerBoost || true
-      }
-    };
-
-    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-      method: 'POST',
-      headers: {
-        'Accept': 'audio/mpeg',
-        'Content-Type': 'application/json',
-        'xi-api-key': this.ELEVENLABS_API_KEY
       },
-      body: JSON.stringify(requestBody)
-    });
-
-    if (!response.ok) {
-      throw new Error(`ElevenLabs API error: ${response.status} ${response.statusText}`);
-    }
-
-    const audioBlob = await response.blob();
-    const audioUrl = URL.createObjectURL(audioBlob);
-
-    return {
-      success: true,
-      audioUrl,
-      audioBlob,
-      provider: 'elevenlabs',
-      duration: Date.now() - startTime
+      // Add pronunciation dictionary for Tagalog
+      pronunciation_dictionary_locators: [{
+        pronunciation_dictionary_id: 'tagalog_natural',
+        version_id: 'latest'
+      }]
     };
+
+    try {
+      const response = await Promise.race([
+        fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+          method: 'POST',
+          headers: {
+            'Accept': 'audio/mpeg',
+            'Content-Type': 'application/json',
+            'xi-api-key': this.ELEVENLABS_API_KEY
+          },
+          body: JSON.stringify(requestBody)
+        }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('ElevenLabs timeout')), 8000)
+        )
+      ]) as Response;
+
+      if (!response.ok) {
+        throw new Error(`ElevenLabs API error: ${response.status} ${response.statusText}`);
+      }
+
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+
+      return {
+        success: true,
+        audioUrl,
+        audioBlob,
+        provider: 'elevenlabs',
+        duration: Date.now() - startTime
+      };
+    } catch (error) {
+      console.warn('ElevenLabs failed, falling back:', error);
+      throw error;
+    }
   }
 
   /**
@@ -333,10 +351,10 @@ class NaturalTTSService {
   }
 
   /**
-   * Get ElevenLabs voice ID for voice name
+   * Get ElevenLabs voice ID for voice name (cached for speed)
    */
-  private async getElevenLabsVoiceId(voiceName: string): Promise<string> {
-    // Pre-mapped popular voice IDs to avoid API calls
+  private getElevenLabsVoiceId(voiceName: string): string {
+    // Pre-mapped popular voice IDs to avoid API calls and reduce delay
     const voiceMap: Record<string, string> = {
       'Adam': 'pNInz6obpgDQGcFmaJgB',
       'Antoni': 'ErXwobaYiN019PkySvjV',
@@ -379,7 +397,129 @@ class NaturalTTSService {
       'Thomas': 'GBv7mTt0atIp3Br8iCZE'
     };
 
-    return voiceMap[voiceName] || voiceMap['Adam']; // Default to Adam
+    return voiceMap[voiceName] || voiceMap['Josh']; // Default to Josh for optimized masculine voice
+  }
+
+  /**
+   * Enhanced Tagalog text processing with rich vocabulary integration
+   */
+  private enhanceTagalogText(text: string): string {
+    let enhanced = text;
+    
+    // Rich Tagalog vocabulary enhancement
+    enhanced = this.addRichTagalogVocabulary(enhanced);
+    enhanced = this.processOldToModernTagalog(enhanced);
+    enhanced = this.addNaturalTagalogFlow(enhanced);
+    enhanced = this.optimizeTagalogPronunciation(enhanced);
+    
+    return enhanced;
+  }
+
+  /**
+   * Add rich Tagalog vocabulary and expressions
+   */
+  private addRichTagalogVocabulary(text: string): string {
+    return text
+      // Rich descriptive words
+      .replace(/\bvery good\b/gi, 'napakagaling')
+      .replace(/\bawesome\b/gi, 'kahanga-hanga')
+      .replace(/\bbeautiful\b/gi, 'maganda, marikit')
+      .replace(/\bwonderful\b/gi, 'kahanga-hanga, nakakabilib')
+      .replace(/\bexcellent\b/gi, 'napakahusay, pambihira')
+      
+      // Rich emotional expressions
+      .replace(/\bhappy\b/gi, 'masaya, maligaya')
+      .replace(/\bsad\b/gi, 'malungkot, nagluluksa')
+      .replace(/\bangry\b/gi, 'galit, namumuhi')
+      .replace(/\bexcited\b/gi, 'nasasabik, nasisigla')
+      
+      // Rich action words
+      .replace(/\bthink\b/gi, 'iniisip, pinag-iisipan')
+      .replace(/\bunderstand\b/gi, 'nauunawaan, nakakaintindi')
+      .replace(/\bhelp\b/gi, 'tumutulong, nag-aassist')
+      .replace(/\blearn\b/gi, 'natututo, nag-aaral')
+      
+      // Rich time expressions
+      .replace(/\bnow\b/gi, 'ngayon, sa sandaling ito')
+      .replace(/\blater\b/gi, 'mamaya, sa hinaharap')
+      .replace(/\bbefore\b/gi, 'noon, kanina pa')
+      
+      // Rich Filipino interjections
+      .replace(/\bwow\b/gi, 'Wow! Grabe naman!')
+      .replace(/\boh\b/gi, 'Ay! Aba!')
+      .replace(/\breally\b/gi, 'Talaga ba? Seryoso?');
+  }
+
+  /**
+   * Process old to modern Tagalog transitions
+   */
+  private processOldToModernTagalog(text: string): string {
+    return text
+      // Old Tagalog formal expressions
+      .replace(/\bkumusta ka\b/gi, 'Kumusta ka? Mabuti ka ba?')
+      .replace(/\bsalamat\b/gi, 'Salamat, maraming salamat')
+      .replace(/\bwalang anuman\b/gi, 'Walang anuman, walang problema')
+      
+      // Classical Tagalog particles
+      .replace(/\bsubalit\b/gi, 'pero, ngunit')
+      .replace(/\bsapagkat\b/gi, 'kasi, dahil')
+      .replace(/\bdahil sa\b/gi, 'kasi, because of')
+      
+      // Traditional expressions
+      .replace(/\bmabuhay\b/gi, 'Mabuhay! Long live!')
+      .replace(/\bmaligayang\b/gi, 'Happy, masayang')
+      
+      // Old Filipino respect terms
+      .replace(/\bpo\b/gi, 'po')
+      .replace(/\bopo\b/gi, 'opo, yes po');
+  }
+
+  /**
+   * Add natural Tagalog flow and rhythm
+   */
+  private addNaturalTagalogFlow(text: string): string {
+    return text
+      // Natural Tagalog sentence connectors
+      .replace(/\. /g, '. Tapos, ')
+      .replace(/\band\b/gi, 'at, tsaka')
+      .replace(/\bbut\b/gi, 'pero, kaya lang')
+      .replace(/\bso\b/gi, 'kaya, so')
+      
+      // Natural Filipino emphasis
+      .replace(/\bvery\b/gi, 'sobrang, napaka')
+      .replace(/\breally\b/gi, 'talaga, totoo')
+      .replace(/\bactually\b/gi, 'actually, sa totoo lang')
+      
+      // Natural conversation starters
+      .replace(/\bwell\b/gi, 'Well, eto na')
+      .replace(/\bokay\b/gi, 'Okay, sige')
+      .replace(/\balright\b/gi, 'Alright, ayos');
+  }
+
+  /**
+   * Optimize Tagalog pronunciation for ElevenLabs
+   */
+  private optimizeTagalogPronunciation(text: string): string {
+    return text
+      // Optimize common Tagalog sounds
+      .replace(/ng /gi, 'nang ')
+      .replace(/mga /gi, 'manga ')
+      .replace(/hindi /gi, 'hindee ')
+      .replace(/kami /gi, 'kah-mee ')
+      .replace(/kayo /gi, 'kah-yo ')
+      
+      // Optimize Tagalog diphthongs
+      .replace(/ay /gi, 'ahy ')
+      .replace(/oy /gi, 'ohy ')
+      .replace(/uy /gi, 'ooy ')
+      
+      // Optimize glottal stops
+      .replace(/ba'y /gi, 'bahy ')
+      .replace(/di'y /gi, 'deey ')
+      
+      // Optimize rolled R sounds
+      .replace(/rr/gi, 'rr')
+      .replace(/^r/gi, 'rr');
   }
 
   /**
@@ -432,37 +572,45 @@ class NaturalTTSService {
   }
 
   /**
-   * Process Filipino-English bilingual text for natural pronunciation
+   * Process Filipino-English bilingual text for natural pronunciation with enhanced vocabulary
    */
   private processFilipinoBilingualText(text: string): string {
-    // Handle common Filipino particles and expressions
+    // Handle common Filipino particles and expressions with rich vocabulary
     return text
-      // Filipino expressions that need natural pronunciation
-      .replace(/\bpara sa\b/gi, 'para sa')
-      .replace(/\bnang\b/gi, 'nang')
+      // Enhanced Filipino expressions with deeper meaning
+      .replace(/\bpara sa\b/gi, 'para sa, alang-alang sa')
+      .replace(/\bnang\b/gi, 'nang, noong')
       .replace(/\bng\b/gi, 'ng')
-      .replace(/\bsa\b/gi, 'sa')
-      .replace(/\bang\b/gi, 'ang')
-      .replace(/\bsi\b/gi, 'si')
-      .replace(/\bni\b/gi, 'ni')
-      .replace(/\bkay\b/gi, 'kay')
+      .replace(/\bsa\b/gi, 'sa, doon sa')
+      .replace(/\bang\b/gi, 'ang, yung')
+      .replace(/\bsi\b/gi, 'si, kay')
+      .replace(/\bni\b/gi, 'ni, kay')
+      .replace(/\bkay\b/gi, 'kay, para kay')
       
-      // Code-switching transitions
-      .replace(/\b(tapos|then)\b/gi, '$1')
-      .replace(/\b(kasi|because)\b/gi, '$1')
-      .replace(/\b(pero|but)\b/gi, '$1')
-      .replace(/\b(sige|okay)\b/gi, '$1')
+      // Rich code-switching transitions with natural flow
+      .replace(/\b(tapos|then)\b/gi, '$1, pagkatapos')
+      .replace(/\b(kasi|because)\b/gi, '$1, dahil')
+      .replace(/\b(pero|but)\b/gi, '$1, kaya lang')
+      .replace(/\b(sige|okay)\b/gi, '$1, ayos')
       
-      // Filipino time expressions
-      .replace(/\bngayon\b/gi, 'ngayon')
-      .replace(/\bkanina\b/gi, 'kanina')
-      .replace(/\bmamaya\b/gi, 'mamaya')
+      // Enhanced Filipino time expressions
+      .replace(/\bngayon\b/gi, 'ngayon, sa sandaling ito')
+      .replace(/\bkanina\b/gi, 'kanina, kaninang umaga')
+      .replace(/\bmamaya\b/gi, 'mamaya, sa susunod')
+      .replace(/\bbukas\b/gi, 'bukas, sa hinaharap')
+      .replace(/\bkahapon\b/gi, 'kahapon, nakaraan')
       
-      // Common Taglish patterns
-      .replace(/\b(yung|yung)\b/gi, 'yung')
-      .replace(/\b(dun|doon)\b/gi, 'doon')
-      .replace(/\b(dito)\b/gi, 'dito')
-      .replace(/\b(ganun|ganoon)\b/gi, 'ganoon');
+      // Enhanced Taglish patterns with natural masculine flow
+      .replace(/\b(yung|yung)\b/gi, 'yung, yung mga')
+      .replace(/\b(dun|doon)\b/gi, 'doon, sa lugar na yun')
+      .replace(/\b(dito)\b/gi, 'dito, sa lugar na ito')
+      .replace(/\b(ganun|ganoon)\b/gi, 'ganoon, ganun nga')
+      
+      // Enhanced masculine expressions
+      .replace(/\bpre\b/gi, 'pre, brad')
+      .replace(/\btol\b/gi, 'tol, kaibigan')
+      .replace(/\bboss\b/gi, 'boss, chief')
+      .replace(/\btropa\b/gi, 'tropa, mga kaibigan');
   }
 
   /**
