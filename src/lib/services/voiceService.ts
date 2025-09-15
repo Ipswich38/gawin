@@ -375,14 +375,14 @@ class VoiceService {
    * Select natural voice based on emotion - optimized for Filipino mid-20s speakers
    */
   private selectNaturalVoice(emotion?: string): string {
-    // Optimized for happy, smart, athletic 22-year-old who loves chatting all day
+    // Optimized for sexy, athletic, humble voice with smiling warmth
     const maleVoices = {
-      excited: 'Josh',    // Happy but controlled excitement - athletic enthusiasm
-      friendly: 'Josh',   // Warm, intelligent friendliness - loves conversation
-      thoughtful: 'Josh', // Smart, contemplative analysis - intellectual depth
-      empathetic: 'Josh', // Caring, understanding - emotionally intelligent
-      confident: 'Josh',  // Athletic confidence with smart charm
-      default: 'Josh'     // Happy, smart, athletic conversationalist
+      excited: 'Josh',    // Gentle excitement - athletic but humble enthusiasm
+      friendly: 'Josh',   // Warm, smiling friendliness - willing to chat
+      thoughtful: 'Josh', // Relaxed, thoughtful analysis - no rush
+      empathetic: 'Josh', // Humble, caring understanding - genuine warmth
+      confident: 'Josh',  // Athletic but humble confidence - never arrogant
+      default: 'Josh'     // Sexy, athletic, humble conversationalist
     };
     
     // Alternative female voices for variety (if needed later)
@@ -420,14 +420,14 @@ class VoiceService {
    * Get stability setting for emotion - optimized for Filipino natural speech
    */
   private getStabilityForEmotion(emotion?: string): number {
-    // Adjusted for happy, smart, athletic personality who loves long conversations
+    // Adjusted for slower, humble, relaxed delivery with athletic warmth
     const stabilityMap = {
-      excited: 0.45,  // Controlled excitement - happy but not overly hyper
-      friendly: 0.55,  // Stable friendliness - consistent conversational energy
-      thoughtful: 0.65, // Higher stability for intelligent analysis
-      empathetic: 0.6,  // Steady empathy - emotionally intelligent responses
-      confident: 0.5,   // Athletic confidence - steady and assured
-      default: 0.55     // Balanced default for sustained conversations
+      excited: 0.65,  // Higher stability for calm, not rushed excitement
+      friendly: 0.7,   // Very stable for relaxed, smiling friendliness
+      thoughtful: 0.75, // High stability for unhurried, thoughtful responses
+      empathetic: 0.8,  // Very stable for gentle, humble empathy
+      confident: 0.7,   // High stability for humble athletic confidence
+      default: 0.7      // Higher default for relaxed, slower delivery
     };
     
     return stabilityMap[emotion as keyof typeof stabilityMap] || stabilityMap.default;
@@ -437,14 +437,14 @@ class VoiceService {
    * Get style setting for emotion - optimized for Filipino attractiveness
    */
   private getStyleForEmotion(emotion?: string): number {
-    // Adjusted for smart, athletic personality who enjoys meaningful conversations
+    // Adjusted for humble, sexy, athletic personality with smiling warmth
     const styleMap = {
-      excited: 0.5,     // Moderate style for happy but controlled enthusiasm
-      friendly: 0.45,   // Balanced style for genuine, intelligent friendliness
-      thoughtful: 0.3,  // Lower style for serious, smart contemplation
-      empathetic: 0.4,  // Moderate style for genuine, intelligent empathy
-      confident: 0.55,  // Athletic confidence - assured but not arrogant
-      default: 0.45     // Balanced default for sustained, engaging conversations
+      excited: 0.2,     // Low style for humble, gentle excitement
+      friendly: 0.3,    // Moderate style for warm, smiling friendliness
+      thoughtful: 0.15, // Very low style for humble, relaxed contemplation
+      empathetic: 0.25, // Low style for genuine, humble empathy
+      confident: 0.2,   // Low style for humble athletic confidence
+      default: 0.25     // Low default for humble, willing-to-talk warmth
     };
     
     return styleMap[emotion as keyof typeof styleMap] || styleMap.default;

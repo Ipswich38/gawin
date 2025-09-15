@@ -26,11 +26,11 @@ export interface TTSResult {
 class NaturalTTSService {
   private config: NaturalTTSConfig = {
     provider: 'elevenlabs',
-    voice: 'Josh', // Happy, smart, athletic 22-year-old who loves chatting
+    voice: 'Josh', // Sexy, athletic, humble voice with smiling warmth
     model: 'eleven_multilingual_v2',
-    stability: 0.55, // Balanced for happy but controlled enthusiasm
-    similarityBoost: 0.85, // Strong but not overwhelming personality
-    style: 0.45, // Moderate style for smart, approachable athleticism
+    stability: 0.7, // Higher stability for slower, more relaxed delivery
+    similarityBoost: 0.8, // Moderate for humble, not overwhelming presence
+    style: 0.25, // Lower style for humble, genuine warmth vs confidence
     useSpeakerBoost: true
   };
 
@@ -592,11 +592,11 @@ class NaturalTTSService {
   getFilipinoBilingualVoices(): { male: string[], female: string[] } {
     return {
       male: [
-        'Josh',    // Happy, smart, athletic 22-year-old - loves chatting all day
-        'Adam',    // Alternative intelligent voice - backup for Josh
-        'Sam',     // Confident, clear, athletic - good for smart discussions
-        'Ethan',   // Smooth, thoughtful, engaging - ideal for deep conversations
-        'Liam'     // Casual, relatable, intelligent - perfect for long chats
+        'Josh',    // Sexy, athletic, humble - slower pace, smiling warmth
+        'Adam',    // Alternative warm voice - humble backup for Josh
+        'Ethan',   // Smooth, relaxed, engaging - ideal for unhurried conversations
+        'Liam',    // Casual, humble, warm - perfect for willing-to-talk chats
+        'Sam'      // Confident but humble - good for relaxed discussions
       ],
       female: [
         'Bella',   // Warm, professional, approachable - perfect for Filipino mid-20s female
