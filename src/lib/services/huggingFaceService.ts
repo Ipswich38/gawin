@@ -1,6 +1,48 @@
 import { validationService } from './validationService';
 import { systemGuardianService } from './systemGuardianService';
 
+// Dataset and enhanced AI capabilities interfaces
+export interface DatasetRequest {
+  dataset: string;
+  config?: string;
+  split?: string;
+  streaming?: boolean;
+  features?: string[];
+}
+
+export interface AudioAnalysisResult {
+  classification: string;
+  confidence: number;
+  transcription?: string;
+  emotion?: string;
+  language?: string;
+  embeddings?: number[];
+  features?: any;
+}
+
+export interface VisionAnalysisResult {
+  classification: string;
+  confidence: number;
+  objects?: any[];
+  scene?: string;
+  emotions?: any[];
+  text?: string;
+  description?: string;
+  features?: any;
+}
+
+export interface TextAnalysisResult {
+  classification?: string;
+  sentiment?: string;
+  confidence: number;
+  emotions?: string[];
+  intent?: string;
+  topics?: string[];
+  complexity?: number;
+  embeddings?: number[];
+  features?: any;
+}
+
 export interface HuggingFaceMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
@@ -509,6 +551,369 @@ class HuggingFaceService {
    */
   getAvailableModels() {
     return MODEL_CONFIG;
+  }
+
+  /**
+   * Enhanced audio analysis using Hugging Face models (MInDS-14 dataset approach)
+   */
+  async analyzeAudio(audioData: Blob | ArrayBuffer, task: 'classification' | 'transcription' | 'emotion' = 'transcription'): Promise<AudioAnalysisResult> {
+    try {
+      let model: string;
+      
+      switch (task) {
+        case 'transcription':
+          model = 'openai/whisper-base';
+          break;
+        case 'emotion':
+          model = 'ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition';
+          break;
+        case 'classification':
+          model = 'facebook/wav2vec2-base-960h';
+          break;
+        default:
+          model = 'openai/whisper-base';
+      }
+      
+      // Convert audio data to base64
+      const base64Audio = await this.blobToBase64(audioData);
+      
+      const result = await this.queryInferenceAPI(`/models/${model}`, {
+        inputs: base64Audio,
+        options: {
+          use_cache: true,
+          wait_for_model: true
+        }
+      });
+
+      if (task === 'transcription') {
+        return {
+          classification: 'transcription',
+          confidence: 0.9,
+          transcription: result.text || result.generated_text || '',
+          language: 'en'
+        };
+      } else if (task === 'emotion') {
+        return {
+          classification: result[0]?.label || 'neutral',
+          confidence: result[0]?.score || 0,
+          emotion: result[0]?.label || 'neutral'
+        };
+      } else {
+        return {
+          classification: result[0]?.label || 'speech',
+          confidence: result[0]?.score || 0,
+          embeddings: result.embeddings
+        };
+      }
+    } catch (error) {
+      console.error('❌ Audio analysis failed:', error);
+      return {
+        classification: 'error',
+        confidence: 0,
+        transcription: '',
+        emotion: 'neutral'
+      };
+    }
+  }
+
+  /**
+   * Enhanced vision analysis using multiple models (Beans dataset approach)
+   */
+  async analyzeImage(imageData: Blob | string, task: 'classification' | 'object-detection' | 'scene' = 'classification'): Promise<VisionAnalysisResult> {
+    try {
+      const results = await Promise.allSettled([
+        // Object detection
+        this.queryInferenceAPI('/models/facebook/detr-resnet-50', {
+          inputs: typeof imageData === 'string' ? imageData : await this.blobToBase64(imageData)
+        }),
+        
+        // Scene classification
+        this.queryInferenceAPI('/models/microsoft/resnet-50', {
+          inputs: typeof imageData === 'string' ? imageData : await this.blobToBase64(imageData)
+        }),
+        
+        // Emotion detection in faces
+        this.queryInferenceAPI('/models/dima806/facial_emotions_image_detection', {
+          inputs: typeof imageData === 'string' ? imageData : await this.blobToBase64(imageData)
+        }),
+        
+        // Text extraction (OCR)
+        this.queryInferenceAPI('/models/microsoft/trocr-base-printed', {
+          inputs: typeof imageData === 'string' ? imageData : await this.blobToBase64(imageData)
+        })
+      ]);
+
+      const objects = results[0].status === 'fulfilled' ? results[0].value : [];
+      const sceneResult = results[1].status === 'fulfilled' ? results[1].value : [];
+      const emotionResult = results[2].status === 'fulfilled' ? results[2].value : [];
+      const textResult = results[3].status === 'fulfilled' ? results[3].value : null;
+
+      const scene = Array.isArray(sceneResult) && sceneResult[0]?.label || 'indoor';
+      const emotions = Array.isArray(emotionResult) ? emotionResult : [];
+      const text = textResult?.generated_text || '';
+
+      // Generate intelligent description
+      const description = this.generateSceneDescription(objects, scene, emotions, text);
+
+      return {
+        classification: scene,
+        confidence: Array.isArray(sceneResult) && sceneResult[0]?.score || 0.7,
+        objects: Array.isArray(objects) ? objects : [],
+        scene,
+        emotions,
+        text,
+        description
+      };
+    } catch (error) {
+      console.error('❌ Vision analysis failed:', error);
+      return {
+        classification: 'error',
+        confidence: 0,
+        objects: [],
+        scene: 'unknown',
+        description: 'Unable to analyze image'
+      };
+    }
+  }
+
+  /**
+   * Enhanced text understanding using GLUE dataset approach
+   */
+  async analyzeText(text: string, task: 'sentiment' | 'classification' | 'embeddings' | 'intent' = 'sentiment'): Promise<TextAnalysisResult> {
+    try {
+      const results = await Promise.allSettled([
+        // Sentiment analysis
+        this.queryInferenceAPI('/models/cardiffnlp/twitter-roberta-base-sentiment-latest', {
+          inputs: text
+        }),
+        
+        // Emotion detection
+        this.queryInferenceAPI('/models/j-hartmann/emotion-english-distilroberta-base', {
+          inputs: text
+        }),
+        
+        // Intent classification (simplified)
+        this.queryInferenceAPI('/models/microsoft/DialoGPT-medium', {
+          inputs: text
+        }),
+        
+        // Embeddings for semantic understanding
+        this.queryInferenceAPI('/models/sentence-transformers/all-MiniLM-L6-v2', {
+          inputs: text
+        })
+      ]);
+
+      const sentimentResult = results[0].status === 'fulfilled' ? results[0].value : [];
+      const emotionResult = results[1].status === 'fulfilled' ? results[1].value : [];
+      const embeddingResult = results[3].status === 'fulfilled' ? results[3].value : [];
+
+      const sentiment = Array.isArray(sentimentResult) && sentimentResult[0]?.label || 'neutral';
+      const emotions = Array.isArray(emotionResult) ? emotionResult.map((e: any) => e.label) : ['neutral'];
+      const embeddings = Array.isArray(embeddingResult) ? embeddingResult : [];
+
+      // Extract topics and calculate complexity
+      const topics = this.extractTopics(text);
+      const complexity = this.calculateTextComplexity(text);
+      const intent = this.detectIntent(text);
+
+      return {
+        classification: sentiment,
+        sentiment,
+        confidence: Array.isArray(sentimentResult) && sentimentResult[0]?.score || 0.7,
+        emotions,
+        intent,
+        topics,
+        complexity,
+        embeddings
+      };
+    } catch (error) {
+      console.error('❌ Text analysis failed:', error);
+      return {
+        classification: 'error',
+        sentiment: 'neutral',
+        confidence: 0,
+        emotions: ['neutral'],
+        intent: 'conversation',
+        topics: [],
+        complexity: 0.5
+      };
+    }
+  }
+
+  /**
+   * Enhanced voice recognition using Whisper and emotion models
+   */
+  async enhanceVoiceRecognition(audioBlob: Blob): Promise<{
+    transcription: string;
+    confidence: number;
+    language: string;
+    emotion?: string;
+    intent?: string;
+  }> {
+    try {
+      const [transcriptionResult, emotionResult] = await Promise.allSettled([
+        this.analyzeAudio(audioBlob, 'transcription'),
+        this.analyzeAudio(audioBlob, 'emotion')
+      ]);
+
+      const transcription = transcriptionResult.status === 'fulfilled' ? transcriptionResult.value.transcription || '' : '';
+      const emotion = emotionResult.status === 'fulfilled' ? emotionResult.value.emotion || 'neutral' : 'neutral';
+      
+      // Analyze the transcribed text for intent
+      const textAnalysis = await this.analyzeText(transcription, 'intent');
+
+      return {
+        transcription,
+        confidence: 0.9,
+        language: 'en',
+        emotion,
+        intent: textAnalysis.intent
+      };
+    } catch (error) {
+      console.error('❌ Voice recognition enhancement failed:', error);
+      return {
+        transcription: '',
+        confidence: 0,
+        language: 'en',
+        emotion: 'neutral',
+        intent: 'conversation'
+      };
+    }
+  }
+
+  /**
+   * Query Hugging Face Inference API
+   */
+  private async queryInferenceAPI(endpoint: string, payload: any): Promise<any> {
+    const response = await fetch(`${this.baseURL}${endpoint}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(15000)
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    return await response.json();
+  }
+
+  /**
+   * Convert blob to base64 for API transmission
+   */
+  private async blobToBase64(blob: Blob | ArrayBuffer): Promise<string> {
+    if (blob instanceof ArrayBuffer) {
+      const uint8Array = new Uint8Array(blob);
+      const binaryString = Array.from(uint8Array).map(byte => String.fromCharCode(byte)).join('');
+      return btoa(binaryString);
+    }
+
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          resolve(reader.result.split(',')[1]); // Remove data URL prefix
+        } else {
+          reject(new Error('Failed to convert blob to base64'));
+        }
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  /**
+   * Generate intelligent scene description
+   */
+  private generateSceneDescription(objects: any[], scene: string, emotions: any[], text: string): string {
+    let description = `I can see a ${scene} scene`;
+    
+    if (Array.isArray(objects) && objects.length > 0) {
+      const objectNames = objects.map(obj => obj.label || obj.name).slice(0, 3);
+      description += ` with ${objectNames.join(', ')}`;
+    }
+
+    if (Array.isArray(emotions) && emotions.length > 0) {
+      const dominantEmotion = emotions[0]?.label || 'neutral';
+      description += `. The facial expression appears ${dominantEmotion}`;
+    }
+
+    if (text && text.trim()) {
+      description += `. I can read some text: "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}"`;
+    }
+
+    return description + '.';
+  }
+
+  /**
+   * Extract topics from text using keyword analysis
+   */
+  private extractTopics(text: string): string[] {
+    const commonTopics = [
+      'technology', 'programming', 'ai', 'machine learning', 'web development',
+      'education', 'learning', 'study', 'homework', 'research',
+      'work', 'career', 'business', 'project', 'task',
+      'health', 'fitness', 'food', 'travel', 'entertainment',
+      'family', 'friends', 'relationship', 'personal', 'emotions'
+    ];
+
+    const lowerText = text.toLowerCase();
+    return commonTopics.filter(topic => lowerText.includes(topic));
+  }
+
+  /**
+   * Calculate text complexity score
+   */
+  private calculateTextComplexity(text: string): number {
+    const words = text.split(/\s+/).length;
+    const sentences = text.split(/[.!?]+/).length;
+    const avgWordsPerSentence = words / sentences;
+    const longWords = text.split(/\s+/).filter(word => word.length > 6).length;
+    
+    // Simple complexity score (0-1)
+    const complexity = Math.min(1, (avgWordsPerSentence / 20) + (longWords / words));
+    return Math.round(complexity * 100) / 100;
+  }
+
+  /**
+   * Detect intent from text
+   */
+  private detectIntent(text: string): string {
+    const lowerText = text.toLowerCase();
+    
+    if (lowerText.includes('help') || lowerText.includes('how') || lowerText.includes('what')) {
+      return 'help_request';
+    }
+    if (lowerText.includes('thank') || lowerText.includes('thanks')) {
+      return 'gratitude';
+    }
+    if (lowerText.includes('hello') || lowerText.includes('hi') || lowerText.includes('kumusta')) {
+      return 'greeting';
+    }
+    if (lowerText.includes('bye') || lowerText.includes('goodbye') || lowerText.includes('see you')) {
+      return 'farewell';
+    }
+    
+    return 'conversation';
+  }
+
+  /**
+   * Set API key for Pro access
+   */
+  setApiKey(apiKey: string): void {
+    this.apiKey = apiKey;
+    console.log('🔑 Hugging Face Pro API key updated');
+  }
+
+  /**
+   * Check if Pro access is available
+   */
+  hasProAccess(): boolean {
+    return !!this.apiKey && this.apiKey.length > 10;
   }
 
   /**

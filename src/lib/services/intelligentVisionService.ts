@@ -4,6 +4,7 @@
  */
 
 import { simpleVisionService } from './simpleVisionService';
+import { huggingFaceService } from './huggingFaceService';
 
 export interface DetectedObject {
   name: string;
@@ -255,36 +256,74 @@ class IntelligentVisionService {
   }
 
   /**
-   * Perform intelligent AI-powered analysis
+   * Perform intelligent AI-powered analysis using Hugging Face models
    */
   private async performIntelligentAnalysis(imageData: ImageData, type: 'camera' | 'screen'): Promise<IntelligentVisionAnalysis> {
-    // Simulate intelligent object detection
-    const objects = await this.detectObjectsIntelligently(imageData, type);
-    const faces = await this.detectFacesIntelligently(imageData);
-    const scene = this.analyzeScene(imageData, objects, type);
-    
-    // Generate intelligent description
-    const description = this.generateIntelligentDescription(objects, faces, scene, type);
-    const detailedAnalysis = this.generateDetailedAnalysis(objects, faces, scene, type);
-    const recommendations = this.generateRecommendations(objects, faces, scene, type);
-    
-    // Learn from what we see
-    const newLearnings = this.extractLearnings(objects, faces, scene);
-    const visualMemory = this.updateVisualMemory(objects, faces, scene);
+    try {
+      // Convert ImageData to Blob for Hugging Face analysis
+      const blob = await this.imageDataToBlob(imageData);
+      
+      // Use Hugging Face for enhanced vision analysis if Pro access is available
+      if (huggingFaceService.hasProAccess()) {
+        console.log('🤖 Using Hugging Face Pro models for vision analysis');
+        
+        const hfAnalysis = await huggingFaceService.analyzeImage(blob, 'object-detection');
+        
+        // Convert HF results to our format
+        const objects: DetectedObject[] = (hfAnalysis.objects || []).map((obj: any) => ({
+          name: obj.label || obj.name || 'object',
+          confidence: obj.score || obj.confidence || 0.8,
+          bbox: obj.box ? [obj.box.xmin, obj.box.ymin, obj.box.xmax - obj.box.xmin, obj.box.ymax - obj.box.ymin] : [0, 0, 100, 100],
+          category: this.categorizeObject(obj.label || obj.name || 'object')
+        }));
 
-    return {
-      timestamp: Date.now(),
-      type,
-      confidence: this.calculateOverallConfidence(objects, faces),
-      objects,
-      faces,
-      scene,
-      description,
-      detailedAnalysis,
-      recommendations,
-      newLearnings,
-      visualMemory
-    };
+        // Enhanced face detection from HF emotions
+        const faces: FaceData = {
+          isPresent: (hfAnalysis.emotions || []).length > 0,
+          count: (hfAnalysis.emotions || []).length,
+          emotions: this.convertHFEmotions(hfAnalysis.emotions || []),
+          ages: [25], // Could be enhanced with age detection model
+          genders: ['unknown'],
+          landmarks: []
+        };
+
+        const scene = {
+          setting: hfAnalysis.scene || (type === 'camera' ? 'indoor' : 'digital'),
+          lighting: this.detectLightingFromImageData(imageData),
+          timeOfDay: this.guessTimeOfDay(this.calculateBrightness(imageData)),
+          activity: type === 'camera' ? 'conversation' : 'computer_use'
+        };
+
+        // Use HF generated description or create enhanced one
+        const description = hfAnalysis.description || this.generateIntelligentDescription(objects, faces, scene, type);
+        const detailedAnalysis = `Enhanced AI analysis detected ${objects.length} objects with ${hfAnalysis.confidence}% confidence. ${hfAnalysis.text ? `Text found: "${hfAnalysis.text}"` : ''}`;
+        const recommendations = this.generateRecommendations(objects, faces, scene, type);
+        
+        // Learn from what we see
+        const newLearnings = this.extractLearnings(objects, faces, scene);
+        const visualMemory = this.updateVisualMemory(objects, faces, scene);
+
+        return {
+          timestamp: Date.now(),
+          type,
+          confidence: hfAnalysis.confidence,
+          objects,
+          faces,
+          scene,
+          description,
+          detailedAnalysis,
+          recommendations,
+          newLearnings,
+          visualMemory
+        };
+      } else {
+        console.log('⚠️ Hugging Face Pro not available, using fallback analysis');
+        return await this.performBasicAnalysis(imageData, type);
+      }
+    } catch (error) {
+      console.error('❌ Intelligent analysis failed, falling back to basic:', error);
+      return await this.performBasicAnalysis(imageData, type);
+    }
   }
 
   /**
@@ -915,6 +954,70 @@ class IntelligentVisionService {
     });
     
     return objects;
+  }
+
+  /**
+   * Convert ImageData to Blob for Hugging Face API
+   */
+  private async imageDataToBlob(imageData: ImageData): Promise<Blob> {
+    if (!this.canvas || !this.ctx) throw new Error('Canvas not initialized');
+    
+    this.ctx.putImageData(imageData, 0, 0);
+    
+    return new Promise((resolve) => {
+      this.canvas!.toBlob((blob) => {
+        resolve(blob!);
+      }, 'image/jpeg', 0.8);
+    });
+  }
+
+  /**
+   * Categorize detected objects
+   */
+  private categorizeObject(label: string): 'person' | 'face' | 'object' | 'text' | 'scene' {
+    const lowerLabel = label.toLowerCase();
+    
+    if (lowerLabel.includes('person') || lowerLabel.includes('human')) {
+      return 'person';
+    }
+    if (lowerLabel.includes('face')) {
+      return 'face';
+    }
+    if (lowerLabel.includes('text') || lowerLabel.includes('word')) {
+      return 'text';
+    }
+    if (lowerLabel.includes('scene') || lowerLabel.includes('background')) {
+      return 'scene';
+    }
+    
+    return 'object';
+  }
+
+  /**
+   * Convert Hugging Face emotion results to our format
+   */
+  private convertHFEmotions(hfEmotions: any[]): { [emotion: string]: number } {
+    const emotions: { [emotion: string]: number } = {};
+    
+    for (const emotion of hfEmotions) {
+      if (emotion.label && emotion.score) {
+        emotions[emotion.label.toLowerCase()] = emotion.score;
+      }
+    }
+    
+    return emotions;
+  }
+
+  /**
+   * Detect lighting from ImageData
+   */
+  private detectLightingFromImageData(imageData: ImageData): 'bright' | 'moderate' | 'dim' | 'dark' {
+    const brightness = this.calculateBrightness(imageData);
+    
+    if (brightness > 180) return 'bright';
+    if (brightness > 120) return 'moderate';
+    if (brightness > 60) return 'dim';
+    return 'dark';
   }
 }
 

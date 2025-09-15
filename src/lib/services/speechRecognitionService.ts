@@ -1,8 +1,11 @@
 /**
  * Speech Recognition Service for Gawin
  * Provides real-time speech-to-text capabilities with bilingual support
+ * Enhanced with Hugging Face models for better accuracy
  * Configured for natural conversation with automatic transcription
  */
+
+import { huggingFaceService } from './huggingFaceService';
 
 // Type declarations for Web Speech API
 declare global {
@@ -520,6 +523,176 @@ class SpeechRecognitionService {
     });
     
     return transcript;
+  }
+
+  /**
+   * Enhanced transcription using Hugging Face Whisper model
+   */
+  async enhanceTranscriptionWithHF(audioBlob: Blob): Promise<{
+    transcript: string;
+    confidence: number;
+    language: string;
+    emotion: string;
+    intent: string;
+  }> {
+    try {
+      if (huggingFaceService.hasProAccess()) {
+        console.log('🤖 Using Hugging Face Pro for enhanced transcription');
+        
+        const enhancedResult = await huggingFaceService.enhanceVoiceRecognition(audioBlob);
+        
+        return {
+          transcript: enhancedResult.transcription,
+          confidence: enhancedResult.confidence,
+          language: enhancedResult.language,
+          emotion: enhancedResult.emotion || 'neutral',
+          intent: enhancedResult.intent || 'conversation'
+        };
+      } else {
+        // Fallback to basic analysis
+        console.log('⚠️ Hugging Face Pro not available, using basic transcription');
+        return {
+          transcript: '',
+          confidence: 0,
+          language: 'en',
+          emotion: 'neutral',
+          intent: 'conversation'
+        };
+      }
+    } catch (error) {
+      console.error('❌ Enhanced transcription failed:', error);
+      return {
+        transcript: '',
+        confidence: 0,
+        language: 'en',
+        emotion: 'neutral',
+        intent: 'conversation'
+      };
+    }
+  }
+
+  /**
+   * Analyze audio quality and suggest improvements
+   */
+  async analyzeAudioQuality(audioBlob: Blob): Promise<{
+    quality: 'excellent' | 'good' | 'fair' | 'poor';
+    suggestions: string[];
+    technicalDetails: any;
+  }> {
+    try {
+      if (huggingFaceService.hasProAccess()) {
+        const analysis = await huggingFaceService.analyzeAudio(audioBlob, 'classification');
+        
+        // Determine quality based on confidence and characteristics
+        let quality: 'excellent' | 'good' | 'fair' | 'poor' = 'good';
+        const suggestions: string[] = [];
+        
+        if (analysis.confidence > 0.9) {
+          quality = 'excellent';
+        } else if (analysis.confidence > 0.7) {
+          quality = 'good';
+        } else if (analysis.confidence > 0.5) {
+          quality = 'fair';
+          suggestions.push('Consider speaking closer to the microphone');
+          suggestions.push('Reduce background noise if possible');
+        } else {
+          quality = 'poor';
+          suggestions.push('Check microphone connectivity');
+          suggestions.push('Speak more clearly and slowly');
+          suggestions.push('Reduce background noise');
+        }
+
+        return {
+          quality,
+          suggestions,
+          technicalDetails: analysis
+        };
+      } else {
+        return {
+          quality: 'good',
+          suggestions: ['Enable Hugging Face Pro for detailed audio analysis'],
+          technicalDetails: null
+        };
+      }
+    } catch (error) {
+      console.error('❌ Audio quality analysis failed:', error);
+      return {
+        quality: 'fair',
+        suggestions: ['Unable to analyze audio quality'],
+        technicalDetails: null
+      };
+    }
+  }
+
+  /**
+   * Get intelligent language detection and switching recommendations
+   */
+  async getLanguageRecommendations(recentTranscripts: string[]): Promise<{
+    detectedLanguage: string;
+    confidence: number;
+    recommendation: string;
+    supportedLanguages: string[];
+  }> {
+    try {
+      if (recentTranscripts.length === 0) {
+        return {
+          detectedLanguage: 'en',
+          confidence: 0.5,
+          recommendation: 'Start speaking to detect language',
+          supportedLanguages: ['en-US', 'en-PH', 'fil-PH']
+        };
+      }
+
+      const combinedText = recentTranscripts.join(' ');
+      
+      if (huggingFaceService.hasProAccess()) {
+        const textAnalysis = await huggingFaceService.analyzeText(combinedText, 'classification');
+        
+        // Analyze for language patterns
+        const hasTagalog = /\b(ako|ikaw|tayo|oo|hindi|kumusta|salamat|kasi|naman|lang)\b/i.test(combinedText);
+        const hasEnglish = /\b(the|and|you|me|this|that|what|how|when|where)\b/i.test(combinedText);
+        
+        let detectedLanguage = 'en-US';
+        let confidence = 0.7;
+        let recommendation = 'Language detection active';
+        
+        if (hasTagalog && hasEnglish) {
+          detectedLanguage = 'en-PH'; // Taglish
+          confidence = 0.8;
+          recommendation = 'Taglish detected - bilingual mode active';
+        } else if (hasTagalog) {
+          detectedLanguage = 'fil-PH';
+          confidence = 0.8;
+          recommendation = 'Filipino/Tagalog detected';
+        } else if (hasEnglish) {
+          detectedLanguage = 'en-US';
+          confidence = 0.8;
+          recommendation = 'English detected';
+        }
+
+        return {
+          detectedLanguage,
+          confidence,
+          recommendation,
+          supportedLanguages: ['en-US', 'en-PH', 'fil-PH', 'auto']
+        };
+      } else {
+        return {
+          detectedLanguage: 'en-US',
+          confidence: 0.6,
+          recommendation: 'Basic language detection active',
+          supportedLanguages: ['en-US', 'en-PH', 'fil-PH', 'auto']
+        };
+      }
+    } catch (error) {
+      console.error('❌ Language recommendation failed:', error);
+      return {
+        detectedLanguage: 'en-US',
+        confidence: 0.5,
+        recommendation: 'Language detection error',
+        supportedLanguages: ['en-US', 'en-PH', 'fil-PH', 'auto']
+      };
+    }
   }
 }
 
