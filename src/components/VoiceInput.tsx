@@ -32,6 +32,7 @@ const VoiceInput: React.FC<VoiceInputProps> = ({
   // Auto-send transcript after silence
   const silenceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const finalTranscriptRef = useRef<string>('');
+  const voiceActivityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // Check if speech recognition is supported
@@ -90,12 +91,29 @@ const VoiceInput: React.FC<VoiceInputProps> = ({
       
       onVoiceEnd: () => {
         setIsProcessingVoice(false);
+        
+        // Start a timer to auto-send after voice stops
+        if (voiceActivityTimeoutRef.current) {
+          clearTimeout(voiceActivityTimeoutRef.current);
+        }
+        
+        voiceActivityTimeoutRef.current = setTimeout(() => {
+          if (finalTranscriptRef.current.trim()) {
+            console.log('🚀 Auto-sending after voice inactivity:', finalTranscriptRef.current.trim());
+            onSendMessage(finalTranscriptRef.current.trim());
+            finalTranscriptRef.current = '';
+            setCurrentTranscript('');
+          }
+        }, 2000); // 2 seconds after voice stops
       }
     });
 
     return () => {
       if (silenceTimeoutRef.current) {
         clearTimeout(silenceTimeoutRef.current);
+      }
+      if (voiceActivityTimeoutRef.current) {
+        clearTimeout(voiceActivityTimeoutRef.current);
       }
     };
   }, [onTranscript, onSendMessage]);

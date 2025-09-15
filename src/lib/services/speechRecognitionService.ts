@@ -96,6 +96,8 @@ class SpeechRecognitionService {
   private currentSession: VoiceConversationSession | null = null;
   private isListening = false;
   private isProcessingVoice = false;
+  private lastVoiceActivity = 0;
+  private voiceInactivityTimer: NodeJS.Timeout | null = null;
   
   // Callbacks for real-time updates
   private callbacks: {

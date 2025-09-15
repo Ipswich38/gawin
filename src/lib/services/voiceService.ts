@@ -27,9 +27,9 @@ class VoiceService {
     enabled: false,
     autoSpeak: true,
     voice: null,
-    rate: 0.98, // Conversational pacing (140-160 WPM equivalent)
-    pitch: 0.95, // Medium-low for mid-20s male baritone, approachable
-    volume: 0.9,
+    rate: 1.1, // More natural conversational pacing (160-180 WPM equivalent)
+    pitch: 1.05, // Slightly higher for more youthful, less robotic sound
+    volume: 0.85, // Slightly lower for more natural speaking volume
     language: 'en-US'
   };
 
@@ -247,10 +247,10 @@ class VoiceService {
 
     const utterance = new SpeechSynthesisUtterance(processedText);
     
-    // Configure voice settings based on detected language
+    // Configure voice settings based on detected language with natural variation
     utterance.voice = this.config.voice;
-    utterance.rate = this.adjustRateForLanguageAndEmotion(languageDetection.primary, options.emotion);
-    utterance.pitch = this.adjustPitchForLanguageAndEmotion(languageDetection.primary, options.emotion);
+    utterance.rate = this.addNaturalVariation(this.adjustRateForLanguageAndEmotion(languageDetection.primary, options.emotion), 'rate');
+    utterance.pitch = this.addNaturalVariation(this.adjustPitchForLanguageAndEmotion(languageDetection.primary, options.emotion), 'pitch');
     utterance.volume = this.config.volume;
     utterance.lang = this.mapLanguageToVoiceLang(languageDetection.primary, options.language);
 
@@ -307,10 +307,18 @@ class VoiceService {
       .replace(/\b\d{4,}/g, (match) => match.split('').join(' ')) // Long numbers
       .replace(/([a-z])([A-Z])/g, '$1 $2') // CamelCase
       
+      // Add natural breathing pauses for longer sentences
+      .replace(/([.!?])\s+([A-Z])/g, '$1 $2') // Natural pause between sentences
+      .replace(/,\s+/g, ', ') // Ensure comma spacing for natural pauses
+      .replace(/;\s+/g, '; ') // Semicolon pauses
+      
       // Clean up punctuation for natural pauses
       .replace(/[.]{2,}/g, '.') // Multiple periods
       .replace(/[!]{2,}/g, '!') // Multiple exclamations
       .replace(/[?]{2,}/g, '?') // Multiple questions
+      
+      // Add micro-pauses for better phrasing
+      .replace(/\b(however|therefore|moreover|furthermore|additionally|meanwhile|consequently)\b/gi, '$1,')
       
       .trim();
   }
@@ -640,6 +648,23 @@ class VoiceService {
         return 'en-PH';
       default:
         return 'en-US';
+    }
+  }
+
+  /**
+   * Add natural variation to voice parameters to reduce robotic sound
+   */
+  private addNaturalVariation(baseValue: number, type: 'rate' | 'pitch'): number {
+    // Add small random variation (±3-5%) to make voice sound more natural
+    const variationAmount = type === 'rate' ? 0.04 : 0.03; // Slightly more variation for rate
+    const variation = (Math.random() - 0.5) * 2 * variationAmount;
+    const result = baseValue + (baseValue * variation);
+    
+    // Ensure values stay within reasonable bounds
+    if (type === 'rate') {
+      return Math.max(0.7, Math.min(1.4, result));
+    } else {
+      return Math.max(0.8, Math.min(1.3, result));
     }
   }
 
