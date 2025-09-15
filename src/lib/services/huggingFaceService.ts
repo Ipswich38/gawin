@@ -112,10 +112,20 @@ class HuggingFaceService {
   private baseURL: string = 'https://api-inference.huggingface.co/models';
 
   constructor() {
-    this.apiKey = process.env.HUGGINGFACE_API_KEY || '';
+    // Try to get API key from environment variable first, then from browser localStorage
+    this.apiKey = process.env.HUGGINGFACE_API_KEY || process.env.NEXT_PUBLIC_HUGGINGFACE_API_KEY || '';
+    
+    if (!this.apiKey && typeof window !== 'undefined') {
+      const storedKey = localStorage.getItem('huggingface_api_key');
+      if (storedKey) {
+        this.apiKey = storedKey;
+      }
+    }
     
     if (!this.apiKey) {
       console.warn('⚠️ Hugging Face API key not found. Service will not work properly.');
+    } else {
+      console.log('🤖 Hugging Face Pro API key configured successfully');
     }
   }
 
