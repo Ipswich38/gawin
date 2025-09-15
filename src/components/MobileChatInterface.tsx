@@ -6,6 +6,7 @@ import MessageRenderer from './MessageRenderer';
 import ResearchMode from './ResearchMode';
 import BrailleKeyboard from './BrailleKeyboard';
 import SimpleVision from './SimpleVision';
+import GawinVisionPOV from './GawinVisionPOV';
 
 // 🧠 CONSCIOUSNESS INTEGRATION
 import { emotionalSynchronizer, EmotionalState } from '../core/consciousness/emotional-state-sync';
@@ -25,6 +26,7 @@ import { consciousnessMemoryService, ConsciousnessMemory } from '../lib/services
 import { filipinoLanguageService, LanguageDetectionResult, ResponseGenerationConfig } from '../lib/services/filipinoLanguageService';
 // 👁️ VISION PROCESSING SERVICE
 import { visionProcessingService, VisionContext } from '../lib/services/visionProcessingService';
+import { intelligentVisionService, IntelligentVisionAnalysis } from '../lib/services/intelligentVisionService';
 // 🎙️ VOICE SERVICE
 import { voiceService } from '../lib/services/voiceService';
 
@@ -136,6 +138,10 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
     recentAnalyses: [],
     visualContext: ''
   });
+
+  // 🤖 Intelligent Vision states
+  const [intelligentVisionAnalysis, setIntelligentVisionAnalysis] = useState<IntelligentVisionAnalysis | null>(null);
+  const [isVisionPOVVisible, setIsVisionPOVVisible] = useState(false);
 
   // 🧬 Consciousness and Identity Recognition states
   const [currentConsciousness, setCurrentConsciousness] = useState<ConsciousnessMemory | null>(null);
@@ -249,7 +255,23 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
       });
     });
 
-    return unsubscribeVision;
+    // 🤖 Initialize intelligent vision processing
+    const unsubscribeIntelligent = intelligentVisionService.subscribe((analysis) => {
+      setIntelligentVisionAnalysis(analysis);
+      console.log('🤖 Intelligent Vision Analysis:', {
+        type: analysis.type,
+        confidence: analysis.confidence,
+        objects: analysis.objects.length,
+        faces: analysis.faces.isPresent,
+        scene: analysis.scene.setting,
+        description: analysis.description.substring(0, 100) + '...'
+      });
+    });
+
+    return () => {
+      unsubscribeVision();
+      unsubscribeIntelligent();
+    };
   }, []);
 
   // Timer for quiz
@@ -978,7 +1000,18 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
     const adaptationInsights = `${environmentalContext.timeOfDay} session on ${environmentalContext.deviceType}, emotional alignment: joy=${emotionalState.joy.toFixed(2)} energy=${emotionalState.energy.toFixed(2)}, quantum scenarios: ${predictions.length} analyzed`;
     
     // Add vision context if available
-    const visionContextPrompt = visionContext.visualContext ? `\n\nVision Context: ${visionContext.visualContext}` : '';
+    let visionContextPrompt = '';
+    if (visionContext.visualContext) {
+      visionContextPrompt += `\n\nBasic Vision: ${visionContext.visualContext}`;
+    }
+    if (intelligentVisionAnalysis) {
+      visionContextPrompt += `\n\nIntelligent Vision Analysis:
+- Scene: ${intelligentVisionAnalysis.scene.setting} (${intelligentVisionAnalysis.scene.lighting} lighting, ${intelligentVisionAnalysis.scene.activity})
+- Objects detected: ${intelligentVisionAnalysis.objects.map(obj => `${obj.name} (${(obj.confidence * 100).toFixed(0)}%)`).join(', ')}
+- Face analysis: ${intelligentVisionAnalysis.faces.isPresent ? `${intelligentVisionAnalysis.faces.count} face(s) detected, primary emotion: ${Object.entries(intelligentVisionAnalysis.faces.emotions).reduce((a, b) => intelligentVisionAnalysis.faces.emotions[a[0]] > intelligentVisionAnalysis.faces.emotions[b[0]] ? a : b)?.[0] || 'neutral'}` : 'No faces detected'}
+- Visual description: ${intelligentVisionAnalysis.description}
+- Confidence: ${(intelligentVisionAnalysis.confidence * 100).toFixed(0)}%`;
+    }
     
     // Enhanced context detection for code-related requests in general chat
     const codeDetectionRegex = /```(\w+)?\n([\s\S]*?)```|(?:function|class|def|import|#include|public class|const|var|let)\s+\w+|(?:\w+\s*=\s*function|\w+\s*=\s*\(\w*\)\s*=\s*>)/;
@@ -2296,6 +2329,12 @@ Questions: ${count}`
           onInput={handleBrailleInput}
           onClose={() => setIsBrailleKeyboardOpen(false)}
           onVoiceAnnounce={announceToUser}
+        />
+        
+        {/* Gawin's Vision POV */}
+        <GawinVisionPOV 
+          isVisible={isVisionPOVVisible}
+          onToggle={() => setIsVisionPOVVisible(!isVisionPOVVisible)}
         />
       </div>
     </div>
