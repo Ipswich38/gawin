@@ -7,6 +7,7 @@ import ResearchMode from './ResearchMode';
 import BrailleKeyboard from './BrailleKeyboard';
 import SimpleVision from './SimpleVision';
 import GawinVisionPOV from './GawinVisionPOV';
+import VoiceInput from './VoiceInput';
 
 // 🧠 CONSCIOUSNESS INTEGRATION
 import { emotionalSynchronizer, EmotionalState } from '../core/consciousness/emotional-state-sync';
@@ -29,6 +30,8 @@ import { visionProcessingService, VisionContext } from '../lib/services/visionPr
 import { intelligentVisionService, IntelligentVisionAnalysis } from '../lib/services/intelligentVisionService';
 // 🎙️ VOICE SERVICE
 import { voiceService } from '../lib/services/voiceService';
+// 🎤 SPEECH RECOGNITION SERVICE
+import { speechRecognitionService } from '../lib/services/speechRecognitionService';
 
 // 🎨 UI ENHANCEMENTS
 import { 
@@ -142,6 +145,28 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   // 🤖 Intelligent Vision states
   const [intelligentVisionAnalysis, setIntelligentVisionAnalysis] = useState<IntelligentVisionAnalysis | null>(null);
   const [isVisionPOVVisible, setIsVisionPOVVisible] = useState(false);
+
+  // 🎤 Voice Input states
+  const [currentVoiceTranscript, setCurrentVoiceTranscript] = useState('');
+  const [isGawinSpeaking, setIsGawinSpeaking] = useState(false);
+
+  // Voice input handlers
+  const handleVoiceTranscript = (transcript: string, isFinal: boolean) => {
+    if (isFinal) {
+      setCurrentVoiceTranscript('');
+    } else {
+      setCurrentVoiceTranscript(transcript);
+      // Update input value with interim transcript
+      setInputValue(transcript);
+    }
+  };
+
+  const handleVoiceSendMessage = (message: string) => {
+    if (message.trim()) {
+      handleSend(message);
+      setCurrentVoiceTranscript('');
+    }
+  };
 
   // 🧬 Consciousness and Identity Recognition states
   const [currentConsciousness, setCurrentConsciousness] = useState<ConsciousnessMemory | null>(null);
@@ -266,6 +291,20 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
         scene: analysis.scene.setting,
         description: analysis.description.substring(0, 100) + '...'
       });
+    });
+
+    // 🎤 Setup voice callbacks
+    voiceService.setCallbacks({
+      onStart: () => {
+        setIsGawinSpeaking(true);
+      },
+      onEnd: () => {
+        setIsGawinSpeaking(false);
+      },
+      onError: (error: string) => {
+        console.error('Voice service error:', error);
+        setIsGawinSpeaking(false);
+      }
     });
 
     return () => {
@@ -2021,6 +2060,26 @@ Questions: ${count}`
                 </div>
               </motion.div>
             )}
+
+            {/* Real-time Voice Transcription Display */}
+            {currentVoiceTranscript && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="flex justify-end"
+              >
+                <div className="max-w-[85%] px-5 py-4 bg-gradient-to-br from-blue-600/60 to-blue-700/60 rounded-3xl rounded-br-lg shadow-lg ring-1 ring-blue-400/30 min-h-[60px] flex flex-col justify-center backdrop-blur-sm border border-blue-400/20">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <div className="w-2 h-2 bg-blue-300 rounded-full animate-pulse"></div>
+                    <span className="text-blue-100 text-xs font-medium">Listening...</span>
+                  </div>
+                  <div className="text-white/90 text-sm italic">
+                    "{currentVoiceTranscript}"
+                  </div>
+                </div>
+              </motion.div>
+            )}
           </>
         )}
       </div>
@@ -2137,6 +2196,16 @@ Questions: ${count}`
           <div className="px-3 sm:px-4 py-3 sm:py-4 bg-gray-900/60 backdrop-blur-lg border-t border-gray-600/30" 
                style={{ paddingBottom: `calc(1rem + env(safe-area-inset-bottom))` }}>
             
+            {/* Voice Input Integration */}
+            <div className="mb-3">
+              <VoiceInput
+                onTranscript={handleVoiceTranscript}
+                onSendMessage={handleVoiceSendMessage}
+                isGawinSpeaking={isGawinSpeaking}
+                disabled={activeTab.isLoading}
+              />
+            </div>
+
             {/* Capsule container with transparent inner send button */}
             <div className="relative w-full max-w-4xl mx-auto">
               <div className="relative bg-gray-800/60 backdrop-blur-lg rounded-full border border-gray-700/50 focus-within:border-teal-500 transition-colors">
