@@ -6,6 +6,7 @@
 
 import { groqService } from './groqService';
 import { perplexityService } from './perplexityService';
+import { webScrapingService } from './webScrapingService';
 
 export interface ResearchStep {
   id: string;
@@ -316,48 +317,66 @@ class AIResearchService {
   }
 
   /**
-   * Execute search step with real web search
+   * Execute search step with real web scraping
    */
   private async executeSearchStep(document: ResearchDocument, step: ResearchStep): Promise<void> {
     step.progress = 10;
 
     try {
-      // Use multiple search strategies for comprehensive results
-      const searchStrategies = [
-        this.searchWithDuckDuckGo(document.query),
-        this.searchWithWikipedia(document.query),
-        this.searchWithScholarly(document.query)
-      ];
+      console.log('🔍 Starting comprehensive web search for:', document.query);
+      
+      // Use the new web scraping service for real data extraction
+      const searchResults = await webScrapingService.comprehensiveSearch(document.query);
+      step.progress = 50;
 
-      step.progress = 30;
-
-      const searchResults = await Promise.allSettled(searchStrategies);
-      step.progress = 70;
-
-      // Process and combine results from all sources
+      // Convert scraping results to research sources
       const allSources: ResearchSource[] = [];
       
-      searchResults.forEach((result, index) => {
-        if (result.status === 'fulfilled' && result.value) {
-          allSources.push(...result.value);
+      for (const result of searchResults) {
+        for (const source of result.sources) {
+          allSources.push({
+            url: source.url,
+            title: source.title,
+            domain: source.metadata.domain,
+            content: source.content,
+            relevanceScore: source.relevanceScore,
+            credibilityScore: source.credibilityScore,
+            timestamp: source.extractedAt
+          });
         }
-      });
+      }
 
-      // Deduplicate and rank sources
+      step.progress = 80;
+
+      // Deduplicate and rank sources by quality
       const uniqueSources = this.deduplicateSources(allSources);
-      const rankedSources = this.rankSourcesByRelevance(uniqueSources, document.query);
+      const rankedSources = this.rankSourcesByQuality(uniqueSources, document.query);
       
-      document.sources.push(...rankedSources.slice(0, 10)); // Top 10 sources
+      // Take top 15 sources for comprehensive research
+      document.sources.push(...rankedSources.slice(0, 15));
+      
       step.results = { 
         sourcesFound: document.sources.length, 
-        searchStrategies: searchStrategies.length,
-        totalResults: allSources.length
+        searchEnginesUsed: searchResults.length,
+        totalResults: allSources.length,
+        avgCredibility: document.sources.reduce((sum, s) => sum + s.credibilityScore, 0) / document.sources.length,
+        avgRelevance: document.sources.reduce((sum, s) => sum + s.relevanceScore, 0) / document.sources.length
       };
 
+      console.log(`✅ Found ${document.sources.length} high-quality sources from ${searchResults.length} search engines`);
       step.progress = 100;
     } catch (error) {
-      console.error('Search step failed:', error);
-      step.results = { error: 'Search failed', sourcesFound: 0 };
+      console.error('❌ Web scraping search step failed:', error);
+      
+      // Fallback to basic search methods
+      const fallbackSources = await this.getFallbackSearchResults(document.query);
+      document.sources.push(...fallbackSources);
+      
+      step.results = { 
+        error: 'Web scraping failed, used fallback search', 
+        sourcesFound: document.sources.length,
+        fallbackUsed: true
+      };
       step.progress = 100;
     }
   }
@@ -879,6 +898,37 @@ Research conducted using Gawin AI Research System (ID: ${document.id})`;
       }
       seen.add(key);
       return true;
+    });
+  }
+
+  /**
+   * Get fallback search results when web scraping fails
+   */
+  private async getFallbackSearchResults(query: string): Promise<ResearchSource[]> {
+    try {
+      const fallbackSources: ResearchSource[] = [];
+      
+      // Try the original search methods as fallback
+      const duckDuckGoResults = await this.searchWithDuckDuckGo(query);
+      const wikipediaResults = await this.searchWithWikipedia(query);
+      
+      fallbackSources.push(...duckDuckGoResults, ...wikipediaResults);
+      
+      return fallbackSources.slice(0, 5); // Limit fallback results
+    } catch (error) {
+      console.error('Fallback search also failed:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Rank sources by quality (credibility + relevance)
+   */
+  private rankSourcesByQuality(sources: ResearchSource[], query: string): ResearchSource[] {
+    return sources.sort((a, b) => {
+      const qualityA = (a.credibilityScore * 0.6) + (a.relevanceScore * 0.4);
+      const qualityB = (b.credibilityScore * 0.6) + (b.relevanceScore * 0.4);
+      return qualityB - qualityA;
     });
   }
 

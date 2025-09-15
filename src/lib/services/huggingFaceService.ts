@@ -924,7 +924,20 @@ class HuggingFaceService {
       // Prepare text with prosody markers for more natural speech
       const processedText = this.prepareTextForTTS(text, language, emotion);
       
-      const response = await this.queryInferenceAPI(`/models/${model}`, {
+      // Enhanced parameters for VibeVoice model
+      const modelParams = model.includes('VibeVoice') ? {
+        inputs: processedText,
+        parameters: {
+          return_tensors: false,
+          sampling_rate: 22050, // Higher quality for VibeVoice
+          speed: speed,
+          emotion: emotion,
+          voice_preset: voice === 'male' ? 'male_friendly' : 'female_friendly',
+          quality: 'high',
+          enable_prosody: true,
+          naturalness: 0.9
+        }
+      } : {
         inputs: processedText,
         parameters: {
           return_tensors: false,
@@ -932,7 +945,9 @@ class HuggingFaceService {
           speed: speed,
           emotion: emotion
         }
-      });
+      };
+
+      const response = await this.queryInferenceAPI(`/models/${model}`, modelParams);
 
       if (response && response instanceof ArrayBuffer) {
         const audioBlob = new Blob([response], { type: 'audio/wav' });
@@ -967,8 +982,10 @@ class HuggingFaceService {
    */
   private selectTTSModel(language: string, voice: string): string {
     const models = {
-      'en-male': 'microsoft/speecht5_tts',
-      'en-female': 'facebook/mms-tts-eng',
+      // Microsoft VibeVoice for most natural speech
+      'en-male': 'microsoft/VibeVoice-1.5B',
+      'en-female': 'microsoft/VibeVoice-1.5B',
+      // Fallback models for other languages
       'fil-male': 'facebook/mms-tts-tgl',
       'fil-female': 'facebook/mms-tts-tgl',
       'tl-male': 'facebook/mms-tts-tgl',
