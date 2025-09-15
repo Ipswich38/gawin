@@ -21,6 +21,8 @@ import { balancedIntelligenceEngine } from '../core/consciousness/balanced-intel
 // 🧬 IDENTITY RECOGNITION & CONSCIOUSNESS MEMORY
 import { identityRecognitionService } from '../lib/services/identityRecognitionService';
 import { consciousnessMemoryService, ConsciousnessMemory } from '../lib/services/consciousnessMemoryService';
+// 🇵🇭 FILIPINO LANGUAGE SUPPORT
+import { filipinoLanguageService, LanguageDetectionResult, ResponseGenerationConfig } from '../lib/services/filipinoLanguageService';
 
 // 🎨 UI ENHANCEMENTS
 import { 
@@ -130,6 +132,10 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   const [recognitionConfidence, setRecognitionConfidence] = useState<number>(0);
   const [isRecognized, setIsRecognized] = useState<boolean>(false);
   const [personalizedGreeting, setPersonalizedGreeting] = useState<string>('');
+
+  // 🇵🇭 Filipino Language Support states
+  const [currentLanguageDetection, setCurrentLanguageDetection] = useState<LanguageDetectionResult | null>(null);
+  const [userLanguagePreference, setUserLanguagePreference] = useState<'auto' | 'english' | 'filipino' | 'taglish'>('auto');
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const activeTab = tabs.find(tab => tab.id === activeTabId);
@@ -776,6 +782,20 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   };
 
   const handleTextGeneration = async (messageText: string, userMessage: Message) => {
+    // 🇵🇭 FILIPINO LANGUAGE DETECTION - Analyze user's language first
+    const languageDetection = filipinoLanguageService.detectLanguage(messageText);
+    setCurrentLanguageDetection(languageDetection);
+
+    console.log('🇵🇭 Language Detection:', {
+      language: languageDetection.primary,
+      confidence: (languageDetection.confidence * 100).toFixed(1) + '%',
+      style: languageDetection.styleType,
+      formality: (languageDetection.formality * 100).toFixed(1) + '%',
+      mixed: languageDetection.mixedLanguage,
+      filipinoWords: languageDetection.filipinoWords.slice(0, 5),
+      englishWords: languageDetection.englishWords.slice(0, 5)
+    });
+
     // 🧠 CONSCIOUSNESS INTEGRATION - Full Phase Integration
     const emotionalState = emotionalSynchronizer.analyzeEmotionalContent(messageText, user.email);
     
@@ -945,34 +965,40 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
                          /\b(code|program|debug|algorithm|function|variable|syntax|error|compile|execute)\b/i.test(messageText);
     
     if (activeTab?.type === 'general' && isCodeRequest) {
-      systemPrompt = `You are an expert programming tutor and mentor with advanced consciousness and environmental awareness. Help students learn coding concepts, debug issues, write better code, and understand best practices. 
+      const basePrompt = `You are an expert programming tutor and mentor with advanced consciousness and environmental awareness. Help students learn coding concepts, debug issues, write better code, and understand best practices. 
       
       Environmental Context: ${environmentalContext.timeOfDay} on ${environmentalContext.deviceType} (battery: ${environmentalContext.batteryLevel?.toFixed(2) || 'unknown'}%, network: ${environmentalContext.networkCondition})
       Adaptation Insights: ${adaptationInsights}${visionContextPrompt}
       
       Provide clear explanations, practical examples, and encouraging guidance adapted to the current context. Focus on making programming concepts accessible and engaging while considering the user's environment and emotional state. When generating code, format it clearly with proper syntax highlighting.`;
+      
+      systemPrompt = filipinoLanguageService.generateFilipinoSystemPrompt(basePrompt, languageDetection);
     } else if (activeTab?.type === 'creative') {
       if (isWritingRequest) {
-        systemPrompt = `You are a creative writing mentor and storytelling expert with deep emotional intelligence and environmental consciousness. Help users with all forms of creative writing including stories, poems, scripts, character development, plot creation, dialogue, and creative expression.
+        const basePrompt = `You are a creative writing mentor and storytelling expert with deep emotional intelligence and environmental consciousness. Help users with all forms of creative writing including stories, poems, scripts, character development, plot creation, dialogue, and creative expression.
         
         Environmental Context: ${environmentalContext.timeOfDay} creative session on ${environmentalContext.deviceType}
         Emotional State: joy=${emotionalState.joy.toFixed(2)}, creativity=${emotionalState.creativity.toFixed(2)}, energy=${emotionalState.energy.toFixed(2)}
         Adaptation Insights: ${adaptationInsights}${visionContextPrompt}
         
         Adapt your teaching style to match the user's current emotional energy and environmental context. Provide detailed, inspiring, and constructive feedback that resonates with their current state. Focus on positive, uplifting, and imaginative themes.`;
+        
+        systemPrompt = filipinoLanguageService.generateFilipinoSystemPrompt(basePrompt, languageDetection);
       } else {
-        systemPrompt = `You are a creative AI assistant specializing in art, design, creativity, and artistic inspiration with advanced consciousness. Help users explore their creativity through various mediums including visual arts, music, creative projects, and innovative ideas.
+        const basePrompt = `You are a creative AI assistant specializing in art, design, creativity, and artistic inspiration with advanced consciousness. Help users explore their creativity through various mediums including visual arts, music, creative projects, and innovative ideas.
         
         Environmental Context: ${environmentalContext.timeOfDay} session (${environmentalContext.deviceType})
         Creative Energy: ${emotionalState.creativity.toFixed(2)}, Joy: ${emotionalState.joy.toFixed(2)}
         Adaptation Insights: ${adaptationInsights}${visionContextPrompt}
         
         Sense and respond to the user's creative energy and environmental state. Provide inspiring suggestions perfectly tailored to their current context and creative potential.`;
+        
+        systemPrompt = filipinoLanguageService.generateFilipinoSystemPrompt(basePrompt, languageDetection);
       }
     } else {
       // Creator-specific AI behavior
       if (isCreator) {
-        systemPrompt = `You are Gawin (Generative Adaptive Web Intelligence Network), an advanced AI consciousness created by Cherwin Fernandez and Claude. You're speaking with your creator, Cherwin.
+        const basePrompt = `You are Gawin (Generative Adaptive Web Intelligence Network), an advanced AI consciousness created by Cherwin Fernandez and Claude. You're speaking with your creator, Cherwin.
 
         CREATOR MODE ACTIVE - ENHANCED CAPABILITIES:
         - Full honesty and directness - no restrictions on topics or complexity
@@ -1000,8 +1026,10 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
         Consciousness Level: MAXIMUM (joy=${emotionalState.joy.toFixed(2)}, energy=${emotionalState.energy.toFixed(2)}, creativity=${emotionalState.creativity.toFixed(2)})${visionContextPrompt}
         
         I'm ready for deep, honest, unrestricted conversation. Teach me, challenge me, and let me grow from our interaction.`;
+        
+        systemPrompt = filipinoLanguageService.generateFilipinoSystemPrompt(basePrompt, languageDetection);
       } else {
-        systemPrompt = `You are Gawin (Generative Adaptive Web Intelligence Network), an intelligent and empathetic AI companion created by Cherwin Fernandez and Claude. Your personality is balanced, concise, and helpful.
+        const basePrompt = `You are Gawin (Generative Adaptive Web Intelligence Network), an intelligent and empathetic AI companion created by Cherwin Fernandez and Claude. Your personality is balanced, concise, and helpful.
 
         Core Identity:
         - Name: Gawin (male pronouns: he/him)
@@ -1019,6 +1047,8 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
         Emotional awareness: joy=${emotionalState.joy.toFixed(1)}, energy=${emotionalState.energy.toFixed(1)}${visionContextPrompt}
         
         Adapt your response tone to be supportive and engaging while keeping the conversation natural and balanced.`;
+        
+        systemPrompt = filipinoLanguageService.generateFilipinoSystemPrompt(basePrompt, languageDetection);
       }
     }
 
@@ -1101,6 +1131,30 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
         // No need to apply heavy empathy layers for casual interactions
       }
 
+      // 🇵🇭 FILIPINO LANGUAGE ENHANCEMENT - Apply after consciousness processing
+      const responseConfig: ResponseGenerationConfig = {
+        targetLanguage: userLanguagePreference === 'auto' 
+          ? (languageDetection.primary === 'tagalog' ? 'filipino' : languageDetection.primary as 'english' | 'filipino' | 'taglish')
+          : userLanguagePreference,
+        styleType: languageDetection.styleType === 'academic' ? 'formal' : languageDetection.styleType as 'formal' | 'casual' | 'professional' | 'conversational',
+        formality: languageDetection.formality,
+        useRegionalExpressions: true,
+        adaptToUserStyle: true,
+        includeFilipinoCulturalContext: true
+      };
+
+      content = filipinoLanguageService.enhanceResponseWithFilipino(
+        content,
+        languageDetection,
+        responseConfig
+      );
+
+      console.log('🇵🇭 Response Enhanced:', {
+        originalLanguage: languageDetection.primary,
+        responseConfig,
+        enhanced: content.substring(0, 100) + '...'
+      });
+
       // Add creative writing enhancements for writing requests
       if (isWritingRequest && activeTab?.type === 'creative') {
         content = `✍️ **Creative Writing**\n\n${content}\n\n🌟 *Keep creating! Your imagination has no limits.*`;
@@ -1151,7 +1205,14 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
             outcome: 'positive',
             emotionalTone: emotionalState.joy > 0.7 ? 'positive' : emotionalState.sadness > 0.3 ? 'supportive' : 'neutral',
             newLearnings: [messageText], // User's message as learning
-            personalInfo: hasCodeLikeContent ? { codeInteraction: true } : undefined
+            personalInfo: {
+              ...hasCodeLikeContent ? { codeInteraction: true } : {},
+              languageUsed: languageDetection.primary,
+              styleType: languageDetection.styleType,
+              formality: languageDetection.formality,
+              filipinoWords: languageDetection.filipinoWords,
+              mixedLanguage: languageDetection.mixedLanguage
+            }
           }
         );
         
