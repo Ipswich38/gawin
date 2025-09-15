@@ -26,11 +26,11 @@ export interface TTSResult {
 class NaturalTTSService {
   private config: NaturalTTSConfig = {
     provider: 'elevenlabs',
-    voice: 'Adam', // Default - will be overridden with Filipino voices
+    voice: 'Josh', // Young, cute, buff 22-year-old voice
     model: 'eleven_multilingual_v2',
-    stability: 0.6,
-    similarityBoost: 0.85,
-    style: 0.2,
+    stability: 0.4, // Lower for more youthful energy
+    similarityBoost: 0.9, // Higher for stronger character
+    style: 0.6, // Higher for attractive, charming delivery
     useSpeakerBoost: true
   };
 
@@ -592,8 +592,8 @@ class NaturalTTSService {
   getFilipinoBilingualVoices(): { male: string[], female: string[] } {
     return {
       male: [
-        'Adam',    // Natural, professional, warm - perfect for Filipino mid-20s male
-        'Josh',    // Energetic, young, friendly - great for Gen-Z content
+        'Josh',    // Perfect cute, buff 22-year-old - energetic, young, irresistible
+        'Adam',    // Alternative warm voice - backup for Josh
         'Sam',     // Confident, clear, modern - good for professional content
         'Ethan',   // Smooth, attractive, approachable - ideal for engaging content
         'Liam'     // Casual, relatable, authentic - perfect for conversational content

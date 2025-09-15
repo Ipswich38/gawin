@@ -167,14 +167,6 @@ class VoiceService {
 
     this.config.enabled = true;
     console.log('🔊 Gawin voice enabled');
-    
-    // Test voice with a greeting
-    if (this.config.voice) {
-      await this.speak({
-        text: "Hello! I'm Gawin. I can now speak with you.",
-        emotion: 'friendly'
-      });
-    }
 
     return true;
   }
@@ -383,14 +375,14 @@ class VoiceService {
    * Select natural voice based on emotion - optimized for Filipino mid-20s speakers
    */
   private selectNaturalVoice(emotion?: string): string {
-    // Optimized for Filipino mid-20s bilingual speakers (male preference for Gawin)
+    // Optimized for cute, buff 22-year-old Filipino guy that everyone could fall in love with
     const maleVoices = {
-      excited: 'Josh',    // Energetic, young, perfect for excited responses
-      friendly: 'Adam',   // Warm, professional, ideal for Filipino mid-20s
-      thoughtful: 'Ethan', // Smooth, contemplative, good for analysis
-      empathetic: 'Liam', // Casual, relatable, authentic for empathy
-      confident: 'Sam',   // Clear, modern, confident delivery
-      default: 'Adam'     // Natural, professional, warm - perfect default
+      excited: 'Josh',    // Young, energetic, adorable excitement - perfect 22yo energy
+      friendly: 'Josh',   // Cute, charming, irresistible friendliness
+      thoughtful: 'Josh', // Young but wise, attractive contemplation
+      empathetic: 'Josh', // Sweet, caring, makes hearts melt
+      confident: 'Josh',  // Buff confidence with cute charm
+      default: 'Josh'     // Perfect 22yo cute but buff voice that's irresistible
     };
     
     // Alternative female voices for variety (if needed later)
@@ -428,14 +420,14 @@ class VoiceService {
    * Get stability setting for emotion - optimized for Filipino natural speech
    */
   private getStabilityForEmotion(emotion?: string): number {
-    // Adjusted for Filipino mid-20s natural speech patterns
+    // Adjusted for cute, buff 22-year-old that everyone falls in love with
     const stabilityMap = {
-      excited: 0.35,  // Slightly more stable for Filipino energy
-      friendly: 0.6,  // Higher stability for warm Filipino friendliness
-      thoughtful: 0.75, // Very stable for contemplative responses
-      empathetic: 0.65,  // Stable for genuine empathy
-      confident: 0.45,   // Moderate stability for confident but not arrogant
-      default: 0.6      // Higher default for professional Filipino speech
+      excited: 0.25,  // Lower stability for youthful, adorable energy
+      friendly: 0.4,  // Moderate stability for charming, cute friendliness
+      thoughtful: 0.6, // Balanced stability for young wisdom
+      empathetic: 0.5,  // Sweet, caring stability that melts hearts
+      confident: 0.3,   // Lower stability for attractive, buff confidence
+      default: 0.35     // Lower default for youthful, irresistible charm
     };
     
     return stabilityMap[emotion as keyof typeof stabilityMap] || stabilityMap.default;
@@ -445,14 +437,14 @@ class VoiceService {
    * Get style setting for emotion - optimized for Filipino attractiveness
    */
   private getStyleForEmotion(emotion?: string): number {
-    // Adjusted for attractive Filipino mid-20s speech (not sexual, but engaging)
+    // Adjusted for irresistibly cute, buff 22-year-old that everyone falls in love with
     const styleMap = {
-      excited: 0.7,     // High style for engaging excitement
-      friendly: 0.4,    // Moderate style for natural friendliness
-      thoughtful: 0.15, // Low style for serious contemplation
-      empathetic: 0.5,  // Moderate style for genuine care
-      confident: 0.6,   // Good style for attractive confidence
-      default: 0.35     // Moderate default for natural attractiveness
+      excited: 0.8,     // High style for adorable, energetic excitement
+      friendly: 0.7,    // High style for charming, irresistible friendliness
+      thoughtful: 0.4,  // Moderate style for attractive young wisdom
+      empathetic: 0.8,  // High style for heart-melting empathy
+      confident: 0.9,   // Very high style for buff, attractive confidence
+      default: 0.75     // High default for maximum charm and attractiveness
     };
     
     return styleMap[emotion as keyof typeof styleMap] || styleMap.default;
