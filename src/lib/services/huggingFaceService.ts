@@ -760,47 +760,6 @@ class HuggingFaceService {
   }
 
   /**
-   * Enhanced voice recognition using Whisper and emotion models
-   */
-  async enhanceVoiceRecognition(audioBlob: Blob): Promise<{
-    transcription: string;
-    confidence: number;
-    language: string;
-    emotion?: string;
-    intent?: string;
-  }> {
-    try {
-      const [transcriptionResult, emotionResult] = await Promise.allSettled([
-        this.analyzeAudio(audioBlob, 'transcription'),
-        this.analyzeAudio(audioBlob, 'emotion')
-      ]);
-
-      const transcription = transcriptionResult.status === 'fulfilled' ? transcriptionResult.value.transcription || '' : '';
-      const emotion = emotionResult.status === 'fulfilled' ? emotionResult.value.emotion || 'neutral' : 'neutral';
-      
-      // Analyze the transcribed text for intent
-      const textAnalysis = await this.analyzeText(transcription, 'intent');
-
-      return {
-        transcription,
-        confidence: 0.9,
-        language: 'en',
-        emotion,
-        intent: textAnalysis.intent
-      };
-    } catch (error) {
-      console.error('❌ Voice recognition enhancement failed:', error);
-      return {
-        transcription: '',
-        confidence: 0,
-        language: 'en',
-        emotion: 'neutral',
-        intent: 'conversation'
-      };
-    }
-  }
-
-  /**
    * Query Hugging Face Inference API
    */
   private async queryInferenceAPI(endpoint: string, payload: any): Promise<any> {
@@ -898,27 +857,6 @@ class HuggingFaceService {
     return Math.round(complexity * 100) / 100;
   }
 
-  /**
-   * Detect intent from text
-   */
-  private detectIntent(text: string): string {
-    const lowerText = text.toLowerCase();
-    
-    if (lowerText.includes('help') || lowerText.includes('how') || lowerText.includes('what')) {
-      return 'help_request';
-    }
-    if (lowerText.includes('thank') || lowerText.includes('thanks')) {
-      return 'gratitude';
-    }
-    if (lowerText.includes('hello') || lowerText.includes('hi') || lowerText.includes('kumusta')) {
-      return 'greeting';
-    }
-    if (lowerText.includes('bye') || lowerText.includes('goodbye') || lowerText.includes('see you')) {
-      return 'farewell';
-    }
-    
-    return 'conversation';
-  }
 
   /**
    * Set API key for Pro access

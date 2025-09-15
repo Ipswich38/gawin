@@ -35,7 +35,7 @@ import { speechRecognitionService } from '../lib/services/speechRecognitionServi
 
 // 🎨 UI ENHANCEMENTS
 import { 
-  ChatIcon, QuizIcon, StudyIcon, CreativeIcon, SearchIcon as ResearchIcon,
+  ChatIcon, QuizIcon, CreativeIcon, SearchIcon as ResearchIcon,
   SendIcon, MenuIcon, CloseIcon, LoadingIcon
 } from './ui/LineIcons';
 import { deviceDetection, DeviceInfo, OptimizationConfig } from '../utils/deviceDetection';
@@ -55,7 +55,7 @@ interface Message {
 
 interface Tab {
   id: string;
-  type: 'general' | 'quiz' | 'study' | 'creative' | 'research';
+  type: 'general' | 'quiz' | 'creative' | 'research';
   title: string;
   icon: React.ComponentType<{ size?: number; className?: string }>;
   isActive: boolean;
@@ -110,20 +110,10 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   const tabConfig = {
     general: { title: 'New Chat', icon: ChatIcon },
     quiz: { title: 'Quiz', icon: QuizIcon },
-    study: { title: 'Study', icon: StudyIcon },
     creative: { title: 'Create', icon: CreativeIcon },
     research: { title: 'Research', icon: ResearchIcon }
   };
 
-  // Study states
-  const [activeStudyRoom, setActiveStudyRoom] = useState<'social' | 'group' | null>(null);
-  const [studyMessages, setStudyMessages] = useState<{
-    social: Message[];
-    group: Message[];
-  }>({
-    social: [],
-    group: []
-  });
 
   // Removed redundant dynamic code editor - now handled inline in chat messages
 
@@ -1393,8 +1383,6 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
         return renderQuizContent();
       case 'research':
         return <ResearchMode />;
-      case 'study':
-        return renderStudyContent();
       case 'creative':
         return renderCreativeContent();
       default:
@@ -1724,7 +1712,7 @@ Questions: ${count}`
 
           {/* Scrollable Review Section */}
           <div className="flex-1 overflow-y-auto space-y-3">
-            <h3 className="text-lg font-semibold text-white sticky top-0 bg-gray-900/95 py-2 flex items-center gap-2"><StudyIcon size={18} />Review</h3>
+            <h3 className="text-lg font-semibold text-white sticky top-0 bg-gray-900/95 py-2 flex items-center gap-2">📝 Review</h3>
             <div className="space-y-3 pb-4">
             {quizResults?.results?.filter((r: any) => !r.isCorrect).map((result: any, idx: number) => (
               <div key={idx} className="bg-gray-800/50 rounded-2xl p-4 space-y-3">
@@ -1783,128 +1771,6 @@ Questions: ${count}`
   };
 
 
-  const renderStudyContent = () => (
-    <div className="h-full">
-      {!activeStudyRoom ? (
-        <div className="h-full flex items-center justify-center p-6">
-          <div className="text-center space-y-6">
-            <h2 className="text-2xl font-semibold text-white flex items-center gap-2"><StudyIcon size={22} />Study Commons</h2>
-            <p className="text-gray-300">Connect with fellow learners</p>
-            
-            <div className="space-y-4">
-              <motion.div
-                whileHover={{ y: -2 }}
-                onClick={() => setActiveStudyRoom('social')}
-                className="bg-gray-800/90 border border-gray-600/50 rounded-2xl p-4 cursor-pointer hover:border-gray-500/70 transition-all"
-              >
-                <div className="text-2xl mb-2">🌟</div>
-                <h3 className="text-lg font-medium text-white">Social Learning</h3>
-                <p className="text-gray-400 text-sm">Open discussions and study tips</p>
-              </motion.div>
-
-              <motion.div
-                whileHover={{ y: -2 }}
-                onClick={() => setActiveStudyRoom('group')}
-                className="bg-gray-800/90 border border-gray-600/50 rounded-2xl p-4 cursor-pointer hover:border-gray-500/70 transition-all"
-              >
-                <div className="text-2xl mb-2">🎯</div>
-                <h3 className="text-lg font-medium text-white">Group Study</h3>
-                <p className="text-gray-400 text-sm">Focused study sessions</p>
-              </motion.div>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="flex flex-col h-full">
-          <div className="bg-gray-800/90 border-b border-gray-600/50 px-4 py-3 flex items-center space-x-3">
-            <button
-              onClick={() => setActiveStudyRoom(null)}
-              className="w-8 h-8 rounded-full bg-gray-700/50 hover:bg-gray-600/50 transition-colors flex items-center justify-center"
-            >
-              <span className="text-gray-400">←</span>
-            </button>
-            <div className="flex items-center space-x-2">
-              <span className="text-lg">{activeStudyRoom === 'social' ? '🌟' : '🎯'}</span>
-              <div>
-                <h3 className="text-white font-medium text-sm">
-                  {activeStudyRoom === 'social' ? 'Social Learning' : 'Group Study'}
-                </h3>
-                <p className="text-gray-400 text-xs">Active now</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-            {studyMessages[activeStudyRoom].length === 0 ? (
-              <div className="text-center py-8">
-                <div className="text-4xl mb-3">{activeStudyRoom === 'social' ? '🌟' : '🎯'}</div>
-                <h4 className="text-lg text-white mb-2">
-                  Welcome to {activeStudyRoom === 'social' ? 'Social Learning' : 'Group Study'}!
-                </h4>
-                <p className="text-gray-400 text-sm">
-                  {activeStudyRoom === 'social' 
-                    ? 'Start a conversation or share study tips'
-                    : 'Form study groups and collaborate'
-                  }
-                </p>
-              </div>
-            ) : (
-              studyMessages[activeStudyRoom].map((message) => (
-                <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[80%] p-3 rounded-2xl ${
-                    message.role === 'user' 
-                      ? 'bg-teal-600 text-white' 
-                      : 'bg-gray-700/50 text-white'
-                  }`}>
-                    <div className="text-sm">{message.content}</div>
-                    <div className="mt-1 text-xs opacity-70">
-                      {new Date(message.timestamp).toLocaleTimeString('en-US', {
-                        hour: 'numeric',
-                        minute: '2-digit',
-                        hour12: true
-                      })}
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-
-          <div className="px-4 py-3 bg-gray-900/80 border-t border-gray-600/50">
-            <div className="flex items-center space-x-2">
-              <input
-                type="text"
-                placeholder={`Message ${activeStudyRoom === 'social' ? 'Social Learning' : 'Group Study'}...`}
-                className="flex-1 px-3 py-2 bg-gray-800 text-white rounded-2xl border border-gray-700 focus:outline-none focus:border-teal-500 placeholder-gray-400 text-sm"
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    const target = e.target as HTMLInputElement;
-                    if (target.value.trim()) {
-                      const newMessage: Message = {
-                        id: Date.now(),
-                        role: 'user',
-                        content: target.value.trim(),
-                        timestamp: new Date().toISOString()
-                      };
-                      setStudyMessages(prev => ({
-                        ...prev,
-                        [activeStudyRoom!]: [...prev[activeStudyRoom!], newMessage]
-                      }));
-                      target.value = '';
-                    }
-                  }
-                }}
-              />
-              <button className="w-8 h-8 bg-teal-600 hover:bg-teal-500 rounded-full flex items-center justify-center transition-colors">
-                <span className="text-white text-sm">→</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
 
 
   const renderCreativeContent = () => (
@@ -2353,7 +2219,6 @@ Questions: ${count}`
                 {[
                   { type: 'general' as const, icon: '💬', label: 'General Chat' },
                   { type: 'quiz' as const, icon: <QuizIcon size={16} />, label: 'Quiz Generator' },
-                  { type: 'study' as const, icon: <StudyIcon size={16} />, label: 'Study Buddy' },
                   { type: 'creative' as const, icon: <CreativeIcon size={16} />, label: 'Creative Studio' },
                   { type: 'research' as const, icon: <ResearchIcon size={16} />, label: 'Research Mode' },
                 ].map((item) => (
