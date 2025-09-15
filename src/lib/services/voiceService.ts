@@ -5,6 +5,7 @@
  */
 
 import { huggingFaceService } from './huggingFaceService';
+import { naturalTTSService } from './naturalTTSService';
 
 export interface VoiceConfig {
   enabled: boolean;
@@ -232,14 +233,10 @@ class VoiceService {
   }
 
   /**
-   * Speak immediately without queuing
+   * Speak immediately without queuing using natural TTS
    */
   private async speakNow(options: SpeechOptions): Promise<void> {
-    if (!this.synthesis || !this.config.voice) return;
-
-    // Detect language and prepare text with proper prosody
-    const languageDetection = this.detectLanguage(options.text);
-    const processedText = this.prepareTextForSpeech(options.text, languageDetection, options.emotion);
+    const processedText = this.cleanTextForSpeech(options.text);
     
     if (!processedText.trim()) {
       // Continue processing queue
@@ -247,112 +244,73 @@ class VoiceService {
       return;
     }
 
-    // Try Hugging Face TTS first for better quality (especially for Tagalog)
-    if (huggingFaceService.hasProAccess() && (languageDetection.hasTagalog || options.language === 'fil-PH')) {
-      try {
-        const hfLanguage = languageDetection.primary === 'tagalog' ? 'fil' : 
-                          languageDetection.primary === 'taglish' ? 'fil' : 'en';
+    try {
+      console.log('🎤 Starting natural TTS synthesis...');
+      
+      // Configure natural TTS based on emotion and preferences
+      const ttsConfig = {
+        voice: this.selectNaturalVoice(options.emotion),
+        provider: this.selectBestProvider(),
+        stability: this.getStabilityForEmotion(options.emotion),
+        similarityBoost: 0.8,
+        style: this.getStyleForEmotion(options.emotion)
+      };
+
+      naturalTTSService.setConfig(ttsConfig);
+      
+      // Generate natural speech
+      const result = await naturalTTSService.generateSpeech(processedText, ttsConfig);
+      
+      if (result.success && result.audioUrl) {
+        // Play the natural TTS audio
+        const audio = new Audio(result.audioUrl);
         
-        const ttsResult = await huggingFaceService.generateSpeech(processedText, {
-          voice: 'male', // Match Gawin's personality
-          language: hfLanguage as any,
-          emotion: options.emotion === 'neutral' ? 'friendly' : options.emotion as any,
-          speed: 1.0
-        });
+        audio.onplay = () => {
+          console.log(`🎤 Gawin started speaking (${result.provider} Natural TTS):`, processedText.substring(0, 50) + '...');
+          this.callbacks.onStart?.();
+        };
 
-        if (ttsResult.success && ttsResult.audioUrl) {
-          // Play the high-quality TTS audio
-          const audio = new Audio(ttsResult.audioUrl);
+        audio.onended = () => {
+          console.log(`✅ Gawin finished speaking (${result.provider} - ${result.duration}ms)`);
+          this.currentUtterance = null;
+          this.callbacks.onEnd?.();
           
-          audio.onplay = () => {
-            console.log('🎤 Gawin started speaking (HuggingFace TTS):', processedText.substring(0, 50) + '...');
-            this.callbacks.onStart?.();
-          };
+          // Clean up audio URL
+          if (result.audioUrl) {
+            URL.revokeObjectURL(result.audioUrl);
+          }
+          
+          // Process next item in queue
+          setTimeout(() => this.processVoiceQueue(), 200);
+        };
 
-          audio.onended = () => {
-            console.log('🎤 Gawin finished speaking (HuggingFace TTS)');
-            this.currentUtterance = null;
-            this.callbacks.onEnd?.();
-            
-            // Clean up audio URL
-            URL.revokeObjectURL(ttsResult.audioUrl!);
-            
-            // Process next item in queue
-            setTimeout(() => this.processVoiceQueue(), 200);
-          };
+        audio.onerror = (error) => {
+          console.error('❌ Natural TTS audio playback error:', error);
+          this.callbacks.onError?.('Audio playback failed');
+          this.currentUtterance = null;
+          setTimeout(() => this.processVoiceQueue(), 500);
+        };
 
-          audio.onerror = () => {
-            console.error('❌ HuggingFace TTS audio playback error, falling back to browser TTS');
-            this.fallbackToBrowserTTS(processedText, languageDetection, options);
-          };
-
-          // Store reference for stopping capability
-          this.currentUtterance = { audio } as any;
-          audio.play();
-          return;
-        }
-      } catch (error) {
-        console.error('HuggingFace TTS failed, falling back to browser TTS:', error);
+        // Store reference for stopping capability
+        this.currentUtterance = { audio } as any;
+        audio.play();
+        return;
       }
+      
+      // If natural TTS failed, log the error
+      console.error('❌ Natural TTS failed:', result.error);
+      this.callbacks.onError?.(result.error || 'Natural TTS failed');
+      
+    } catch (error) {
+      console.error('❌ Natural TTS error:', error);
+      this.callbacks.onError?.(error instanceof Error ? error.message : 'TTS error');
     }
-
-    // Fallback to browser TTS
-    this.fallbackToBrowserTTS(processedText, languageDetection, options);
+    
+    // Continue processing queue even on failure
+    this.currentUtterance = null;
+    setTimeout(() => this.processVoiceQueue(), 500);
   }
 
-  /**
-   * Fallback to browser text-to-speech
-   */
-  private fallbackToBrowserTTS(processedText: string, languageDetection: any, options: SpeechOptions): void {
-    const utterance = new SpeechSynthesisUtterance(processedText);
-    
-    // Enhanced voice selection for more natural speech
-    const bestVoice = this.selectBestNaturalVoice(languageDetection);
-    utterance.voice = bestVoice || this.config.voice;
-    
-    // More natural speech parameters with enhanced variation
-    const baseRate = 0.85; // Slower for more natural conversation
-    const basePitch = 1.02; // Slightly higher but more natural
-    
-    utterance.rate = this.addNaturalVariation(baseRate * this.getEmotionRateMultiplier(options.emotion), 'rate');
-    utterance.pitch = this.addNaturalVariation(basePitch * this.getEmotionPitchMultiplier(options.emotion), 'pitch');
-    utterance.volume = this.config.volume;
-    utterance.lang = this.mapLanguageToVoiceLang(languageDetection.primary, options.language);
-
-    // Set up event listeners
-    utterance.onstart = () => {
-      console.log('🎤 Gawin started speaking (Enhanced Browser TTS):', processedText.substring(0, 50) + '...');
-      console.log('🎵 Voice details:', {
-        name: utterance.voice?.name || 'No voice selected',
-        lang: utterance.voice?.lang || 'Unknown',
-        rate: utterance.rate,
-        pitch: utterance.pitch,
-        volume: utterance.volume
-      });
-      this.callbacks.onStart?.();
-    };
-
-    utterance.onend = () => {
-      console.log('🎤 Gawin finished speaking (Browser TTS)');
-      this.currentUtterance = null;
-      this.callbacks.onEnd?.();
-      
-      // Process next item in queue
-      setTimeout(() => this.processVoiceQueue(), 200);
-    };
-
-    utterance.onerror = (event) => {
-      console.error('❌ Speech error:', event.error);
-      this.currentUtterance = null;
-      this.callbacks.onError?.(event.error);
-      
-      // Continue processing queue even on error
-      setTimeout(() => this.processVoiceQueue(), 500);
-    };
-
-    this.currentUtterance = utterance;
-    this.synthesis!.speak(utterance);
-  }
 
   /**
    * Select the best natural voice for more human-like speech
@@ -419,6 +377,71 @@ class VoiceService {
       case 'confident': return 1.05;
       default: return 1.0;
     }
+  }
+
+  /**
+   * Select natural voice based on emotion
+   */
+  private selectNaturalVoice(emotion?: string): string {
+    const voices = {
+      excited: 'Josh',
+      friendly: 'Adam',
+      thoughtful: 'Daniel', 
+      empathetic: 'Brian',
+      confident: 'Sam',
+      default: 'Adam'
+    };
+    
+    return voices[emotion as keyof typeof voices] || voices.default;
+  }
+
+  /**
+   * Select best TTS provider based on availability
+   */
+  private selectBestProvider(): 'elevenlabs' | 'openai' | 'azure' | 'browser' {
+    // Check for API keys and return best available provider
+    if (process.env.NEXT_PUBLIC_ELEVENLABS_API_KEY || process.env.ELEVENLABS_API_KEY) {
+      return 'elevenlabs';
+    }
+    if (process.env.NEXT_PUBLIC_OPENAI_API_KEY || process.env.OPENAI_API_KEY) {
+      return 'openai';
+    }
+    if (process.env.NEXT_PUBLIC_AZURE_SPEECH_KEY || process.env.AZURE_SPEECH_KEY) {
+      return 'azure';
+    }
+    return 'browser';
+  }
+
+  /**
+   * Get stability setting for emotion
+   */
+  private getStabilityForEmotion(emotion?: string): number {
+    const stabilityMap = {
+      excited: 0.3,
+      friendly: 0.5,
+      thoughtful: 0.7,
+      empathetic: 0.6,
+      confident: 0.4,
+      default: 0.5
+    };
+    
+    return stabilityMap[emotion as keyof typeof stabilityMap] || stabilityMap.default;
+  }
+
+  /**
+   * Get style setting for emotion
+   */
+  private getStyleForEmotion(emotion?: string): number {
+    const styleMap = {
+      excited: 0.8,
+      friendly: 0.3,
+      thoughtful: 0.1,
+      empathetic: 0.4,
+      confident: 0.6,
+      default: 0.2
+    };
+    
+    return styleMap[emotion as keyof typeof styleMap] || styleMap.default;
   }
 
   /**
@@ -630,11 +653,26 @@ class VoiceService {
   }
 
   /**
-   * Test voice with sample text
+   * Test voice with sample text using natural TTS
    */
   async testVoice(): Promise<void> {
+    console.log('🧪 Testing natural TTS voice...');
+    
+    // Test the natural TTS service directly
+    try {
+      const result = await naturalTTSService.test();
+      if (result.success) {
+        console.log(`✅ Natural TTS test successful with ${result.provider}!`);
+      } else {
+        console.warn(`⚠️ Natural TTS test failed: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('❌ Natural TTS test error:', error);
+    }
+
+    // Also test through the voice service
     await this.speak({
-      text: "Hey — kumusta? I'm Gawin. Let's get this done together.",
+      text: "Hey! I'm Gawin with completely natural voice synthesis. This should sound much more human-like now!",
       emotion: 'friendly',
       priority: 'high',
       interrupt: true
