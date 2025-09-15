@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import MessageRenderer from './MessageRenderer';
 import ResearchMode from './ResearchMode';
 import BrailleKeyboard from './BrailleKeyboard';
-import VisionCapture from './VisionCapture';
+import SimpleVision from './SimpleVision';
 
 // 🧠 CONSCIOUSNESS INTEGRATION
 import { emotionalSynchronizer, EmotionalState } from '../core/consciousness/emotional-state-sync';
@@ -121,7 +121,6 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
 
   // Vision system states
   const [visionContext, setVisionContext] = useState<string>('');
-  const [currentVisionAnalysis, setCurrentVisionAnalysis] = useState<any>(null);
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const activeTab = tabs.find(tab => tab.id === activeTabId);
@@ -1899,22 +1898,7 @@ Questions: ${count}`
           
           {/* Vision System - Right side of tabs */}
           <div className="ml-auto">
-            <VisionCapture 
-              onVisionAnalysis={(analysis) => {
-                console.log('👁️ Vision Analysis:', analysis);
-                setCurrentVisionAnalysis(analysis);
-              }}
-              onVisionContext={(context) => {
-                console.log('👁️ Vision Context:', context);
-                setVisionContext(context);
-              }}
-              onScreenAnalysis={(screenData) => {
-                console.log('🖥️ Screen Analysis:', screenData);
-                // Enhance vision context with screen data
-                const combinedContext = `${visionContext} [Screen: ${screenData.type === 'screen_capture' ? 'User screen visible' : ''}]`;
-                setVisionContext(combinedContext);
-              }}
-            />
+            <SimpleVision />
           </div>
         </div>
       </div>
