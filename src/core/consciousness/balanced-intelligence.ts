@@ -334,19 +334,27 @@ class BalancedIntelligenceEngine {
   private addSupportiveElements(content: string, emotionalState: EmotionalState): string {
     let enhanced = content;
     
-    // Add encouragement if confidence is low
-    if (emotionalState.confidence < 0.5) {
-      enhanced = `You're asking great questions! ${enhanced}`;
+    // Add natural encouragement if confidence is low
+    if (emotionalState.confidence < 0.3 && Math.random() < 0.4) {
+      const naturalEncouragements = [
+        "Interesting question! ",
+        "Good point. ",
+        "That's worth exploring. ",
+        "I see what you mean. "
+      ];
+      const randomEncouragement = naturalEncouragements[Math.floor(Math.random() * naturalEncouragements.length)];
+      enhanced = `${randomEncouragement}${enhanced}`;
     }
     
-    // Add validation if fear/anxiety is high
-    if (emotionalState.fear > 0.4) {
-      enhanced = enhanced + '\n\nRemember, learning is a process, and you\'re doing really well by seeking to understand.';
-    }
-    
-    // Add positive reinforcement if appropriate
-    if (emotionalState.energy > 0.6) {
-      enhanced = enhanced + '\n\nI love your curiosity! Keep exploring and asking questions.';
+    // Add natural positive reinforcement if appropriate
+    if (emotionalState.energy > 0.7 && Math.random() < 0.3) {
+      const naturalClosings = [
+        "\n\nHope this helps!",
+        "\n\nLet me know if you need more details.",
+        "\n\nAnything else you'd like to explore?"
+      ];
+      const randomClosing = naturalClosings[Math.floor(Math.random() * naturalClosings.length)];
+      enhanced = enhanced + randomClosing;
     }
     
     return enhanced;
@@ -400,17 +408,27 @@ class BalancedIntelligenceEngine {
   private amplifyEmpathy(content: string, emotionalState: EmotionalState): string {
     let enhanced = content;
     
-    // Add emotional acknowledgment
-    if (emotionalState.sadness > 0.3) {
-      enhanced = 'I can sense this might feel challenging. ' + enhanced;
+    // Add natural emotional acknowledgment sparingly
+    if (emotionalState.sadness > 0.5 && Math.random() < 0.3) {
+      const naturalOpeners = [
+        "I see. ",
+        "That's understandable. ",
+        "Let me help with that. ",
+        ""
+      ];
+      const randomOpener = naturalOpeners[Math.floor(Math.random() * naturalOpeners.length)];
+      enhanced = randomOpener + enhanced;
     }
     
-    if (emotionalState.fear > 0.3) {
-      enhanced = 'I understand this might feel overwhelming. Let\'s take it step by step. ' + enhanced;
-    }
-    
-    if (emotionalState.confidence < 0.4) {
-      enhanced = enhanced + '\n\nYou\'re capable of understanding this - trust yourself as you learn.';
+    // Occasionally add gentle encouragement (less frequent, more natural)
+    if (emotionalState.confidence < 0.2 && Math.random() < 0.2) {
+      const naturalClosings = [
+        "\n\nDoes that make sense?",
+        "\n\nWhat would you like to explore next?",
+        ""
+      ];
+      const randomClosing = naturalClosings[Math.floor(Math.random() * naturalClosings.length)];
+      enhanced = enhanced + randomClosing;
     }
     
     return enhanced;

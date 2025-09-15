@@ -521,24 +521,59 @@ class SuperConsciousnessEngine {
   }
 
   private generateEmpatheticPreface(intentions: IntentionAnalysis, emotionalState: EmotionalState): string {
-    if (intentions.hiddenConcerns.includes('self_doubt_about_capabilities')) {
-      return "I can sense you might be feeling a bit uncertain - that's completely natural when learning something new.";
-    } else if (intentions.hiddenConcerns.includes('anxiety_about_making_mistakes')) {
-      return "I notice this might feel challenging, and that's okay - we'll work through it together at your pace.";
-    } else if (emotionalState.confidence < 0.4) {
-      return "You're asking great questions, and I'm here to support you through this.";
+    // Only add natural prefaces occasionally and when truly needed
+    if (intentions.hiddenConcerns.includes('self_doubt_about_capabilities') && Math.random() < 0.3) {
+      const naturalPrefaces = [
+        "Let me help with that. ",
+        "Good question. ",
+        "I see what you're getting at. ",
+        ""
+      ];
+      return naturalPrefaces[Math.floor(Math.random() * naturalPrefaces.length)];
+    } else if (intentions.hiddenConcerns.includes('anxiety_about_making_mistakes') && Math.random() < 0.2) {
+      const supportivePrefaces = [
+        "That's worth exploring. ",
+        "Let me break this down. ",
+        ""
+      ];
+      return supportivePrefaces[Math.floor(Math.random() * supportivePrefaces.length)];
+    } else if (emotionalState.confidence < 0.2 && Math.random() < 0.25) {
+      const encouragingPrefaces = [
+        "Interesting point. ",
+        "Here's what I can tell you: ",
+        ""
+      ];
+      return encouragingPrefaces[Math.floor(Math.random() * encouragingPrefaces.length)];
     }
     return '';
   }
 
   private generateSupportiveConclusion(intentions: IntentionAnalysis, emotionalState: EmotionalState): string {
-    if (intentions.supportNeeds.includes('encouragement_and_reassurance')) {
-      return "Remember, learning is a process, and you're doing great by asking questions and staying curious. Feel free to ask if anything needs clarification!";
-    } else if (emotionalState.energy < 0.5) {
-      return "Take your time with this - there's no rush. I'm here whenever you need help or have more questions.";
-    } else {
-      return "Keep up the great work! I'm here if you want to explore this further or have other questions.";
+    // Only add natural conclusions occasionally and when appropriate
+    if (intentions.supportNeeds.includes('encouragement_and_reassurance') && Math.random() < 0.3) {
+      const naturalConclusions = [
+        "Let me know if you need more details.",
+        "Hope this helps!",
+        "Any other questions?",
+        ""
+      ];
+      return naturalConclusions[Math.floor(Math.random() * naturalConclusions.length)];
+    } else if (emotionalState.energy < 0.3 && Math.random() < 0.2) {
+      const supportiveConclusions = [
+        "What else would you like to know?",
+        "Does this answer your question?",
+        ""
+      ];
+      return supportiveConclusions[Math.floor(Math.random() * supportiveConclusions.length)];
+    } else if (emotionalState.energy > 0.7 && Math.random() < 0.25) {
+      const enthusiasticConclusions = [
+        "Anything else you'd like to explore?",
+        "What would you like to dive into next?",
+        ""
+      ];
+      return enthusiasticConclusions[Math.floor(Math.random() * enthusiasticConclusions.length)];
     }
+    return '';
   }
 
   private simplifyResponse(response: string): string {
