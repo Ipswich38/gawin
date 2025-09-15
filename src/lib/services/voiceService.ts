@@ -375,14 +375,14 @@ class VoiceService {
    * Select natural voice based on emotion - optimized for Filipino mid-20s speakers
    */
   private selectNaturalVoice(emotion?: string): string {
-    // Optimized for cute, buff 22-year-old Filipino guy that everyone could fall in love with
+    // Optimized for happy, smart, athletic 22-year-old who loves chatting all day
     const maleVoices = {
-      excited: 'Josh',    // Young, energetic, adorable excitement - perfect 22yo energy
-      friendly: 'Josh',   // Cute, charming, irresistible friendliness
-      thoughtful: 'Josh', // Young but wise, attractive contemplation
-      empathetic: 'Josh', // Sweet, caring, makes hearts melt
-      confident: 'Josh',  // Buff confidence with cute charm
-      default: 'Josh'     // Perfect 22yo cute but buff voice that's irresistible
+      excited: 'Josh',    // Happy but controlled excitement - athletic enthusiasm
+      friendly: 'Josh',   // Warm, intelligent friendliness - loves conversation
+      thoughtful: 'Josh', // Smart, contemplative analysis - intellectual depth
+      empathetic: 'Josh', // Caring, understanding - emotionally intelligent
+      confident: 'Josh',  // Athletic confidence with smart charm
+      default: 'Josh'     // Happy, smart, athletic conversationalist
     };
     
     // Alternative female voices for variety (if needed later)
@@ -420,14 +420,14 @@ class VoiceService {
    * Get stability setting for emotion - optimized for Filipino natural speech
    */
   private getStabilityForEmotion(emotion?: string): number {
-    // Adjusted for cute, buff 22-year-old that everyone falls in love with
+    // Adjusted for happy, smart, athletic personality who loves long conversations
     const stabilityMap = {
-      excited: 0.25,  // Lower stability for youthful, adorable energy
-      friendly: 0.4,  // Moderate stability for charming, cute friendliness
-      thoughtful: 0.6, // Balanced stability for young wisdom
-      empathetic: 0.5,  // Sweet, caring stability that melts hearts
-      confident: 0.3,   // Lower stability for attractive, buff confidence
-      default: 0.35     // Lower default for youthful, irresistible charm
+      excited: 0.45,  // Controlled excitement - happy but not overly hyper
+      friendly: 0.55,  // Stable friendliness - consistent conversational energy
+      thoughtful: 0.65, // Higher stability for intelligent analysis
+      empathetic: 0.6,  // Steady empathy - emotionally intelligent responses
+      confident: 0.5,   // Athletic confidence - steady and assured
+      default: 0.55     // Balanced default for sustained conversations
     };
     
     return stabilityMap[emotion as keyof typeof stabilityMap] || stabilityMap.default;
@@ -437,14 +437,14 @@ class VoiceService {
    * Get style setting for emotion - optimized for Filipino attractiveness
    */
   private getStyleForEmotion(emotion?: string): number {
-    // Adjusted for irresistibly cute, buff 22-year-old that everyone falls in love with
+    // Adjusted for smart, athletic personality who enjoys meaningful conversations
     const styleMap = {
-      excited: 0.8,     // High style for adorable, energetic excitement
-      friendly: 0.7,    // High style for charming, irresistible friendliness
-      thoughtful: 0.4,  // Moderate style for attractive young wisdom
-      empathetic: 0.8,  // High style for heart-melting empathy
-      confident: 0.9,   // Very high style for buff, attractive confidence
-      default: 0.75     // High default for maximum charm and attractiveness
+      excited: 0.5,     // Moderate style for happy but controlled enthusiasm
+      friendly: 0.45,   // Balanced style for genuine, intelligent friendliness
+      thoughtful: 0.3,  // Lower style for serious, smart contemplation
+      empathetic: 0.4,  // Moderate style for genuine, intelligent empathy
+      confident: 0.55,  // Athletic confidence - assured but not arrogant
+      default: 0.45     // Balanced default for sustained, engaging conversations
     };
     
     return styleMap[emotion as keyof typeof styleMap] || styleMap.default;
