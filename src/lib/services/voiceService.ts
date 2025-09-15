@@ -380,19 +380,31 @@ class VoiceService {
   }
 
   /**
-   * Select natural voice based on emotion
+   * Select natural voice based on emotion - optimized for Filipino mid-20s speakers
    */
   private selectNaturalVoice(emotion?: string): string {
-    const voices = {
-      excited: 'Josh',
-      friendly: 'Adam',
-      thoughtful: 'Daniel', 
-      empathetic: 'Brian',
-      confident: 'Sam',
-      default: 'Adam'
+    // Optimized for Filipino mid-20s bilingual speakers (male preference for Gawin)
+    const maleVoices = {
+      excited: 'Josh',    // Energetic, young, perfect for excited responses
+      friendly: 'Adam',   // Warm, professional, ideal for Filipino mid-20s
+      thoughtful: 'Ethan', // Smooth, contemplative, good for analysis
+      empathetic: 'Liam', // Casual, relatable, authentic for empathy
+      confident: 'Sam',   // Clear, modern, confident delivery
+      default: 'Adam'     // Natural, professional, warm - perfect default
     };
     
-    return voices[emotion as keyof typeof voices] || voices.default;
+    // Alternative female voices for variety (if needed later)
+    const femaleVoices = {
+      excited: 'Emily',   // Friendly, energetic
+      friendly: 'Bella', // Warm, professional, approachable
+      thoughtful: 'Grace', // Elegant, sophisticated  
+      empathetic: 'Sarah', // Versatile, natural, relatable
+      confident: 'Nicole', // Confident, engaging
+      default: 'Bella'    // Perfect for Filipino mid-20s female
+    };
+    
+    // For now, use male voices for Gawin (can be configurable later)
+    return maleVoices[emotion as keyof typeof maleVoices] || maleVoices.default;
   }
 
   /**
@@ -413,32 +425,34 @@ class VoiceService {
   }
 
   /**
-   * Get stability setting for emotion
+   * Get stability setting for emotion - optimized for Filipino natural speech
    */
   private getStabilityForEmotion(emotion?: string): number {
+    // Adjusted for Filipino mid-20s natural speech patterns
     const stabilityMap = {
-      excited: 0.3,
-      friendly: 0.5,
-      thoughtful: 0.7,
-      empathetic: 0.6,
-      confident: 0.4,
-      default: 0.5
+      excited: 0.35,  // Slightly more stable for Filipino energy
+      friendly: 0.6,  // Higher stability for warm Filipino friendliness
+      thoughtful: 0.75, // Very stable for contemplative responses
+      empathetic: 0.65,  // Stable for genuine empathy
+      confident: 0.45,   // Moderate stability for confident but not arrogant
+      default: 0.6      // Higher default for professional Filipino speech
     };
     
     return stabilityMap[emotion as keyof typeof stabilityMap] || stabilityMap.default;
   }
 
   /**
-   * Get style setting for emotion
+   * Get style setting for emotion - optimized for Filipino attractiveness
    */
   private getStyleForEmotion(emotion?: string): number {
+    // Adjusted for attractive Filipino mid-20s speech (not sexual, but engaging)
     const styleMap = {
-      excited: 0.8,
-      friendly: 0.3,
-      thoughtful: 0.1,
-      empathetic: 0.4,
-      confident: 0.6,
-      default: 0.2
+      excited: 0.7,     // High style for engaging excitement
+      friendly: 0.4,    // Moderate style for natural friendliness
+      thoughtful: 0.15, // Low style for serious contemplation
+      empathetic: 0.5,  // Moderate style for genuine care
+      confident: 0.6,   // Good style for attractive confidence
+      default: 0.35     // Moderate default for natural attractiveness
     };
     
     return styleMap[emotion as keyof typeof styleMap] || styleMap.default;

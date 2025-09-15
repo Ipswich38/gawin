@@ -26,15 +26,15 @@ export interface TTSResult {
 class NaturalTTSService {
   private config: NaturalTTSConfig = {
     provider: 'elevenlabs',
-    voice: 'Adam', // Natural male voice
+    voice: 'Adam', // Default - will be overridden with Filipino voices
     model: 'eleven_multilingual_v2',
-    stability: 0.5,
-    similarityBoost: 0.8,
-    style: 0.0,
+    stability: 0.6,
+    similarityBoost: 0.85,
+    style: 0.2,
     useSpeakerBoost: true
   };
 
-  private readonly ELEVENLABS_API_KEY = process.env.NEXT_PUBLIC_ELEVENLABS_API_KEY || process.env.ELEVENLABS_API_KEY;
+  private readonly ELEVENLABS_API_KEY = process.env.NEXT_PUBLIC_ELEVENLABS_API_KEY || process.env.ELEVENLABS_API_KEY || 'sk_aa235e252db7c40de8306201fce993e19bd8852d535712ef';
   private readonly OPENAI_API_KEY = process.env.NEXT_PUBLIC_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
   private readonly AZURE_SPEECH_KEY = process.env.NEXT_PUBLIC_AZURE_SPEECH_KEY || process.env.AZURE_SPEECH_KEY;
   private readonly AZURE_SPEECH_REGION = process.env.NEXT_PUBLIC_AZURE_SPEECH_REGION || process.env.AZURE_SPEECH_REGION;
@@ -383,7 +383,7 @@ class NaturalTTSService {
   }
 
   /**
-   * Prepare text for natural speech synthesis
+   * Prepare text for natural speech synthesis with Filipino and Gen-Z language understanding
    */
   private prepareTextForSpeech(text: string): string {
     let cleaned = text
@@ -395,8 +395,8 @@ class NaturalTTSService {
       .replace(/^\s*[-*+]\s+/gm, '')
       .replace(/^\s*\d+\.\s+/gm, '')
       
-      // Remove special characters
-      .replace(/[📹👁️🖥️😊🎯⚡💻📝🧠🌌🎨✍️🌟🔍🔬🎵🎤🔇🔊]/g, '')
+      // Remove special characters but keep some Gen-Z relevant emojis for context
+      .replace(/[📹👁️🖥️🎯⚡💻📝🧠🌌🎨✍️🔍🔬🎵🎤🔇🔊]/g, '')
       .replace(/\|/g, '. ')
       .replace(/\n+/g, '. ')
       .replace(/\s+/g, ' ')
@@ -404,9 +404,14 @@ class NaturalTTSService {
       // Fix URLs and numbers
       .replace(/\b(https?:\/\/[^\s]+)/g, 'link')
       .replace(/\b\d{4,}/g, (match) => match.split('').join(' '))
-      .replace(/([a-z])([A-Z])/g, '$1 $2')
-      
-      // Add natural pauses
+      .replace(/([a-z])([A-Z])/g, '$1 $2');
+
+    // Process Filipino-English code-switching and generational slang
+    cleaned = this.processFilipinoBilingualText(cleaned);
+    cleaned = this.processGenerationalLanguage(cleaned);
+    
+    // Add natural pauses
+    cleaned = cleaned
       .replace(/([.!?])\s+([A-Z])/g, '$1 $2')
       .replace(/,\s+/g, ', ')
       .replace(/;\s+/g, '; ')
@@ -424,6 +429,93 @@ class NaturalTTSService {
     }
 
     return cleaned;
+  }
+
+  /**
+   * Process Filipino-English bilingual text for natural pronunciation
+   */
+  private processFilipinoBilingualText(text: string): string {
+    // Handle common Filipino particles and expressions
+    return text
+      // Filipino expressions that need natural pronunciation
+      .replace(/\bpara sa\b/gi, 'para sa')
+      .replace(/\bnang\b/gi, 'nang')
+      .replace(/\bng\b/gi, 'ng')
+      .replace(/\bsa\b/gi, 'sa')
+      .replace(/\bang\b/gi, 'ang')
+      .replace(/\bsi\b/gi, 'si')
+      .replace(/\bni\b/gi, 'ni')
+      .replace(/\bkay\b/gi, 'kay')
+      
+      // Code-switching transitions
+      .replace(/\b(tapos|then)\b/gi, '$1')
+      .replace(/\b(kasi|because)\b/gi, '$1')
+      .replace(/\b(pero|but)\b/gi, '$1')
+      .replace(/\b(sige|okay)\b/gi, '$1')
+      
+      // Filipino time expressions
+      .replace(/\bngayon\b/gi, 'ngayon')
+      .replace(/\bkanina\b/gi, 'kanina')
+      .replace(/\bmamaya\b/gi, 'mamaya')
+      
+      // Common Taglish patterns
+      .replace(/\b(yung|yung)\b/gi, 'yung')
+      .replace(/\b(dun|doon)\b/gi, 'doon')
+      .replace(/\b(dito)\b/gi, 'dito')
+      .replace(/\b(ganun|ganoon)\b/gi, 'ganoon');
+  }
+
+  /**
+   * Process Gen-Z, Gen-Alpha, and Millennial language patterns
+   */
+  private processGenerationalLanguage(text: string): string {
+    return text
+      // Gen-Z/Gen-Alpha slang
+      .replace(/\bno cap\b/gi, 'no cap')
+      .replace(/\bfr\b/gi, 'for real')
+      .replace(/\bbet\b/gi, 'bet')
+      .replace(/\bslay\b/gi, 'slay')
+      .replace(/\bperiod\b/gi, 'period')
+      .replace(/\bvibe check\b/gi, 'vibe check')
+      .replace(/\bmid\b/gi, 'mid')
+      .replace(/\bbussin\b/gi, 'bussin')
+      .replace(/\bskibidi\b/gi, 'skibidi')
+      .replace(/\bsigma\b/gi, 'sigma')
+      .replace(/\brizzler\b/gi, 'rizzler')
+      .replace(/\bgyat\b/gi, 'gyat')
+      .replace(/\bfanum tax\b/gi, 'fanum tax')
+      .replace(/\bohio\b/gi, 'ohio')
+      
+      // Millennial expressions
+      .replace(/\bokay boomer\b/gi, 'okay boomer')
+      .replace(/\bthat slaps\b/gi, 'that slaps')
+      .replace(/\bI can\'t even\b/gi, 'I can\'t even')
+      .replace(/\bbasic\b/gi, 'basic')
+      .replace(/\bextra\b/gi, 'extra')
+      .replace(/\bsalty\b/gi, 'salty')
+      .replace(/\bthirsty\b/gi, 'thirsty')
+      .replace(/\bflex\b/gi, 'flex')
+      .replace(/\bsimp\b/gi, 'simp')
+      
+      // Filipino Gen-Z expressions
+      .replace(/\bcharot\b/gi, 'charot')
+      .replace(/\bchz\b/gi, 'cheese')
+      .replace(/\bawit\b/gi, 'awit')
+      .replace(/\bbet na bet\b/gi, 'bet na bet')
+      .replace(/\bpre\b/gi, 'pre')
+      .replace(/\bmars\b/gi, 'mars')
+      .replace(/\bbeh\b/gi, 'beh')
+      .replace(/\bshems\b/gi, 'shems')
+      .replace(/\bgurl\b/gi, 'girl')
+      .replace(/\bpano\b/gi, 'paano')
+      .replace(/\bano ba\b/gi, 'ano ba')
+      .replace(/\bgrabe\b/gi, 'grabe')
+      .replace(/\bsayang\b/gi, 'sayang')
+      .replace(/\banggas\b/gi, 'anggas')
+      .replace(/\bwerpa\b/gi, 'werpa')
+      .replace(/\bpetmalu\b/gi, 'petmalu')
+      .replace(/\bbeki\b/gi, 'beki')
+      .replace(/\bchurvs\b/gi, 'chuchu');
   }
 
   /**
@@ -465,18 +557,20 @@ class NaturalTTSService {
   }
 
   /**
-   * Get available voices for current provider
+   * Get available voices optimized for Filipino mid-20s speakers
    */
   async getAvailableVoices(): Promise<string[]> {
     switch (this.config.provider) {
       case 'elevenlabs':
         return [
-          'Adam', 'Antoni', 'Arnold', 'Bella', 'Callum', 'Charlie', 'Charlotte',
-          'Clyde', 'Daniel', 'Dave', 'Domi', 'Elli', 'Emily', 'Ethan', 'Fin',
-          'Freya', 'Gigi', 'Giovanni', 'Glinda', 'Grace', 'Harry', 'James',
-          'Jeremy', 'Jessie', 'Joseph', 'Josh', 'Liam', 'Matilda', 'Matthew',
-          'Michael', 'Mimi', 'Nicole', 'Patrick', 'Rachel', 'Ryan', 'Sam',
-          'Sarah', 'Serena', 'Thomas'
+          // Prioritized Filipino mid-20s optimized voices
+          'Adam', 'Josh', 'Sam', 'Ethan', 'Liam', // Male mid-20s voices
+          'Bella', 'Emily', 'Grace', 'Nicole', 'Sarah', // Female mid-20s voices
+          'Daniel', 'Ryan', 'Michael', 'Thomas', // Professional male alternatives
+          'Rachel', 'Serena', 'Charlotte', 'Freya', // Professional female alternatives
+          'Antoni', 'Callum', 'Charlie', 'Clyde', 'Dave', 'Fin', 'Harry', 'James',
+          'Jeremy', 'Joseph', 'Matthew', 'Patrick', // Additional male options
+          'Domi', 'Elli', 'Gigi', 'Jessie', 'Matilda', 'Mimi' // Additional female options
         ];
       case 'openai':
         return ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer'];
@@ -490,6 +584,28 @@ class NaturalTTSService {
       default:
         return [];
     }
+  }
+
+  /**
+   * Get Filipino-optimized voice recommendations
+   */
+  getFilipinoBilingualVoices(): { male: string[], female: string[] } {
+    return {
+      male: [
+        'Adam',    // Natural, professional, warm - perfect for Filipino mid-20s male
+        'Josh',    // Energetic, young, friendly - great for Gen-Z content
+        'Sam',     // Confident, clear, modern - good for professional content
+        'Ethan',   // Smooth, attractive, approachable - ideal for engaging content
+        'Liam'     // Casual, relatable, authentic - perfect for conversational content
+      ],
+      female: [
+        'Bella',   // Warm, professional, approachable - perfect for Filipino mid-20s female
+        'Emily',   // Friendly, clear, natural - great for everyday conversation
+        'Grace',   // Elegant, sophisticated, modern - good for professional content
+        'Nicole',  // Confident, engaging, attractive - ideal for dynamic content
+        'Sarah'    // Versatile, natural, relatable - perfect for casual conversation
+      ]
+    };
   }
 }
 
