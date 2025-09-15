@@ -59,7 +59,7 @@ const HuggingFaceTest: React.FC = () => {
       results.push({ 
         test: 'Error', 
         status: 'failed',
-        data: { error: error.message }
+        data: { error: error instanceof Error ? error.message : String(error) }
       });
       setTestResults([...results]);
     }
