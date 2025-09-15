@@ -306,16 +306,29 @@ class VoiceService {
   private fallbackToBrowserTTS(processedText: string, languageDetection: any, options: SpeechOptions): void {
     const utterance = new SpeechSynthesisUtterance(processedText);
     
-    // Configure voice settings based on detected language with natural variation
-    utterance.voice = this.config.voice;
-    utterance.rate = this.addNaturalVariation(this.adjustRateForLanguageAndEmotion(languageDetection.primary, options.emotion), 'rate');
-    utterance.pitch = this.addNaturalVariation(this.adjustPitchForLanguageAndEmotion(languageDetection.primary, options.emotion), 'pitch');
+    // Enhanced voice selection for more natural speech
+    const bestVoice = this.selectBestNaturalVoice(languageDetection);
+    utterance.voice = bestVoice || this.config.voice;
+    
+    // More natural speech parameters with enhanced variation
+    const baseRate = 0.85; // Slower for more natural conversation
+    const basePitch = 1.02; // Slightly higher but more natural
+    
+    utterance.rate = this.addNaturalVariation(baseRate * this.getEmotionRateMultiplier(options.emotion), 'rate');
+    utterance.pitch = this.addNaturalVariation(basePitch * this.getEmotionPitchMultiplier(options.emotion), 'pitch');
     utterance.volume = this.config.volume;
     utterance.lang = this.mapLanguageToVoiceLang(languageDetection.primary, options.language);
 
     // Set up event listeners
     utterance.onstart = () => {
-      console.log('🎤 Gawin started speaking (Browser TTS):', processedText.substring(0, 50) + '...');
+      console.log('🎤 Gawin started speaking (Enhanced Browser TTS):', processedText.substring(0, 50) + '...');
+      console.log('🎵 Voice details:', {
+        name: utterance.voice?.name || 'No voice selected',
+        lang: utterance.voice?.lang || 'Unknown',
+        rate: utterance.rate,
+        pitch: utterance.pitch,
+        volume: utterance.volume
+      });
       this.callbacks.onStart?.();
     };
 
@@ -339,6 +352,73 @@ class VoiceService {
 
     this.currentUtterance = utterance;
     this.synthesis!.speak(utterance);
+  }
+
+  /**
+   * Select the best natural voice for more human-like speech
+   */
+  private selectBestNaturalVoice(languageDetection: any): SpeechSynthesisVoice | null {
+    const voices = this.synthesis?.getVoices() || [];
+    
+    // Prioritize highest quality voices for natural speech
+    const premiumVoiceNames = [
+      'Samantha', 'Alex', 'Victoria', 'Daniel', 'Karen', 'Moira', 'Rishi',
+      'Google', 'Microsoft', 'Natural', 'Neural', 'Premium', 'Enhanced'
+    ];
+    
+    // First try to find premium voices
+    for (const voiceName of premiumVoiceNames) {
+      const voice = voices.find(v => 
+        v.name.includes(voiceName) && 
+        v.lang.startsWith('en') &&
+        !v.name.toLowerCase().includes('compact') // Avoid compact versions
+      );
+      if (voice) {
+        console.log(`🎵 Selected premium natural voice: ${voice.name} (${voice.lang})`);
+        return voice;
+      }
+    }
+    
+    // Fallback to non-robotic sounding voices
+    const naturalVoice = voices.find(v => 
+      v.lang.startsWith('en') && 
+      !v.name.toLowerCase().includes('robot') &&
+      !v.name.toLowerCase().includes('compact') &&
+      !v.name.toLowerCase().includes('monotone')
+    );
+    
+    if (naturalVoice) {
+      console.log(`🎵 Selected natural fallback voice: ${naturalVoice.name} (${naturalVoice.lang})`);
+      return naturalVoice;
+    }
+    
+    return null;
+  }
+
+  /**
+   * Get emotion-based rate multiplier for more expressive speech
+   */
+  private getEmotionRateMultiplier(emotion?: string): number {
+    switch (emotion) {
+      case 'excited': return 1.2;
+      case 'calm': return 0.9;
+      case 'friendly': return 1.05;
+      case 'confident': return 1.1;
+      default: return 1.0;
+    }
+  }
+
+  /**
+   * Get emotion-based pitch multiplier for more expressive speech
+   */
+  private getEmotionPitchMultiplier(emotion?: string): number {
+    switch (emotion) {
+      case 'excited': return 1.15;
+      case 'calm': return 0.95;
+      case 'friendly': return 1.08;
+      case 'confident': return 1.05;
+      default: return 1.0;
+    }
   }
 
   /**

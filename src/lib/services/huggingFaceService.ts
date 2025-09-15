@@ -947,8 +947,11 @@ class HuggingFaceService {
         };
       }
 
-      // Fallback: Use Azure TTS if available
-      return await this.useAzureTTS(text, options);
+      // For now, fail gracefully to allow browser TTS fallback
+      return {
+        success: false,
+        error: 'HuggingFace TTS models currently unavailable - using browser TTS fallback'
+      };
       
     } catch (error) {
       console.error('HuggingFace TTS error:', error);
