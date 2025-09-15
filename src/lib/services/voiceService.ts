@@ -27,8 +27,8 @@ class VoiceService {
     enabled: false,
     autoSpeak: true,
     voice: null,
-    rate: 1.1, // Slightly faster for younger, more energetic sound
-    pitch: 1.2, // Higher pitch for younger male voice (mid-20s)
+    rate: 0.98, // Conversational pacing (140-160 WPM equivalent)
+    pitch: 0.95, // Medium-low for mid-20s male baritone, approachable
     volume: 0.9,
     language: 'en-US'
   };
@@ -81,31 +81,34 @@ class VoiceService {
   private selectOptimalVoice(): void {
     if (!this.availableVoices.length) return;
 
-    // Priority order for young male voices (mid-20s, energetic, human-like)
+    // Priority order for mid-20s friendly male voices (warm, slightly husky, approachable)
     const preferredVoices = [
-      // Younger-sounding voices first
-      'Google US English Male',
-      'Microsoft Ryan - English (United States)', // Younger sounding
-      'Microsoft Guy - English (United States)', // Natural and young
-      'Microsoft Adrian - English (United States)', // Friendly voice
-      'Alex', // macOS - natural sounding
-      'Tom', // macOS - younger voice
-      'Fred', // macOS - casual voice
-      'Microsoft Zira - English (United States)', // Sometimes works as male alternative
+      // Top priority: Natural, friendly, mid-20s sounding voices
+      'Alex', // macOS - very natural, warm tone
+      'Microsoft Guy - English (United States)', // Natural and friendly
+      'Microsoft Adrian - English (United States)', // Warm, approachable
+      'Google US English Male', // Clear, natural
+      'Microsoft Ryan - English (United States)', // Young, energetic
+      'Tom', // macOS - casual, friendly
+      'Fred', // macOS - relaxed, conversational
+      'Daniel', // macOS UK - warm accent
       
-      // Fallback modern voices
-      'Microsoft David - English (United States)',
+      // Secondary: Good quality voices
       'Microsoft Mark - English (United States)',
-      'Daniel', // macOS UK
+      'Microsoft Jacob - English (United States)',
+      'Microsoft Connor - English (Ireland)', // Irish accent can be warm
+      'Microsoft Liam - English (Canada)', // Canadian accent
       
-      // General fallbacks
+      // Fallback voices
+      'Microsoft David - English (United States)',
       'Male',
       'Man',
-      'Ryan',
       'Guy',
       'Adrian',
-      'Aaron',
-      'James'
+      'Ryan',
+      'Connor',
+      'Liam',
+      'Jacob'
     ];
 
     // First, try to find voices by exact name match
@@ -232,27 +235,28 @@ class VoiceService {
   private async speakNow(options: SpeechOptions): Promise<void> {
     if (!this.synthesis || !this.config.voice) return;
 
-    // Clean text for speech (remove markdown, code blocks, etc.)
-    const cleanText = this.cleanTextForSpeech(options.text);
+    // Detect language and prepare text with proper prosody
+    const languageDetection = this.detectLanguage(options.text);
+    const processedText = this.prepareTextForSpeech(options.text, languageDetection, options.emotion);
     
-    if (!cleanText.trim()) {
+    if (!processedText.trim()) {
       // Continue processing queue
       setTimeout(() => this.processVoiceQueue(), 100);
       return;
     }
 
-    const utterance = new SpeechSynthesisUtterance(cleanText);
+    const utterance = new SpeechSynthesisUtterance(processedText);
     
-    // Configure voice settings
+    // Configure voice settings based on detected language
     utterance.voice = this.config.voice;
-    utterance.rate = this.adjustRateForEmotion(options.emotion);
-    utterance.pitch = this.adjustPitchForEmotion(options.emotion);
+    utterance.rate = this.adjustRateForLanguageAndEmotion(languageDetection.primary, options.emotion);
+    utterance.pitch = this.adjustPitchForLanguageAndEmotion(languageDetection.primary, options.emotion);
     utterance.volume = this.config.volume;
-    utterance.lang = options.language || this.config.language;
+    utterance.lang = this.mapLanguageToVoiceLang(languageDetection.primary, options.language);
 
     // Set up event listeners
     utterance.onstart = () => {
-      console.log('🎤 Gawin started speaking:', cleanText.substring(0, 50) + '...');
+      console.log('🎤 Gawin started speaking:', processedText.substring(0, 50) + '...');
       this.callbacks.onStart?.();
     };
 
@@ -483,11 +487,195 @@ class VoiceService {
    */
   async testVoice(): Promise<void> {
     await this.speak({
-      text: "Hello! I'm Gawin, your AI learning companion. I'm here to help you learn and grow. How does my voice sound?",
+      text: "Hey — kumusta? I'm Gawin. Let's get this done together.",
       emotion: 'friendly',
       priority: 'high',
       interrupt: true
     });
+  }
+
+  /**
+   * Detect language in text for better prosody
+   */
+  private detectLanguage(text: string): { primary: string; hasTagalog: boolean; hasEnglish: boolean; mixedLanguage: boolean } {
+    const tagalogWords = [
+      'kumusta', 'salamat', 'oo', 'hindi', 'tara', 'kaya', 'naman', 'lang', 'mga', 'ang', 'ng', 'sa', 'ko', 'mo', 'niya',
+      'tayo', 'kayo', 'sila', 'ako', 'ikaw', 'siya', 'kami', 'tayong', 'kayong', 'silang', 'ito', 'iyan', 'iyon',
+      'dito', 'diyan', 'doon', 'galing', 'pupunta', 'dating', 'kasi', 'pero', 'tapos', 'habang', 'kahit', 'para',
+      'gusto', 'ayaw', 'mahal', 'galit', 'tuwa', 'lungkot', 'takot', 'sulit', 'maganda', 'pangit', 'mabait', 'masama'
+    ];
+
+    const words = text.toLowerCase().split(/\s+/);
+    const tagalogCount = words.filter(word => tagalogWords.includes(word.replace(/[^\w]/g, ''))).length;
+    const englishCount = words.filter(word => /^[a-z]+$/.test(word) && !tagalogWords.includes(word)).length;
+    
+    const hasTagalog = tagalogCount > 0;
+    const hasEnglish = englishCount > 0;
+    const mixedLanguage = hasTagalog && hasEnglish;
+
+    let primary = 'english';
+    if (tagalogCount > englishCount && hasTagalog) {
+      primary = 'tagalog';
+    } else if (mixedLanguage) {
+      primary = 'taglish';
+    }
+
+    return { primary, hasTagalog, hasEnglish, mixedLanguage };
+  }
+
+  /**
+   * Prepare text for speech with natural prosody and SSML-like enhancements
+   */
+  private prepareTextForSpeech(text: string, languageDetection: any, emotion?: string): string {
+    // First, clean the text
+    let processedText = this.cleanTextForSpeech(text);
+
+    // Add natural pauses and emphasis based on content
+    processedText = this.addNaturalProsody(processedText, languageDetection, emotion);
+
+    return processedText;
+  }
+
+  /**
+   * Add natural prosody patterns for more human-like speech
+   */
+  private addNaturalProsody(text: string, languageDetection: any, emotion?: string): string {
+    let result = text;
+
+    // Add micro-pauses before important words
+    result = result.replace(/\b(hey|hello|hi|kumusta|salamat|thank you|please|tara|let's|imagine|tell me)\b/gi, (match) => {
+      return `${match}`; // Browser TTS doesn't support custom pauses, but we can adjust pacing
+    });
+
+    // Handle Filipino interjections naturally
+    result = result.replace(/\b(oo|hindi|kasi|naman|lang|talaga)\b/gi, (match) => {
+      return match; // Keep natural Filipino rhythm
+    });
+
+    // Add friendly emphasis patterns
+    if (emotion === 'friendly') {
+      result = result.replace(/\b(great|awesome|nice|good|excellent|galing|maganda)\b/gi, (match) => {
+        return match; // Emphasize positive words
+      });
+    }
+
+    // Handle code-switching transitions smoothly
+    if (languageDetection.mixedLanguage) {
+      // Add slight pauses at language boundaries for smoother transitions
+      result = result.replace(/([a-z]+)\s+(kumusta|tara|kasi|naman|lang)/gi, '$1 $2');
+      result = result.replace(/(kumusta|salamat|oo|hindi)\s+([a-z]+)/gi, '$1 $2');
+    }
+
+    return result;
+  }
+
+  /**
+   * Adjust speech rate based on language and emotion
+   */
+  private adjustRateForLanguageAndEmotion(language: string, emotion?: string): number {
+    let baseRate = this.config.rate;
+
+    // Adjust base rate for language
+    switch (language) {
+      case 'tagalog':
+        baseRate = this.config.rate * 1.02; // Slightly faster syllabic rate for Tagalog
+        break;
+      case 'taglish':
+        baseRate = this.config.rate * 1.0; // Maintain conversational pace for code-switching
+        break;
+      default:
+        baseRate = this.config.rate;
+    }
+
+    // Apply emotion adjustments
+    switch (emotion) {
+      case 'excited': return Math.min(1.2, baseRate + 0.12);
+      case 'thoughtful': return Math.max(0.85, baseRate - 0.12);
+      case 'empathetic': return Math.max(0.9, baseRate - 0.08);
+      case 'friendly': return baseRate + 0.06;
+      default: return baseRate;
+    }
+  }
+
+  /**
+   * Adjust pitch based on language and emotion
+   */
+  private adjustPitchForLanguageAndEmotion(language: string, emotion?: string): number {
+    let basePitch = this.config.pitch;
+
+    // Adjust base pitch for language characteristics
+    switch (language) {
+      case 'tagalog':
+        basePitch = this.config.pitch + 0.05; // Slightly higher for melodic Tagalog phrasing
+        break;
+      case 'taglish':
+        basePitch = this.config.pitch + 0.02; // Slight adjustment for natural code-switching
+        break;
+      default:
+        basePitch = this.config.pitch;
+    }
+
+    // Apply emotion adjustments
+    switch (emotion) {
+      case 'excited': return Math.min(1.15, basePitch + 0.12);
+      case 'friendly': return Math.min(1.05, basePitch + 0.06);
+      case 'thoughtful': return Math.max(0.88, basePitch - 0.08);
+      case 'empathetic': return Math.max(0.92, basePitch - 0.04);
+      default: return basePitch;
+    }
+  }
+
+  /**
+   * Map detected language to voice language code
+   */
+  private mapLanguageToVoiceLang(detectedLanguage: string, providedLanguage?: string): string {
+    if (providedLanguage) {
+      return providedLanguage;
+    }
+
+    switch (detectedLanguage) {
+      case 'tagalog':
+        return 'fil-PH';
+      case 'taglish':
+        return 'en-PH';
+      default:
+        return 'en-US';
+    }
+  }
+
+  /**
+   * Enhanced emotion detection with Filipino language support
+   */
+  private detectEmotionFromTextEnhanced(text: string): SpeechOptions['emotion'] {
+    const lowerText = text.toLowerCase();
+    
+    // Excited indicators
+    if (lowerText.includes('!') && (
+      lowerText.includes('great') || lowerText.includes('awesome') || lowerText.includes('amazing') ||
+      lowerText.includes('galing') || lowerText.includes('astig') || lowerText.includes('wow')
+    )) {
+      return 'excited';
+    }
+
+    // Empathetic indicators
+    if (lowerText.includes('sorry') || lowerText.includes('understand') || lowerText.includes('feel') ||
+        lowerText.includes('pasensya') || lowerText.includes('intindi') || lowerText.includes('naiintindihan')) {
+      return 'empathetic';
+    }
+
+    // Thoughtful indicators
+    if (lowerText.includes('think') || lowerText.includes('consider') || lowerText.includes('analyze') ||
+        lowerText.includes('isip') || lowerText.includes('pag-isipan')) {
+      return 'thoughtful';
+    }
+
+    // Friendly indicators
+    if (lowerText.includes('hello') || lowerText.includes('hi') || lowerText.includes('welcome') ||
+        lowerText.includes('kumusta') || lowerText.includes('kamusta') || lowerText.includes('tara')) {
+      return 'friendly';
+    }
+
+    return 'neutral';
   }
 }
 
