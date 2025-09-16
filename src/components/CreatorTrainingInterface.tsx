@@ -103,7 +103,7 @@ export function CreatorTrainingInterface({
 
   if (!config || !consciousnessReport) {
     return (
-      <div className=\"flex items-center justify-center p-8\">
+      <div className="flex items-center justify-center p-8">
         <div className=\"text-center\">
           <Brain className=\"w-8 h-8 animate-spin mx-auto mb-4\" />
           <p>Loading Gawin's consciousness...</p>
