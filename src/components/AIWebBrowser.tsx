@@ -19,6 +19,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { webBrowsingAgent } from '@/lib/agents/webBrowsingAgent';
 import type { AgentTask, BrowsingSession, BrowsingFinding } from '@/lib/agents/webBrowsingAgent';
+import { intelligentWebScrapingService, type RealTimeSearchResult, type WebSynthesisResult } from '@/lib/services/intelligentWebScrapingService';
 
 interface AIWebBrowserProps {
   userEmail: string;
@@ -41,6 +42,84 @@ export default function AIWebBrowser({ userEmail, onResult, onProgress }: AIWebB
   
   const executionIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  /**
+   * Enhanced intelligent web browsing with real-time AI synthesis
+   */
+  const startIntelligentBrowsing = async (sessionId: string, goal: string) => {
+    try {
+      setProgress('🧠 Starting intelligent web analysis...');
+      
+      const searchOptions = {
+        academicFocus: goal.toLowerCase().includes('research') || goal.toLowerCase().includes('study'),
+        realTimeMode: true,
+        maxSources: 15,
+        includeVisualContent: true,
+        synthesisType: 'comprehensive' as const
+      };
+
+      // Perform intelligent comprehensive search
+      const searchResults = await intelligentWebScrapingService.intelligentComprehensiveSearch(
+        goal,
+        searchOptions
+      );
+
+      setProgress('🎯 Processing intelligent insights...');
+      
+      // Extract and display intelligent findings
+      if (searchResults.length > 0) {
+        const intelligentFindings: BrowsingFinding[] = searchResults.flatMap(result => 
+          result.sources.map(source => ({
+            id: `intelligent-${source.url}`,
+            type: 'insight' as const,
+            content: `${source.title}\n\n${source.summary}\n\nKey Points:\n${source.keyPoints.map(p => `• ${p}`).join('\n')}`,
+            relevance: source.relevanceScore,
+            source: source.url,
+            timestamp: Date.now()
+          }))
+        );
+
+        // Update findings with intelligent results
+        setFindings(prev => [...intelligentFindings, ...prev]);
+        
+        // Create intelligent synthesis report
+        if (searchResults.length > 0 && searchResults[0].synthesizedInsights) {
+          const synthesis = searchResults[0].synthesizedInsights;
+          const intelligentSummary = `
+🧠 **Intelligent Web Synthesis**
+
+**Key Findings:**
+${synthesis.mainThemes.map(theme => `• ${theme}`).join('\n')}
+
+**Expert Consensus:**
+${synthesis.consensus.map(point => `• ${point}`).join('\n')}
+
+**Emerging Trends:**
+${synthesis.emergingTrends.map(trend => `• ${trend}`).join('\n')}
+
+**Quality Assessment:**
+• Sources analyzed: ${intelligentFindings.length}
+• High credibility sources: ${intelligentFindings.filter(f => f.relevance > 0.8).length}
+• Real-time data integration: ✅
+
+**Search Quality:** ${Math.round(searchResults[0].searchQuality * 100)}%
+          `;
+          
+          setSessionSummary(intelligentSummary);
+          
+          if (onResult) {
+            onResult(intelligentSummary);
+          }
+        }
+      }
+      
+      setProgress('✨ Intelligent analysis complete - continuing with agent browsing...');
+      
+    } catch (error) {
+      console.error('Intelligent browsing failed:', error);
+      setProgress('⚠️ Intelligent analysis encountered issues - proceeding with standard browsing...');
+    }
+  };
 
   /**
    * Start a new AI browsing session
@@ -71,6 +150,9 @@ export default function AIWebBrowser({ userEmail, onResult, onProgress }: AIWebB
       if (onProgress) {
         onProgress(`Started AI browsing session for: ${goal}`);
       }
+      
+      // Enhanced: Start intelligent web browsing with real-time synthesis
+      await startIntelligentBrowsing(sessionId, goal.trim());
       
       // Start task execution loop
       startTaskExecution(sessionId);

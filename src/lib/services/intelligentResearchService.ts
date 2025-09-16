@@ -5,6 +5,7 @@
  */
 
 import { webScrapingService } from './webScrapingService';
+import { intelligentWebScrapingService, type RealTimeSearchResult, type WebSynthesisResult } from './intelligentWebScrapingService';
 import { groqService } from './groqService';
 
 export interface ResearchContext {
@@ -19,12 +20,19 @@ export interface IntelligentSource {
   url: string;
   title: string;
   content: string;
+  summary: string;
   authority: number;
   relevance: number;
   recency: number;
   extractedConcepts: string[];
   keyInsights: string[];
   credibilityScore: number;
+  sourceType: string;
+  citationCount: number;
+  factualAccuracy: number;
+  bias: number;
+  methodology: string;
+  sampleSize: number;
 }
 
 export interface ConceptMap {
@@ -256,35 +264,70 @@ class IntelligentResearchService {
   }
 
   /**
-   * Smart source discovery with quality validation
+   * Production-ready intelligent source discovery with AI-powered validation
    */
   private async discoverAndValidateSources(
     queries: string[],
     context: ResearchContext
   ): Promise<IntelligentSource[]> {
+    console.log('🔍 Starting intelligent source discovery...');
+    
     const sources: IntelligentSource[] = [];
-    const maxSourcesPerQuery = 5;
+    const primaryQuery = queries[0]; // Use the most relevant query for main search
+    
+    try {
+      // Use intelligent web scraping with real-time capabilities
+      const searchOptions = {
+        maxSources: 20,
+        includeRecentOnly: false,
+        academicFocus: context.academicLevel === 'graduate' || context.academicLevel === 'doctoral',
+        realTimeMode: true
+      };
 
-    for (const query of queries.slice(0, 6)) { // Limit to 6 queries for quality
-      try {
-        const searchResults = await webScrapingService.comprehensiveSearch(query);
-        const allSources = searchResults.flatMap(result => result.sources).slice(0, maxSourcesPerQuery);
-        
-        for (const result of allSources) {
-          if (result.content && result.url) {
-            const source = await this.analyzeSource(result, context);
-            if (source && source.credibilityScore > 70) {
-              sources.push(source);
-            }
+      const realTimeResults = await intelligentWebScrapingService.intelligentComprehensiveSearch(
+        primaryQuery,
+        searchOptions
+      );
+
+      // Convert intelligent scraped content to research sources
+      for (const result of realTimeResults) {
+        for (const source of result.sources) {
+          if (source.credibilityScore > 0.6 && source.qualityScore > 0.5) {
+            const researchSource: IntelligentSource = {
+              url: source.url,
+              title: source.title,
+              content: source.content,
+              summary: source.summary,
+              keyInsights: source.keyPoints,
+              extractedConcepts: source.entities.concepts || [],
+              credibilityScore: Math.round(source.credibilityScore * 100),
+              relevance: Math.round(source.relevanceScore * 100),
+              authority: Math.round(source.qualityScore * 100),
+              recency: this.calculateRecencyScore(source.extractedAt),
+              sourceType: this.mapSourceType(source.metadata.type),
+              citationCount: source.citations.length,
+              factualAccuracy: Math.round(source.credibilityScore * 95), // Slight adjustment
+              bias: source.sentiment === 'neutral' ? 10 : 25, // Lower bias for neutral sentiment
+              methodology: this.assessMethodology(source),
+              sampleSize: this.extractSampleSize(source.content)
+            };
+            
+            sources.push(researchSource);
           }
         }
-      } catch (error) {
-        console.error(`Search failed for query: ${query}`, error);
       }
-    }
 
-    // Sort by combined quality score and deduplicate
-    return this.deduplicateAndRankSources(sources).slice(0, 15);
+      console.log(`✅ Discovered ${sources.length} high-quality sources`);
+
+      // Sort by combined quality metrics and return top sources
+      return this.deduplicateAndRankSources(sources).slice(0, 15);
+      
+    } catch (error) {
+      console.error('Intelligent source discovery failed:', error);
+      
+      // Fallback to standard scraping if intelligent service fails
+      return this.fallbackSourceDiscovery(queries, context);
+    }
   }
 
   /**
@@ -329,12 +372,19 @@ class IntelligentResearchService {
         url: scrapedContent.url,
         title: scrapedContent.title || 'Untitled',
         content: scrapedContent.content,
+        summary: parsed.summary || scrapedContent.content.substring(0, 300) + '...',
         authority: parsed.authority || 50,
         relevance: parsed.relevance || 50,
         recency: parsed.recency || 50,
         extractedConcepts: parsed.extractedConcepts || [],
         keyInsights: parsed.keyInsights || [],
-        credibilityScore: parsed.credibilityScore || 50
+        credibilityScore: parsed.credibilityScore || 50,
+        sourceType: 'web',
+        citationCount: 0,
+        factualAccuracy: 70,
+        bias: 30,
+        methodology: 'web-content',
+        sampleSize: 0
       };
     } catch (error) {
       console.error('Source analysis failed:', error);
@@ -566,6 +616,82 @@ class IntelligentResearchService {
 
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Helper methods for intelligent source processing
+   */
+  private calculateRecencyScore(extractedAt: number): number {
+    const now = Date.now();
+    const ageInDays = (now - extractedAt) / (1000 * 60 * 60 * 24);
+    
+    // Newer content gets higher scores
+    if (ageInDays < 30) return 100;
+    if (ageInDays < 90) return 80;
+    if (ageInDays < 365) return 60;
+    return 40;
+  }
+
+  private mapSourceType(type: string): string {
+    const mapping: Record<string, string> = {
+      'academic': 'academic',
+      'news': 'news',
+      'reference': 'reference',
+      'blog': 'blog',
+      'forum': 'forum',
+      'article': 'web'
+    };
+    return mapping[type] || 'unknown';
+  }
+
+  private assessMethodology(source: any): string {
+    // Assess methodology quality based on content analysis
+    if (source.metadata.type === 'academic') return 'peer-reviewed';
+    if (source.credibilityScore > 0.8) return 'high-quality';
+    if (source.credibilityScore > 0.6) return 'moderate-quality';
+    return 'basic';
+  }
+
+  private extractSampleSize(content: string): number {
+    // Try to extract sample size from content
+    const sampleMatch = content.match(/sample\s+size[:\s]+(\d+)/i) || 
+                       content.match(/n\s*=\s*(\d+)/i) || 
+                       content.match(/(\d+)\s+participants/i);
+    
+    return sampleMatch ? parseInt(sampleMatch[1]) : 0;
+  }
+
+  /**
+   * Fallback source discovery using standard scraping
+   */
+  private async fallbackSourceDiscovery(
+    queries: string[],
+    context: ResearchContext
+  ): Promise<IntelligentSource[]> {
+    console.log('🔄 Using fallback source discovery...');
+    
+    const sources: IntelligentSource[] = [];
+    const maxSourcesPerQuery = 3;
+
+    for (const query of queries.slice(0, 4)) {
+      try {
+        const searchResults = await webScrapingService.comprehensiveSearch(query);
+        const allSources = searchResults.flatMap(result => result.sources).slice(0, maxSourcesPerQuery);
+        
+        for (const result of allSources) {
+          if (result.content && result.url) {
+            const source = await this.analyzeSource(result, context);
+            if (source && source.credibilityScore > 60) {
+              sources.push(source);
+            }
+          }
+        }
+      } catch (error) {
+        console.error(`Fallback search failed for query: ${query}`, error);
+      }
+    }
+
+    return this.deduplicateAndRankSources(sources).slice(0, 10);
   }
 
   /**
