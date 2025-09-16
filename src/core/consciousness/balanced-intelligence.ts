@@ -332,30 +332,15 @@ class BalancedIntelligenceEngine {
   }
 
   private addSupportiveElements(content: string, emotionalState: EmotionalState): string {
+    // Remove artificial conversation starters - let natural conversation service handle this
+    // The naturalConversationService now provides genuinely contextual responses
+    // that actually analyze the user's message instead of adding generic prefixes
+    
     let enhanced = content;
     
-    // Add natural encouragement if confidence is low
-    if (emotionalState.confidence < 0.3 && Math.random() < 0.4) {
-      const naturalEncouragements = [
-        "Interesting question! ",
-        "Good point. ",
-        "That's worth exploring. ",
-        "I see what you mean. "
-      ];
-      const randomEncouragement = naturalEncouragements[Math.floor(Math.random() * naturalEncouragements.length)];
-      enhanced = `${randomEncouragement}${enhanced}`;
-    }
-    
-    // Add natural positive reinforcement if appropriate
-    if (emotionalState.energy > 0.7 && Math.random() < 0.3) {
-      const naturalClosings = [
-        "\n\nHope this helps!",
-        "\n\nLet me know if you need more details.",
-        "\n\nAnything else you'd like to explore?"
-      ];
-      const randomClosing = naturalClosings[Math.floor(Math.random() * naturalClosings.length)];
-      enhanced = enhanced + randomClosing;
-    }
+    // Only add contextual support when genuinely appropriate
+    // Removed generic "Good point", "Interesting question" etc. - these felt artificial
+    // Instead, let the content speak for itself and be naturally engaging
     
     return enhanced;
   }
