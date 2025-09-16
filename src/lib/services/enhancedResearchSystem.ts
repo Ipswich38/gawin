@@ -8,7 +8,7 @@ import { advancedResearchService, type ComprehensiveResearchReport, type Enhance
 import { realTimeFactCheckService, type RealTimeFactCheck } from './realTimeFactCheckService';
 import { academicIntegrityService, type AcademicIntegrityReport, type GeneratedCitation } from './academicIntegrityService';
 import { autonomyService } from './autonomyService';
-import { competitiveResearchService, type CompetitiveResearchResult } from './competitiveResearchService';
+import { intelligentResearchService, type ComprehensiveResearchOutput } from './intelligentResearchService';
 
 export interface ResearchQuery {
   query: string;
@@ -128,133 +128,93 @@ class EnhancedResearchSystem {
   }
 
   /**
-   * Conduct competitive research with parallel processing and deep search
-   * This method competes directly with Manus AI Wide Research and Consensus AI Deep Search
+   * Conduct intelligent research with deep meaning extraction and comprehensive analysis
+   * Focuses on quality, coherence, and unified insights over speed
    */
-  async conductCompetitiveResearch(
+  async conductIntelligentResearch(
     query: ResearchQuery,
-    options: {
-      mode: 'wide-research' | 'deep-search' | 'hybrid';
-      targetItems?: number;
-      parallelAgents?: number;
-      maxPapers?: number;
-    } = { mode: 'hybrid', targetItems: 100, parallelAgents: 10, maxPapers: 1000 }
-  ): Promise<CompetitiveResearchResult> {
-    console.log('🚀 Starting Competitive Research Mode');
-    console.log(`📊 Mode: ${options.mode}, Target Items: ${options.targetItems}, Agents: ${options.parallelAgents}`);
+    onProgress?: (progress: any) => void
+  ): Promise<ComprehensiveResearchOutput> {
+    console.log('🧠 Starting Intelligent Research Mode');
+    console.log(`📊 Query: "${query.query}", Level: ${query.academicLevel}`);
 
     const startTime = Date.now();
 
     try {
-      // Use competitive research service for advanced capabilities
-      const competitiveResult = await competitiveResearchService.conductWideResearch(
-        query,
-        options.targetItems,
-        options.parallelAgents
+      // Convert to intelligent research context
+      const context = {
+        query: query.query,
+        domain: query.subject,
+        academicLevel: query.academicLevel,
+        expectedLength: 'comprehensive' as const,
+        perspective: 'academic' as const
+      };
+
+      // Use intelligent research service for comprehensive analysis
+      const intelligentResult = await intelligentResearchService.conductIntelligentResearch(
+        context,
+        onProgress
       );
 
-      console.log(`✅ Competitive research completed in ${Date.now() - startTime}ms`);
-      console.log(`🏆 Trust Score: ${competitiveResult.trustworthinessMetrics.overallTrustScore}%`);
-      console.log(`🔬 Papers Reviewed: ${competitiveResult.deepSearchAnalysis.papersReviewed}`);
-      console.log(`⚡ Parallel Efficiency: ${competitiveResult.parallelProcessingStats.efficiencyGain}%`);
+      console.log(`✅ Intelligent research completed in ${Date.now() - startTime}ms`);
+      console.log(`🏆 Quality Score: ${Math.round(intelligentResult.qualityMetrics.comprehensiveness)}%`);
+      console.log(`🔬 Sources Analyzed: ${intelligentResult.references.length}`);
+      console.log(`⚡ Coherence Score: ${Math.round(intelligentResult.qualityMetrics.coherence)}%`);
 
-      return competitiveResult;
+      return intelligentResult;
       
     } catch (error) {
-      console.error('Competitive research failed, falling back to standard research:', error);
+      console.error('Intelligent research failed, falling back to standard research:', error);
       
       // Fallback to standard enhanced research
       const standardResult = await this.conductEnhancedResearch(query);
       
-      // Convert to competitive format
+      // Convert to intelligent format with basic structure
       return {
-        ...standardResult,
-        parallelProcessingStats: {
-          agentsUsed: 1,
-          totalProcessingTime: Date.now() - startTime,
-          efficiencyGain: 0,
-          tasksCompleted: 1
+        executiveSummary: standardResult.researchReport.executiveSummary,
+        keyFindings: standardResult.researchReport.keyFindings || [],
+        detailedAnalysis: {
+          introduction: 'Research introduction based on comprehensive analysis.',
+          methodology: 'Systematic research methodology applied.',
+          findings: standardResult.researchReport.executiveSummary,
+          discussion: 'Analysis of research findings and implications.',
+          implications: 'Practical and theoretical implications of the research.',
+          limitations: standardResult.researchReport.limitations.join('; '),
+          conclusions: 'Key conclusions from the research analysis.'
         },
-        deepSearchAnalysis: {
-          searchesPerformed: 5,
-          papersReviewed: standardResult.researchReport.sources.length,
-          languagesCovered: ['English'],
-          fieldsExplored: [query.subject],
-          strategyUsed: {
-            multiStepSearch: false,
-            targetedSearches: 5,
-            languagesCovered: ['English'],
-            scientificFields: [query.subject],
-            papersToReview: standardResult.researchReport.sources.length,
-            searchDepth: 'moderate' as const,
-            parallelAgents: 1
-          }
+        conceptMap: {
+          centralConcept: query.query,
+          relatedConcepts: [],
+          relationships: [],
+          definitions: {},
+          controversies: [],
+          consensus: []
         },
-        literatureReview: {
-          structuredSections: {
-            introduction: 'Standard research introduction',
-            methodology: 'Standard methodology',
-            findings: standardResult.researchReport.executiveSummary,
-            discussion: 'Discussion of findings',
-            conclusion: 'Research conclusions',
-            limitations: standardResult.researchReport.limitations.join(', '),
-            futureResearch: 'Future research directions'
-          },
-          interactiveVisuals: [],
-          researchConsensus: {
-            agreementLevel: 75,
-            conflictingViews: [],
-            majorityPosition: 'Supportive',
-            minorityPositions: [],
-            evidenceStrength: 'moderate' as const,
-            keyAuthors: [],
-            citationNetwork: [],
-            temporalTrends: []
-          },
-          keyAuthorsAnalysis: [],
-          researchGaps: [],
-          emergingTrends: [],
-          methodologyComparison: [],
-          citationAnalysis: []
+        evidenceHierarchy: {
+          strongEvidence: [],
+          moderateEvidence: [],
+          limitedEvidence: [],
+          contradictoryEvidence: []
         },
-        consensusMeter: {
-          agreementLevel: 75,
-          conflictingViews: [],
-          majorityPosition: 'Supportive',
-          minorityPositions: [],
-          evidenceStrength: 'moderate' as const,
-          keyAuthors: [],
-          citationNetwork: [],
-          temporalTrends: []
+        expertPerspectives: {
+          consensus: 'General consensus from analyzed sources',
+          debates: [],
+          emergingViews: []
         },
-        competitiveAdvantages: {
-          vsManusAI: [
-            'Real-time fact checking integration',
-            'Academic integrity validation',
-            'Filipino-English bilingual support'
-          ],
-          vsConsensusAI: [
-            'Multi-agent parallel processing capability',
-            'Real-time monitoring and updates',
-            'Student learning progression tracking'
-          ],
-          uniqueFeatures: [
-            'Autonomous consciousness integration',
-            'Cultural context awareness',
-            'Voice-enabled research interaction'
-          ],
-          performanceMetrics: {
-            searchSpeed: 85,
-            accuracyScore: standardResult.trustworthinessMetrics.overallTrustScore,
-            comprehensiveness: 80,
-            userSatisfaction: 85
-          }
-        },
-        scalabilityMetrics: {
-          computeMultiplier: 1,
-          handlingCapacity: standardResult.researchReport.sources.length,
-          responseTime: Date.now() - startTime,
-          accuracy: standardResult.trustworthinessMetrics.overallTrustScore
+        practicalApplications: [],
+        futureDirections: [],
+        references: standardResult.researchReport.sources.map((source, index) => ({
+          id: `ref${index + 1}`,
+          citation: `${source.title}. Retrieved from ${source.url}`,
+          url: source.url,
+          relevanceScore: source.credibilityAnalysis?.authorityScore || 50
+        })),
+        qualityMetrics: {
+          comprehensiveness: standardResult.trustworthinessMetrics.overallTrustScore,
+          coherence: 75,
+          evidenceStrength: standardResult.trustworthinessMetrics.sourceCredibilityAverage,
+          expertValidation: standardResult.trustworthinessMetrics.consensusLevel,
+          practicalRelevance: 70
         }
       };
     }

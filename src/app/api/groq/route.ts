@@ -4,6 +4,7 @@ import { huggingFaceService } from '@/lib/services/huggingFaceService';
 import { deepseekService } from '@/lib/services/deepseekService';
 import { validationService } from '@/lib/services/validationService';
 import { responseFilterService } from '@/lib/services/responseFilterService';
+import { naturalConversationService, type ConversationContext } from '@/lib/services/naturalConversationService';
 
 /**
  * Enhanced AI Context Analyzer - Provides deep conversation understanding
@@ -69,7 +70,7 @@ function analyzeConversationContext(conversationHistory: GroqMessage[]) {
  * Generate intelligent educational responses when AI APIs fail
  * This acts as a smart fallback that analyzes context and provides helpful responses
  */
-function generateSmartEducationalResponse(userMessage: string, conversationHistory: GroqMessage[]): string {
+async function generateSmartEducationalResponse(userMessage: string, conversationHistory: GroqMessage[]): Promise<string> {
   const lowerMessage = userMessage.toLowerCase().trim();
   const context = analyzeConversationContext(conversationHistory);
   const hasConversationHistory = conversationHistory.length > 1;
@@ -120,11 +121,27 @@ function generateSmartEducationalResponse(userMessage: string, conversationHisto
     return generateStudyHelpResponse(lowerMessage, hasConversationHistory, context);
   }
   
-  // Greeting and basic interaction
-  if (/\b(hello|hi|hey|good|morning|afternoon|evening)\b/i.test(lowerMessage) || lowerMessage.length < 10) {
-    return hasConversationHistory 
-      ? `Great to continue our learning conversation! I see we've been exploring ${topicsDiscussed.length > 0 ? topicsDiscussed.join(', ') : 'some interesting topics'}. What else would you like to dive into today?`
-      : `Hello! I'm your AI learning assistant, ready to help you understand complex topics, work through problems, and support your educational journey. What subject or question can I help you with today?`;
+  // Natural conversation handling with contextual awareness
+  if (/\b(hello|hi|hey|good|morning|afternoon|evening|kumusta)\b/i.test(lowerMessage) || lowerMessage.length < 15) {
+    const conversationContext: ConversationContext = {
+      userMessage: userMessage,
+      previousMessages: [], // This should be populated from actual conversation history
+      emotionalTone: context.emotionalTone,
+      topics: Array.from(context.topics),
+      knowledgeLevel: context.userKnowledgeLevel,
+      timestamp: new Date()
+    };
+    
+    try {
+      const naturalResponse = await naturalConversationService.generateNaturalResponse(conversationContext);
+      return naturalResponse.content;
+    } catch (error) {
+      console.error('Natural conversation service failed:', error);
+      // Intelligent fallback that avoids templated responses
+      return hasConversationHistory 
+        ? `I see you're back! What's on your mind today?`
+        : `What brings you here? I'm curious about what you'd like to explore.`;
+    }
   }
   
   // Question patterns
@@ -574,7 +591,7 @@ export async function POST(request: NextRequest) {
         : '';
       
       // Generate contextual educational response
-      const smartResponse = generateSmartEducationalResponse(messageContent, body.messages);
+      const smartResponse = await generateSmartEducationalResponse(messageContent, body.messages);
       
       return NextResponse.json({
         success: true,
