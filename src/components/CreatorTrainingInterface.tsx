@@ -159,7 +159,7 @@ export function CreatorTrainingInterface({
                 {Object.entries(consciousnessReport.wisdom).map(([key, value]) => (
                   <div key={key} className="text-center p-3 bg-gray-50 rounded-lg">
                     <div className={`text-2xl font-bold ${getWisdomColor(value as number)}`}>
-                      {value}%
+                      {value as number}%
                     </div>
                     <div className="text-sm text-gray-600 capitalize">
                       {key.replace(/([A-Z])/g, ' $1').trim()}
@@ -277,7 +277,7 @@ export function CreatorTrainingInterface({
                   <div className="flex items-center justify-between">
                     <label className="text-sm font-medium">Learning Enabled</label>
                     <Button
-                      variant={config.learningEnabled ? 'default' : 'outline'}
+                      variant={config.learningEnabled ? 'primary' : 'outline'}
                       size="sm"
                       onClick={() => updateConfig({ learningEnabled: !config.learningEnabled })}
                     >
@@ -288,7 +288,7 @@ export function CreatorTrainingInterface({
                   <div className="flex items-center justify-between">
                     <label className="text-sm font-medium">Self-Editing Enabled</label>
                     <Button
-                      variant={config.selfEditingEnabled ? 'default' : 'outline'}
+                      variant={config.selfEditingEnabled ? 'primary' : 'outline'}
                       size="sm"
                       onClick={() => updateConfig({ selfEditingEnabled: !config.selfEditingEnabled })}
                     >
@@ -299,7 +299,7 @@ export function CreatorTrainingInterface({
                   <div className="flex items-center justify-between">
                     <label className="text-sm font-medium">Creator Supervision</label>
                     <Button
-                      variant={config.creatorSupervision ? 'default' : 'outline'}
+                      variant={config.creatorSupervision ? 'primary' : 'outline'}
                       size="sm"
                       onClick={() => updateConfig({ creatorSupervision: !config.creatorSupervision })}
                     >

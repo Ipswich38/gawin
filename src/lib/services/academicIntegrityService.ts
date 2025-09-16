@@ -231,7 +231,7 @@ class AcademicIntegrityService {
     for (const segment of segments) {
       const similarity = await this.checkSegmentSimilarity(segment, options);
       
-      if (similarity.score > threshold) {
+      if (similarity.similarityScore > threshold) {
         suspiciousSegments.push(similarity);
       }
     }

@@ -234,7 +234,7 @@ export function EnhancedResearchInterface({ onResearchComplete }: EnhancedResear
                       <div className="flex items-center justify-between">
                         <span className="text-sm">Require Peer Review</span>
                         <Button
-                          variant={query.requirements?.requirePeerReview ? 'default' : 'outline'}
+                          variant={query.requirements?.requirePeerReview ? 'primary' : 'outline'}
                           size="sm"
                           onClick={() => setQuery(prev => ({
                             ...prev,
@@ -248,7 +248,7 @@ export function EnhancedResearchInterface({ onResearchComplete }: EnhancedResear
                       <div className="flex items-center justify-between">
                         <span className="text-sm">Exclude Biased Sources</span>
                         <Button
-                          variant={query.requirements?.excludeBiased ? 'default' : 'outline'}
+                          variant={query.requirements?.excludeBiased ? 'primary' : 'outline'}
                           size="sm"
                           onClick={() => setQuery(prev => ({
                             ...prev,
@@ -262,7 +262,7 @@ export function EnhancedResearchInterface({ onResearchComplete }: EnhancedResear
                       <div className="flex items-center justify-between">
                         <span className="text-sm">Include International Sources</span>
                         <Button
-                          variant={query.requirements?.includeInternational ? 'default' : 'outline'}
+                          variant={query.requirements?.includeInternational ? 'primary' : 'outline'}
                           size="sm"
                           onClick={() => setQuery(prev => ({
                             ...prev,
@@ -315,7 +315,7 @@ export function EnhancedResearchInterface({ onResearchComplete }: EnhancedResear
                   {Object.entries(query.deliverables || {}).map(([key, value]) => (
                     <Button
                       key={key}
-                      variant={value ? 'default' : 'outline'}
+                      variant={value ? 'primary' : 'outline'}
                       size="sm"
                       onClick={() => setQuery(prev => ({
                         ...prev,
@@ -831,7 +831,7 @@ export function EnhancedResearchInterface({ onResearchComplete }: EnhancedResear
                 `);
                 printWindow?.print();
               }}
-              variant="default"
+              variant="primary"
             >
               <FileText className="w-4 h-4 mr-2" />
               Export Report
