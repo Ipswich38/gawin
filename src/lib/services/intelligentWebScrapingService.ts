@@ -5,6 +5,7 @@
  */
 
 import { groqService } from './groqService';
+import { webScrapingService } from './webScrapingService';
 
 export interface IntelligentScrapedContent {
   url: string;
@@ -156,13 +157,17 @@ class IntelligentWebScrapingService {
     const startTime = Date.now();
     
     try {
-      // Simulate Bing search with intelligent results
-      const searchResults = await this.simulateIntelligentBingSearch(query, options);
+      // Use real comprehensive search via webScrapingService
+      console.log(`🔍 Performing real web search for: "${query}"`);
+      const searchResults = await webScrapingService.comprehensiveSearch(query);
+      
+      // Extract sources from all search engines
+      const allSources = searchResults.flatMap(result => result.sources);
       
       // Process each result with AI analysis
       const sources: IntelligentScrapedContent[] = [];
       
-      for (const result of searchResults.slice(0, options.maxSources)) {
+      for (const result of allSources.slice(0, options.maxSources)) {
         try {
           const intelligentContent = await this.processContentWithAI(result.url, result.content, query);
           if (intelligentContent) {
@@ -177,9 +182,9 @@ class IntelligentWebScrapingService {
 
       return {
         sources,
-        totalFound: searchResults.length,
+        totalFound: allSources.length,
         searchTime: Date.now() - startTime,
-        searchEngine: 'Bing (Intelligent)',
+        searchEngine: 'Comprehensive (Intelligent)',
         searchQuality: this.calculateSearchQuality(sources),
         synthesizedInsights
       };
@@ -199,7 +204,7 @@ class IntelligentWebScrapingService {
     const startTime = Date.now();
     
     try {
-      // Simulate Wikipedia search
+      // Simulate Wikipedia search with real-looking data
       const wikipediaResults = await this.simulateWikipediaSearch(query, options.maxSources);
       
       const sources: IntelligentScrapedContent[] = [];
@@ -243,6 +248,7 @@ class IntelligentWebScrapingService {
     const startTime = Date.now();
     
     try {
+      // Simulate ArXiv search with academic content
       const arxivResults = await this.simulateArxivSearch(query, options.maxSources);
       
       const sources: IntelligentScrapedContent[] = [];

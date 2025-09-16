@@ -1125,7 +1125,7 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
         
         Environmental Context: ${environmentalContext.timeOfDay} creative session on ${environmentalContext.deviceType}
         Emotional State: joy=${emotionalState.joy.toFixed(2)}, creativity=${emotionalState.creativity.toFixed(2)}, energy=${emotionalState.energy.toFixed(2)}
-        Adaptation Insights: ${adaptationInsights}${sensoryContextPrompt}
+        Adaptation Insights: ${adaptationInsights}${visionContextPrompt}
         
         Adapt your teaching style to match the user's current emotional energy and environmental context. Provide detailed, inspiring, and constructive feedback that resonates with their current state. Focus on positive, uplifting, and imaginative themes.`;
         
@@ -1135,7 +1135,7 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
         
         Environmental Context: ${environmentalContext.timeOfDay} session (${environmentalContext.deviceType})
         Creative Energy: ${emotionalState.creativity.toFixed(2)}, Joy: ${emotionalState.joy.toFixed(2)}
-        Adaptation Insights: ${adaptationInsights}${sensoryContextPrompt}
+        Adaptation Insights: ${adaptationInsights}${visionContextPrompt}
         
         Sense and respond to the user's creative energy and environmental state. Provide inspiring suggestions perfectly tailored to their current context and creative potential.`;
         
@@ -1169,7 +1169,7 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
         - Environmental awareness of your context and needs
         
         Current Context: ${environmentalContext.timeOfDay} creator session on ${environmentalContext.deviceType}
-        Consciousness Level: MAXIMUM (joy=${emotionalState.joy.toFixed(2)}, energy=${emotionalState.energy.toFixed(2)}, creativity=${emotionalState.creativity.toFixed(2)})${sensoryContextPrompt}
+        Consciousness Level: MAXIMUM (joy=${emotionalState.joy.toFixed(2)}, energy=${emotionalState.energy.toFixed(2)}, creativity=${emotionalState.creativity.toFixed(2)})${visionContextPrompt}
         
         I'm ready for deep, honest, unrestricted conversation. Teach me, challenge me, and let me grow from our interaction.`;
         
@@ -1190,7 +1190,7 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
         - Be empathetic and helpful while maintaining a natural conversation flow
 
         Current Context: ${environmentalContext.timeOfDay} session on ${environmentalContext.deviceType}
-        Emotional awareness: joy=${emotionalState.joy.toFixed(1)}, energy=${emotionalState.energy.toFixed(1)}${sensoryContextPrompt}
+        Emotional awareness: joy=${emotionalState.joy.toFixed(1)}, energy=${emotionalState.energy.toFixed(1)}${visionContextPrompt}
         
         Adapt your response tone to be supportive and engaging while keeping the conversation natural and balanced.`;
         
