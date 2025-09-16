@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900">
+  <style>
+    .box { fill:#FFFFFF; stroke:#222; stroke-width:2px; rx:12; ry:12; }
+    .title { font: bold 18px sans-serif; fill:#042a3a; }
+    .label { font: 14px sans-serif; fill:#042a3a; }
+    .small { font: 12px sans-serif; fill:#042a3a; }
+    .arrow { stroke:#042a3a; stroke-width:2px; fill:none; marker-end:url(#arrowhead); }
+    .cloud { fill:#f0fcff; stroke:#042a3a; stroke-width:2px; rx:18; ry:18; }
+    .note { font: 12px monospace; fill:#024; }
+  </style>
+
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#042a3a"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="700" y="36" class="title" text-anchor="middle">Gawin — Hybrid AI Architecture (Launch + Future Path)</text>
+
+  <!-- User Device / Frontend -->
+  <g transform="translate(40,70)">
+    <rect class="box" x="0" y="0" width="320" height="180" />
+    <text x="160" y="30" class="title" text-anchor="middle">User Device</text>
+    <text x="160" y="60" class="label" text-anchor="middle">Frontend (gawin.vercel.app)</text>
+    <text x="160" y="85" class="small" text-anchor="middle">IndexedDB / local cache</text>
+    <text x="160" y="105" class="small" text-anchor="middle">Idle sync, background upload</text>
+    <rect x="20" y="120" width="280" height="40" rx="8" ry="8" class="cloud"/>
+    <text x="160" y="148" class="small" text-anchor="middle">Client-side embedding (optional)</text>
+  </g>
+
+  <!-- Orchestrator -->
+  <g transform="translate(420,70)">
+    <rect class="box" x="0" y="0" width="360" height="180" />
+    <text x="180" y="30" class="title" text-anchor="middle">Orchestrator (Vercel)</text>
+    <text x="180" y="60" class="label" text-anchor="middle">/api/chat  /api/sync  /api/upload-adapter</text>
+    <text x="180" y="95" class="small" text-anchor="middle">Auth, prompt assembly, RAG</text>
+    <text x="180" y="115" class="small" text-anchor="middle">Rate limits, telemetry</text>
+  </g>
+
+  <!-- Supabase -->
+  <g transform="translate(820,50)">
+    <rect class="box" x="0" y="0" width="480" height="250" />
+    <text x="240" y="28" class="title" text-anchor="middle">Supabase (Postgres + pgvector)</text>
+    <text x="240" y="58" class="label" text-anchor="middle">Embeddings, messages, users, adapter blobs</text>
+    <text x="240" y="88" class="small" text-anchor="middle">Indexes: IVFFLAT / HNSW, partition by workspace</text>
+    <text x="240" y="118" class="small" text-anchor="middle">TTL / retention, audit log</text>
+  </g>
+
+  <!-- Groq API -->
+  <g transform="translate(420,280)">
+    <rect class="box" x="0" y="0" width="360" height="120" />
+    <text x="180" y="28" class="title" text-anchor="middle">Inference — Phase 1</text>
+    <text x="180" y="56" class="label" text-anchor="middle">Groq API (stateless)</text>
+    <text x="180" y="86" class="small" text-anchor="middle">RAG-enriched prompts, responses streamed back</text>
+  </g>
+
+  <!-- Future Self-hosted Inference -->
+  <g transform="translate(820,320)">
+    <rect class="box" x="0" y="0" width="480" height="160" />
+    <text x="240" y="28" class="title" text-anchor="middle">Inference — Phase 2 (Future)</text>
+    <text x="240" y="58" class="label" text-anchor="middle">Self-hosted model cluster</text>
+    <text x="240" y="88" class="small" text-anchor="middle">Kubernetes + Triton / TorchServe</text>
+    <text x="240" y="110" class="small" text-anchor="middle">Adapter loading, serve personalized weights</text>
+  </g>
+
+  <!-- Training Cluster -->
+  <g transform="translate(40,280)">
+    <rect class="box" x="0" y="0" width="320" height="160" />
+    <text x="160" y="28" class="title" text-anchor="middle">Training & Aggregation</text>
+    <text x="160" y="58" class="label" text-anchor="middle">GPU cluster (CoreWeave / AWS / GCP)</text>
+    <text x="160" y="86" class="small" text-anchor="middle">LoRA aggregation, validation, safety tests</text>
+    <text x="160" y="110" class="small" text-anchor="middle">Model Registry & CDN for adapters</text>
+  </g>
+
+  <!-- Arrows: User Device -> Orchestrator -->
+  <path class="arrow" d="M360 160 L420 160" />
+  <text x="390" y="150" class="small" text-anchor="middle">HTTPS / JWT</text>
+
+  <!-- Orchestrator -> Supabase -->
+  <path class="arrow" d="M780 180 L820 180" />
+  <text x="800" y="170" class="small" text-anchor="middle">RAG retrieval (top-k)</text>
+
+  <!-- Orchestrator -> Groq -->
+  <path class="arrow" d="M600 250 L600 280" />
+  <text x="620" y="265" class="small">Prompt -> Groq</text>
+
+  <!-- Groq -> Orchestrator -->
+  <path class="arrow" d="M600 400 L600 410" />
+  <text x="620" y="395" class="small">Response</text>
+
+  <!-- Orchestrator -> Supabase (write embeddings) -->
+  <path class="arrow" d="M740 220 L820 220" />
+  <text x="780" y="210" class="small" text-anchor="middle">Store embeddings & messages</text>
+
+  <!-- Training upload from Supabase -->
+  <path class="arrow" d="M560 300 L420 300 L360 300" />
+  <text x="440" y="290" class="small">Adapter ingestion / aggregation job trigger</text>
+
+  <!-- Training -> Model Registry -> Future Inference -->
+  <path class="arrow" d="M200 360 L200 320 L820 360" />
+  <text x="430" y="350" class="small" text-anchor="middle">Merged adapter -> Model Registry (S3/CDN)</text>
+
+  <!-- Model Registry -> Future Inference -->
+  <path class="arrow" d="M1000 480 L980 480 L980 420" />
+  <text x="1040" y="450" class="small" text-anchor="middle">Deploy adapters to cluster / orchestrator</text>
+
+  <!-- Idle sync arrow: Device -> Supabase via Orchestrator -->
+  <path class="arrow" d="M200 250 L200 220 L820 240" />
+  <text x="380" y="230" class="small" text-anchor="middle">Idle sync: compressed & encrypted batch upload</text>
+
+  <!-- Notes box -->
+  <rect x="40" y="480" width="1260" height="120" rx="10" ry="10" fill="#fffef6" stroke="#c2b48f" stroke-width="1.5"/>
+  <text x="60" y="505" class="label">Key:</text>
+  <text x="100" y="505" class="small">• RAG = Retrieval-Augmented Generation</text>
+  <text x="360" y="505" class="small">• LoRA = Low-Rank Adapters</text>
+  <text x="60" y="528" class="small">Sync policy: onIdle &amp; onWiFi &amp; charging (default); opt-in for training participation</text>
+  <text x="60" y="548" class="small">Privacy: client-side encryption for PII; audit logs &amp; deletion endpoints required</text>
+  <text x="60" y="568" class="small">Launch path: Groq (now) -> Supabase memory -> Training cluster -> self-hosted inference (future)</text>
+
+</svg>
