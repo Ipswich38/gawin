@@ -7,6 +7,7 @@
 import { huggingFaceService } from './huggingFaceService';
 import { naturalTTSService } from './naturalTTSService';
 import { autonomyService } from './autonomyService';
+import { filipinoLanguageService } from './filipinoLanguageService';
 
 export interface VoiceConfig {
   enabled: boolean;
@@ -476,6 +477,42 @@ class VoiceService {
     };
     
     return styleMap[emotion as keyof typeof styleMap] || styleMap.default;
+  }
+
+  /**
+   * Enhanced speak method with Tagalog fluency
+   */
+  async speakWithTagalogFluency(text: string, options: { 
+    preferTagalog?: boolean; 
+    emotion?: SpeechOptions['emotion'];
+    priority?: SpeechOptions['priority'];
+  } = {}): Promise<void> {
+    // Detect language and enhance with Filipino service
+    const languageDetection = filipinoLanguageService.detectLanguage(text);
+    
+    let processedText = text;
+    
+    // If user prefers Tagalog or text is already in Filipino, enhance with natural Tagalog
+    if (options.preferTagalog || languageDetection.primary === 'filipino' || languageDetection.primary === 'tagalog') {
+      // Generate fluent Tagalog response
+      processedText = filipinoLanguageService.generateTagalogResearchResponse(text, 'general');
+      
+      // Optimize pronunciation for better Tagalog speech
+      processedText = filipinoLanguageService.optimizeTagalogPronunciation(processedText);
+    } else if (languageDetection.mixedLanguage || languageDetection.primary === 'taglish') {
+      // Generate natural Taglish for code-switching
+      processedText = filipinoLanguageService.generateNaturalTaglish(text, 0.5);
+    }
+
+    // Select appropriate voice and language settings
+    const speechLanguage = this.mapLanguageToSpeechLang(languageDetection.primary);
+    
+    await this.speak({
+      text: processedText,
+      emotion: options.emotion || this.detectEmotionFromTextEnhanced(processedText),
+      language: speechLanguage,
+      priority: options.priority || 'normal'
+    });
   }
 
   /**

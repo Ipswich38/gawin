@@ -48,6 +48,7 @@ class FilipinoLanguageService {
     this.initializeExpressions();
     this.initializeCulturalContext();
     this.initializeTaglishPatterns();
+    this.initializeAdvancedTagalog();
   }
 
   /**
@@ -652,6 +653,207 @@ CRITICAL: Match the user's language style and formality level. If they use Tagli
     }
     
     return null;
+  }
+
+  /**
+   * Initialize advanced Tagalog functionality for fluent speaking
+   */
+  private initializeAdvancedTagalog(): void {
+    // Advanced conversational patterns
+    this.tagalogPhrases.set('kumusta ka', 'How are you?');
+    this.tagalogPhrases.set('salamat ha', 'Thank you very much');
+    this.tagalogPhrases.set('ingat ka', 'Take care');
+    this.tagalogPhrases.set('pakinggan mo', 'Listen to this');
+    this.tagalogPhrases.set('ano ba yan', 'What is that?');
+    this.tagalogPhrases.set('talaga ba', 'Really?');
+    this.tagalogPhrases.set('hindi nga', 'No way');
+    this.tagalogPhrases.set('pwede ba', 'Is it possible?');
+    this.tagalogPhrases.set('saan ka na', 'Where are you now?');
+    this.tagalogPhrases.set('anong nangyari', 'What happened?');
+    
+    // Filipino research and academic terms
+    this.professionalTerms.set('pananaliksik', 'research');
+    this.professionalTerms.set('pagsusuri', 'analysis');
+    this.professionalTerms.set('kasaysayan', 'history');
+    this.professionalTerms.set('agham', 'science');
+    this.professionalTerms.set('teknolohiya', 'technology');
+    this.professionalTerms.set('kabanalan', 'literature');
+    this.professionalTerms.set('kultura', 'culture');
+    this.professionalTerms.set('lipunan', 'society');
+    this.professionalTerms.set('ekonomiya', 'economy');
+    this.professionalTerms.set('politika', 'politics');
+    this.professionalTerms.set('kalikasan', 'nature/environment');
+    this.professionalTerms.set('edukasyon', 'education');
+    
+    // Modern Filipino expressions
+    this.casualExpressions.set('grabe naman', 'That\'s too much!');
+    this.casualExpressions.set('ang galing', 'Amazing/Great!');
+    this.casualExpressions.set('sulit na sulit', 'Very worth it');
+    this.casualExpressions.set('perfect na', 'That\'s perfect');
+    this.casualExpressions.set('hindi ko alam', 'I don\'t know');
+    this.casualExpressions.set('pakiusap', 'Please');
+    this.casualExpressions.set('walang problema', 'No problem');
+    this.casualExpressions.set('matagal na', 'It\'s been a long time');
+    this.casualExpressions.set('salamat naman', 'Thank goodness');
+    this.casualExpressions.set('ayan na nga', 'There it is');
+    
+    // Filipino cultural context for research
+    this.culturalContext.set('bayanihan', 'Community spirit of helping one another');
+    this.culturalContext.set('kapamilya', 'Family/close relationships');
+    this.culturalContext.set('utang na loob', 'Debt of gratitude');
+    this.culturalContext.set('pakikipagkapwa', 'Shared identity and interconnectedness');
+    this.culturalContext.set('malasakit', 'Deep care and concern for others');
+  }
+
+  /**
+   * Generate fluent Tagalog responses for research queries
+   */
+  generateTagalogResearchResponse(englishResponse: string, topic: string): string {
+    const tagalogIntros = [
+      'Ayon sa aking pananaliksik,',
+      'Base sa mga natuklasan ko,',
+      'Ang mga datos ay nagpapakita na,',
+      'Sa aking pagsusuri,',
+      'Ang mga eksperto ay nagsasabi na,',
+      'Sa mga pag-aaral,',
+      'Ang mga ebidensya ay nagpapatunay na,'
+    ];
+
+    const tagalogTransitions = [
+      'Dagdag pa dito,',
+      'Bukod pa riyan,',
+      'Isa pang mahalagang punto,',
+      'Kaugnay nito,',
+      'Higit pa sa lahat,',
+      'Sa katunayan,',
+      'Halimbawa,'
+    ];
+
+    const tagalogClosings = [
+      'Sana nakatulong ito sa inyong pag-unawa.',
+      'Iyan ang mga natuklasan ko tungkol sa paksa.',
+      'Marami pang pwedeng pag-aralan dito.',
+      'Salamat sa pagtatanong tungkol dito.',
+      'Napakahalagang paksa ito para sa ating lipunan.',
+      'Patuloy nating pag-aralan ang paksang ito.'
+    ];
+
+    // Basic translation patterns for key terms
+    const termMap = new Map([
+      ['research', 'pananaliksik'],
+      ['study', 'pag-aaral'],
+      ['analysis', 'pagsusuri'],
+      ['data', 'datos'],
+      ['information', 'impormasyon'],
+      ['knowledge', 'kaalaman'],
+      ['education', 'edukasyon'],
+      ['technology', 'teknolohiya'],
+      ['science', 'agham'],
+      ['culture', 'kultura'],
+      ['society', 'lipunan'],
+      ['development', 'pag-unlad'],
+      ['important', 'mahalaga'],
+      ['significant', 'makabuluhan'],
+      ['effective', 'epektibo'],
+      ['successful', 'matagumpay']
+    ]);
+
+    let tagalogResponse = englishResponse;
+
+    // Apply term translations
+    for (const [english, tagalog] of termMap) {
+      const regex = new RegExp(`\\b${english}\\b`, 'gi');
+      tagalogResponse = tagalogResponse.replace(regex, tagalog);
+    }
+
+    // Add Filipino intro
+    const intro = tagalogIntros[Math.floor(Math.random() * tagalogIntros.length)];
+    
+    // Add transition words
+    const sentences = tagalogResponse.split('. ');
+    if (sentences.length > 1) {
+      const transition = tagalogTransitions[Math.floor(Math.random() * tagalogTransitions.length)];
+      sentences[1] = transition + ' ' + sentences[1];
+    }
+
+    // Add closing
+    const closing = tagalogClosings[Math.floor(Math.random() * tagalogClosings.length)];
+    
+    return `${intro} ${sentences.join('. ')} ${closing}`;
+  }
+
+  /**
+   * Enhance voice pronunciation for Tagalog
+   */
+  optimizeTagalogPronunciation(text: string): string {
+    // SSML-like adjustments for better Tagalog pronunciation
+    let optimized = text;
+
+    // Fix common Tagalog pronunciation issues
+    const pronunciationMap = new Map([
+      ['ng', '<phoneme alphabet="ipa" ph="ŋ">ng</phoneme>'],
+      ['mga', '<phoneme alphabet="ipa" ph="maŋa">mga</phoneme>'],
+      ['kay', '<phoneme alphabet="ipa" ph="kai">kay</phoneme>'],
+      ['ako', '<phoneme alphabet="ipa" ph="akoʔ">ako</phoneme>'],
+      ['ikaw', '<phoneme alphabet="ipa" ph="ikaʔʊ">ikaw</phoneme>'],
+      ['siya', '<phoneme alphabet="ipa" ph="ʃija">siya</phoneme>'],
+      ['tayo', '<phoneme alphabet="ipa" ph="tajoʔ">tayo</phoneme>'],
+      ['kayo', '<phoneme alphabet="ipa" ph="kajoʔ">kayo</phoneme>'],
+      ['sila', '<phoneme alphabet="ipa" ph="ʃila">sila</phoneme>']
+    ]);
+
+    // Apply pronunciation optimizations
+    for (const [tagalog, ssml] of pronunciationMap) {
+      const regex = new RegExp(`\\b${tagalog}\\b`, 'gi');
+      optimized = optimized.replace(regex, ssml);
+    }
+
+    // Add Filipino intonation markers
+    optimized = optimized.replace(/\?/g, '<prosody pitch="+20%">?</prosody>');
+    optimized = optimized.replace(/!/g, '<prosody volume="+10%">!</prosody>');
+
+    return optimized;
+  }
+
+  /**
+   * Generate contextual Taglish for natural conversation
+   */
+  generateNaturalTaglish(englishText: string, formality: number = 0.5): string {
+    const taglishPatterns = [
+      { english: 'but', taglish: 'pero', probability: 0.8 },
+      { english: 'and', taglish: 'at', probability: 0.6 },
+      { english: 'very', taglish: 'sobrang', probability: 0.7 },
+      { english: 'really', taglish: 'talaga', probability: 0.9 },
+      { english: 'maybe', taglish: 'siguro', probability: 0.8 },
+      { english: 'because', taglish: 'kasi', probability: 0.7 },
+      { english: 'just', taglish: 'lang', probability: 0.6 },
+      { english: 'already', taglish: 'na', probability: 0.5 },
+      { english: 'also', taglish: 'din', probability: 0.6 },
+      { english: 'now', taglish: 'ngayon', probability: 0.4 },
+      { english: 'here', taglish: 'dito', probability: 0.5 },
+      { english: 'there', taglish: 'doon', probability: 0.5 }
+    ];
+
+    let taglishText = englishText;
+
+    // Apply Taglish patterns based on formality
+    taglishPatterns.forEach(pattern => {
+      const shouldApply = Math.random() < (pattern.probability * (1 - formality * 0.5));
+      if (shouldApply) {
+        const regex = new RegExp(`\\b${pattern.english}\\b`, 'gi');
+        taglishText = taglishText.replace(regex, pattern.taglish);
+      }
+    });
+
+    // Add Filipino sentence enders for casual conversation
+    if (formality < 0.5) {
+      taglishText = taglishText.replace(/\./g, match => {
+        const enders = ['.', ' naman.', ' ha.', ' no.', ' eh.'];
+        return Math.random() < 0.3 ? enders[Math.floor(Math.random() * enders.length)] : match;
+      });
+    }
+
+    return taglishText;
   }
 }
 
