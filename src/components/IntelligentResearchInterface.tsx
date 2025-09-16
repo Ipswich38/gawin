@@ -3,10 +3,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, ChevronLeft, ChevronRight, FileText, Brain, Target, CheckCircle, Clock, Lightbulb } from 'lucide-react';
-import { intelligentResearchService, type ResearchContext, type ComprehensiveResearchOutput, type ResearchProgress } from '../lib/services/intelligentResearchService';
+import { gptResearcherService, type EnhancedResearchResult } from '../lib/services/gptResearcherService';
+import { type ResearchContext, type ComprehensiveResearchOutput, type ResearchProgress } from '../lib/services/intelligentResearchService';
 
 interface IntelligentResearchInterfaceProps {
-  onResearchComplete?: (result: ComprehensiveResearchOutput) => void;
+  onResearchComplete?: (result: EnhancedResearchResult) => void;
 }
 
 export default function IntelligentResearchInterface({ onResearchComplete }: IntelligentResearchInterfaceProps) {
@@ -16,7 +17,7 @@ export default function IntelligentResearchInterface({ onResearchComplete }: Int
   
   const [isResearching, setIsResearching] = useState(false);
   const [progress, setProgress] = useState<ResearchProgress | null>(null);
-  const [result, setResult] = useState<ComprehensiveResearchOutput | null>(null);
+  const [result, setResult] = useState<EnhancedResearchResult | null>(null);
   const [showProcess, setShowProcess] = useState(true);
   const [activeSection, setActiveSection] = useState('summary');
 
@@ -36,15 +37,63 @@ export default function IntelligentResearchInterface({ onResearchComplete }: Int
     };
 
     try {
-      const researchResult = await intelligentResearchService.conductIntelligentResearch(
-        context,
-        setProgress
+      // Use enhanced GPT Researcher with progress simulation
+      const progressSteps: ResearchProgress[] = [
+        { phase: 'Initializing', progress: 10, description: 'Setting up GPT Researcher...', currentAction: 'Setting up GPT Researcher...', timeEstimate: '2-3 minutes', insights: [] },
+        { phase: 'Web Research', progress: 30, description: 'Searching multiple sources...', currentAction: 'Searching multiple sources...', timeEstimate: '1-2 minutes', insights: [] },
+        { phase: 'Content Analysis', progress: 60, description: 'Analyzing and synthesizing findings...', currentAction: 'Analyzing and synthesizing findings...', timeEstimate: '30-60 seconds', insights: [] },
+        { phase: 'Report Generation', progress: 90, description: 'Generating comprehensive report...', currentAction: 'Generating comprehensive report...', timeEstimate: '10-20 seconds', insights: [] }
+      ];
+
+      // Simulate progress updates
+      let currentStep = 0;
+      const progressInterval = setInterval(() => {
+        if (currentStep < progressSteps.length) {
+          setProgress(progressSteps[currentStep]);
+          currentStep++;
+        } else {
+          clearInterval(progressInterval);
+        }
+      }, 1000);
+
+      // Conduct enhanced research using GPT Researcher
+      const researchResult = await gptResearcherService.conductEnhancedResearch(
+        query.trim(),
+        {
+          reportType: expectedLength === 'brief' ? 'outline_report' : 
+                     expectedLength === 'comprehensive' ? 'detailed_report' : 'research_report',
+          maxSources: academicLevel === 'doctoral' || academicLevel === 'professional' ? 25 : 20,
+          includeImages: true,
+          useHybrid: true
+        }
       );
+
+      clearInterval(progressInterval);
+      setProgress({ 
+        phase: 'Complete', 
+        progress: 100, 
+        description: 'Research completed successfully!', 
+        currentAction: 'Research completed successfully!', 
+        insights: [],
+        timeEstimate: 'Complete'
+      });
       
-      setResult(researchResult);
-      onResearchComplete?.(researchResult);
+      // Use the EnhancedResearchResult directly since UI was updated to support it
+      const displayResult = researchResult;
+      
+      setResult(displayResult);
+      onResearchComplete?.(displayResult);
     } catch (error) {
-      console.error('Research failed:', error);
+      console.error('Enhanced research failed:', error);
+      // Clear progress on error
+      setProgress({ 
+        phase: 'Error', 
+        progress: 0, 
+        description: 'Research failed. Please try again.', 
+        currentAction: 'Research failed. Please try again.', 
+        insights: [],
+        timeEstimate: 'Failed'
+      });
     } finally {
       setIsResearching(false);
     }
@@ -205,11 +254,11 @@ export default function IntelligentResearchInterface({ onResearchComplete }: Int
                   
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div className="text-center p-2 bg-gray-800/30 rounded-lg">
-                      <div className="text-teal-400 font-bold text-lg">{Math.round(result.qualityMetrics.comprehensiveness)}%</div>
+                      <div className="text-teal-400 font-bold text-lg">{Math.round(result.confidence * 100)}%</div>
                       <div className="text-gray-400">Quality</div>
                     </div>
                     <div className="text-center p-2 bg-gray-800/30 rounded-lg">
-                      <div className="text-blue-400 font-bold text-lg">{result.references.length}</div>
+                      <div className="text-blue-400 font-bold text-lg">{result.sources.length}</div>
                       <div className="text-gray-400">Sources</div>
                     </div>
                   </div>
@@ -308,7 +357,7 @@ export default function IntelligentResearchInterface({ onResearchComplete }: Int
               {activeSection === 'summary' && (
                 <div className="bg-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-3xl p-6">
                   <h3 className="text-lg font-semibold text-white mb-4">Executive Summary</h3>
-                  <div className="prose prose-gray prose-invert max-w-none text-gray-300 leading-relaxed">
+                  <div className="prose prose-gray prose-invert max-w-none text-gray-300 leading-relaxed whitespace-pre-wrap">
                     {result.executiveSummary}
                   </div>
                 </div>
@@ -336,23 +385,34 @@ export default function IntelligentResearchInterface({ onResearchComplete }: Int
 
               {activeSection === 'analysis' && (
                 <div className="space-y-6">
-                  {Object.entries(result.detailedAnalysis).map(([key, content]) => (
-                    <div key={key} className="bg-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-3xl p-6">
-                      <h4 className="text-lg font-medium text-white mb-3 capitalize">
-                        {key.replace(/([A-Z])/g, ' $1').trim()}
-                      </h4>
-                      <div className="prose prose-gray prose-invert max-w-none text-gray-300 leading-relaxed">
-                        {content}
+                  <div className="bg-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-3xl p-6">
+                    <h4 className="text-lg font-medium text-white mb-3">Detailed Analysis</h4>
+                    <div className="prose prose-gray prose-invert max-w-none text-gray-300 leading-relaxed whitespace-pre-wrap">
+                      {result.detailedReport}
+                    </div>
+                  </div>
+                  {result.recommendations.length > 0 && (
+                    <div className="bg-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-3xl p-6">
+                      <h4 className="text-lg font-medium text-white mb-3">Recommendations</h4>
+                      <div className="space-y-2">
+                        {result.recommendations.map((rec, index) => (
+                          <div key={index} className="flex items-start space-x-3">
+                            <div className="w-6 h-6 bg-blue-500/20 rounded-full flex items-center justify-center text-blue-400 font-bold text-xs flex-shrink-0 mt-0.5">
+                              {index + 1}
+                            </div>
+                            <div className="text-gray-300 leading-relaxed">{rec}</div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  ))}
+                  )}
                 </div>
               )}
 
               {activeSection === 'references' && (
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-white mb-4">References</h3>
-                  {result.references.map((ref, index) => (
+                  {result.sources.map((source, index) => (
                     <motion.div
                       key={index}
                       initial={{ opacity: 0, y: 10 }}
@@ -362,18 +422,21 @@ export default function IntelligentResearchInterface({ onResearchComplete }: Int
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <div className="text-white font-medium mb-1">{ref.citation}</div>
+                          <div className="text-white font-medium mb-1">{source.title}</div>
                           <a 
-                            href={ref.url} 
+                            href={source.url} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="text-teal-400 hover:text-teal-300 text-sm underline"
+                            className="text-teal-400 hover:text-teal-300 text-sm underline mb-2 block"
                           >
-                            {ref.url}
+                            {source.url}
                           </a>
+                          {source.snippet && (
+                            <div className="text-gray-400 text-sm">{source.snippet}</div>
+                          )}
                         </div>
                         <div className="bg-teal-500/20 text-teal-300 px-2 py-1 rounded-lg text-xs ml-3">
-                          {Math.round(ref.relevanceScore)}% relevant
+                          {Math.round(source.relevanceScore * 100)}% relevant
                         </div>
                       </div>
                     </motion.div>
