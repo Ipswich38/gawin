@@ -1,843 +1,652 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/Input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Search, BookOpen, Shield, CheckCircle, AlertTriangle, Users, 
-  TrendingUp, Brain, FileText, Award, Clock, Globe, Zap,
-  BarChart3, Target, Lightbulb, BookMarked, GraduationCap,
-  Microscope, Lock, RefreshCw, Eye, Star, ThumbsUp
+  Search, 
+  Brain, 
+  FileText, 
+  CheckCircle, 
+  Clock, 
+  ChevronRight,
+  BookOpen,
+  Target,
+  Lightbulb,
+  Download,
+  Copy,
+  PlayCircle,
+  PauseCircle
 } from 'lucide-react';
-import { enhancedResearchSystem, type ResearchQuery, type EnhancedResearchResult } from '@/lib/services/enhancedResearchSystem';
+
+interface ResearchStep {
+  id: string;
+  title: string;
+  description: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'error';
+  result?: string;
+  sources?: string[];
+}
+
+interface ResearchResult {
+  query: string;
+  steps: ResearchStep[];
+  summary: string;
+  keyFindings: string[];
+  recommendations: string[];
+  sources: string[];
+  timestamp: number;
+}
 
 interface EnhancedResearchInterfaceProps {
-  onResearchComplete?: (result: EnhancedResearchResult) => void;
+  onResearchComplete?: (result: ResearchResult) => void;
 }
 
 export function EnhancedResearchInterface({ onResearchComplete }: EnhancedResearchInterfaceProps) {
-  const [query, setQuery] = useState<Partial<ResearchQuery>>({
-    query: '',
-    academicLevel: 'undergraduate',
-    subject: '',
-    citationStyle: 'APA',
-    requirements: {
-      minSources: 5,
-      maxSources: 20,
-      requirePeerReview: true,
-      excludeBiased: true,
-      maxSourceAge: 5,
-      includeInternational: true,
-      requireMethodologyAnalysis: false,
-      includeStatisticalAnalysis: false
-    },
-    deliverables: {
-      executiveSummary: true,
-      literatureReview: true,
-      factCheckReport: true,
-      integrityReport: true,
-      citations: true,
-      recommendations: true,
-      futureResearch: false
-    }
-  });
-
-  const [result, setResult] = useState<EnhancedResearchResult | null>(null);
+  const [query, setQuery] = useState('');
+  const [researchType, setResearchType] = useState<'academic' | 'business' | 'general'>('general');
+  const [depth, setDepth] = useState<'quick' | 'comprehensive' | 'deep'>('comprehensive');
+  
   const [isResearching, setIsResearching] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [currentStep, setCurrentStep] = useState('');
-  const [competitorComparison, setCompetitorComparison] = useState<any>(null);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [researchSteps, setResearchSteps] = useState<ResearchStep[]>([]);
+  const [finalResult, setFinalResult] = useState<ResearchResult | null>(null);
+  const [showResult, setShowResult] = useState(false);
 
-  const researchSteps = [
-    'Analyzing query and setting parameters',
-    'Searching authoritative databases',
-    'Evaluating source credibility',
-    'Performing real-time fact checking',
-    'Analyzing academic integrity',
-    'Generating citations and references',
-    'Calculating trustworthiness metrics',
-    'Creating transparency report',
-    'Preparing student learning materials',
-    'Finalizing comprehensive report'
-  ];
+  const initializeResearchSteps = (query: string): ResearchStep[] => {
+    const baseSteps: ResearchStep[] = [
+      {
+        id: 'planning',
+        title: 'Research Planning',
+        description: 'Breaking down the research question into manageable components',
+        status: 'pending'
+      },
+      {
+        id: 'background',
+        title: 'Background Research',
+        description: 'Gathering foundational information and context',
+        status: 'pending'
+      },
+      {
+        id: 'deep_dive',
+        title: 'Deep Analysis',
+        description: 'Conducting detailed investigation of key aspects',
+        status: 'pending'
+      },
+      {
+        id: 'synthesis',
+        title: 'Information Synthesis',
+        description: 'Combining findings into coherent insights',
+        status: 'pending'
+      },
+      {
+        id: 'report',
+        title: 'Report Generation',
+        description: 'Creating comprehensive research report',
+        status: 'pending'
+      }
+    ];
 
-  const handleStartResearch = async () => {
-    if (!query.query || !query.subject) {
-      alert('Please fill in the research query and subject');
-      return;
+    // Add additional steps based on research type and depth
+    if (researchType === 'academic') {
+      baseSteps.splice(3, 0, {
+        id: 'literature',
+        title: 'Literature Review',
+        description: 'Reviewing relevant academic sources and studies',
+        status: 'pending'
+      });
     }
 
-    setIsResearching(true);
-    setProgress(0);
-    setResult(null);
+    if (depth === 'deep') {
+      baseSteps.splice(-1, 0, {
+        id: 'validation',
+        title: 'Cross-Validation',
+        description: 'Verifying findings with multiple sources',
+        status: 'pending'
+      });
+    }
+
+    return baseSteps;
+  };
+
+  const handleResearchStep = async (step: ResearchStep, stepIndex: number): Promise<string> => {
+    // Update step status to in_progress
+    setResearchSteps(prev => prev.map((s, i) => 
+      i === stepIndex ? { ...s, status: 'in_progress' } : s
+    ));
 
     try {
-      // Simulate progress updates
-      for (let i = 0; i < researchSteps.length; i++) {
-        setCurrentStep(researchSteps[i]);
-        setProgress((i + 1) * 10);
+      // Create research prompt based on step type
+      let prompt = '';
+      
+      switch (step.id) {
+        case 'planning':
+          prompt = `As a research expert, help me plan a ${researchType} research project on: "${query}". 
+          
+          Please provide:
+          1. 3-5 key research questions to investigate
+          2. Important aspects to consider
+          3. Research methodology approach
+          4. Expected challenges and considerations
+          
+          Format as a structured research plan.`;
+          break;
+          
+        case 'background':
+          prompt = `Provide comprehensive background information on: "${query}". 
+          
+          Please include:
+          1. Current state of knowledge
+          2. Historical context and development
+          3. Key terminology and concepts
+          4. Major stakeholders or players involved
+          5. Current trends and developments
+          
+          Focus on establishing a solid foundation for deeper research.`;
+          break;
+          
+        case 'deep_dive':
+          prompt = `Conduct a detailed analysis of: "${query}". 
+          
+          Please provide:
+          1. In-depth examination of core aspects
+          2. Multiple perspectives and viewpoints
+          3. Advantages and disadvantages
+          4. Case studies or examples
+          5. Data, statistics, or evidence
+          6. Expert opinions and insights
+          
+          Aim for comprehensive coverage of the topic.`;
+          break;
+          
+        case 'literature':
+          prompt = `Provide an academic literature review perspective on: "${query}". 
+          
+          Please include:
+          1. Key academic theories and frameworks
+          2. Recent research findings and studies
+          3. Scholarly debates and controversies
+          4. Research gaps and opportunities
+          5. Methodological approaches used in the field
+          
+          Use academic writing style with focus on evidence-based insights.`;
+          break;
+          
+        case 'synthesis':
+          const previousResults = researchSteps.slice(0, stepIndex).map(s => s.result).join('\n\n');
+          prompt = `Based on the research conducted so far on "${query}", please synthesize the information:
+          
+          Previous Research Results:
+          ${previousResults}
+          
+          Please provide:
+          1. Key insights and patterns
+          2. Connections between different aspects
+          3. Contradictions or conflicting information
+          4. Emerging themes and conclusions
+          5. Areas needing further investigation
+          
+          Create a coherent synthesis that ties everything together.`;
+          break;
+          
+        case 'validation':
+          const allPreviousResults = researchSteps.slice(0, stepIndex).map(s => s.result).join('\n\n');
+          prompt = `Cross-validate and verify the research findings on "${query}":
+          
+          Current Findings:
+          ${allPreviousResults}
+          
+          Please:
+          1. Identify any inconsistencies or contradictions
+          2. Suggest additional verification methods
+          3. Rate the reliability of different claims
+          4. Highlight the strongest supported conclusions
+          5. Flag any areas requiring skepticism
+          
+          Provide a validation assessment.`;
+          break;
+          
+        case 'report':
+          const allResults = researchSteps.slice(0, stepIndex).map(s => s.result).join('\n\n');
+          prompt = `Create a comprehensive research report on "${query}" based on all findings:
+          
+          Research Findings:
+          ${allResults}
+          
+          Please provide:
+          1. Executive Summary
+          2. Key Findings (5-7 main points)
+          3. Detailed Analysis
+          4. Recommendations or Implications
+          5. Conclusion
+          6. Suggested next steps or further research
+          
+          Format as a professional research report.`;
+          break;
+          
+        default:
+          prompt = `Please provide detailed information about: "${query}" from the perspective of ${step.title}.`;
+      }
+
+      // Call the Groq API using the same infrastructure as main chat
+      const response = await fetch('/api/groq', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: 'system',
+              content: `You are an expert researcher conducting ${researchType} research. Provide thorough, accurate, and well-structured information. Always cite sources when possible and maintain academic rigor.`
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          model: 'mixtral-8x7b-32768',
+          stream: false
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Research step failed: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const result = data.content || data.message || 'No response received';
+
+      // Update step with result
+      setResearchSteps(prev => prev.map((s, i) => 
+        i === stepIndex ? { ...s, status: 'completed', result } : s
+      ));
+
+      return result;
+    } catch (error) {
+      console.error(`Research step ${step.id} failed:`, error);
+      
+      // Update step with error status
+      setResearchSteps(prev => prev.map((s, i) => 
+        i === stepIndex ? { ...s, status: 'error', result: `Error: ${error}` } : s
+      ));
+      
+      throw error;
+    }
+  };
+
+  const startResearch = async () => {
+    if (!query.trim()) return;
+
+    setIsResearching(true);
+    setShowResult(false);
+    setFinalResult(null);
+    setCurrentStep(0);
+
+    const steps = initializeResearchSteps(query);
+    setResearchSteps(steps);
+
+    try {
+      // Execute research steps sequentially
+      for (let i = 0; i < steps.length; i++) {
+        setCurrentStep(i);
+        await handleResearchStep(steps[i], i);
+        
+        // Small delay between steps for better UX
         await new Promise(resolve => setTimeout(resolve, 500));
       }
 
-      // Conduct actual research
-      const researchResult = await enhancedResearchSystem.conductEnhancedResearch(query as ResearchQuery);
+      // Generate final research result
+      const completedSteps = researchSteps.filter(s => s.status === 'completed');
+      const allFindings = completedSteps.map(s => s.result).join('\n\n');
       
-      setResult(researchResult);
-      setProgress(100);
-      onResearchComplete?.(researchResult);
+      // Extract key findings and create summary
+      const summaryResponse = await fetch('/api/groq', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert at creating research summaries. Extract the most important insights and create clear, actionable summaries.'
+            },
+            {
+              role: 'user',
+              content: `Create a final summary for this research on "${query}":
 
-      // Get competitor comparison
-      const comparison = await enhancedResearchSystem.compareWithCompetitors(query as ResearchQuery);
-      setCompetitorComparison(comparison);
+${allFindings}
+
+Please provide:
+1. A concise summary (2-3 paragraphs)
+2. 5-7 key findings as bullet points
+3. 3-5 practical recommendations
+4. List of main topics covered (as potential sources)
+
+Format as JSON with fields: summary, keyFindings, recommendations, sources`
+            }
+          ],
+          model: 'mixtral-8x7b-32768',
+          stream: false
+        })
+      });
+
+      const summaryData = await summaryResponse.json();
+      let parsedSummary;
+      
+      try {
+        parsedSummary = JSON.parse(summaryData.content);
+      } catch {
+        // Fallback if JSON parsing fails
+        parsedSummary = {
+          summary: summaryData.content,
+          keyFindings: ['Research completed successfully'],
+          recommendations: ['Review findings for actionable insights'],
+          sources: ['AI-generated research']
+        };
+      }
+
+      const result: ResearchResult = {
+        query,
+        steps: researchSteps,
+        summary: parsedSummary.summary,
+        keyFindings: parsedSummary.keyFindings || [],
+        recommendations: parsedSummary.recommendations || [],
+        sources: parsedSummary.sources || [],
+        timestamp: Date.now()
+      };
+
+      setFinalResult(result);
+      setShowResult(true);
+      onResearchComplete?.(result);
 
     } catch (error) {
-      console.error('Research failed:', error);
-      alert('Research failed: ' + (error as Error).message);
+      console.error('Research process failed:', error);
     } finally {
       setIsResearching(false);
-      setCurrentStep('');
     }
   };
 
-  const handleMonitorResearch = async () => {
-    if (result) {
-      await enhancedResearchSystem.monitorResearchUpdates(result);
-      alert('Research monitoring activated! You\'ll receive updates on changes.');
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (error) {
+      console.error('Failed to copy to clipboard:', error);
     }
   };
 
-  const getTrustScoreColor = (score: number) => {
-    if (score >= 90) return 'text-green-600 bg-green-50';
-    if (score >= 80) return 'text-blue-600 bg-blue-50';
-    if (score >= 70) return 'text-yellow-600 bg-yellow-50';
-    return 'text-red-600 bg-red-50';
-  };
+  const downloadReport = () => {
+    if (!finalResult) return;
 
-  const getReadinessColor = (score: number) => {
-    if (score >= 85) return 'bg-green-500';
-    if (score >= 70) return 'bg-blue-500';
-    if (score >= 60) return 'bg-yellow-500';
-    return 'bg-red-500';
+    const reportContent = `# Research Report: ${finalResult.query}
+
+## Summary
+${finalResult.summary}
+
+## Key Findings
+${finalResult.keyFindings.map(finding => `• ${finding}`).join('\n')}
+
+## Recommendations
+${finalResult.recommendations.map(rec => `• ${rec}`).join('\n')}
+
+## Detailed Research Steps
+${finalResult.steps.map(step => `
+### ${step.title}
+${step.description}
+${step.result || 'Not completed'}
+`).join('\n')}
+
+## Sources
+${finalResult.sources.map(source => `• ${source}`).join('\n')}
+
+---
+Generated on: ${new Date(finalResult.timestamp).toLocaleString()}
+Research Type: ${researchType} | Depth: ${depth}
+`;
+
+    const blob = new Blob([reportContent], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `research-report-${finalResult.query.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold mb-2 flex items-center justify-center gap-3">
-          <Microscope className="w-10 h-10 text-blue-600" />
-          Enhanced Research System
-        </h1>
-        <p className="text-gray-600 text-lg">
-          Comprehensive, trustworthy research with academic integrity and real-time verification
-        </p>
-        <div className="flex justify-center gap-2 mt-4">
-          <Badge variant="outline" className="flex items-center gap-1">
-            <Shield className="w-3 h-3" />
-            Academic Integrity
-          </Badge>
-          <Badge variant="outline" className="flex items-center gap-1">
-            <CheckCircle className="w-3 h-3" />
-            Fact Verified
-          </Badge>
-          <Badge variant="outline" className="flex items-center gap-1">
-            <Award className="w-3 h-3" />
-            Research Grade
-          </Badge>
+    <div className="h-full flex flex-col bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 p-6">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
+            <Search className="w-6 h-6 mr-2 text-blue-600" />
+            Enhanced Research Interface
+          </h1>
+          
+          {/* Research Configuration */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Research Type</label>
+              <select 
+                value={researchType}
+                onChange={(e) => setResearchType(e.target.value as any)}
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={isResearching}
+              >
+                <option value="general">General Research</option>
+                <option value="academic">Academic Research</option>
+                <option value="business">Business Analysis</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Research Depth</label>
+              <select 
+                value={depth}
+                onChange={(e) => setDepth(e.target.value as any)}
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={isResearching}
+              >
+                <option value="quick">Quick Overview</option>
+                <option value="comprehensive">Comprehensive</option>
+                <option value="deep">Deep Analysis</option>
+              </select>
+            </div>
+            
+            <div className="flex items-end">
+              <button
+                onClick={startResearch}
+                disabled={!query.trim() || isResearching}
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center"
+              >
+                {isResearching ? (
+                  <>
+                    <Clock className="w-4 h-4 mr-2 animate-spin" />
+                    Researching...
+                  </>
+                ) : (
+                  <>
+                    <Search className="w-4 h-4 mr-2" />
+                    Start Research
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Query Input */}
+          <div>
+            <textarea
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Enter your research question or topic..."
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              rows={3}
+              disabled={isResearching}
+            />
+          </div>
         </div>
       </div>
 
-      {!result ? (
-        <>
-          {/* Research Configuration */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Search className="w-5 h-5" />
-                Research Configuration
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Research Query *</label>
-                    <Textarea
-                      placeholder="Enter your research question or topic..."
-                      value={query.query || ''}
-                      onChange={(e) => setQuery(prev => ({ ...prev, query: e.target.value }))}
-                      rows={3}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Subject Area *</label>
-                    <Input
-                      placeholder="e.g., Psychology, Computer Science, Medicine"
-                      value={query.subject || ''}
-                      onChange={(e) => setQuery(prev => ({ ...prev, subject: e.target.value }))}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Academic Level</label>
-                      <Select
-                        value={query.academicLevel}
-                        onValueChange={(value) => setQuery(prev => ({ ...prev, academicLevel: value as any }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="high-school">High School</SelectItem>
-                          <SelectItem value="undergraduate">Undergraduate</SelectItem>
-                          <SelectItem value="graduate">Graduate</SelectItem>
-                          <SelectItem value="doctoral">Doctoral</SelectItem>
-                          <SelectItem value="professional">Professional</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Citation Style</label>
-                      <Select
-                        value={query.citationStyle}
-                        onValueChange={(value) => setQuery(prev => ({ ...prev, citationStyle: value as any }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="APA">APA</SelectItem>
-                          <SelectItem value="MLA">MLA</SelectItem>
-                          <SelectItem value="Chicago">Chicago</SelectItem>
-                          <SelectItem value="Harvard">Harvard</SelectItem>
-                          <SelectItem value="IEEE">IEEE</SelectItem>
-                          <SelectItem value="Vancouver">Vancouver</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-3">Research Requirements</label>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm">Require Peer Review</span>
-                        <Button
-                          variant={query.requirements?.requirePeerReview ? 'primary' : 'outline'}
-                          size="sm"
-                          onClick={() => setQuery(prev => ({
-                            ...prev,
-                            requirements: { ...prev.requirements!, requirePeerReview: !prev.requirements?.requirePeerReview }
-                          }))}
-                        >
-                          {query.requirements?.requirePeerReview ? 'ON' : 'OFF'}
-                        </Button>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm">Exclude Biased Sources</span>
-                        <Button
-                          variant={query.requirements?.excludeBiased ? 'primary' : 'outline'}
-                          size="sm"
-                          onClick={() => setQuery(prev => ({
-                            ...prev,
-                            requirements: { ...prev.requirements!, excludeBiased: !prev.requirements?.excludeBiased }
-                          }))}
-                        >
-                          {query.requirements?.excludeBiased ? 'ON' : 'OFF'}
-                        </Button>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm">Include International Sources</span>
-                        <Button
-                          variant={query.requirements?.includeInternational ? 'primary' : 'outline'}
-                          size="sm"
-                          onClick={() => setQuery(prev => ({
-                            ...prev,
-                            requirements: { ...prev.requirements!, includeInternational: !prev.requirements?.includeInternational }
-                          }))}
-                        >
-                          {query.requirements?.includeInternational ? 'ON' : 'OFF'}
-                        </Button>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="text-xs text-gray-600">Max Sources</label>
-                          <Input
-                            type="number"
-                            min="5"
-                            max="50"
-                            value={query.requirements?.maxSources || 20}
-                            onChange={(e) => setQuery(prev => ({
-                              ...prev,
-                              requirements: { ...prev.requirements!, maxSources: parseInt(e.target.value) }
-                            }))}
-                          />
-                        </div>
-
-                        <div>
-                          <label className="text-xs text-gray-600">Max Age (years)</label>
-                          <Input
-                            type="number"
-                            min="1"
-                            max="20"
-                            value={query.requirements?.maxSourceAge || 5}
-                            onChange={(e) => setQuery(prev => ({
-                              ...prev,
-                              requirements: { ...prev.requirements!, maxSourceAge: parseInt(e.target.value) }
-                            }))}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div>
-                <label className="block text-sm font-medium mb-3">Deliverables</label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {Object.entries(query.deliverables || {}).map(([key, value]) => (
-                    <Button
-                      key={key}
-                      variant={value ? 'primary' : 'outline'}
-                      size="sm"
-                      onClick={() => setQuery(prev => ({
-                        ...prev,
-                        deliverables: { ...prev.deliverables!, [key]: !value }
-                      }))}
-                      className="justify-start text-xs"
-                    >
-                      {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              <Button 
-                onClick={handleStartResearch}
-                disabled={isResearching || !query.query || !query.subject}
-                className="w-full h-12 text-lg"
-              >
-                {isResearching ? (
-                  <div className="flex items-center gap-2">
-                    <RefreshCw className="w-5 h-5 animate-spin" />
-                    Conducting Research...
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <Microscope className="w-5 h-5" />
-                    Start Enhanced Research
-                  </div>
-                )}
-              </Button>
-
-              {isResearching && (
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span>{currentStep}</span>
-                    <span>{progress}%</span>
-                  </div>
-                  <Progress value={progress} className="w-full" />
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </>
-      ) : (
-        <>
-          {/* Research Results */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Trust Score Overview */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="w-5 h-5" />
-                  Trust Score
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className={`text-center p-4 rounded-lg ${getTrustScoreColor(result.trustworthinessMetrics.overallTrustScore)}`}>
-                  <div className="text-3xl font-bold">
-                    {Math.round(result.trustworthinessMetrics.overallTrustScore)}%
-                  </div>
-                  <div className="text-sm mt-1">Overall Trust Score</div>
-                </div>
-                
-                <div className="space-y-3 mt-4">
-                  <div className="flex justify-between items-center text-sm">
-                    <span>Source Credibility</span>
-                    <span className="font-medium">{Math.round(result.trustworthinessMetrics.sourceCredibilityAverage)}%</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span>Fact Check Accuracy</span>
-                    <span className="font-medium">{Math.round(result.trustworthinessMetrics.factCheckAccuracy)}%</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span>Academic Integrity</span>
-                    <span className="font-medium">{Math.round(result.trustworthinessMetrics.academicIntegrityScore)}%</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span>Bias Assessment</span>
-                    <span className="font-medium">{Math.round(result.trustworthinessMetrics.biasAssessment)}%</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Readiness Score */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <GraduationCap className="w-5 h-5" />
-                  Academic Readiness
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center">
-                  <div className="relative w-24 h-24 mx-auto mb-4">
-                    <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 36 36">
-                      <path
-                        d="m18,2.0845
-                          a 15.9155,15.9155 0 0,1 0,31.831
-                          a 15.9155,15.9155 0 0,1 0,-31.831"
-                        fill="none"
-                        stroke="#e5e7eb"
-                        strokeWidth="2"
-                      />
-                      <path
-                        d="m18,2.0845
-                          a 15.9155,15.9155 0 0,1 0,31.831
-                          a 15.9155,15.9155 0 0,1 0,-31.831"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeDasharray={`${result.readinessScore}, 100`}
-                        className={`${getReadinessColor(result.readinessScore)} text-current`}
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-xl font-bold">{Math.round(result.readinessScore)}%</span>
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    {result.readinessScore >= 85 ? 'Ready for Submission' : 
-                     result.readinessScore >= 70 ? 'Needs Minor Improvements' : 
-                     'Requires Significant Work'}
-                  </p>
-                </div>
-
-                <div className="mt-4 space-y-2">
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>Originality: {Math.round(result.integrityReport.originalityScore)}%</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>Citations: {Math.round(result.integrityReport.citationAccuracy)}%</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>Ethics: {Math.round(result.integrityReport.ethicsCompliance)}%</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Performance Metrics */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5" />
-                  Performance
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm">Delivery Time</span>
-                    </div>
-                    <span className="font-medium">{(result.deliveryTime / 1000).toFixed(1)}s</span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <BookOpen className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm">Sources Found</span>
-                    </div>
-                    <span className="font-medium">{result.researchReport.sources.length}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm">Fact Checks</span>
-                    </div>
-                    <span className="font-medium">{result.factCheckResults.length}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Award className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm">Peer Reviewed</span>
-                    </div>
-                    <span className="font-medium">
-                      {result.researchReport.literatureReview.peerReviewedSources}/
-                      {result.researchReport.literatureReview.totalSources}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Target className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm">Confidence</span>
-                    </div>
-                    <span className="font-medium">{Math.round(result.confidence)}%</span>
-                  </div>
-                </div>
-
-                <Button 
-                  onClick={handleMonitorResearch}
-                  variant="outline" 
-                  className="w-full mt-4"
-                  size="sm"
-                >
-                  <Eye className="w-4 h-4 mr-2" />
-                  Monitor for Updates
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Detailed Results Tabs */}
-          <Tabs defaultValue="summary" className="w-full">
-            <TabsList className="grid w-full grid-cols-6">
-              <TabsTrigger value="summary">Summary</TabsTrigger>
-              <TabsTrigger value="sources">Sources</TabsTrigger>
-              <TabsTrigger value="factcheck">Fact Check</TabsTrigger>
-              <TabsTrigger value="integrity">Integrity</TabsTrigger>
-              <TabsTrigger value="learning">Learning</TabsTrigger>
-              <TabsTrigger value="competitive">Competitive</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="summary" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Executive Summary</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-700 leading-relaxed">
-                    {result.researchReport.executiveSummary}
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Key Findings</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {result.researchReport.keyFindings.map((finding, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm">{finding}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-
-              {result.improvementSuggestions.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Lightbulb className="w-5 h-5" />
-                      Improvement Suggestions
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2">
-                      {result.improvementSuggestions.map((suggestion, index) => (
-                        <li key={index} className="flex items-start gap-2">
-                          <AlertTriangle className="w-4 h-4 text-yellow-500 mt-0.5 flex-shrink-0" />
-                          <span className="text-sm">{suggestion}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-
-            <TabsContent value="sources" className="space-y-4">
-              {result.researchReport.sources.slice(0, 10).map((source, index) => (
-                <Card key={index}>
-                  <CardContent className="pt-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-semibold text-sm">{source.title}</h4>
-                      <div className="flex gap-2">
-                        <Badge variant={source.credibilityAnalysis.authorityScore >= 80 ? 'default' : 'secondary'}>
-                          {Math.round(source.credibilityAnalysis.authorityScore)}% Authority
-                        </Badge>
-                        {source.credibilityAnalysis.peerReviewStatus === 'peer-reviewed' && (
-                          <Badge variant="outline">Peer Reviewed</Badge>
-                        )}
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-600 mb-2">
-                      {source.metadata.author} • {source.metadata.publishDate} • {source.metadata.domain}
-                    </p>
-                    <p className="text-sm text-gray-700 line-clamp-2">
-                      {source.content.substring(0, 200)}...
-                    </p>
-                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                      <span>Relevance: {Math.round(source.relevanceScore)}%</span>
-                      <span>Bias Score: {Math.round(source.credibilityAnalysis.biasAnalysis.biasScore)}%</span>
-                      <span>Type: {source.primaryOrSecondary}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </TabsContent>
-
-            <TabsContent value="factcheck" className="space-y-4">
-              {result.factCheckResults.map((factCheck, index) => (
-                <Card key={index}>
-                  <CardContent className="pt-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <Badge 
-                        variant={
-                          factCheck.overallVerdict === 'true' ? 'default' :
-                          factCheck.overallVerdict === 'mostly-true' ? 'secondary' :
-                          factCheck.overallVerdict === 'mixed' ? 'outline' : 'destructive'
-                        }
-                      >
-                        {factCheck.overallVerdict.toUpperCase()}
-                      </Badge>
-                      <span className="text-sm font-medium">{Math.round(factCheck.confidenceLevel)}% Confidence</span>
-                    </div>
-                    <p className="text-sm font-medium mb-2">{factCheck.claim}</p>
-                    <div className="text-xs text-gray-600 space-y-1">
-                      <p>Expert Consensus: {Math.round(factCheck.expertConsensus)}%</p>
-                      <p>Sources Checked: {factCheck.sourcesChecked}</p>
-                      <p>Processing Time: {factCheck.processingTime}ms</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </TabsContent>
-
-            <TabsContent value="integrity" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <Card>
-                  <CardContent className="pt-4 text-center">
-                    <div className="text-2xl font-bold text-green-600">{Math.round(result.integrityReport.originalityScore)}%</div>
-                    <div className="text-sm text-gray-600">Originality</div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="pt-4 text-center">
-                    <div className="text-2xl font-bold text-blue-600">{Math.round(result.integrityReport.citationAccuracy)}%</div>
-                    <div className="text-sm text-gray-600">Citation Accuracy</div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="pt-4 text-center">
-                    <div className="text-2xl font-bold text-purple-600">{Math.round(result.integrityReport.ethicsCompliance)}%</div>
-                    <div className="text-sm text-gray-600">Ethics Compliance</div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {result.integrityReport.violations.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <AlertTriangle className="w-5 h-5 text-yellow-500" />
-                      Integrity Issues
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {result.integrityReport.violations.map((violation, index) => (
-                        <div key={index} className="border-l-4 border-yellow-400 pl-4">
-                          <div className="flex justify-between items-start">
-                            <p className="font-medium text-sm">{violation.type}</p>
-                            <Badge variant={violation.severity === 'severe' ? 'destructive' : 'secondary'}>
-                              {violation.severity}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-gray-600 mt-1">{violation.description}</p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            <strong>Recommendation:</strong> {violation.recommendation}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-
-            <TabsContent value="learning" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BookMarked className="w-5 h-5" />
-                    Key Concepts
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {result.studentSupport.conceptExplanations.map((concept, index) => (
-                      <div key={index} className="p-3 bg-blue-50 rounded-lg">
-                        <p className="text-sm">{concept}</p>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Brain className="w-5 h-5" />
-                    Skills Developed
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {result.studentSupport.skillsDeveloped.map((skill, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <Star className="w-4 h-4 text-yellow-500" />
-                        <span className="text-sm">{skill}</span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5" />
-                    Next Learning Steps
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {result.studentSupport.nextLearningSteps.map((step, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold mt-0.5">
-                          {index + 1}
-                        </div>
-                        <span className="text-sm">{step}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="competitive" className="space-y-4">
-              {competitorComparison && (
-                <>
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Zap className="w-5 h-5" />
-                        Competitive Advantages
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        {competitorComparison.advantages.map((advantage: string, index: number) => (
-                          <div key={index} className="flex items-start gap-2">
-                            <ThumbsUp className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                            <span className="text-sm">{advantage}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Target className="w-5 h-5" />
-                        Unique Features
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {competitorComparison.uniqueFeatures.map((feature: string, index: number) => (
-                          <Badge key={index} variant="outline" className="justify-start p-2">
-                            {feature}
-                          </Badge>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </>
-              )}
-            </TabsContent>
-          </Tabs>
-
-          {/* Action Buttons */}
-          <div className="flex gap-4 justify-center">
-            <Button 
-              onClick={() => {
-                setResult(null);
-                setQuery(prev => ({ ...prev, query: '', subject: '' }));
-              }}
-              variant="outline"
-            >
-              <Search className="w-4 h-4 mr-2" />
-              New Research
-            </Button>
+      {/* Research Progress */}
+      {researchSteps.length > 0 && (
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-4xl mx-auto p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+              <Brain className="w-5 h-5 mr-2 text-purple-600" />
+              Research Progress
+            </h2>
             
-            <Button 
-              onClick={() => {
-                const printWindow = window.open('', '_blank');
-                printWindow?.document.write(`
-                  <html>
-                    <head><title>Research Report</title></head>
-                    <body>
-                      <h1>Enhanced Research Report</h1>
-                      <p><strong>Query:</strong> ${result.query.query}</p>
-                      <p><strong>Trust Score:</strong> ${Math.round(result.trustworthinessMetrics.overallTrustScore)}%</p>
-                      <h2>Executive Summary</h2>
-                      <p>${result.researchReport.executiveSummary}</p>
-                    </body>
-                  </html>
-                `);
-                printWindow?.print();
-              }}
-              variant="primary"
-            >
-              <FileText className="w-4 h-4 mr-2" />
-              Export Report
-            </Button>
+            <div className="space-y-4">
+              {researchSteps.map((step, index) => (
+                <motion.div
+                  key={step.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className={`bg-white rounded-lg border-2 transition-all ${
+                    step.status === 'completed' ? 'border-green-200 bg-green-50' :
+                    step.status === 'in_progress' ? 'border-blue-200 bg-blue-50' :
+                    step.status === 'error' ? 'border-red-200 bg-red-50' :
+                    'border-gray-200'
+                  }`}
+                >
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
+                          step.status === 'completed' ? 'bg-green-500' :
+                          step.status === 'in_progress' ? 'bg-blue-500' :
+                          step.status === 'error' ? 'bg-red-500' :
+                          'bg-gray-300'
+                        }`}>
+                          {step.status === 'completed' ? (
+                            <CheckCircle className="w-5 h-5 text-white" />
+                          ) : step.status === 'in_progress' ? (
+                            <Clock className="w-5 h-5 text-white animate-spin" />
+                          ) : (
+                            <span className="text-white font-bold text-sm">{index + 1}</span>
+                          )}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{step.title}</h3>
+                          <p className="text-sm text-gray-600">{step.description}</p>
+                        </div>
+                      </div>
+                      
+                      {step.status === 'completed' && step.result && (
+                        <button
+                          onClick={() => copyToClipboard(step.result!)}
+                          className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                          title="Copy to clipboard"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                    
+                    {step.result && (
+                      <div className="mt-3 p-3 bg-white rounded border">
+                        <div className="text-sm text-gray-700 whitespace-pre-wrap">
+                          {step.result.length > 500 && !showResult ? 
+                            `${step.result.substring(0, 500)}...` : 
+                            step.result
+                          }
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
-        </>
+        </div>
+      )}
+
+      {/* Final Results */}
+      {showResult && finalResult && (
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-r from-green-50 to-blue-50 border-t border-gray-200"
+        >
+          <div className="max-w-4xl mx-auto p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+                <FileText className="w-5 h-5 mr-2 text-green-600" />
+                Research Complete
+              </h2>
+              
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => copyToClipboard(JSON.stringify(finalResult, null, 2))}
+                  className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center"
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copy All
+                </button>
+                <button
+                  onClick={downloadReport}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Report
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white rounded-lg p-4 border">
+                <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
+                  <Target className="w-4 h-4 mr-2 text-blue-600" />
+                  Key Findings
+                </h3>
+                <ul className="space-y-1">
+                  {finalResult.keyFindings.map((finding, index) => (
+                    <li key={index} className="text-sm text-gray-700 flex">
+                      <ChevronRight className="w-4 h-4 mr-1 text-blue-500 flex-shrink-0 mt-0.5" />
+                      {finding}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="bg-white rounded-lg p-4 border">
+                <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
+                  <Lightbulb className="w-4 h-4 mr-2 text-yellow-600" />
+                  Recommendations
+                </h3>
+                <ul className="space-y-1">
+                  {finalResult.recommendations.map((rec, index) => (
+                    <li key={index} className="text-sm text-gray-700 flex">
+                      <ChevronRight className="w-4 h-4 mr-1 text-yellow-500 flex-shrink-0 mt-0.5" />
+                      {rec}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <div className="mt-4 bg-white rounded-lg p-4 border">
+              <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
+                <BookOpen className="w-4 h-4 mr-2 text-purple-600" />
+                Summary
+              </h3>
+              <p className="text-sm text-gray-700 whitespace-pre-wrap">{finalResult.summary}</p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Empty State */}
+      {!isResearching && researchSteps.length === 0 && (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center text-gray-500">
+            <Search className="w-16 h-16 mx-auto mb-4 opacity-20" />
+            <h3 className="text-lg font-medium mb-2">Ready to Research</h3>
+            <p>Enter your research question above and click "Start Research" to begin</p>
+          </div>
+        </div>
       )}
     </div>
   );
