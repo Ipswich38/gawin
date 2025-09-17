@@ -455,12 +455,12 @@ class GawinEnhancementService {
     return {
       environmental: {
         weather: {
-          location: { city: 'Philippines', province: '', region: '', coordinates: { lat: 0, lng: 0 } },
-          current: {
-            temperature: 30, feelsLike: 34, humidity: 75, windSpeed: 10,
-            condition: 'Partly Cloudy', visibility: 10, uvIndex: 8, heatIndex: 35
-          },
-          forecast: [], warnings: []
+          location: 'Philippines',
+          temperature: 30,
+          condition: 'Partly Cloudy',
+          humidity: 75,
+          windSpeed: 10,
+          forecast: []
         },
         news: { headlines: [], localNews: [] },
         traffic: {
