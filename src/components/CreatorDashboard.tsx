@@ -31,6 +31,7 @@ import { CreatorTrainingInterface } from './CreatorTrainingInterface';
 import IntelligentResearchInterface from './IntelligentResearchInterface';
 import EnhancedPlayground from './EnhancedPlayground';
 import BehavioralAnalyticsDashboard from './BehavioralAnalyticsDashboard';
+import GawinTrainingDashboard from './GawinTrainingDashboard';
 import { conversationHistoryService, type ConversationHistory } from '@/lib/services/conversationHistoryService';
 
 interface UsageAnalytics {
@@ -336,6 +337,7 @@ export default function CreatorDashboard({ onClose }: CreatorDashboardProps) {
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },
+    { id: 'training', label: 'Gawin Training', icon: Brain },
     { id: 'history', label: 'Conversations', icon: MessageSquare },
     { id: 'playground', label: 'Playground', icon: Play },
     { id: 'research', label: 'Research', icon: Search },
@@ -406,6 +408,17 @@ export default function CreatorDashboard({ onClose }: CreatorDashboardProps) {
                 exit={{ opacity: 0, x: -20 }}
               >
                 {renderOverview()}
+              </motion.div>
+            )}
+
+            {activeTab === 'training' && (
+              <motion.div
+                key="training"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+              >
+                <GawinTrainingDashboard />
               </motion.div>
             )}
 

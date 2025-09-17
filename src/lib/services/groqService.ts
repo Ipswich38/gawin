@@ -2,6 +2,7 @@ import { validationService } from './validationService';
 import { behaviorEnhancedAI } from './behaviorEnhancedAI';
 import { behaviorPrivacyService } from './behaviorPrivacyService';
 import { gawinEnhancementService } from './gawinEnhancementService';
+import { gawinTrainingService } from './gawinTrainingService';
 
 export interface GroqMessage {
   role: 'system' | 'user' | 'assistant';
@@ -305,6 +306,12 @@ GENERAL RESPONSE REQUIREMENTS:
     const startTime = Date.now();
     
     try {
+      // Check if we're in Pure Gawin mode (no external AI assistance)
+      if (gawinTrainingService.isPureGawinMode()) {
+        console.log('🧠 Pure Gawin mode active - generating independent response');
+        return this.generatePureGawinResponse(request, startTime);
+      }
+
       if (!this.isConfigured()) {
         return {
           success: false,
@@ -510,6 +517,90 @@ GENERAL RESPONSE REQUIREMENTS:
       }
     } catch (error) {
       return { status: 'offline', message: 'Groq service unavailable' };
+    }
+  }
+
+  /**
+   * Generate Pure Gawin response without external AI assistance
+   */
+  private async generatePureGawinResponse(request: GroqRequest, startTime: number): Promise<GroqResponse> {
+    try {
+      // Extract user message
+      const userMessage = request.messages.find(msg => msg.role === 'user');
+      if (!userMessage || typeof userMessage.content !== 'string') {
+        return {
+          success: false,
+          error: 'No valid user message found'
+        };
+      }
+
+      // Get enhanced context for Gawin's independent processing
+      const enhancedContext = await gawinEnhancementService.generateEnhancedContext(
+        userMessage.content,
+        undefined, // userLocation
+        request.messages.slice(-5).map(m => ({ 
+          role: m.role, 
+          content: typeof m.content === 'string' ? m.content : '' 
+        }))
+      );
+
+      // Generate Gawin's independent response
+      const gawinResponse = gawinTrainingService.generatePureGawinResponse(
+        userMessage.content,
+        enhancedContext
+      );
+
+      // Record this interaction for training
+      gawinTrainingService.recordInteraction(
+        userMessage.content,
+        gawinResponse,
+        enhancedContext
+      );
+
+      const processingTime = Date.now() - startTime;
+
+      console.log('🧠 Pure Gawin response generated:', {
+        processing_time: processingTime,
+        response_length: gawinResponse.length,
+        cultural_context: enhancedContext.linguistic.language,
+        emotional_context: enhancedContext.emotional.analysis.primary
+      });
+
+      return {
+        success: true,
+        choices: [{
+          message: {
+            role: 'assistant',
+            content: gawinResponse
+          }
+        }],
+        model: 'Pure-Gawin-Intelligence',
+        usage: {
+          prompt_tokens: userMessage.content.length,
+          completion_tokens: gawinResponse.length,
+          total_tokens: userMessage.content.length + gawinResponse.length
+        }
+      };
+
+    } catch (error) {
+      console.error('Pure Gawin response generation failed:', error);
+      
+      // Fallback to a basic Gawin response
+      return {
+        success: true,
+        choices: [{
+          message: {
+            role: 'assistant',
+            content: "I understand your message. As Gawin, I'm learning to respond independently. Could you help me understand your needs better? I want to assist you in the best way I can."
+          }
+        }],
+        model: 'Pure-Gawin-Fallback',
+        usage: {
+          prompt_tokens: 0,
+          completion_tokens: 0,
+          total_tokens: 0
+        }
+      };
     }
   }
 }
