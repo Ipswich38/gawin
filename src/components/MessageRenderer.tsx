@@ -221,15 +221,31 @@ export default function MessageRenderer({ text, showActions, onCopy, onThumbsUp,
   };
 
   const formatText = (text: string, key: number) => {
-    // Split by paragraphs and add proper spacing
-    const paragraphs = text.split('\n').filter(p => p.trim().length > 0);
+    // Enhanced paragraph processing for better readability
+    let processedText = text;
+    
+    // Convert double line breaks to paragraph breaks
+    processedText = processedText.replace(/\n\n+/g, '\n\n');
+    
+    // Split by double line breaks first (proper paragraph breaks)
+    const sections = processedText.split('\n\n');
+    
+    // Then split each section by single line breaks for sentences
+    const allParagraphs: string[] = [];
+    sections.forEach(section => {
+      const lines = section.split('\n').filter(line => line.trim().length > 0);
+      allParagraphs.push(...lines);
+    });
+    
+    // Filter empty paragraphs
+    const paragraphs = allParagraphs.filter(p => p.trim().length > 0);
     
     if (paragraphs.length <= 1) {
       return <span key={key}>{text}</span>;
     }
     
     return (
-      <div key={key} className="space-y-3">
+      <div key={key} className="space-y-4">
         {paragraphs.map((paragraph, index) => (
           <div key={index} className="leading-relaxed">
             {formatInlineElements(paragraph.trim())}

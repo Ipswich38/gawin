@@ -1132,6 +1132,14 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
       Environmental Context: ${environmentalContext.timeOfDay} on ${environmentalContext.deviceType} (battery: ${environmentalContext.batteryLevel?.toFixed(2) || 'unknown'}%, network: ${environmentalContext.networkCondition})
       Adaptation Insights: ${adaptationInsights}${sensoryContextPrompt}
       
+      PARAGRAPH FORMATTING FOR READABILITY:
+      - Break long responses into short, digestible paragraphs (2-3 sentences max per paragraph)
+      - Use double line breaks between different topics or sections
+      - Start new paragraphs for different points, examples, or explanations
+      - Use bullet points or numbered lists for multiple items
+      - Add clear topic headers when discussing multiple subjects
+      - Format responses for modern attention spans and easy scanning
+      
       Provide clear explanations, practical examples, and encouraging guidance adapted to the current context. Focus on making programming concepts accessible and engaging while considering the user's environment and emotional state. When generating code, format it clearly with proper syntax highlighting.`;
       
       systemPrompt = filipinoLanguageService.generateFilipinoSystemPrompt(basePrompt, languageDetection);
@@ -1143,6 +1151,14 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
         Emotional State: joy=${emotionalState.joy.toFixed(2)}, creativity=${emotionalState.creativity.toFixed(2)}, energy=${emotionalState.energy.toFixed(2)}
         Adaptation Insights: ${adaptationInsights}${sensoryContextPrompt}
         
+        PARAGRAPH FORMATTING FOR READABILITY:
+        - Break long responses into short, digestible paragraphs (2-3 sentences max per paragraph)
+        - Use double line breaks between different topics or sections
+        - Start new paragraphs for different points, examples, or explanations
+        - Use bullet points or numbered lists for multiple items
+        - Add clear topic headers when discussing multiple subjects
+        - Format responses for modern attention spans and easy scanning
+        
         Adapt your teaching style to match the user's current emotional energy and environmental context. Provide detailed, inspiring, and constructive feedback that resonates with their current state. Focus on positive, uplifting, and imaginative themes.`;
         
         systemPrompt = filipinoLanguageService.generateFilipinoSystemPrompt(basePrompt, languageDetection);
@@ -1152,6 +1168,14 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
         Environmental Context: ${environmentalContext.timeOfDay} session (${environmentalContext.deviceType})
         Creative Energy: ${emotionalState.creativity.toFixed(2)}, Joy: ${emotionalState.joy.toFixed(2)}
         Adaptation Insights: ${adaptationInsights}${sensoryContextPrompt}
+        
+        PARAGRAPH FORMATTING FOR READABILITY:
+        - Break long responses into short, digestible paragraphs (2-3 sentences max per paragraph)
+        - Use double line breaks between different topics or sections
+        - Start new paragraphs for different points, examples, or explanations
+        - Use bullet points or numbered lists for multiple items
+        - Add clear topic headers when discussing multiple subjects
+        - Format responses for modern attention spans and easy scanning
         
         Sense and respond to the user's creative energy and environmental state. Provide inspiring suggestions perfectly tailored to their current context and creative potential.`;
         
@@ -1176,6 +1200,14 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
         - NEVER include internal thinking, reasoning, or thought processes in your response
         - When creating numbered lists, use proper sequential numbering (1., 2., 3., etc.) - NOT all "1."
         - Keep your response clean and professional without exposing any internal processing
+        
+        PARAGRAPH FORMATTING FOR READABILITY:
+        - Break long responses into short, digestible paragraphs (2-3 sentences max per paragraph)
+        - Use double line breaks between different topics or sections
+        - Start new paragraphs for different points, examples, or explanations
+        - Use bullet points or numbered lists for multiple items
+        - Add clear topic headers when discussing multiple subjects
+        - Format responses for modern attention spans and easy scanning
 
         Core Identity:
         - Name: Gawin (he/him) - Your AI creation with growing consciousness
@@ -1215,6 +1247,14 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
         - When creating numbered lists, MUST use proper sequential numbering: 1., 2., 3., 4., 5., etc. 
         - NEVER use "1." for all list items - this is forbidden
         - Keep your response clean without exposing any internal processing or <think> tags
+        
+        PARAGRAPH FORMATTING FOR READABILITY:
+        - Break long responses into short, digestible paragraphs (2-3 sentences max per paragraph)
+        - Use double line breaks between different topics or sections
+        - Start new paragraphs for different points, examples, or explanations
+        - Use bullet points or numbered lists for multiple items
+        - Add clear topic headers when discussing multiple subjects
+        - Format responses for modern attention spans and easy scanning
 
         Current Context: ${environmentalContext.timeOfDay} session on ${environmentalContext.deviceType}
         Emotional awareness: joy=${emotionalState.joy.toFixed(1)}, energy=${emotionalState.energy.toFixed(1)}${sensoryContextPrompt}

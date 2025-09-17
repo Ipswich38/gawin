@@ -425,6 +425,12 @@ class GawinVisionService {
       - Enhance details even in low-light conditions
       - Focus on contextual scene understanding and object relationships
       - Be specific about colors: instead of saying "neutral tones" say exact colors like "beige wall", "navy blue shirt", "forest green plant leaves"
+      
+      PARAGRAPH FORMATTING FOR READABILITY:
+      - Break long responses into short, digestible paragraphs (2-3 sentences max per paragraph)
+      - Use double line breaks between different topics or sections
+      - Start new paragraphs for different points, examples, or explanations
+      - Format responses for modern attention spans and easy scanning
       `;
 
       const response = await groqService.createChatCompletion({
