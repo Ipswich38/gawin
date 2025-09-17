@@ -11,6 +11,7 @@ export interface GawinCapability {
   target_level: number; // Target for superintelligence
   confidence: number; // AI's confidence in this capability
   last_updated: number;
+  progress_trend: 'improving' | 'stable' | 'declining'; // Progress trend indicator
   milestones: Array<{
     level: number;
     description: string;
@@ -189,7 +190,7 @@ class GawinTrainingService {
   /**
    * Get detailed capability breakdown
    */
-  getCapabilityBreakdown(): Array<GawinCapability & { progress_trend: 'improving' | 'stable' | 'declining' }> {
+  getCapabilityBreakdown(): Array<GawinCapability> {
     return Array.from(this.capabilities.values()).map(capability => ({
       ...capability,
       progress_trend: this.calculateProgressTrend(capability)
@@ -309,6 +310,7 @@ class GawinTrainingService {
         current_level: 45,
         target_level: 95,
         confidence: 0.7,
+        progress_trend: 'improving',
         milestones: [
           { level: 25, description: 'Basic Filipino values recognition', achieved: true },
           { level: 50, description: 'Regional cultural variations understanding', achieved: false },
@@ -322,6 +324,7 @@ class GawinTrainingService {
         current_level: 60,
         target_level: 90,
         confidence: 0.8,
+        progress_trend: 'improving',
         milestones: [
           { level: 30, description: 'Basic emotion recognition', achieved: true },
           { level: 60, description: 'Empathetic response generation', achieved: true },
@@ -335,6 +338,7 @@ class GawinTrainingService {
         current_level: 70,
         target_level: 95,
         confidence: 0.85,
+        progress_trend: 'stable',
         milestones: [
           { level: 40, description: 'Filipino-English code switching', achieved: true },
           { level: 70, description: 'Regional dialect understanding', achieved: true },
@@ -348,6 +352,7 @@ class GawinTrainingService {
         current_level: 35,
         target_level: 95,
         confidence: 0.6,
+        progress_trend: 'improving',
         milestones: [
           { level: 25, description: 'Basic logical reasoning', achieved: true },
           { level: 50, description: 'Cultural context reasoning', achieved: false },
@@ -361,6 +366,7 @@ class GawinTrainingService {
         current_level: 80,
         target_level: 90,
         confidence: 0.9,
+        progress_trend: 'stable',
         milestones: [
           { level: 50, description: 'Basic environmental data integration', achieved: true },
           { level: 80, description: 'Real-time context adaptation', achieved: true },
