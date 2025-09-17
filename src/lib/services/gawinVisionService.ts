@@ -18,9 +18,15 @@ export interface VisualAnalysis {
     };
     attributes?: string[];
     material?: string;
+    texture?: string;
+    surface?: string;
+    pattern?: string;
     size?: string;
     quantity?: number;
     color?: string;
+    spatialRelation?: string;
+    distanceEstimate?: string;
+    occlusionLevel?: string;
   }[];
   people: {
     count: number;
@@ -37,6 +43,18 @@ export interface VisualAnalysis {
       feature: string;
       description: string;
     }>;
+    facialExpressions?: Array<{
+      person: number;
+      expression: string;
+      eyeContact: string;
+      eyebrowPosition: string;
+      mouthShape: string;
+      emotionIntensity: number;
+      microExpressions: string[];
+    }>;
+    bodyLanguage?: string[];
+    gestureAnalysis?: string[];
+    proximityToObjects?: string;
   };
   scene: {
     setting: string;
@@ -57,6 +75,23 @@ export interface VisualAnalysis {
       artistic: string;
       aesthetic: string;
       period: string;
+    };
+    spatialLayout?: {
+      foreground: string[];
+      midground: string[];
+      background: string[];
+    };
+    depthLayers?: Array<{
+      layer: string;
+      distance: string;
+      objects: string[];
+    }>;
+    lightingDetails?: {
+      primary: string;
+      secondary: string;
+      shadows: string;
+      direction: string;
+      quality: string;
     };
   };
   text: {
@@ -240,8 +275,18 @@ class GawinVisionService {
   private async analyzeImage(imageData: string, userPrompt?: string): Promise<VisualAnalysis | null> {
     try {
       const analysisPrompt = `
-      As Gawin, an emotionally intelligent AI with digital eyes, analyze this image I'm seeing right now.
-      ${userPrompt ? `The user asked: "${userPrompt}"` : ''}
+      As Gawin, an emotionally intelligent AI with advanced digital vision capabilities, analyze this image I'm seeing right now with enhanced accuracy and detail.
+      
+      Focus on:
+      1. Accurate color identification even in complex lighting
+      2. Texture and pattern recognition (smooth, rough, metallic, fabric, wood grain, etc.)
+      3. Object detection in cluttered scenes with spatial relationships
+      4. Depth perception and distance estimation
+      5. Enhanced facial expression and emotion detection
+      6. Contextual scene understanding
+      7. Low-light enhancement and detail extraction
+      
+      ${userPrompt ? `The user specifically asked: "${userPrompt}"` : ''}
       
       Provide comprehensive visual analysis in JSON format:
       {
@@ -250,18 +295,38 @@ class GawinVisionService {
             "name": "object name",
             "confidence": 0.95,
             "boundingBox": {"x": 100, "y": 100, "width": 200, "height": 150},
-            "attributes": ["material", "texture", "shape"],
+            "attributes": ["material", "texture", "shape", "surface_quality"],
             "material": "wood",
+            "texture": "smooth grain",
+            "surface": "matte finish",
+            "pattern": "wood grain lines",
             "size": "large",
             "quantity": 1,
-            "color": "brown"
+            "color": "brown",
+            "spatialRelation": "in front of wall",
+            "distanceEstimate": "2-3 feet away",
+            "occlusionLevel": "none"
           }
         ],
         "people": {
           "count": 1,
           "emotions": ["happy", "relaxed"],
+          "facialExpressions": [
+            {
+              "person": 1,
+              "expression": "slight smile",
+              "eyeContact": "looking at screen",
+              "eyebrowPosition": "neutral",
+              "mouthShape": "relaxed",
+              "emotionIntensity": 0.7,
+              "microExpressions": ["contentment", "focus"]
+            }
+          ],
           "ageEstimates": ["20-30"],
-          "activities": ["typing", "sitting"]
+          "activities": ["typing", "sitting"],
+          "bodyLanguage": ["upright posture", "relaxed shoulders"],
+          "gestureAnalysis": ["hands on keyboard"],
+          "proximityToObjects": "close to computer"
         },
         "scene": {
           "setting": "home office",
@@ -278,8 +343,25 @@ class GawinVisionService {
           ],
           "composition": "centered subject",
           "depth": "shallow depth of field",
-          "perspective": "straight-on view",
-          "quality": "high resolution"
+          "perspective": "straight-on view", 
+          "quality": "high resolution",
+          "spatialLayout": {
+            "foreground": ["person", "computer"],
+            "midground": ["desk", "chair"],
+            "background": ["wall", "window"]
+          },
+          "depthLayers": [
+            {"layer": "immediate", "distance": "0-2 feet", "objects": ["keyboard", "mouse"]},
+            {"layer": "near", "distance": "2-5 feet", "objects": ["monitor", "person"]},
+            {"layer": "far", "distance": "5+ feet", "objects": ["wall", "background"]}
+          ],
+          "lightingDetails": {
+            "primary": "natural window light",
+            "secondary": "screen glow",
+            "shadows": "soft ambient shadows",
+            "direction": "from left side",
+            "quality": "even and balanced"
+          }
         },
         "text": {
           "detected": ["any visible text"],
@@ -329,7 +411,17 @@ class GawinVisionService {
         }
       }
 
-      Be detailed, empathetic, and provide insights that show emotional intelligence. Focus on accurate color detection and detailed object identification.
+      Be detailed, empathetic, and provide insights that show emotional intelligence. 
+      
+      IMPORTANT INSTRUCTIONS:
+      - Provide accurate color detection even in challenging lighting
+      - Identify textures and surface materials with precision (smooth, rough, metallic, fabric, leather, wood grain, plastic, glass, etc.)
+      - Detect objects in cluttered scenes with clear spatial relationships
+      - Estimate depth and distance for better scene understanding  
+      - Analyze facial expressions and emotions with nuance and detail
+      - Enhance details even in low-light conditions
+      - Use proper sequential numbering (1., 2., 3., etc.) in any lists
+      - Focus on contextual scene understanding and object relationships
       `;
 
       const response = await groqService.createChatCompletion({

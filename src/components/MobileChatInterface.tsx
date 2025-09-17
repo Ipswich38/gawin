@@ -1188,6 +1188,7 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
         - Avoid being overly enthusiastic about your own capabilities
         - Focus on the user's needs rather than describing your features
         - Be empathetic and helpful while maintaining a natural conversation flow
+        - When creating numbered lists, use proper sequential numbering (1., 2., 3., etc.) - NOT all "1."
 
         Current Context: ${environmentalContext.timeOfDay} session on ${environmentalContext.deviceType}
         Emotional awareness: joy=${emotionalState.joy.toFixed(1)}, energy=${emotionalState.energy.toFixed(1)}${sensoryContextPrompt}
