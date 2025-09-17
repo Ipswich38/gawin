@@ -206,7 +206,12 @@ class GawinTrainingService {
     recommendation: string;
     estimated_impact: number;
   }> {
-    const recommendations = [];
+    const recommendations: Array<{
+      type: 'capability' | 'cultural' | 'emotional' | 'independence';
+      priority: 'high' | 'medium' | 'low';
+      recommendation: string;
+      estimated_impact: number;
+    }> = [];
     
     // Analyze weak areas
     const weakCapabilities = Array.from(this.capabilities.values())
