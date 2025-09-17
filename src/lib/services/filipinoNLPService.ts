@@ -159,7 +159,7 @@ class FilipinoNLPService {
 
   // Modern Filipino slang and trending expressions
   private modernFilipinoSlang = {
-    2020s: [
+    current: [
       { term: "bet", meaning: "yes/okay/I like it", usage: "casual agreement or approval" },
       { term: "sana all", meaning: "I wish that for everyone/I'm envious", usage: "expressing envy in a light way" },
       { term: "charot", meaning: "just kidding", usage: "indicating a joke or sarcasm" },
@@ -531,7 +531,7 @@ class FilipinoNLPService {
 
     if (analysis.language === 'filipino' || analysis.language === 'mixed') {
       if (context === 'casual') {
-        expressions.push(...this.modernFilipinoSlang['2020s'].map(s => s.term));
+        expressions.push(...this.modernFilipinoSlang['current'].map(s => s.term));
       }
     }
 
