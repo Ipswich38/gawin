@@ -124,7 +124,11 @@ class GawinEnhancementService {
     insight: string;
     actionable: boolean;
   }> {
-    const insights = [];
+    const insights: Array<{
+      type: 'environmental' | 'emotional' | 'cultural' | 'linguistic';
+      insight: string;
+      actionable: boolean;
+    }> = [];
 
     // Environmental insights
     const envInsights = environmentalAwarenessService.generateContextualInsights(context.environmental);
@@ -174,7 +178,11 @@ class GawinEnhancementService {
     recommendation: string;
     examples: string[];
   }> {
-    const recommendations = [];
+    const recommendations: Array<{
+      aspect: string;
+      recommendation: string;
+      examples: string[];
+    }> = [];
 
     // Emotional response recommendations
     if (context.emotional.empathy_response.empathyLevel === 'very_high') {
@@ -304,7 +312,7 @@ class GawinEnhancementService {
     emotional: { analysis: EmotionAnalysis; empathy_response: EmpathyResponse },
     linguistic: FilipinoLanguageAnalysis
   ): Array<{ category: string; suggestion: string; priority: 'low' | 'medium' | 'high'; cultural_relevance: number }> {
-    const recommendations = [];
+    const recommendations: Array<{ category: string; suggestion: string; priority: 'low' | 'medium' | 'high'; cultural_relevance: number }> = [];
 
     // Environmental recommendations
     const envRecommendations = environmentalAwarenessService.getEnvironmentalRecommendations(environmental);
