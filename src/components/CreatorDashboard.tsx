@@ -418,7 +418,7 @@ export default function CreatorDashboard({ onClose }: CreatorDashboardProps) {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
               >
-                <GawinTrainingDashboard />
+                <GawinTrainingDashboard onReturnToChat={onClose} />
               </motion.div>
             )}
 

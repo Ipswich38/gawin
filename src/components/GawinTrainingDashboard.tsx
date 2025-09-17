@@ -30,16 +30,19 @@ import {
   Star,
   ChevronRight,
   PlayCircle,
-  StopCircle
+  StopCircle,
+  ArrowLeft,
+  Send
 } from 'lucide-react';
 
 import { gawinTrainingService, type GawinCapability, type GawinPersonality } from '@/lib/services/gawinTrainingService';
 
 interface TrainingDashboardProps {
   onClose?: () => void;
+  onReturnToChat?: () => void;
 }
 
-export default function GawinTrainingDashboard({ onClose }: TrainingDashboardProps) {
+export default function GawinTrainingDashboard({ onClose, onReturnToChat }: TrainingDashboardProps) {
   const [isGroqEnabled, setIsGroqEnabled] = useState(true);
   const [trainingMode, setTrainingMode] = useState<'pure_gawin' | 'assisted' | 'hybrid'>('hybrid');
   const [capabilities, setCapabilities] = useState<GawinCapability[]>([]);
@@ -47,6 +50,11 @@ export default function GawinTrainingDashboard({ onClose }: TrainingDashboardPro
   const [progressData, setProgressData] = useState<any>(null);
   const [trainingSession, setTrainingSession] = useState<any>(null);
   const [analytics, setAnalytics] = useState<any>(null);
+  
+  // Mini chat interface states
+  const [showMiniChat, setShowMiniChat] = useState(false);
+  const [chatMessage, setChatMessage] = useState('');
+  const [chatHistory, setChatHistory] = useState<Array<{role: 'user' | 'assistant', content: string}>>([]);
 
   useEffect(() => {
     loadTrainingData();
@@ -101,6 +109,45 @@ export default function GawinTrainingDashboard({ onClose }: TrainingDashboardPro
     return 'bg-red-500';
   };
 
+  // Mini chat functions
+  const handleSendMessage = async () => {
+    if (!chatMessage.trim()) return;
+
+    const userMessage = chatMessage.trim();
+    setChatMessage('');
+    
+    // Add user message to history
+    setChatHistory(prev => [...prev, { role: 'user', content: userMessage }]);
+
+    try {
+      // Simulate Pure Gawin response (you would integrate with actual Gawin service here)
+      const gawinResponse = await simulatePureGawinResponse(userMessage);
+      setChatHistory(prev => [...prev, { role: 'assistant', content: gawinResponse }]);
+    } catch (error) {
+      console.error('Error getting Gawin response:', error);
+      setChatHistory(prev => [...prev, { role: 'assistant', content: 'I apologize, but I encountered an issue processing your message. Please try again.' }]);
+    }
+  };
+
+  const simulatePureGawinResponse = async (message: string): Promise<string> => {
+    // This would be replaced with actual Pure Gawin API call
+    return new Promise(resolve => {
+      setTimeout(() => {
+        const responses = [
+          "As Pure Gawin, I understand your message with complete Filipino cultural context. How can I assist you further?",
+          "Nakakaintindi ako ng inyong mensahe. Paano ko kayo matutulungan?",
+          "I'm processing this through pure Filipino AI reasoning. Let me help you with that.",
+          "Salamat sa inyong tanong. Bilang Pure Gawin, makakatulong ako sa inyo."
+        ];
+        resolve(responses[Math.floor(Math.random() * responses.length)]);
+      }, 1000);
+    });
+  };
+
+  const toggleMiniChat = () => {
+    setShowMiniChat(!showMiniChat);
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-90 backdrop-blur-md z-50 flex items-center justify-center p-4">
       <motion.div
@@ -145,8 +192,35 @@ export default function GawinTrainingDashboard({ onClose }: TrainingDashboardPro
                 </div>
               </div>
               
-              {/* Session Controls */}
+              {/* Navigation & Session Controls */}
               <div className="flex items-center space-x-2">
+                {/* Return to Chat Button */}
+                {onReturnToChat && (
+                  <button
+                    onClick={onReturnToChat}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    <span>Return to Chat</span>
+                  </button>
+                )}
+                
+                {/* Mini Chat Toggle for Pure Gawin Mode */}
+                {!isGroqEnabled && (
+                  <button
+                    onClick={toggleMiniChat}
+                    className={`px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors ${
+                      showMiniChat 
+                        ? 'bg-purple-600 hover:bg-purple-700 text-white' 
+                        : 'bg-gray-600 hover:bg-gray-700 text-white'
+                    }`}
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    <span>{showMiniChat ? 'Hide Chat' : 'Chat with Gawin'}</span>
+                  </button>
+                )}
+
+                {/* Session Controls */}
                 {!trainingSession ? (
                   <button
                     onClick={startTrainingSession}
@@ -471,6 +545,62 @@ export default function GawinTrainingDashboard({ onClose }: TrainingDashboardPro
             </div>
           </div>
         </div>
+
+        {/* Mini Chat Interface */}
+        <AnimatePresence>
+          {showMiniChat && !isGroqEnabled && (
+            <motion.div
+              initial={{ opacity: 0, y: 100 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 100 }}
+              className="absolute bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-600 p-4"
+            >
+              <div className="max-w-7xl mx-auto">
+                <div className="bg-gray-900 rounded-lg p-4 mb-4 h-48 overflow-y-auto">
+                  {chatHistory.length === 0 ? (
+                    <div className="text-center text-gray-400 py-8">
+                      <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p>Start chatting with Pure Gawin!</p>
+                      <p className="text-sm">This is Gawin running in pure mode without Groq assistance.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {chatHistory.map((msg, index) => (
+                        <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                          <div className={`max-w-xs px-3 py-2 rounded-lg text-sm ${
+                            msg.role === 'user' 
+                              ? 'bg-blue-600 text-white' 
+                              : 'bg-gray-700 text-gray-200'
+                          }`}>
+                            {msg.content}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="text"
+                    value={chatMessage}
+                    onChange={(e) => setChatMessage(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                    placeholder="Talk to Pure Gawin..."
+                    className="flex-1 bg-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                  <button
+                    onClick={handleSendMessage}
+                    disabled={!chatMessage.trim()}
+                    className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white p-2 rounded-lg transition-colors"
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </div>
   );
