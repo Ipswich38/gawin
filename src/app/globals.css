@@ -24,14 +24,16 @@ body {
   }
   
   /* Hide scrollbars for clean panel design */
-  .scrollbar-hide {
+  .scrollbar-hide,
+  .scrollbar-none {
     /* Firefox */
     scrollbar-width: none;
     /* Internet Explorer and Edge */
     -ms-overflow-style: none;
   }
   
-  .scrollbar-hide::-webkit-scrollbar {
+  .scrollbar-hide::-webkit-scrollbar,
+  .scrollbar-none::-webkit-scrollbar {
     /* WebKit browsers (Chrome, Safari, Edge) */
     display: none;
   }

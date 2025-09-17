@@ -456,6 +456,9 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
     const messageText = text.trim();
     if (!messageText || !activeTab || activeTab.isLoading) return;
 
+    // Enable voice for mobile when user sends a message
+    voiceService.enableVoiceForMobile();
+
     // Content filtering for Creative tab
     if (activeTab.type === 'creative' && hasInappropriateContent(messageText)) {
       const warningMessage: Message = {
@@ -2281,8 +2284,13 @@ Questions: ${count}`
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'tween' }}
-              className="fixed left-0 top-0 h-full w-80 bg-gray-900/95 backdrop-blur-sm border-r border-gray-600/50 z-50 p-6 space-y-6"
+              className="fixed left-0 top-0 h-full w-80 bg-gray-900/95 backdrop-blur-sm border-r border-gray-600/50 z-50 overflow-y-auto scrollbar-none"
+              style={{
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none'
+              }}
             >
+              <div className="p-6 space-y-6">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-teal-600 to-teal-700 rounded-lg flex items-center justify-center">
                   <span className="text-white text-lg font-bold">G</span>
@@ -2404,6 +2412,7 @@ Questions: ${count}`
                   <span>⊗</span>
                   <span>Sign Out</span>
                 </button>
+              </div>
               </div>
             </motion.div>
           </>

@@ -43,6 +43,9 @@ class VoiceService {
   private voiceQueue: SpeechOptions[] = [];
   private isInitialized = false;
   private availableVoices: SpeechSynthesisVoice[] = [];
+  private isMobile = false;
+  private hasUserInteracted = false;
+  private audioContext: AudioContext | null = null;
   private callbacks: {
     onStart?: () => void;
     onEnd?: () => void;
@@ -53,7 +56,64 @@ class VoiceService {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       this.synthesis = window.speechSynthesis;
       this.initializeVoices();
+      this.detectMobile();
+      this.setupMobileAudioHandling();
     }
+  }
+
+  /**
+   * Detect mobile device
+   */
+  private detectMobile(): void {
+    if (typeof window === 'undefined') return;
+    
+    this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                   /Mobi|Android/i.test(navigator.userAgent) ||
+                   ('ontouchstart' in window) ||
+                   (navigator.maxTouchPoints > 0);
+    
+    console.log('📱 Device detection:', this.isMobile ? 'Mobile' : 'Desktop');
+  }
+
+  /**
+   * Setup mobile audio handling
+   */
+  private setupMobileAudioHandling(): void {
+    if (typeof window === 'undefined' || !this.isMobile) return;
+
+    // Create audio context for mobile audio unlocking
+    try {
+      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    } catch (error) {
+      console.warn('AudioContext not available:', error);
+    }
+
+    // Listen for user interactions to unlock audio
+    const unlockAudio = () => {
+      console.log('🔓 Mobile audio unlocked by user interaction');
+      this.hasUserInteracted = true;
+      
+      // Try to resume audio context
+      if (this.audioContext && this.audioContext.state === 'suspended') {
+        this.audioContext.resume().then(() => {
+          console.log('🎵 AudioContext resumed');
+        }).catch(error => {
+          console.warn('Failed to resume AudioContext:', error);
+        });
+      }
+
+      // Remove listeners after first interaction
+      document.removeEventListener('touchstart', unlockAudio);
+      document.removeEventListener('touchend', unlockAudio);
+      document.removeEventListener('click', unlockAudio);
+      document.removeEventListener('keydown', unlockAudio);
+    };
+
+    // Add event listeners for user interactions
+    document.addEventListener('touchstart', unlockAudio, { once: true, passive: true });
+    document.addEventListener('touchend', unlockAudio, { once: true, passive: true });
+    document.addEventListener('click', unlockAudio, { once: true, passive: true });
+    document.addEventListener('keydown', unlockAudio, { once: true, passive: true });
   }
 
   /**
@@ -190,11 +250,35 @@ class VoiceService {
   }
 
   /**
+   * Enable voice for mobile after user interaction
+   */
+  enableVoiceForMobile(): void {
+    if (this.isMobile && !this.hasUserInteracted) {
+      this.hasUserInteracted = true;
+      console.log('🔓 Voice enabled for mobile by user interaction');
+    }
+  }
+
+  /**
+   * Check if voice is ready for mobile
+   */
+  isVoiceReadyForMobile(): boolean {
+    return !this.isMobile || this.hasUserInteracted;
+  }
+
+  /**
    * Speak text with Gawin's voice
    */
   async speak(options: SpeechOptions): Promise<void> {
     if (!this.config.enabled || !this.synthesis || !this.config.voice) {
       console.log('🔇 Voice disabled or not available');
+      return;
+    }
+
+    // For mobile devices, check if user has interacted
+    if (this.isMobile && !this.hasUserInteracted) {
+      console.log('📱 Mobile voice requires user interaction first');
+      this.callbacks.onError?.('Please tap the screen to enable voice on mobile');
       return;
     }
 
@@ -314,6 +398,24 @@ class VoiceService {
           await audio.play();
         } catch (playError) {
           console.warn('Audio autoplay blocked, user interaction required');
+          
+          // For mobile devices, show user interaction required message
+          if (this.isMobile && !this.hasUserInteracted) {
+            console.log('📱 Mobile audio requires user interaction - waiting for touch/click');
+            this.callbacks.onError?.('Mobile audio requires user interaction. Please tap the screen to enable voice.');
+            
+            // Store audio for later playback when user interacts
+            const playAfterInteraction = () => {
+              if (this.hasUserInteracted) {
+                audio.play().catch(error => {
+                  console.error('Failed to play audio after interaction:', error);
+                });
+              }
+            };
+            
+            // Try again after a short delay
+            setTimeout(playAfterInteraction, 500);
+          }
         }
         return;
       }

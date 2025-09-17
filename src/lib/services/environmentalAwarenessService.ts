@@ -1,8 +1,10 @@
 /**
  * Environmental Awareness Service for Gawin
  * Provides real-time environmental data including weather, news, traffic, and social trends
- * Specifically enhanced for Philippine context
+ * Specifically enhanced for Philippine context with real weather API integration
  */
+
+import { realWeatherService, type RealWeatherData, type LocationData } from './realWeatherService';
 
 export interface WeatherData {
   location: string;
@@ -100,13 +102,23 @@ class EnvironmentalAwarenessService {
         this.getSocialTrends()
       ]);
 
+      // Get real user location data
+      const realLocation = await realWeatherService.getUserLocation();
+      
       const context: EnvironmentalContext = {
         weather,
         news,
         traffic,
         socialTrends,
         timestamp: Date.now(),
-        userLocation: this.parseLocation(location)
+        userLocation: {
+          city: realLocation.city,
+          region: realLocation.region,
+          coordinates: {
+            lat: realLocation.latitude,
+            lng: realLocation.longitude
+          }
+        }
       };
 
       // Cache the result
@@ -121,24 +133,35 @@ class EnvironmentalAwarenessService {
   }
 
   /**
-   * Get weather data for specified location
+   * Get weather data for specified location using real API
    */
   private async getWeatherData(location: string): Promise<WeatherData> {
     try {
-      // In a real implementation, this would call a weather API like OpenWeatherMap
-      // For now, we'll simulate Philippine weather patterns
-      const mockWeather: WeatherData = {
-        location,
-        temperature: 28 + Math.random() * 8, // 28-36°C typical for Philippines
-        condition: this.getRandomWeatherCondition(),
-        humidity: 65 + Math.random() * 25, // 65-90% typical humidity
-        windSpeed: 5 + Math.random() * 15, // 5-20 km/h
-        forecast: this.generateWeatherForecast()
+      console.log('🌤️ Fetching real weather data...');
+      
+      // Get real weather data from API
+      const realWeatherData: RealWeatherData = await realWeatherService.getCurrentWeather();
+      
+      // Convert to our WeatherData interface
+      const weatherData: WeatherData = {
+        location: realWeatherData.location,
+        temperature: realWeatherData.temperature,
+        condition: realWeatherData.condition,
+        humidity: realWeatherData.humidity,
+        windSpeed: realWeatherData.windSpeed,
+        forecast: realWeatherData.forecast.map(day => ({
+          date: day.date,
+          high: day.high,
+          low: day.low,
+          condition: day.condition
+        }))
       };
 
-      return mockWeather;
+      console.log('✅ Real weather data loaded:', `${weatherData.temperature}°C, ${weatherData.condition} in ${weatherData.location}`);
+      return weatherData;
+      
     } catch (error) {
-      console.error('Weather data fetch failed:', error);
+      console.error('Real weather data fetch failed, using fallback:', error);
       return this.getFallbackWeather(location);
     }
   }
