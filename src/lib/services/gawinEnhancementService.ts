@@ -199,7 +199,7 @@ class GawinEnhancementService {
     }
 
     // Environmental response recommendations
-    if (context.environmental.weather.current.temperature > 32) {
+    if (context.environmental.weather.temperature > 32) {
       recommendations.push({
         aspect: 'environmental_awareness',
         recommendation: 'Acknowledge the hot weather and suggest heat-related considerations',
@@ -288,7 +288,7 @@ class GawinEnhancementService {
       adaptations.push('Maintain respectful tone with appropriate honorifics');
     }
 
-    if (environmental.weather.current.condition.includes('Rain')) {
+    if (environmental.weather.condition.includes('Rain')) {
       adaptations.push('Consider weather-related cultural references (e.g., rainy season activities)');
     }
 
@@ -349,7 +349,7 @@ class GawinEnhancementService {
     const additions: string[] = [];
 
     // Environmental context
-    additions.push(`Current environment: ${context.environmental.weather.current.condition}, ${context.environmental.weather.current.temperature}°C in ${context.environmental.weather.location.city}`);
+    additions.push(`Current environment: ${context.environmental.weather.condition}, ${context.environmental.weather.temperature}°C in ${context.environmental.weather.location}`);
 
     // Emotional context
     if (context.emotional.analysis.intensity > 0.6) {
