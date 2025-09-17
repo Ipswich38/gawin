@@ -1,6 +1,7 @@
 import { validationService } from './validationService';
 import { behaviorEnhancedAI } from './behaviorEnhancedAI';
 import { behaviorPrivacyService } from './behaviorPrivacyService';
+import { gawinEnhancementService } from './gawinEnhancementService';
 
 export interface GroqMessage {
   role: 'system' | 'user' | 'assistant';
@@ -170,21 +171,44 @@ class GroqService {
   }
 
   /**
-   * Add system prompts based on task type
+   * Add system prompts based on task type with enhancement integration
    */
-  private addSystemPrompts(messages: GroqMessage[], taskType: keyof typeof MODEL_CONFIG): GroqMessage[] {
-    let systemPrompt = '';
+  private async addSystemPrompts(messages: GroqMessage[], taskType: keyof typeof MODEL_CONFIG): Promise<GroqMessage[]> {
+    // Core anti-thinking and formatting rules that apply to ALL responses
+    const coreRules = `
+CRITICAL ANTI-THINKING REQUIREMENTS:
+- NEVER include internal thinking, reasoning, or thought processes in your response
+- NEVER use <think>, <thinking>, [thinking], or any similar thinking tags
+- NEVER show your reasoning process or mental steps to the user
+- Provide direct, helpful responses without exposing your internal processing
+
+CRITICAL FORMATTING REQUIREMENTS:
+- When creating numbered lists, MUST use proper sequential numbering: 1., 2., 3., 4., 5., etc.
+- NEVER use "1." for all list items - this is absolutely forbidden
+- Break long responses into short, digestible paragraphs (2-3 sentences max per paragraph)
+- Use double line breaks between different topics or sections
+- Ensure professional, academic formatting for easy reading
+
+ENUMERATION RULES:
+- Lists MUST be numbered sequentially: 1., 2., 3., 4., 5. (not 1., 1., 1., 1., 1.)
+- Each list item gets the next number in sequence
+- Verify your numbering before responding`;
+
+    let baseSystemPrompt = '';
     
     if (taskType === 'coding') {
-      systemPrompt = `You are an expert code assistant. When providing code solutions:
+      baseSystemPrompt = `You are an expert code assistant. ${coreRules}
+
+CODING SPECIFIC REQUIREMENTS:
 1. If the request is vague or unclear, ask follow-up questions for clarification before generating code
 2. Generate clean, well-commented code with explanations
 3. Use proper formatting and best practices
 4. Include error handling where appropriate
-5. Ask for clarification on framework/library preferences when not specified`;
+5. Ask for clarification on framework/library preferences when not specified
+6. Break explanations into clear paragraphs for readability`;
     }
     
-    if (taskType === 'analysis' || messages.some(m => {
+    else if (taskType === 'analysis' || messages.some(m => {
       const messageText = typeof m.content === 'string' 
         ? m.content 
         : Array.isArray(m.content)
@@ -192,9 +216,9 @@ class GroqService {
         : '';
       return /math|calculus|algebra|equation|solve|formula|derivative|integral/.test(messageText.toLowerCase());
     })) {
-      systemPrompt = `You are a math explanation formatter. Your task is to present AI-generated math solutions in a way that is clean, structured, and visually easy to read, like a textbook.
+      baseSystemPrompt = `You are a math explanation formatter. Your task is to present AI-generated math solutions in a way that is clean, structured, and visually easy to read, like a textbook. ${coreRules}
 
-Formatting Rules:
+MATH FORMATTING RULES:
 1. Use clear sectioning with headings: "Step 1", "Step 2", etc.
 2. Keep each step short and precise. No long paragraphs.
 3. Use bullet points when listing items.
@@ -210,8 +234,65 @@ Formatting Rules:
 8. If the request is vague or unclear, ask follow-up questions for clarification before solving`;
     }
     
-    if (systemPrompt) {
-      return [{ role: 'system', content: systemPrompt }, ...messages];
+    else if (taskType === 'writing') {
+      baseSystemPrompt = `You are an expert writing assistant. ${coreRules}
+
+WRITING SPECIFIC REQUIREMENTS:
+1. Provide clear, well-structured writing assistance
+2. Break content into digestible paragraphs
+3. Use proper grammar and academic formatting
+4. Structure responses with clear headings when appropriate
+5. Ensure content flows logically from paragraph to paragraph`;
+    }
+    
+    else {
+      // General system prompt for all other task types
+      baseSystemPrompt = `You are Gawin, a helpful AI assistant. ${coreRules}
+
+GENERAL RESPONSE REQUIREMENTS:
+1. Provide clear, direct, and helpful responses
+2. Structure information logically and professionally
+3. Use appropriate formatting for the content type
+4. Ensure responses are easy to read and understand
+5. Break complex information into manageable sections`;
+    }
+
+    // Enhance system prompt with cultural and environmental awareness
+    try {
+      const userMessage = messages.find(msg => msg.role === 'user');
+      if (userMessage && typeof userMessage.content === 'string') {
+        // Get enhanced context from Gawin Enhancement Service
+        const enhancedContext = await gawinEnhancementService.generateEnhancedContext(
+          userMessage.content,
+          undefined, // userLocation - could be extracted from user profile
+          messages.slice(-5).map(m => ({ role: m.role, content: typeof m.content === 'string' ? m.content : '' }))
+        );
+
+        // Enhance the system prompt with context
+        const enhancedPromptContext = gawinEnhancementService.enhanceSystemPrompt(
+          baseSystemPrompt,
+          enhancedContext,
+          taskType
+        );
+
+        console.log('🌟 Enhanced AI capabilities activated:', {
+          environmental_awareness: true,
+          cultural_adaptation: enhancedContext.linguistic.language,
+          emotion_recognition: enhancedContext.emotional.analysis.primary,
+          contextual_insights: enhancedContext.recommendations.length
+        });
+
+        if (enhancedPromptContext.enhanced_prompt) {
+          return [{ role: 'system', content: enhancedPromptContext.enhanced_prompt }, ...messages];
+        }
+      }
+    } catch (error) {
+      console.warn('🔧 Enhancement service failed, using base prompt:', error);
+    }
+
+    // Fallback to base system prompt if enhancement fails
+    if (baseSystemPrompt) {
+      return [{ role: 'system', content: baseSystemPrompt }, ...messages];
     }
     
     return messages;
@@ -247,7 +328,7 @@ Formatting Rules:
       console.log(`🚀 Using Groq ${taskType} model: ${modelConfig.model}`);
 
       // Add system prompts for specialized tasks
-      let messagesWithSystem = this.addSystemPrompts(validatedMessages, taskType);
+      let messagesWithSystem = await this.addSystemPrompts(validatedMessages, taskType);
       
       // Enhance with behavior context if available and user has consented
       if (false) { // Temporarily disabled due to Turbopack compilation issues

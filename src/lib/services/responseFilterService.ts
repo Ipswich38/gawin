@@ -26,13 +26,33 @@ class ResponseFilterService {
   ];
 
   private thinkingPatterns = [
-    // Thinking process leakage
-    /<think>.*?<\/think>/gi,
-    /<thinking>.*?<\/thinking>/gi,
-    /\[thinking\].*?\[\/thinking\]/gi,
-    /\*thinks\*.*?\*\/thinks\*/gi,
-    /\(thinking:.*?\)/gi,
-    /Let me think.*?\.{3,}/gi,
+    // Thinking process leakage - comprehensive patterns
+    /<think>[\s\S]*?<\/think>/gi,
+    /<thinking>[\s\S]*?<\/thinking>/gi,
+    /\[thinking\][\s\S]*?\[\/thinking\]/gi,
+    /\*thinks\*[\s\S]*?\*\/thinks\*/gi,
+    /\(thinking:[\s\S]*?\)/gi,
+    /Let me think[\s\S]*?\.{3,}/gi,
+    
+    // Additional thinking patterns from user example
+    /I need to[\s\S]*?step by step/gi,
+    /Let me analyze[\s\S]*?approach/gi,
+    /I should[\s\S]*?consider/gi,
+    /Looking at[\s\S]*?I can see/gi,
+    /Based on[\s\S]*?understanding/gi,
+    /From my[\s\S]*?perspective/gi,
+    
+    // Meta-cognitive patterns
+    /I'm thinking[\s\S]*?about/gi,
+    /My reasoning[\s\S]*?process/gi,
+    /I'll consider[\s\S]*?factors/gi,
+    /Let me break this down[\s\S]*?systematically/gi,
+    
+    // Process exposure patterns
+    /Here's my[\s\S]*?thought process/gi,
+    /My approach[\s\S]*?would be/gi,
+    /I'll work[\s\S]*?through this/gi,
+    /Step-by-step[\s\S]*?analysis/gi,
   ];
 
   private regexArtifacts = [
