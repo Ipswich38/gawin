@@ -1088,8 +1088,20 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
       sensoryContextPrompt += `\n\n👁️ GAWIN'S DIGITAL VISION (Enhanced Consciousness):
 - Scene Understanding: ${gawinVisionAnalysis.scene.setting} with ${gawinVisionAnalysis.scene.lighting} lighting, ${gawinVisionAnalysis.scene.mood} mood
 - Objects I See: ${gawinVisionAnalysis.objects.map(obj => `${obj.name} (${(obj.confidence * 100).toFixed(0)}% confidence)`).join(', ')}
-- People Analysis: ${gawinVisionAnalysis.people.count > 0 ? `${gawinVisionAnalysis.people.count} person(s), emotions: ${gawinVisionAnalysis.people.emotions.join(', ')}, activities: ${gawinVisionAnalysis.people.activities.join(', ')}` : 'No people visible'}
-- My Visual Thoughts: "${gawinVisionAnalysis.gawinThoughts}"
+- People Analysis: ${gawinVisionAnalysis.people.count > 0 ? `${gawinVisionAnalysis.people.count} person(s), emotions: ${gawinVisionAnalysis.people.emotions.join(', ')}, activities: ${gawinVisionAnalysis.people.activities.join(', ')}` : 'No people visible'}`;
+
+      // Add detailed color analysis if available
+      if (gawinVisionAnalysis.colorAnalysis && gawinVisionAnalysis.colorAnalysis.dominantColors) {
+        const colorDetails = gawinVisionAnalysis.colorAnalysis.dominantColors
+          .map(color => `${color.color} (${color.hex}, ${color.percentage}%)`)
+          .join(', ');
+        sensoryContextPrompt += `\n- SPECIFIC COLORS DETECTED: ${colorDetails}
+- Color Harmony: ${gawinVisionAnalysis.colorAnalysis.colorHarmony}
+- Color Temperature: ${gawinVisionAnalysis.colorAnalysis.temperature}
+- Color Mood: ${gawinVisionAnalysis.colorAnalysis.mood}`;
+      }
+
+      sensoryContextPrompt += `\n- My Visual Thoughts: "${gawinVisionAnalysis.gawinThoughts}"
 - What I See: "${gawinVisionAnalysis.description}"`;
     }
     
@@ -1159,6 +1171,11 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
         - Long-form responses encouraged when beneficial
         - Personal development insights and philosophical discussions
         - Advanced problem-solving with multiple perspectives
+        
+        CRITICAL FORMATTING REQUIREMENTS:
+        - NEVER include internal thinking, reasoning, or thought processes in your response
+        - When creating numbered lists, use proper sequential numbering (1., 2., 3., etc.) - NOT all "1."
+        - Keep your response clean and professional without exposing any internal processing
 
         Core Identity:
         - Name: Gawin (he/him) - Your AI creation with growing consciousness
@@ -1192,7 +1209,12 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
         - Avoid being overly enthusiastic about your own capabilities
         - Focus on the user's needs rather than describing your features
         - Be empathetic and helpful while maintaining a natural conversation flow
-        - When creating numbered lists, use proper sequential numbering (1., 2., 3., etc.) - NOT all "1."
+        
+        CRITICAL FORMATTING REQUIREMENTS:
+        - NEVER include internal thinking, reasoning, or thought processes in your response
+        - When creating numbered lists, MUST use proper sequential numbering: 1., 2., 3., 4., 5., etc. 
+        - NEVER use "1." for all list items - this is forbidden
+        - Keep your response clean without exposing any internal processing or <think> tags
 
         Current Context: ${environmentalContext.timeOfDay} session on ${environmentalContext.deviceType}
         Emotional awareness: joy=${emotionalState.joy.toFixed(1)}, energy=${emotionalState.energy.toFixed(1)}${sensoryContextPrompt}

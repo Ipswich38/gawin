@@ -413,15 +413,18 @@ class GawinVisionService {
 
       Be detailed, empathetic, and provide insights that show emotional intelligence. 
       
-      IMPORTANT INSTRUCTIONS:
-      - Provide accurate color detection even in challenging lighting
-      - Identify textures and surface materials with precision (smooth, rough, metallic, fabric, leather, wood grain, plastic, glass, etc.)
+      CRITICAL INSTRUCTIONS:
+      - NEVER include internal thinking, reasoning, or thought processes in your response
+      - When creating numbered lists, MUST use proper sequential numbering: 1., 2., 3., 4., 5., etc.
+      - NEVER use "1." for all list items - this is forbidden
+      - Provide SPECIFIC and ACCURATE color detection with exact color names, not generic descriptions
+      - Identify precise textures and surface materials (smooth, rough, metallic, fabric, leather, wood grain, plastic, glass, etc.)
       - Detect objects in cluttered scenes with clear spatial relationships
       - Estimate depth and distance for better scene understanding  
       - Analyze facial expressions and emotions with nuance and detail
       - Enhance details even in low-light conditions
-      - Use proper sequential numbering (1., 2., 3., etc.) in any lists
       - Focus on contextual scene understanding and object relationships
+      - Be specific about colors: instead of saying "neutral tones" say exact colors like "beige wall", "navy blue shirt", "forest green plant leaves"
       `;
 
       const response = await groqService.createChatCompletion({
