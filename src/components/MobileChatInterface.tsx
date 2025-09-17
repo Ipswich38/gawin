@@ -8,6 +8,7 @@ import BrailleKeyboard from './BrailleKeyboard';
 import SimpleVision from './SimpleVision';
 import GawinVisionPOV from './GawinVisionPOV';
 import VoiceInput from './VoiceInput';
+import CreatorDashboard from './CreatorDashboard';
 
 // 🧠 CONSCIOUSNESS INTEGRATION
 import { emotionalSynchronizer, EmotionalState } from '../core/consciousness/emotional-state-sync';
@@ -138,6 +139,9 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   // 🤖 Intelligent Vision states
   const [intelligentVisionAnalysis, setIntelligentVisionAnalysis] = useState<IntelligentVisionAnalysis | null>(null);
   const [isVisionPOVVisible, setIsVisionPOVVisible] = useState(false);
+  
+  // 🎯 Creator Dashboard states
+  const [showCreatorDashboard, setShowCreatorDashboard] = useState(false);
 
   // 👁️🧠 GAWIN'S ENHANCED SENSES
   const [gawinVisionAnalysis, setGawinVisionAnalysis] = useState<VisualAnalysis | null>(null);
@@ -2011,6 +2015,15 @@ Questions: ${count}`
     </div>
   );
 
+  // Show Creator Dashboard if open
+  if (showCreatorDashboard && isCreator) {
+    return (
+      <CreatorDashboard 
+        onClose={() => setShowCreatorDashboard(false)}
+      />
+    );
+  }
+
   return (
     <div className="h-screen relative overflow-hidden flex flex-col">
       {/* Background Video */}
@@ -2232,6 +2245,28 @@ Questions: ${count}`
                 </div>
               </div>
               
+              {/* Creator Dashboard Access */}
+              {isCreator && (
+                <div className="space-y-3">
+                  <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wide">Creator Access</h3>
+                  <button
+                    onClick={() => {
+                      setShowCreatorDashboard(true);
+                      setIsMenuOpen(false);
+                    }}
+                    className="w-full p-4 bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-500/30 rounded-xl hover:from-purple-600/30 hover:to-pink-600/30 transition-all duration-200 flex items-center space-x-3"
+                  >
+                    <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                      <span className="text-white text-xl">🎯</span>
+                    </div>
+                    <div className="text-left">
+                      <div className="text-white font-medium">Creator Dashboard</div>
+                      <div className="text-purple-300 text-xs">Full control center</div>
+                    </div>
+                  </button>
+                </div>
+              )}
+
               {/* Accessibility Settings */}
               <div className="space-y-3">
                 <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wide">Accessibility</h3>
@@ -2315,6 +2350,7 @@ Questions: ${count}`
 
 
       {/* Removed redundant code editor - now handled inline in MessageRenderer */}
+
 
       {/* Braille Keyboard */}
         <BrailleKeyboard 
