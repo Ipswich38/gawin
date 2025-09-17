@@ -514,7 +514,7 @@ class PhilippineDataService {
   }
 
   private generatePhilippineForecast(isRainySeason: boolean): PhilippineWeatherData['forecast'] {
-    const forecast = [];
+    const forecast: PhilippineWeatherData['forecast'] = [];
     for (let i = 1; i <= 5; i++) {
       const date = new Date();
       date.setDate(date.getDate() + i);
@@ -524,7 +524,7 @@ class PhilippineDataService {
         low: 22 + Math.random() * 4,
         condition: isRainySeason ? this.getRainySeasonCondition() : this.getDrySeasonCondition(),
         rainProbability: isRainySeason ? 60 + Math.random() * 40 : Math.random() * 30,
-        typhoonAlert: isRainySeason && Math.random() > 0.8 ? 'signal1' : 'none'
+        typhoonAlert: isRainySeason && Math.random() > 0.8 ? ('signal1' as const) : ('none' as const)
       });
     }
     return forecast;
