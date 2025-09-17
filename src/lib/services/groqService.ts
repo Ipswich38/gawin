@@ -270,10 +270,16 @@ GENERAL RESPONSE REQUIREMENTS:
         );
 
         // Enhance the system prompt with context
+        // Map task types to enhancement service compatible types
+        const enhancementTaskType: 'general' | 'coding' | 'analysis' | 'writing' = 
+          taskType === 'coding' ? 'coding' :
+          taskType === 'analysis' ? 'analysis' :
+          taskType === 'writing' ? 'writing' : 'general';
+          
         const enhancedPromptContext = gawinEnhancementService.enhanceSystemPrompt(
           baseSystemPrompt,
           enhancedContext,
-          taskType
+          enhancementTaskType
         );
 
         console.log('🌟 Enhanced AI capabilities activated:', {
