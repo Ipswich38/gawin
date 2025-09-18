@@ -53,7 +53,7 @@ class RealWeatherService {
   }
 
   /**
-   * Get user's location from IP address
+   * Get user's location using multiple methods for better accuracy
    */
   async getUserLocation(): Promise<LocationData> {
     // Return cached location if available
@@ -61,6 +61,19 @@ class RealWeatherService {
       return this.locationCache;
     }
 
+    // Try browser geolocation first if available
+    try {
+      const geoLocation = await this.getBrowserLocation();
+      if (geoLocation) {
+        console.log('📍 Location detected via browser geolocation:', `${geoLocation.city}, ${geoLocation.region}, ${geoLocation.country}`);
+        this.locationCache = geoLocation;
+        return geoLocation;
+      }
+    } catch (error) {
+      console.log('🌐 Browser geolocation not available, falling back to IP-based detection');
+    }
+
+    // Fallback to IP-based location
     try {
       const response = await fetch(`${this.IPAPI_URL}?fields=status,message,country,regionName,city,lat,lon,timezone,query`);
       const data = await response.json();
@@ -81,13 +94,13 @@ class RealWeatherService {
 
       // Cache the location
       this.locationCache = locationData;
-      console.log('📍 Location detected:', `${locationData.city}, ${locationData.region}, ${locationData.country}`);
-      
+      console.log('📍 Location detected via IP:', `${locationData.city}, ${locationData.region}, ${locationData.country}`);
+
       return locationData;
     } catch (error) {
-      console.error('Failed to get user location:', error);
-      
-      // Fallback to Manila, Philippines
+      console.error('Failed to get user location via IP:', error);
+
+      // Final fallback to Manila, Philippines
       const fallbackLocation: LocationData = {
         city: 'Manila',
         region: 'National Capital Region',
@@ -98,9 +111,81 @@ class RealWeatherService {
         timezone: 'Asia/Manila'
       };
 
+      console.log('📍 Using fallback location:', `${fallbackLocation.city}, ${fallbackLocation.region}, ${fallbackLocation.country}`);
       this.locationCache = fallbackLocation;
       return fallbackLocation;
     }
+  }
+
+  /**
+   * Attempt to get precise location using browser geolocation API
+   */
+  private async getBrowserLocation(): Promise<LocationData | null> {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) {
+        resolve(null);
+        return;
+      }
+
+      const timeoutId = setTimeout(() => {
+        resolve(null);
+      }, 5000); // 5 second timeout
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          clearTimeout(timeoutId);
+
+          try {
+            // Reverse geocode the coordinates to get location name
+            const { latitude, longitude } = position.coords;
+            const reverseGeoResponse = await fetch(
+              `https://api.openweathermap.org/geo/1.0/reverse?lat=${latitude}&lon=${longitude}&limit=1&appid=${this.OPENWEATHER_API_KEY}`
+            );
+
+            if (reverseGeoResponse.ok) {
+              const geoData = await reverseGeoResponse.json();
+              if (geoData.length > 0) {
+                const location = geoData[0];
+                resolve({
+                  city: location.name || 'Unknown',
+                  region: location.state || 'Unknown',
+                  country: location.country || 'Unknown',
+                  latitude: latitude,
+                  longitude: longitude,
+                  ip: 'geolocation',
+                  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                });
+                return;
+              }
+            }
+
+            // If reverse geocoding fails, use coordinates with unknown location
+            resolve({
+              city: 'Unknown',
+              region: 'Unknown',
+              country: 'Unknown',
+              latitude: latitude,
+              longitude: longitude,
+              ip: 'geolocation',
+              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+            });
+          } catch (error) {
+            console.warn('Reverse geocoding failed:', error);
+            resolve(null);
+          }
+        },
+        (error) => {
+          clearTimeout(timeoutId);
+          console.log('Geolocation denied or failed:', error.message);
+          resolve(null);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 300000 // Cache for 5 minutes
+        }
+      );
+    });
   }
 
   /**
@@ -262,14 +347,14 @@ class RealWeatherService {
 
     return {
       location: `${location.city}, ${location.region}`,
-      temperature: isPhilippines ? 28 + Math.random() * 8 : 20 + Math.random() * 15,
+      temperature: Math.round(isPhilippines ? 28 + Math.random() * 8 : 20 + Math.random() * 15),
       condition: isRainySeason ? this.getRainySeasonCondition() : this.getDrySeasonCondition(),
       humidity: isPhilippines ? 65 + Math.random() * 25 : 40 + Math.random() * 40,
       windSpeed: 5 + Math.random() * 15,
       pressure: 1010 + Math.random() * 20,
       visibility: 8 + Math.random() * 7,
       uvIndex: 6 + Math.random() * 5,
-      feelsLike: isPhilippines ? 30 + Math.random() * 8 : 22 + Math.random() * 15,
+      feelsLike: Math.round(isPhilippines ? 30 + Math.random() * 8 : 22 + Math.random() * 15),
       sunrise: '6:00 AM',
       sunset: '6:00 PM',
       forecast: this.generateMockForecast(isRainySeason)
@@ -310,14 +395,55 @@ class RealWeatherService {
       date.setDate(date.getDate() + i);
       forecast.push({
         date: date.toISOString().split('T')[0],
-        high: 28 + Math.random() * 8,
-        low: 22 + Math.random() * 6,
+        high: Math.round(28 + Math.random() * 8),
+        low: Math.round(22 + Math.random() * 6),
         condition: isRainySeason ? this.getRainySeasonCondition() : this.getDrySeasonCondition(),
         precipitation: isRainySeason ? Math.random() * 20 : Math.random() * 5,
         humidity: 65 + Math.random() * 25
       });
     }
     return forecast;
+  }
+
+  /**
+   * Get user's current local time
+   */
+  async getLocalTime(): Promise<string> {
+    try {
+      const location = await this.getUserLocation();
+      const now = new Date();
+      return now.toLocaleString('en-US', {
+        timeZone: location.timezone,
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    } catch (error) {
+      console.error('Failed to get local time:', error);
+      return new Date().toLocaleString();
+    }
+  }
+
+  /**
+   * Manually set user location (useful for testing or when geolocation fails)
+   */
+  setUserLocation(locationData: Partial<LocationData>): void {
+    this.locationCache = {
+      city: locationData.city || 'Unknown',
+      region: locationData.region || 'Unknown',
+      country: locationData.country || 'Unknown',
+      latitude: locationData.latitude || 14.5995,
+      longitude: locationData.longitude || 120.9842,
+      ip: locationData.ip || 'manual',
+      timezone: locationData.timezone || 'Asia/Manila'
+    };
+
+    // Clear weather cache to fetch new weather for new location
+    this.weatherCache = null;
+    console.log('📍 Location manually set:', `${this.locationCache.city}, ${this.locationCache.region}, ${this.locationCache.country}`);
   }
 
   /**

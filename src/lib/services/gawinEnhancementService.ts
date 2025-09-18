@@ -357,7 +357,7 @@ class GawinEnhancementService {
     const additions: string[] = [];
 
     // Environmental context
-    additions.push(`Current environment: ${context.environmental.weather.condition}, ${context.environmental.weather.temperature}°C in ${context.environmental.weather.location}`);
+    additions.push(`Current environment: ${context.environmental.weather.condition}, ${Math.round(context.environmental.weather.temperature)}°C in ${context.environmental.weather.location}`);
 
     // Emotional context
     if (context.emotional.analysis.intensity > 0.6) {
