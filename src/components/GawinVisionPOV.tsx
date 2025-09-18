@@ -24,6 +24,12 @@ const GawinVisionPOV: React.FC<GawinVisionPOVProps> = ({ isVisible, onToggle }) 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  // Draggable state
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const panelRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     // Subscribe to intelligent vision updates
     const unsubscribeIntelligent = intelligentVisionService.subscribe((analysis) => {
@@ -53,6 +59,50 @@ const GawinVisionPOV: React.FC<GawinVisionPOVProps> = ({ isVisible, onToggle }) 
     }
   }, [cameraStream, isVisible]);
 
+  // Mouse event handlers for dragging
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (panelRef.current) {
+      const rect = panelRef.current.getBoundingClientRect();
+      setDragOffset({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      });
+      setIsDragging(true);
+    }
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (isDragging) {
+      const newX = e.clientX - dragOffset.x;
+      const newY = e.clientY - dragOffset.y;
+
+      // Keep panel within viewport bounds
+      const maxX = window.innerWidth - 320; // panel width
+      const maxY = window.innerHeight - 256; // panel height
+
+      setPosition({
+        x: Math.max(0, Math.min(newX, maxX)),
+        y: Math.max(0, Math.min(newY, maxY))
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, dragOffset]);
+
   const formatConfidence = (confidence: number): string => {
     return `${(confidence * 100).toFixed(0)}%`;
   };
@@ -66,7 +116,7 @@ const GawinVisionPOV: React.FC<GawinVisionPOVProps> = ({ isVisible, onToggle }) 
   const getStatusText = (): string => {
     if (!currentAnalysis) return 'Initializing vision...';
     if (!cameraStream) return 'Camera not active';
-    if (isIntelligentMode) return 'AI Vision Active';
+    if (isIntelligentMode) return 'Advanced AI Vision';
     return 'Basic Vision Active';
   };
 
@@ -85,13 +135,28 @@ const GawinVisionPOV: React.FC<GawinVisionPOVProps> = ({ isVisible, onToggle }) 
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, scale: 0.8, x: 50, y: 50 }}
-        animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
-        exit={{ opacity: 0, scale: 0.8, x: 50, y: 50 }}
-        className="fixed bottom-4 right-4 w-80 h-64 bg-gray-900/95 backdrop-blur-lg border border-gray-600/50 rounded-2xl shadow-2xl z-50 overflow-hidden"
+        ref={panelRef}
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{
+          opacity: 1,
+          scale: 1,
+          x: position.x,
+          y: position.y
+        }}
+        exit={{ opacity: 0, scale: 0.8 }}
+        className={`fixed w-80 h-64 bg-gray-900/95 backdrop-blur-lg border border-gray-600/50 rounded-2xl shadow-2xl z-50 overflow-hidden ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        style={{
+          right: position.x === 0 ? '1rem' : 'auto',
+          bottom: position.x === 0 ? '1rem' : 'auto',
+          left: position.x > 0 ? `${position.x}px` : 'auto',
+          top: position.y > 0 ? `${position.y}px` : 'auto'
+        }}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600/80 to-blue-600/80 px-4 py-2 flex items-center justify-between">
+        <div
+          className="bg-gradient-to-r from-purple-600/80 to-blue-600/80 px-4 py-2 flex items-center justify-between cursor-grab active:cursor-grabbing"
+          onMouseDown={handleMouseDown}
+        >
           <div className="flex items-center space-x-2">
             <div className="relative">
               <Brain size={16} className="text-white" />
