@@ -31,12 +31,20 @@ export default function MessageRenderer({ text, showActions, onCopy, onThumbsUp,
     );
   }
   
-  // Preprocess text to handle various fraction formats and clean formatting
+  // Preprocess text to handle various fraction formats and improve formatting
   const preprocessText = (input: string) => {
     return input
-      // REMOVE ASTERISKS - Clean up markdown formatting for better readability
-      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove **bold** markers
-      .replace(/\*(.*?)\*/g, '$1')     // Remove *italic* markers
+      // Fix numbered lists - convert "1. " patterns to proper sequential numbering
+      .replace(/(\n|^)1\.\s+/g, (match, prefix, offset, str) => {
+        // Count previous numbered items to determine correct number
+        const beforeText = str.slice(0, offset);
+        const itemCount = (beforeText.match(/(\n|^)\d+\.\s+/g) || []).length;
+        return `${prefix}${itemCount + 1}. `;
+      })
+      // Convert **bold** to proper HTML bold (keep semantic meaning)
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      // Convert *italic* to proper HTML italic (keep semantic meaning)
+      .replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>')
       // Convert simple fractions like 1/2 to LaTeX when they appear to be mathematical
       .replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}')
       // Convert fractions with parentheses like (a+b)/(c+d) to LaTeX
@@ -223,34 +231,87 @@ export default function MessageRenderer({ text, showActions, onCopy, onThumbsUp,
   const formatText = (text: string, key: number) => {
     // Enhanced paragraph processing for better readability
     let processedText = text;
-    
-    // Convert double line breaks to paragraph breaks
-    processedText = processedText.replace(/\n\n+/g, '\n\n');
-    
-    // Split by double line breaks first (proper paragraph breaks)
-    const sections = processedText.split('\n\n');
-    
-    // Then split each section by single line breaks for sentences
-    const allParagraphs: string[] = [];
-    sections.forEach(section => {
-      const lines = section.split('\n').filter(line => line.trim().length > 0);
-      allParagraphs.push(...lines);
+
+    // Identify numbered lists and group them
+    const lines = processedText.split('\n').filter(line => line.trim().length > 0);
+    const elements: any[] = [];
+    let currentList: string[] = [];
+    let inList = false;
+
+    lines.forEach((line, index) => {
+      const trimmedLine = line.trim();
+
+      // Check if this line is a numbered list item
+      if (/^\d+\.\s+/.test(trimmedLine)) {
+        if (!inList) {
+          // Start new list
+          if (currentList.length > 0) {
+            // Finish previous non-list content
+            elements.push(
+              <div key={`text-${elements.length}`} className="leading-relaxed space-y-2">
+                {currentList.map((text, i) => (
+                  <div key={i} dangerouslySetInnerHTML={{ __html: text }} />
+                ))}
+              </div>
+            );
+            currentList = [];
+          }
+          inList = true;
+        }
+        currentList.push(trimmedLine);
+      } else {
+        if (inList) {
+          // End list and add it to elements
+          elements.push(
+            <ol key={`list-${elements.length}`} className="list-decimal list-inside space-y-2 ml-4 leading-relaxed">
+              {currentList.map((item, i) => {
+                const content = item.replace(/^\d+\.\s+/, '');
+                return (
+                  <li key={i} className="pl-2" dangerouslySetInnerHTML={{ __html: content }} />
+                );
+              })}
+            </ol>
+          );
+          currentList = [];
+          inList = false;
+        }
+        currentList.push(trimmedLine);
+      }
     });
-    
-    // Filter empty paragraphs
-    const paragraphs = allParagraphs.filter(p => p.trim().length > 0);
-    
-    if (paragraphs.length <= 1) {
-      return <span key={key}>{text}</span>;
+
+    // Add remaining content
+    if (currentList.length > 0) {
+      if (inList) {
+        // Add remaining list items
+        elements.push(
+          <ol key={`list-${elements.length}`} className="list-decimal list-inside space-y-2 ml-4 leading-relaxed">
+            {currentList.map((item, i) => {
+              const content = item.replace(/^\d+\.\s+/, '');
+              return (
+                <li key={i} className="pl-2" dangerouslySetInnerHTML={{ __html: content }} />
+              );
+            })}
+          </ol>
+        );
+      } else {
+        // Add remaining text
+        elements.push(
+          <div key={`text-${elements.length}`} className="leading-relaxed space-y-2">
+            {currentList.map((text, i) => (
+              <div key={i} dangerouslySetInnerHTML={{ __html: text }} />
+            ))}
+          </div>
+        );
+      }
     }
-    
+
+    if (elements.length === 0) {
+      return <div key={key} className="leading-relaxed" dangerouslySetInnerHTML={{ __html: text }} />;
+    }
+
     return (
       <div key={key} className="space-y-4">
-        {paragraphs.map((paragraph, index) => (
-          <div key={index} className="leading-relaxed">
-            {formatInlineElements(paragraph.trim())}
-          </div>
-        ))}
+        {elements}
       </div>
     );
   };

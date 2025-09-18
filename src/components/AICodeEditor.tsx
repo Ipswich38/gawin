@@ -4,13 +4,15 @@ import React, { useState, useRef, useEffect } from 'react';
 
 interface CodingMentorProps {
   onMinimize?: () => void;
+  initialCode?: string;
+  language?: string;
 }
 
-const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize }) => {
-  const [generatedCode, setGeneratedCode] = useState('# Welcome to Gawin AI Coding Mentor\n# Your AI-powered coding companion and tutor\n\nprint("Hello, World!")');
+const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize, initialCode, language }) => {
+  const [generatedCode, setGeneratedCode] = useState(initialCode || '# Welcome to Gawin AI Coding Mentor\n# Your AI-powered coding companion and tutor\n\nprint("Hello, World!")');
   const [isGenerating, setIsGenerating] = useState(false);
   const [prompt, setPrompt] = useState('');
-  const [selectedLanguage, setSelectedLanguage] = useState('python');
+  const [selectedLanguage, setSelectedLanguage] = useState(language || 'python');
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [size, setSize] = useState({ width: 400, height: 600 });
   const [isDragging, setIsDragging] = useState(false);

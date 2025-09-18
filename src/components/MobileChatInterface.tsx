@@ -10,6 +10,7 @@ import VoiceInput from './VoiceInput';
 import TranslationControl from './TranslationControl';
 import CreatorDashboard from './CreatorDashboard';
 import GawinVisionPOV from './GawinVisionPOV';
+import AICodeEditor from './AICodeEditor';
 import { hapticService } from '@/lib/services/hapticService';
 
 // Screen Share Component
@@ -281,6 +282,11 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   
   // 🎯 Creator Dashboard states
   const [showCreatorDashboard, setShowCreatorDashboard] = useState(false);
+
+  // 💻 Code Editor states
+  const [showCodeEditor, setShowCodeEditor] = useState(false);
+  const [generatedCode, setGeneratedCode] = useState('');
+  const [codeLanguage, setCodeLanguage] = useState('javascript');
 
   // 👁️🧠 GAWIN'S ENHANCED SENSES
   const [gawinVisionAnalysis, setGawinVisionAnalysis] = useState<VisualAnalysis | null>(null);
@@ -686,19 +692,77 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
          messageText.toLowerCase().includes('novel') ||
          messageText.toLowerCase().includes('chapter');
 
+        // Detect code generation requests
+        const isCodeRequest = messageText.toLowerCase().includes('code') ||
+         messageText.toLowerCase().includes('program') ||
+         messageText.toLowerCase().includes('function') ||
+         messageText.toLowerCase().includes('script') ||
+         messageText.toLowerCase().includes('algorithm') ||
+         messageText.toLowerCase().includes('javascript') ||
+         messageText.toLowerCase().includes('python') ||
+         messageText.toLowerCase().includes('java') ||
+         messageText.toLowerCase().includes('c++') ||
+         messageText.toLowerCase().includes('html') ||
+         messageText.toLowerCase().includes('css') ||
+         messageText.toLowerCase().includes('react') ||
+         messageText.toLowerCase().includes('typescript') ||
+         messageText.toLowerCase().includes('php') ||
+         messageText.toLowerCase().includes('sql') ||
+         (messageText.toLowerCase().includes('create') &&
+          (messageText.toLowerCase().includes('app') ||
+           messageText.toLowerCase().includes('website') ||
+           messageText.toLowerCase().includes('component'))) ||
+         (messageText.toLowerCase().includes('build') &&
+          (messageText.toLowerCase().includes('function') ||
+           messageText.toLowerCase().includes('class') ||
+           messageText.toLowerCase().includes('module')));
+
         if (isImageRequest) {
           // Handle image generation with nano banana
           await handleImageGeneration(messageText, newMessage);
         } else if (isWritingRequest) {
           // Handle creative writing
           await handleCreativeWriting(messageText, newMessage);
+        } else if (isCodeRequest) {
+          // Handle code generation
+          await handleCodeGeneration(messageText, newMessage);
         } else {
           // General creative assistance
           await handleCreativeGeneral(messageText, newMessage);
         }
       } else {
-        // Handle regular chat
-        await handleTextGeneration(messageText, newMessage);
+        // Check for code requests in general tab too
+        const isCodeRequest = messageText.toLowerCase().includes('code') ||
+         messageText.toLowerCase().includes('program') ||
+         messageText.toLowerCase().includes('function') ||
+         messageText.toLowerCase().includes('script') ||
+         messageText.toLowerCase().includes('algorithm') ||
+         messageText.toLowerCase().includes('javascript') ||
+         messageText.toLowerCase().includes('python') ||
+         messageText.toLowerCase().includes('java') ||
+         messageText.toLowerCase().includes('c++') ||
+         messageText.toLowerCase().includes('html') ||
+         messageText.toLowerCase().includes('css') ||
+         messageText.toLowerCase().includes('react') ||
+         messageText.toLowerCase().includes('typescript') ||
+         messageText.toLowerCase().includes('php') ||
+         messageText.toLowerCase().includes('sql') ||
+         (messageText.toLowerCase().includes('create') &&
+          (messageText.toLowerCase().includes('app') ||
+           messageText.toLowerCase().includes('website') ||
+           messageText.toLowerCase().includes('component'))) ||
+         (messageText.toLowerCase().includes('build') &&
+          (messageText.toLowerCase().includes('function') ||
+           messageText.toLowerCase().includes('class') ||
+           messageText.toLowerCase().includes('module')));
+
+        if (isCodeRequest) {
+          // Handle code generation
+          await handleCodeGeneration(messageText, newMessage);
+        } else {
+          // Handle regular chat
+          await handleTextGeneration(messageText, newMessage);
+        }
       }
     } catch (error) {
       console.error('Error:', error);
@@ -941,6 +1005,135 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
       
       setTabs(prev => prev.map(tab => 
         tab.id === activeTab?.id 
+          ? { ...tab, messages: [...tab.messages, errorResponse], isLoading: false }
+          : tab
+      ));
+    }
+  };
+
+  // Handle code generation requests
+  const handleCodeGeneration = async (prompt: string, userMessage: Message) => {
+    try {
+      // Extract programming language from prompt
+      const languageDetection = prompt.toLowerCase();
+      let detectedLanguage = 'javascript'; // default
+
+      if (languageDetection.includes('python')) detectedLanguage = 'python';
+      else if (languageDetection.includes('java') && !languageDetection.includes('javascript')) detectedLanguage = 'java';
+      else if (languageDetection.includes('c++') || languageDetection.includes('cpp')) detectedLanguage = 'cpp';
+      else if (languageDetection.includes('html')) detectedLanguage = 'html';
+      else if (languageDetection.includes('css')) detectedLanguage = 'css';
+      else if (languageDetection.includes('react') || languageDetection.includes('jsx')) detectedLanguage = 'javascript';
+      else if (languageDetection.includes('typescript')) detectedLanguage = 'typescript';
+      else if (languageDetection.includes('php')) detectedLanguage = 'php';
+      else if (languageDetection.includes('sql')) detectedLanguage = 'sql';
+
+      // Set the detected language for the code editor
+      setCodeLanguage(detectedLanguage);
+
+      const codePrompt = {
+        role: 'system',
+        content: `You are an expert programmer and coding mentor. When asked to generate code, you must provide TWO separate responses:
+
+1. CHAT_RESPONSE: A brief explanation of what you're creating, any important notes, and guidance for the user. This should be conversational and helpful.
+
+2. CODE_RESPONSE: The actual code, properly formatted and commented. This should be clean, production-ready code.
+
+Format your response like this:
+CHAT_RESPONSE:
+[Your conversational explanation here]
+
+CODE_RESPONSE:
+\`\`\`${detectedLanguage}
+[Your code here]
+\`\`\`
+
+Make sure the code is well-documented, follows best practices, and includes helpful comments.`
+      };
+
+      const response = await fetch('/api/groq', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [codePrompt, {
+            role: 'user',
+            content: prompt
+          }],
+          model: 'llama-3.3-70b-versatile',
+          temperature: 0.3, // Lower temperature for more precise code
+          max_tokens: 3000,
+        }),
+      });
+
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const result = await response.json();
+
+      if (result.success && result.choices?.[0]?.message?.content) {
+        const fullResponse = result.choices[0].message.content;
+
+        // Parse the response to separate chat and code
+        const chatMatch = fullResponse.match(/CHAT_RESPONSE:\s*([\s\S]*?)\s*CODE_RESPONSE:/);
+        const codeMatch = fullResponse.match(/CODE_RESPONSE:\s*([\s\S]*)/);
+
+        let chatResponse = '';
+        let codeResponse = '';
+
+        if (chatMatch && codeMatch) {
+          chatResponse = chatMatch[1].trim();
+          codeResponse = codeMatch[1].trim();
+
+          // Extract code from markdown if present
+          const codeBlockMatch = codeResponse.match(/```[\w]*\n([\s\S]*?)```/);
+          if (codeBlockMatch) {
+            codeResponse = codeBlockMatch[1].trim();
+          }
+        } else {
+          // Fallback: try to extract code blocks from the full response
+          const codeBlocks = fullResponse.match(/```[\w]*\n([\s\S]*?)```/g);
+          if (codeBlocks && codeBlocks.length > 0) {
+            codeResponse = codeBlocks.map((block: string) =>
+              block.replace(/```[\w]*\n/, '').replace(/```$/, '')
+            ).join('\n\n');
+            chatResponse = fullResponse.replace(/```[\s\S]*?```/g, '').trim();
+          } else {
+            chatResponse = fullResponse;
+          }
+        }
+
+        // Show the code in the editor
+        if (codeResponse) {
+          setGeneratedCode(codeResponse);
+          setShowCodeEditor(true);
+        }
+
+        // Show the chat response in the chat
+        const aiResponse: Message = {
+          id: Date.now() + 1,
+          role: 'assistant',
+          content: `💻 **Code Generated** 🚀\n\n${chatResponse || 'I\'ve generated the code for you! Check the code editor to see the implementation.'}`,
+          timestamp: new Date().toISOString()
+        };
+
+        setTabs(prev => prev.map(tab =>
+          tab.id === activeTab?.id
+            ? { ...tab, messages: [...tab.messages, aiResponse], isLoading: false }
+            : tab
+        ));
+      } else {
+        throw new Error(result.error || 'Failed to generate code');
+      }
+    } catch (error) {
+      console.error('Code generation error:', error);
+
+      const errorResponse: Message = {
+        id: Date.now() + 1,
+        role: 'assistant',
+        content: "I apologize, but I'm experiencing technical difficulties with code generation. Please try again in a moment.",
+        timestamp: new Date().toISOString()
+      };
+
+      setTabs(prev => prev.map(tab =>
+        tab.id === activeTab?.id
           ? { ...tab, messages: [...tab.messages, errorResponse], isLoading: false }
           : tab
       ));
@@ -2618,6 +2811,15 @@ Questions: ${count}`
           onClose={() => setIsBrailleKeyboardOpen(false)}
           onVoiceAnnounce={announceToUser}
         />
+
+      {/* AI Code Editor */}
+      {showCodeEditor && (
+        <AICodeEditor
+          onMinimize={() => setShowCodeEditor(false)}
+          initialCode={generatedCode}
+          language={codeLanguage}
+        />
+      )}
 
       </div>
     </div>
