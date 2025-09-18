@@ -2263,9 +2263,10 @@ Questions: ${count}`
           bg-gray-800/40 backdrop-blur-lg border-b border-gray-600/30 px-3 sm:px-4 
           ${optimizationConfig?.compactMode ? 'py-1.5' : 'py-2'}
         `}>
-        <div className="flex items-center space-x-2 overflow-x-auto">
-          {/* Fixed Sidebar Toggle Tab */}
-          <button
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2 overflow-x-auto flex-1">
+            {/* Fixed Sidebar Toggle Tab */}
+            <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className={`
               flex items-center space-x-2 
@@ -2330,8 +2331,15 @@ Questions: ${count}`
               </button>
             );
           })}
-          
-          {/* Removed Vision System from header - moved to input area */}
+          </div>
+
+          {/* Gawin Vision POV - Top Right Position */}
+          <div className="flex-shrink-0 ml-2 relative">
+            <GawinVisionPOV
+              isVisible={isVisionPOVVisible}
+              onToggle={() => setIsVisionPOVVisible(!isVisionPOVVisible)}
+            />
+          </div>
         </div>
       </div>
 
@@ -2610,12 +2618,6 @@ Questions: ${count}`
           onClose={() => setIsBrailleKeyboardOpen(false)}
           onVoiceAnnounce={announceToUser}
         />
-
-      {/* Gawin Vision POV - Inside chat space, floating bottom right */}
-      <GawinVisionPOV
-        isVisible={isVisionPOVVisible}
-        onToggle={() => setIsVisionPOVVisible(!isVisionPOVVisible)}
-      />
 
       </div>
     </div>

@@ -162,10 +162,10 @@ const GawinVisionPOV: React.FC<GawinVisionPOVProps> = ({ isVisible, onToggle }) 
     return (
       <button
         onClick={onToggle}
-        className="fixed bottom-20 right-4 w-12 h-12 bg-purple-600/80 hover:bg-purple-500/80 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-200 z-40 shadow-lg border border-purple-500/30"
+        className="w-8 h-8 bg-purple-600/80 hover:bg-purple-500/80 backdrop-blur-sm rounded-lg flex items-center justify-center transition-all duration-200 shadow-lg border border-purple-500/30"
         title="Show Gawin's Vision POV"
       >
-        <Eye size={20} className="text-white" />
+        <Eye size={16} className="text-white" />
       </button>
     );
   }
@@ -177,24 +177,13 @@ const GawinVisionPOV: React.FC<GawinVisionPOVProps> = ({ isVisible, onToggle }) 
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{
           opacity: 1,
-          scale: 1,
-          x: position.x,
-          y: position.y
+          scale: 1
         }}
         exit={{ opacity: 0, scale: 0.8 }}
-        className={`fixed w-80 h-64 bg-gray-900/95 backdrop-blur-lg border border-gray-600/50 rounded-2xl shadow-2xl z-50 overflow-hidden ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-        style={{
-          right: position.x === 0 ? '1rem' : 'auto',
-          bottom: position.x === 0 ? '1rem' : 'auto',
-          left: position.x > 0 ? `${position.x}px` : 'auto',
-          top: position.y > 0 ? `${position.y}px` : 'auto'
-        }}
+        className="absolute top-12 right-0 w-80 h-64 bg-gray-900/95 backdrop-blur-lg border border-gray-600/50 rounded-2xl shadow-2xl z-50 overflow-hidden"
       >
         {/* Header */}
-        <div
-          className="bg-gradient-to-r from-purple-600/80 to-blue-600/80 px-4 py-2 flex items-center justify-between cursor-grab active:cursor-grabbing"
-          onMouseDown={handleMouseDown}
-        >
+        <div className="bg-gradient-to-r from-purple-600/80 to-blue-600/80 px-4 py-2 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <div className="relative">
               <Brain size={16} className="text-white" />
