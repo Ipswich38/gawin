@@ -9,6 +9,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, MicOff, Languages, Loader } from 'lucide-react';
 import { speechRecognitionService, RecognitionResult } from '@/lib/services/speechRecognitionService';
+import { hapticService } from '@/lib/services/hapticService';
 
 interface VoiceInputProps {
   onTranscript: (transcript: string, isFinal: boolean) => void;
@@ -124,15 +125,24 @@ const VoiceInput: React.FC<VoiceInputProps> = ({
       return;
     }
 
+    // Trigger haptic feedback for microphone control
+    hapticService.triggerHaptic('microphone');
+
     if (isListening) {
       speechRecognitionService.stopListening();
       if (silenceTimeoutRef.current) {
         clearTimeout(silenceTimeoutRef.current);
       }
+      // Additional haptic feedback for stopping
+      setTimeout(() => hapticService.triggerStateChange(false), 100);
     } else {
       const success = await speechRecognitionService.startListening();
       if (!success) {
         setError('Microphone access denied. Please check permissions.');
+        hapticService.triggerError();
+      } else {
+        // Additional haptic feedback for successful start
+        setTimeout(() => hapticService.triggerStateChange(true), 100);
       }
     }
   };
@@ -208,7 +218,7 @@ const VoiceInput: React.FC<VoiceInputProps> = ({
         title={
           disabled ? 'Voice input disabled' :
           isGawinSpeaking ? 'Gawin is speaking...' :
-          isListening ? 'Stop listening' : 'Start voice input'
+          isListening ? 'Stop listening (Braille: ⠍)' : 'Start voice input (Braille: ⠍)'
         }
       >
         {getMicIcon()}

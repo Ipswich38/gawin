@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Camera, CameraOff, Monitor, MonitorOff, Volume2, VolumeX, Eye } from 'lucide-react';
 import { simpleVisionService, SimpleVisionState } from '@/lib/services/simpleVisionService';
 import { voiceService } from '@/lib/services/voiceService';
+import { hapticService } from '@/lib/services/hapticService';
 
 interface SimpleVisionProps {
   onVisionToggle?: () => void;
@@ -32,36 +33,57 @@ const SimpleVision: React.FC<SimpleVisionProps> = ({ onVisionToggle, isVisionAct
   }, []);
 
   const handleCameraToggle = async () => {
+    // Trigger haptic feedback for camera control
+    hapticService.triggerHaptic('vision');
+
     if (visionState.cameraEnabled) {
       simpleVisionService.disableCamera();
+      setTimeout(() => hapticService.triggerStateChange(false), 100);
     } else {
       const success = await simpleVisionService.enableCamera();
       if (!success) {
         alert('Camera access denied. Please check your browser permissions.');
+        hapticService.triggerError();
+      } else {
+        setTimeout(() => hapticService.triggerStateChange(true), 100);
       }
     }
   };
 
   const handleScreenToggle = async () => {
+    // Trigger haptic feedback for screen control
+    hapticService.triggerHaptic('screenShare');
+
     if (visionState.screenEnabled) {
       simpleVisionService.disableScreen();
+      setTimeout(() => hapticService.triggerStateChange(false), 100);
     } else {
       const success = await simpleVisionService.enableScreen();
       if (!success) {
         alert('Screen capture denied or not supported.');
+        hapticService.triggerError();
+      } else {
+        setTimeout(() => hapticService.triggerStateChange(true), 100);
       }
     }
   };
 
   const handleVoiceToggle = async () => {
+    // Trigger haptic feedback for voice control
+    hapticService.triggerHaptic('voice');
+
     if (voiceEnabled) {
       voiceService.disableVoice();
       setVoiceEnabled(false);
+      setTimeout(() => hapticService.triggerStateChange(false), 100);
     } else {
       const success = await voiceService.enableVoice();
       setVoiceEnabled(success);
       if (!success) {
         alert('Voice synthesis not supported in this browser.');
+        hapticService.triggerError();
+      } else {
+        setTimeout(() => hapticService.triggerStateChange(true), 100);
       }
     }
   };
@@ -74,17 +96,28 @@ const SimpleVision: React.FC<SimpleVisionProps> = ({ onVisionToggle, isVisionAct
         <div className="relative">
           <button
             onClick={async () => {
+              // Trigger haptic feedback for vision control
+              hapticService.triggerHaptic('vision');
+
               if (visionState.cameraEnabled) {
                 // Turn off both camera and vision POV
                 simpleVisionService.disableCamera();
                 if (onVisionToggle && isVisionActive) {
                   onVisionToggle();
                 }
+                // Haptic feedback for deactivation
+                setTimeout(() => hapticService.triggerStateChange(false), 100);
               } else {
                 // Turn on camera and automatically show vision POV
                 const success = await handleCameraToggle();
                 if (success && onVisionToggle && !isVisionActive) {
                   onVisionToggle();
+                }
+                // Haptic feedback based on success
+                if (success) {
+                  setTimeout(() => hapticService.triggerStateChange(true), 100);
+                } else {
+                  hapticService.triggerError();
                 }
               }
             }}
@@ -98,7 +131,7 @@ const SimpleVision: React.FC<SimpleVisionProps> = ({ onVisionToggle, isVisionAct
               }
               ${!simpleVisionService.isCameraSupported() ? 'opacity-50 cursor-not-allowed' : ''}
             `}
-            title={visionState.cameraEnabled ? 'Disable Gawin\'s Vision' : 'Enable Gawin\'s Vision'}
+            title={visionState.cameraEnabled ? 'Disable Gawin\'s Vision (Braille: ⠧)' : 'Enable Gawin\'s Vision (Braille: ⠧)'}
           >
             <Eye size={14} />
           </button>

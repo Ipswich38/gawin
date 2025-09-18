@@ -9,6 +9,7 @@ import SimpleVision from './SimpleVision';
 import GawinVisionPOV from './GawinVisionPOV';
 import VoiceInput from './VoiceInput';
 import CreatorDashboard from './CreatorDashboard';
+import { hapticService } from '@/lib/services/hapticService';
 
 // Screen Share Component
 const ScreenShareButton: React.FC = () => {
@@ -20,10 +21,14 @@ const ScreenShareButton: React.FC = () => {
   }, []);
 
   const handleScreenToggle = async () => {
+    // Trigger haptic feedback for screen share control
+    hapticService.triggerHaptic('screenShare');
+
     if (isScreenSharing) {
       // Stop screen sharing
       setIsScreenSharing(false);
       console.log('🖥️ Screen sharing stopped');
+      setTimeout(() => hapticService.triggerStateChange(false), 100);
     } else {
       // Start screen sharing
       try {
@@ -36,13 +41,16 @@ const ScreenShareButton: React.FC = () => {
         stream.getVideoTracks()[0].addEventListener('ended', () => {
           setIsScreenSharing(false);
           console.log('🖥️ Screen sharing ended by user');
+          hapticService.triggerStateChange(false);
         });
 
         setIsScreenSharing(true);
         console.log('✅ Screen sharing started');
+        setTimeout(() => hapticService.triggerStateChange(true), 100);
       } catch (error) {
         console.error('❌ Screen sharing failed:', error);
         alert('Screen sharing failed. Please check your browser permissions.');
+        hapticService.triggerError();
       }
     }
   };
@@ -60,7 +68,7 @@ const ScreenShareButton: React.FC = () => {
         }
         ${!isSupported ? 'opacity-50 cursor-not-allowed' : ''}
       `}
-      title={isScreenSharing ? 'Stop Screen Share' : 'Share Screen'}
+      title={isScreenSharing ? 'Stop Screen Share (Braille: ⠎⠓)' : 'Share Screen (Braille: ⠎⠓)'}
     >
       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
         <path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/>
@@ -84,21 +92,29 @@ const VoiceOutputButton: React.FC = () => {
   }, []);
 
   const handleVoiceToggle = async () => {
+    // Trigger haptic feedback for voice output control
+    hapticService.triggerHaptic('voice');
+
     try {
       const { voiceService } = await import('@/lib/services/voiceService');
 
       if (isVoiceEnabled) {
         voiceService.disableVoice();
         setIsVoiceEnabled(false);
+        setTimeout(() => hapticService.triggerStateChange(false), 100);
       } else {
         const success = await voiceService.enableVoice();
         setIsVoiceEnabled(success);
         if (!success) {
           alert('Voice synthesis not supported in this browser.');
+          hapticService.triggerError();
+        } else {
+          setTimeout(() => hapticService.triggerStateChange(true), 100);
         }
       }
     } catch (error) {
       console.error('Voice toggle failed:', error);
+      hapticService.triggerError();
     }
   };
 
@@ -113,7 +129,7 @@ const VoiceOutputButton: React.FC = () => {
           : 'bg-gray-700/50 text-gray-400 hover:bg-gray-600/60 hover:text-gray-300'
         }
       `}
-      title={isVoiceEnabled ? 'Disable Voice Output' : 'Enable Voice Output'}
+      title={isVoiceEnabled ? 'Disable Voice Output (Braille: ⠺)' : 'Enable Voice Output (Braille: ⠺)'}
     >
       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
         {isVoiceEnabled ? (
@@ -2395,7 +2411,11 @@ Questions: ${count}`
 
                     {/* Right Side: Send Button */}
                     <button
-                      onClick={() => handleSend(inputValue)}
+                      onClick={() => {
+                        // Trigger haptic feedback for send action
+                        hapticService.triggerHaptic('send');
+                        handleSend(inputValue);
+                      }}
                       disabled={activeTab.isLoading || !inputValue.trim()}
                       className="
                         w-8 h-8 rounded-full flex items-center justify-center
@@ -2404,7 +2424,7 @@ Questions: ${count}`
                         transition-all duration-200 flex-shrink-0
                         shadow-lg disabled:shadow-none
                       "
-                      title="Send Message"
+                      title="Send Message (Braille: ⠎)"
                     >
                       {activeTab.isLoading ? (
                         <LoadingIcon size={16} className="animate-spin" />
