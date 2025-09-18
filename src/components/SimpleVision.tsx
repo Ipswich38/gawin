@@ -67,44 +67,45 @@ const SimpleVision: React.FC<SimpleVisionProps> = ({ onVisionToggle, isVisionAct
   };
 
   if (compact) {
-    // Compact version for input area
+    // Compact version for input area - Single Vision Toggle
     return (
       <div className="flex items-center space-x-2">
-        {/* Combined Camera + Vision Button */}
+        {/* Single Vision Toggle Button */}
         <div className="relative">
           <button
-            onClick={handleCameraToggle}
+            onClick={async () => {
+              if (visionState.cameraEnabled) {
+                // Turn off both camera and vision POV
+                simpleVisionService.disableCamera();
+                if (onVisionToggle && isVisionActive) {
+                  onVisionToggle();
+                }
+              } else {
+                // Turn on camera and automatically show vision POV
+                const success = await handleCameraToggle();
+                if (success && onVisionToggle && !isVisionActive) {
+                  onVisionToggle();
+                }
+              }
+            }}
             disabled={!simpleVisionService.isCameraSupported()}
             className={`
               w-7 h-7 rounded-lg flex items-center justify-center
               transition-all duration-200
               ${visionState.cameraEnabled
-                ? 'bg-green-600 text-white shadow-lg'
+                ? 'bg-purple-600 text-white shadow-lg'
                 : 'bg-gray-700/50 text-gray-400 hover:bg-gray-600/60 hover:text-gray-300'
               }
               ${!simpleVisionService.isCameraSupported() ? 'opacity-50 cursor-not-allowed' : ''}
             `}
-            title={visionState.cameraEnabled ? 'Stop Camera' : 'Enable Camera'}
+            title={visionState.cameraEnabled ? 'Disable Gawin\'s Vision' : 'Enable Gawin\'s Vision'}
           >
-            {visionState.cameraEnabled ? <CameraOff size={14} /> : <Camera size={14} />}
+            <Eye size={14} />
           </button>
 
-          {/* Vision POV Toggle - appears when camera is active */}
-          {visionState.cameraEnabled && onVisionToggle && (
-            <button
-              onClick={onVisionToggle}
-              className={`
-                absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center
-                text-xs transition-all duration-200
-                ${isVisionActive
-                  ? 'bg-purple-600 text-white shadow-lg'
-                  : 'bg-gray-600 text-gray-300 hover:bg-purple-500'
-                }
-              `}
-              title="Toggle Gawin's Vision POV"
-            >
-              <Eye size={10} />
-            </button>
+          {/* Status indicator dot */}
+          {visionState.cameraEnabled && (
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse shadow-lg"></div>
           )}
         </div>
       </div>

@@ -10,6 +10,125 @@ import GawinVisionPOV from './GawinVisionPOV';
 import VoiceInput from './VoiceInput';
 import CreatorDashboard from './CreatorDashboard';
 
+// Screen Share Component
+const ScreenShareButton: React.FC = () => {
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [isSupported, setIsSupported] = useState(false);
+
+  useEffect(() => {
+    setIsSupported(!!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia));
+  }, []);
+
+  const handleScreenToggle = async () => {
+    if (isScreenSharing) {
+      // Stop screen sharing
+      setIsScreenSharing(false);
+      console.log('🖥️ Screen sharing stopped');
+    } else {
+      // Start screen sharing
+      try {
+        const stream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: true
+        });
+
+        // Handle stream end
+        stream.getVideoTracks()[0].addEventListener('ended', () => {
+          setIsScreenSharing(false);
+          console.log('🖥️ Screen sharing ended by user');
+        });
+
+        setIsScreenSharing(true);
+        console.log('✅ Screen sharing started');
+      } catch (error) {
+        console.error('❌ Screen sharing failed:', error);
+        alert('Screen sharing failed. Please check your browser permissions.');
+      }
+    }
+  };
+
+  return (
+    <button
+      onClick={handleScreenToggle}
+      disabled={!isSupported}
+      className={`
+        w-7 h-7 rounded-lg flex items-center justify-center
+        transition-all duration-200
+        ${isScreenSharing
+          ? 'bg-blue-600 text-white shadow-lg'
+          : 'bg-gray-700/50 text-gray-400 hover:bg-gray-600/60 hover:text-gray-300'
+        }
+        ${!isSupported ? 'opacity-50 cursor-not-allowed' : ''}
+      `}
+      title={isScreenSharing ? 'Stop Screen Share' : 'Share Screen'}
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/>
+      </svg>
+      {isScreenSharing && (
+        <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse shadow-lg"></div>
+      )}
+    </button>
+  );
+};
+
+// Voice Output Component
+const VoiceOutputButton: React.FC = () => {
+  const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
+
+  useEffect(() => {
+    // Import voice service dynamically to avoid SSR issues
+    import('@/lib/services/voiceService').then(({ voiceService }) => {
+      setIsVoiceEnabled(voiceService.isVoiceEnabled());
+    });
+  }, []);
+
+  const handleVoiceToggle = async () => {
+    try {
+      const { voiceService } = await import('@/lib/services/voiceService');
+
+      if (isVoiceEnabled) {
+        voiceService.disableVoice();
+        setIsVoiceEnabled(false);
+      } else {
+        const success = await voiceService.enableVoice();
+        setIsVoiceEnabled(success);
+        if (!success) {
+          alert('Voice synthesis not supported in this browser.');
+        }
+      }
+    } catch (error) {
+      console.error('Voice toggle failed:', error);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleVoiceToggle}
+      className={`
+        w-7 h-7 rounded-lg flex items-center justify-center
+        transition-all duration-200
+        ${isVoiceEnabled
+          ? 'bg-green-600 text-white shadow-lg'
+          : 'bg-gray-700/50 text-gray-400 hover:bg-gray-600/60 hover:text-gray-300'
+        }
+      `}
+      title={isVoiceEnabled ? 'Disable Voice Output' : 'Enable Voice Output'}
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+        {isVoiceEnabled ? (
+          <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+        ) : (
+          <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+        )}
+      </svg>
+      {isVoiceEnabled && (
+        <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse shadow-lg"></div>
+      )}
+    </button>
+  );
+};
+
 // 🧠 CONSCIOUSNESS INTEGRATION
 import { emotionalSynchronizer, EmotionalState } from '../core/consciousness/emotional-state-sync';
 import { contextMemorySystem } from '../core/consciousness/context-memory';
@@ -2246,9 +2365,9 @@ Questions: ${count}`
                 {/* Bottom Section: Tool Icons */}
                 <div className="px-6 pb-4 pt-2 border-t border-gray-700/30">
                   <div className="flex items-center justify-between">
-                    {/* Left Side: Gawin's Senses */}
+                    {/* Left Side: Gawin's Senses & Communication */}
                     <div className="flex items-center space-x-3">
-                      {/* Voice Input */}
+                      {/* Voice Input (Microphone) */}
                       <div className="relative">
                         <VoiceInput
                           onTranscript={handleVoiceTranscript}
@@ -2258,7 +2377,7 @@ Questions: ${count}`
                         />
                       </div>
 
-                      {/* Combined Camera & Vision Control */}
+                      {/* Vision Control */}
                       <div className="relative">
                         <SimpleVision
                           onVisionToggle={() => setIsVisionPOVVisible(!isVisionPOVVisible)}
@@ -2267,16 +2386,11 @@ Questions: ${count}`
                         />
                       </div>
 
-                      {/* Screen Share Placeholder */}
-                      <button
-                        className="w-7 h-7 rounded-lg flex items-center justify-center bg-gray-700/50 text-gray-400 hover:bg-gray-600/60 hover:text-gray-300 transition-all duration-200"
-                        title="Screen Share (Coming Soon)"
-                        disabled
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/>
-                        </svg>
-                      </button>
+                      {/* Screen Share Control */}
+                      <ScreenShareButton />
+
+                      {/* Voice Output Control */}
+                      <VoiceOutputButton />
                     </div>
 
                     {/* Right Side: Send Button */}
