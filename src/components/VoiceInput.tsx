@@ -157,8 +157,8 @@ const VoiceInput: React.FC<VoiceInputProps> = ({
       case 'en-US': return 'EN';
       case 'en-PH': return 'EN-PH';
       case 'fil-PH': return 'TL';
-      case 'auto': return 'AUTO';
-      default: return 'AUTO';
+      case 'auto': return '';
+      default: return '';
     }
   };
 

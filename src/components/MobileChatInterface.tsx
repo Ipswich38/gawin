@@ -6,7 +6,6 @@ import MessageRenderer from './MessageRenderer';
 import ResearchMode from './ResearchMode';
 import BrailleKeyboard from './BrailleKeyboard';
 import SimpleVision from './SimpleVision';
-import GawinVisionPOV from './GawinVisionPOV';
 import VoiceInput from './VoiceInput';
 import CreatorDashboard from './CreatorDashboard';
 import { hapticService } from '@/lib/services/hapticService';
@@ -60,7 +59,7 @@ const ScreenShareButton: React.FC = () => {
       onClick={handleScreenToggle}
       disabled={!isSupported}
       className={`
-        w-7 h-7 rounded-lg flex items-center justify-center
+        w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center
         transition-all duration-200
         ${isScreenSharing
           ? 'bg-blue-600 text-white shadow-lg'
@@ -70,7 +69,7 @@ const ScreenShareButton: React.FC = () => {
       `}
       title={isScreenSharing ? 'Stop Screen Share (Braille: ⠎⠓)' : 'Share Screen (Braille: ⠎⠓)'}
     >
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+      <svg width="12" height="12" className="sm:w-3.5 sm:h-3.5" viewBox="0 0 24 24" fill="currentColor">
         <path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/>
       </svg>
       {isScreenSharing && (
@@ -122,7 +121,7 @@ const VoiceOutputButton: React.FC = () => {
     <button
       onClick={handleVoiceToggle}
       className={`
-        w-7 h-7 rounded-lg flex items-center justify-center
+        w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center
         transition-all duration-200
         ${isVoiceEnabled
           ? 'bg-green-600 text-white shadow-lg'
@@ -131,7 +130,7 @@ const VoiceOutputButton: React.FC = () => {
       `}
       title={isVoiceEnabled ? 'Disable Voice Output (Braille: ⠺)' : 'Enable Voice Output (Braille: ⠺)'}
     >
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+      <svg width="12" height="12" className="sm:w-3.5 sm:h-3.5" viewBox="0 0 24 24" fill="currentColor">
         {isVoiceEnabled ? (
           <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
         ) : (
@@ -2382,7 +2381,7 @@ Questions: ${count}`
                 <div className="px-6 pb-4 pt-2 border-t border-gray-700/30">
                   <div className="flex items-center justify-between">
                     {/* Left Side: Gawin's Senses & Communication */}
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2 sm:space-x-3">
                       {/* Voice Input (Microphone) */}
                       <div className="relative">
                         <VoiceInput
@@ -2418,7 +2417,7 @@ Questions: ${count}`
                       }}
                       disabled={activeTab.isLoading || !inputValue.trim()}
                       className="
-                        w-8 h-8 rounded-full flex items-center justify-center
+                        w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center
                         bg-teal-600 hover:bg-teal-500 disabled:bg-gray-700
                         text-white disabled:text-gray-500
                         transition-all duration-200 flex-shrink-0
@@ -2427,9 +2426,9 @@ Questions: ${count}`
                       title="Send Message (Braille: ⠎)"
                     >
                       {activeTab.isLoading ? (
-                        <LoadingIcon size={16} className="animate-spin" />
+                        <LoadingIcon size={14} className="sm:size-4 animate-spin" />
                       ) : (
-                        <SendIcon size={16} />
+                        <SendIcon size={14} className="sm:size-4" />
                       )}
                     </button>
                   </div>
@@ -2602,11 +2601,6 @@ Questions: ${count}`
           onVoiceAnnounce={announceToUser}
         />
         
-        {/* Gawin's Vision POV */}
-        <GawinVisionPOV 
-          isVisible={isVisionPOVVisible}
-          onToggle={() => setIsVisionPOVVisible(!isVisionPOVVisible)}
-        />
       </div>
     </div>
   );
