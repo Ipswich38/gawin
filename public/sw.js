@@ -1,6 +1,12 @@
-// Gawin Background Behavior Analytics Service Worker
+// Gawin Background Behavior Analytics & Auto-Update Service Worker
 const CACHE_NAME = 'gawin-behavior-v1';
 const BEHAVIOR_DATA_KEY = 'gawin_behavior_data';
+const APP_VERSION = Date.now().toString();
+
+// Auto-update configuration
+const UPDATE_CHECK_INTERVAL = 30000; // 30 seconds
+const VERSION_ENDPOINT = '/api/version';
+let updateCheckInterval = null;
 
 // Install event
 self.addEventListener('install', (event) => {
@@ -31,7 +37,7 @@ self.addEventListener('periodicsync', (event) => {
 // Message handling from main thread
 self.addEventListener('message', (event) => {
   const { type, data } = event.data;
-  
+
   switch (type) {
     case 'ENABLE_BACKGROUND_COLLECTION':
       enableBackgroundCollection(data);
@@ -42,6 +48,30 @@ self.addEventListener('message', (event) => {
     case 'GET_BACKGROUND_DATA':
       getBackgroundData().then(data => {
         event.ports[0].postMessage({ type: 'BACKGROUND_DATA', data });
+      });
+      break;
+    case 'START_UPDATE_CHECK':
+      startUpdateChecking();
+      break;
+    case 'STOP_UPDATE_CHECK':
+      stopUpdateChecking();
+      break;
+    case 'CHECK_UPDATE_NOW':
+      checkForUpdate().then(hasUpdate => {
+        event.ports[0].postMessage({
+          type: 'UPDATE_CHECK_RESULT',
+          hasUpdate
+        });
+      });
+      break;
+    case 'SKIP_WAITING':
+      console.log('⚡ Skipping waiting and activating new service worker');
+      self.skipWaiting();
+      break;
+    case 'GET_VERSION':
+      event.ports[0].postMessage({
+        type: 'VERSION_RESPONSE',
+        version: APP_VERSION
       });
       break;
   }
@@ -255,3 +285,143 @@ async function getBackgroundData() {
     return [];
   }
 }
+
+// ==================== AUTO-UPDATE FUNCTIONS ====================
+
+// Start periodic update checking
+function startUpdateChecking() {
+  console.log('🔍 Starting periodic update checks every', UPDATE_CHECK_INTERVAL / 1000, 'seconds');
+
+  // Clear any existing interval
+  if (updateCheckInterval) {
+    clearInterval(updateCheckInterval);
+  }
+
+  // Start new interval
+  updateCheckInterval = setInterval(async () => {
+    try {
+      const hasUpdate = await checkForUpdate();
+
+      if (hasUpdate) {
+        console.log('🆕 Update detected! Notifying all clients...');
+
+        // Notify all clients about the update
+        const clients = await self.clients.matchAll();
+        clients.forEach(client => {
+          client.postMessage({
+            type: 'UPDATE_AVAILABLE',
+            timestamp: Date.now()
+          });
+        });
+
+        // Stop checking since we found an update
+        stopUpdateChecking();
+      }
+    } catch (error) {
+      console.warn('Update check failed:', error);
+    }
+  }, UPDATE_CHECK_INTERVAL);
+}
+
+// Stop periodic update checking
+function stopUpdateChecking() {
+  console.log('⏹️ Stopping periodic update checks');
+
+  if (updateCheckInterval) {
+    clearInterval(updateCheckInterval);
+    updateCheckInterval = null;
+  }
+}
+
+// Check for updates by comparing deployment timestamps
+async function checkForUpdate() {
+  try {
+    console.log('🔍 Checking for updates...');
+
+    // Fetch current version from server
+    const response = await fetch(`${VERSION_ENDPOINT}?t=${Date.now()}`, {
+      cache: 'no-cache',
+      headers: {
+        'Cache-Control': 'no-cache'
+      }
+    });
+
+    if (!response.ok) {
+      console.warn('Version check failed:', response.status);
+      return false;
+    }
+
+    const data = await response.json();
+    const serverVersion = data.version || data.timestamp;
+
+    // Get stored version
+    const storedVersion = await getStoredVersion();
+
+    console.log('🔍 Version check:', {
+      stored: storedVersion,
+      server: serverVersion,
+      hasUpdate: serverVersion !== storedVersion
+    });
+
+    // Compare versions
+    const hasUpdate = serverVersion && serverVersion !== storedVersion;
+
+    if (hasUpdate) {
+      console.log('🆕 New version detected:', serverVersion);
+      await storeVersion(serverVersion);
+    }
+
+    return hasUpdate;
+  } catch (error) {
+    console.error('❌ Failed to check for updates:', error);
+    return false;
+  }
+}
+
+// Get stored version from cache
+async function getStoredVersion() {
+  try {
+    const version = await getStoredData('app_version');
+    return version;
+  } catch (error) {
+    console.log('No stored version found');
+    return null;
+  }
+}
+
+// Store version in cache
+async function storeVersion(version) {
+  try {
+    await setStoredData('app_version', version);
+    console.log('💾 Stored new version:', version);
+  } catch (error) {
+    console.error('Failed to store version:', error);
+  }
+}
+
+// Force update by clearing cache and reloading
+async function forceUpdate() {
+  try {
+    console.log('🔄 Forcing update - clearing caches...');
+
+    // Clear all caches
+    const cacheNames = await caches.keys();
+    await Promise.all(
+      cacheNames.map(cacheName => caches.delete(cacheName))
+    );
+
+    // Notify clients to reload
+    const clients = await self.clients.matchAll();
+    clients.forEach(client => {
+      client.postMessage({
+        type: 'FORCE_RELOAD'
+      });
+    });
+
+    console.log('✅ Force update complete');
+  } catch (error) {
+    console.error('❌ Force update failed:', error);
+  }
+}
+
+console.log('🤖 Gawin Auto-Update Service Worker loaded successfully');

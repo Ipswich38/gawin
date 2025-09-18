@@ -11,7 +11,9 @@ import TranslationControl from './TranslationControl';
 import CreatorDashboard from './CreatorDashboard';
 import GawinVisionPOV from './GawinVisionPOV';
 import AICodeEditor from './AICodeEditor';
+import UpdateNotification from './UpdateNotification';
 import { hapticService } from '@/lib/services/hapticService';
+import { autoUpdateService } from '@/lib/services/autoUpdateService';
 
 // Screen Share Component
 const ScreenShareButton: React.FC = () => {
@@ -288,6 +290,9 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   const [generatedCode, setGeneratedCode] = useState('');
   const [codeLanguage, setCodeLanguage] = useState('javascript');
 
+  // 🔄 Auto-Update states
+  const [showUpdateNotification, setShowUpdateNotification] = useState(false);
+
   // 👁️🧠 GAWIN'S ENHANCED SENSES
   const [gawinVisionAnalysis, setGawinVisionAnalysis] = useState<VisualAnalysis | null>(null);
   const [gawinAudioAnalysis, setGawinAudioAnalysis] = useState<AudioAnalysis | null>(null);
@@ -458,15 +463,39 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
       }
     });
 
+    // 🔄 Initialize Auto-Update System
+    const initializeAutoUpdate = async () => {
+      console.log('🔄 Initializing auto-update system...');
+
+      try {
+        const initialized = await autoUpdateService.initialize();
+        if (initialized) {
+          console.log('✅ Auto-update system initialized successfully');
+
+          // Set up update callback
+          autoUpdateService.onUpdate((hasUpdate) => {
+            if (hasUpdate) {
+              console.log('🆕 Update detected by auto-update service');
+              setShowUpdateNotification(true);
+            }
+          });
+        } else {
+          console.warn('⚠️ Auto-update system failed to initialize');
+        }
+      } catch (error) {
+        console.error('❌ Auto-update initialization error:', error);
+      }
+    };
+
     // 👁️🧠 Initialize Gawin's Enhanced Senses
     const initializeGawinSenses = async () => {
       console.log('🧠 Initializing Gawin\'s digital consciousness...');
-      
+
       // Initialize Gawin's Vision System
       const visionInitialized = await gawinVisionService.initializeVision('user');
       if (visionInitialized) {
         console.log('👁️ Gawin can now see through digital eyes!');
-        
+
         // Start continuous vision monitoring for consciousness
         gawinVisionService.startContinuousVision(15000); // Every 15 seconds
       }
@@ -480,6 +509,9 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
         gawinAudioService.startListening();
       }
     };
+
+    // Initialize Auto-Update System
+    initializeAutoUpdate();
 
     // Initialize Gawin's enhanced senses
     initializeGawinSenses();
@@ -2820,6 +2852,19 @@ Questions: ${count}`
           language={codeLanguage}
         />
       )}
+
+      {/* 🔄 Update Notification */}
+      <UpdateNotification
+        isVisible={showUpdateNotification}
+        onApply={async () => {
+          console.log('🔄 Applying update...');
+          await autoUpdateService.applyUpdate();
+        }}
+        onDismiss={() => {
+          setShowUpdateNotification(false);
+        }}
+        autoApplySeconds={10}
+      />
 
       </div>
     </div>
