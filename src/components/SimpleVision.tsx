@@ -32,20 +32,23 @@ const SimpleVision: React.FC<SimpleVisionProps> = ({ onVisionToggle, isVisionAct
     return unsubscribe;
   }, []);
 
-  const handleCameraToggle = async () => {
+  const handleCameraToggle = async (): Promise<boolean> => {
     // Trigger haptic feedback for camera control
     hapticService.triggerHaptic('vision');
 
     if (visionState.cameraEnabled) {
       simpleVisionService.disableCamera();
       setTimeout(() => hapticService.triggerStateChange(false), 100);
+      return true;
     } else {
       const success = await simpleVisionService.enableCamera();
       if (!success) {
         alert('Camera access denied. Please check your browser permissions.');
         hapticService.triggerError();
+        return false;
       } else {
         setTimeout(() => hapticService.triggerStateChange(true), 100);
+        return true;
       }
     }
   };
