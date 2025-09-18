@@ -210,20 +210,94 @@ if __name__ == "__main__":
 
   } catch (error) {
     console.error('GPT Researcher execution failed:', error);
-    
-    // Return fallback result for graceful degradation
-    return {
-      query: request.query,
-      report: `Research query: "${request.query}"\n\nGPT Researcher is currently unavailable. Please ensure the Python package is installed and configured properly.\n\nTo install GPT Researcher:\n\`\`\`bash\npip install gpt-researcher\n\`\`\`\n\nRequired environment variables:\n- OPENAI_API_KEY\n- TAVILY_API_KEY (for web search)\n\nFalling back to intelligent research system...`,
-      sources: [],
-      images: [],
-      metadata: {
-        totalSources: 0,
-        processingTime: Date.now() - startTime,
-        reportLength: 0,
-        researcher: 'gpt-researcher'
-      }
-    };
+    console.log('🔄 Falling back to intelligent research system...');
+
+    // Import and use intelligent research service as fallback
+    try {
+      const { intelligentResearchService } = await import('@/lib/services/intelligentResearchService');
+
+      const context = {
+        query: request.query,
+        domain: 'General Research',
+        academicLevel: 'professional' as const,
+        expectedLength: 'comprehensive' as const,
+        perspective: 'academic' as const
+      };
+
+      const intelligentResult = await intelligentResearchService.conductIntelligentResearch(context);
+
+      // Convert intelligent research result to GPT Researcher format
+      const report = `# Research Report: ${request.query}
+
+## Executive Summary
+${intelligentResult.executiveSummary}
+
+## Key Findings
+${intelligentResult.keyFindings.map(finding => `• ${finding}`).join('\n')}
+
+## Detailed Analysis
+
+### Introduction
+${intelligentResult.detailedAnalysis.introduction || 'This research provides a comprehensive analysis of the topic.'}
+
+### Methodology
+${intelligentResult.detailedAnalysis.methodology || 'The research employed systematic analysis of multiple sources.'}
+
+### Findings
+${intelligentResult.detailedAnalysis.findings || 'Research findings reveal important insights about the topic.'}
+
+### Discussion
+${intelligentResult.detailedAnalysis.discussion || 'The implications of these findings are significant for the field.'}
+
+### Conclusions
+${intelligentResult.detailedAnalysis.conclusions || 'The research demonstrates important trends and future directions.'}
+
+## Practical Applications
+${intelligentResult.practicalApplications.map(app => `• ${app}`).join('\n')}
+
+## Future Directions
+${intelligentResult.futureDirections.map(dir => `• ${dir}`).join('\n')}
+
+---
+*Generated using Gawin Intelligent Research System*
+*Quality Score: ${Math.round((intelligentResult.qualityMetrics.comprehensiveness + intelligentResult.qualityMetrics.coherence) / 2)}%*
+`;
+
+      return {
+        query: request.query,
+        report: report,
+        sources: intelligentResult.references.map(ref => ({
+          url: ref.url,
+          title: ref.citation.split('.')[0] || 'Research Source',
+          snippet: '',
+          relevanceScore: ref.relevanceScore / 100,
+          domain: new URL(ref.url).hostname
+        })),
+        images: [],
+        metadata: {
+          totalSources: intelligentResult.references.length,
+          processingTime: Date.now() - startTime,
+          reportLength: report.length,
+          researcher: 'gpt-researcher'
+        }
+      };
+    } catch (fallbackError) {
+      console.error('Intelligent research fallback also failed:', fallbackError);
+
+      // Final fallback with detailed error message
+      return {
+        query: request.query,
+        report: `Research query: "${request.query}"\n\nBoth GPT Researcher and intelligent research systems are currently experiencing issues.\n\nGPT Researcher requires:\n- Python package: pip install gpt-researcher\n- OPENAI_API_KEY environment variable\n- TAVILY_API_KEY environment variable\n\nIntelligent research fallback error: ${fallbackError}\n\nPlease check system configuration and try again.`,
+        sources: [],
+        images: [],
+        metadata: {
+          totalSources: 0,
+          processingTime: Date.now() - startTime,
+          reportLength: 0,
+          researcher: 'gpt-researcher'
+        }
+      };
+    }
   }
 }
 

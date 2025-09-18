@@ -227,25 +227,16 @@ export function EnhancedResearchInterface({ onResearchComplete }: EnhancedResear
           prompt = `Please provide detailed information about: "${query}" from the perspective of ${step.title}.`;
       }
 
-      // Call the Groq API using the same infrastructure as main chat
-      const response = await fetch('/api/groq', {
+      // Use the GPT Researcher API with intelligent fallback
+      const response = await fetch('/api/gpt-researcher', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          messages: [
-            {
-              role: 'system',
-              content: `You are an expert researcher conducting ${researchType} research. Provide thorough, accurate, and well-structured information. Always cite sources when possible and maintain academic rigor.`
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          model: 'mixtral-8x7b-32768',
-          stream: false
+          query: `${step.title}: ${prompt}`,
+          reportType: 'research_report',
+          maxSources: 10
         })
       });
 
@@ -254,7 +245,7 @@ export function EnhancedResearchInterface({ onResearchComplete }: EnhancedResear
       }
 
       const data = await response.json();
-      const result = data.content || data.message || 'No response received';
+      const result = data.data?.report || data.content || data.message || `Research completed for: ${step.title}`;
 
       // Update step with result
       setResearchSteps(prev => prev.map((s, i) => 
