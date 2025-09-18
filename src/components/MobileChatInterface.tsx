@@ -2190,29 +2190,7 @@ Questions: ${count}`
             );
           })}
           
-          {/* Vision System - Right side of tabs */}
-          <div className="ml-auto flex items-center space-x-2">
-            <SimpleVision />
-            <button
-              onClick={() => setIsVisionPOVVisible(!isVisionPOVVisible)}
-              className={`
-                flex items-center space-x-1
-                ${optimizationConfig?.compactMode ? 'px-2 py-1' : 'px-3 py-1.5'}
-                ${optimizationConfig?.tabHeight || 'h-10'}
-                rounded-xl
-                ${optimizationConfig?.compactMode ? 'text-xs' : 'text-sm'}
-                font-medium transition-all flex-shrink-0
-                ${isVisionPOVVisible
-                  ? 'bg-purple-600 text-white shadow-lg backdrop-blur-sm'
-                  : 'bg-gray-700/30 text-gray-300 hover:bg-gray-600/40 backdrop-blur-sm'
-                }
-              `}
-              title="Toggle Gawin's Vision POV"
-            >
-              <Eye size={optimizationConfig?.compactMode ? 14 : 16} className="flex-shrink-0" />
-              {!optimizationConfig?.compactMode && <span>Vision</span>}
-            </button>
-          </div>
+          {/* Removed Vision System from header - moved to input area */}
         </div>
       </div>
 
@@ -2221,78 +2199,122 @@ Questions: ${count}`
         {renderTabContent()}
       </div>
 
-      {/* Capsule-Shaped Chat Input with Transparent Send Button */}
+      {/* Enhanced Two-Section Chat Input */}
       {activeTab && ['general', 'creative'].includes(activeTab.type) && (
-          <div className="px-3 sm:px-4 py-3 sm:py-4 bg-gray-900/60 backdrop-blur-lg border-t border-gray-600/30" 
+          <div className="px-3 sm:px-4 py-3 sm:py-4 bg-gray-900/60 backdrop-blur-lg border-t border-gray-600/30"
                style={{ paddingBottom: `calc(1rem + env(safe-area-inset-bottom))` }}>
-            
-            {/* Capsule container with microphone and send button */}
+
+            {/* Enhanced Input Container with Two Sections */}
             <div className="relative w-full max-w-4xl mx-auto">
-              <div className="relative bg-gray-800/60 backdrop-blur-lg rounded-full border border-gray-700/50 focus-within:border-teal-500 transition-colors">
-              <textarea
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSend(inputValue);
-                  }
-                }}
-                placeholder={`Ask me anything ${
-                  activeTab.type === 'creative' ? 'creative...' :
-                  'about your studies...'
-                }`}
-                className="
-                  w-full px-6 py-5 pr-20 sm:pr-24 bg-transparent text-white
-                  resize-none overflow-hidden focus:outline-none
-                  placeholder-gray-400 text-sm sm:text-base
-                  min-h-[3.5rem] max-h-40 leading-relaxed rounded-full
-                "
-                style={{
-                  wordWrap: 'break-word',
-                  whiteSpace: 'pre-wrap'
-                }}
-                rows={1}
-                disabled={activeTab.isLoading}
-                onInput={(e) => {
-                  const target = e.target as HTMLTextAreaElement;
-                  target.style.height = 'auto';
-                  target.style.height = `${Math.min(target.scrollHeight, 160)}px`;
-                }}
-              />
+              <div className="relative bg-gray-800/60 backdrop-blur-lg rounded-3xl border border-gray-700/50 focus-within:border-teal-500 transition-colors">
 
-              {/* Voice Input Integration - moved to input box */}
-              <div className="absolute right-12 sm:right-14 top-1/2 transform -translate-y-1/2 z-10">
-                <VoiceInput
-                  onTranscript={handleVoiceTranscript}
-                  onSendMessage={handleVoiceSendMessage}
-                  isGawinSpeaking={isGawinSpeaking}
-                  disabled={activeTab.isLoading}
-                />
+                {/* Top Section: Text Input Area */}
+                <div className="relative px-6 pt-5 pb-3">
+                  <textarea
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSend(inputValue);
+                      }
+                    }}
+                    placeholder={`Ask me anything ${
+                      activeTab.type === 'creative' ? 'creative...' :
+                      'about your studies...'
+                    }`}
+                    className="
+                      w-full bg-transparent text-white
+                      resize-none overflow-hidden focus:outline-none
+                      placeholder-gray-400 text-sm sm:text-base
+                      min-h-[4rem] max-h-32 leading-relaxed
+                    "
+                    style={{
+                      wordWrap: 'break-word',
+                      whiteSpace: 'pre-wrap'
+                    }}
+                    rows={2}
+                    disabled={activeTab.isLoading}
+                    onInput={(e) => {
+                      const target = e.target as HTMLTextAreaElement;
+                      target.style.height = 'auto';
+                      target.style.height = `${Math.min(target.scrollHeight, 128)}px`;
+                    }}
+                  />
+                </div>
+
+                {/* Bottom Section: Tool Icons */}
+                <div className="px-6 pb-4 pt-2 border-t border-gray-700/30">
+                  <div className="flex items-center justify-between">
+                    {/* Left Side: Gawin's Senses */}
+                    <div className="flex items-center space-x-3">
+                      {/* Voice Input */}
+                      <div className="relative">
+                        <VoiceInput
+                          onTranscript={handleVoiceTranscript}
+                          onSendMessage={handleVoiceSendMessage}
+                          isGawinSpeaking={isGawinSpeaking}
+                          disabled={activeTab.isLoading}
+                        />
+                      </div>
+
+                      {/* Vision Toggle */}
+                      <button
+                        onClick={() => setIsVisionPOVVisible(!isVisionPOVVisible)}
+                        className={`
+                          w-7 h-7 rounded-lg flex items-center justify-center
+                          transition-all duration-200
+                          ${isVisionPOVVisible
+                            ? 'bg-purple-600 text-white shadow-lg'
+                            : 'bg-gray-700/50 text-gray-400 hover:bg-gray-600/60 hover:text-gray-300'
+                          }
+                        `}
+                        title="Toggle Vision"
+                      >
+                        <Eye size={14} />
+                      </button>
+
+                      {/* Camera */}
+                      <div className="relative">
+                        <SimpleVision />
+                      </div>
+
+                      {/* Screen Share Placeholder */}
+                      <button
+                        className="w-7 h-7 rounded-lg flex items-center justify-center bg-gray-700/50 text-gray-400 hover:bg-gray-600/60 hover:text-gray-300 transition-all duration-200"
+                        title="Screen Share (Coming Soon)"
+                        disabled
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/>
+                        </svg>
+                      </button>
+                    </div>
+
+                    {/* Right Side: Send Button */}
+                    <button
+                      onClick={() => handleSend(inputValue)}
+                      disabled={activeTab.isLoading || !inputValue.trim()}
+                      className="
+                        w-8 h-8 rounded-full flex items-center justify-center
+                        bg-teal-600 hover:bg-teal-500 disabled:bg-gray-700
+                        text-white disabled:text-gray-500
+                        transition-all duration-200 flex-shrink-0
+                        shadow-lg disabled:shadow-none
+                      "
+                      title="Send Message"
+                    >
+                      {activeTab.isLoading ? (
+                        <LoadingIcon size={16} className="animate-spin" />
+                      ) : (
+                        <SendIcon size={16} />
+                      )}
+                    </button>
+                  </div>
+                </div>
               </div>
-
-              {/* Transparent Send Button positioned at inner end of capsule */}
-              <button
-                onClick={() => handleSend(inputValue)}
-                disabled={activeTab.isLoading || !inputValue.trim()}
-                className="
-                  absolute right-3 top-1/2 transform -translate-y-1/2
-                  w-8 h-8 sm:w-9 sm:h-9
-                  bg-transparent hover:bg-teal-500/20 disabled:bg-transparent
-                  rounded-full flex items-center justify-center
-                  transition-all duration-200 flex-shrink-0
-                  text-teal-400 hover:text-teal-300 disabled:text-gray-600
-                "
-              >
-                {activeTab.isLoading ? (
-                  <LoadingIcon size={18} className="animate-spin" />
-                ) : (
-                  <SendIcon size={18} />
-                )}
-              </button>
             </div>
           </div>
-        </div>
       )}
 
       {/* Mobile Menu Overlay */}
