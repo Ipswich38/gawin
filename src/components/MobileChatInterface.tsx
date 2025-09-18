@@ -7,6 +7,7 @@ import ResearchMode from './ResearchMode';
 import BrailleKeyboard from './BrailleKeyboard';
 import SimpleVision from './SimpleVision';
 import VoiceInput from './VoiceInput';
+import TranslationControl from './TranslationControl';
 import CreatorDashboard from './CreatorDashboard';
 import { hapticService } from '@/lib/services/hapticService';
 
@@ -170,6 +171,8 @@ import { gawinAudioService, AudioAnalysis } from '../lib/services/gawinAudioServ
 import { voiceService } from '../lib/services/voiceService';
 // 🎤 SPEECH RECOGNITION SERVICE
 import { speechRecognitionService } from '../lib/services/speechRecognitionService';
+// 🌐 TRANSLATION SERVICES
+import { useIntelligentTranslation } from '../hooks/useTranslation';
 
 // 🎨 UI ENHANCEMENTS
 import {
@@ -319,6 +322,9 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const activeTab = tabs.find(tab => tab.id === activeTabId);
+
+  // 🌐 Initialize intelligent translation
+  const translation = useIntelligentTranslation();
 
   // 📱 Initialize device detection and optimization
   useEffect(() => {
@@ -2406,6 +2412,9 @@ Questions: ${count}`
 
                       {/* Voice Output Control */}
                       <VoiceOutputButton />
+
+                      {/* Translation Control */}
+                      <TranslationControl compact={true} />
                     </div>
 
                     {/* Right Side: Send Button */}

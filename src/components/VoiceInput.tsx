@@ -247,22 +247,6 @@ const VoiceInput: React.FC<VoiceInputProps> = ({
         )}
       </button>
 
-      {/* Language Selector */}
-      <button
-        onClick={handleLanguageSwitch}
-        disabled={disabled || isListening}
-        className={`
-          flex items-center space-x-1 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200
-          ${disabled || isListening 
-            ? 'bg-gray-500/10 text-gray-500 cursor-not-allowed' 
-            : 'bg-gray-600/20 text-gray-300 hover:bg-gray-600/30 border border-gray-500/30'
-          }
-        `}
-        title="Switch language (EN/TL/AUTO)"
-      >
-        <Languages size={14} />
-        <span>{getLanguageDisplay()}</span>
-      </button>
 
       {/* Status Display */}
       <AnimatePresence>
