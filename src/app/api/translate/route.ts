@@ -43,14 +43,14 @@ export async function POST(request: NextRequest) {
 
     // Try Google Translate API first
     try {
-      const googleResult = await translateWithGoogle(text, source, target, detectOnly);
+      const googleResult = await translateWithGoogle(text, target, source, detectOnly);
       return NextResponse.json(googleResult);
     } catch (googleError) {
       console.warn('Google Translate failed, trying fallback:', googleError);
 
       // Fallback to LibreTranslate
       try {
-        const fallbackResult = await translateWithLibreTranslate(text, source, target, detectOnly);
+        const fallbackResult = await translateWithLibreTranslate(text, target, source, detectOnly);
         return NextResponse.json(fallbackResult);
       } catch (fallbackError) {
         console.error('All translation services failed:', fallbackError);
@@ -80,8 +80,8 @@ export async function POST(request: NextRequest) {
  */
 async function translateWithGoogle(
   text: string,
-  source?: string,
   target: string,
+  source?: string,
   detectOnly: boolean = false
 ): Promise<TranslateResponse> {
   const apiKey = process.env.GOOGLE_TRANSLATE_API_KEY;
@@ -159,8 +159,8 @@ async function translateWithGoogle(
  */
 async function translateWithLibreTranslate(
   text: string,
-  source?: string,
   target: string,
+  source?: string,
   detectOnly: boolean = false
 ): Promise<TranslateResponse> {
   try {

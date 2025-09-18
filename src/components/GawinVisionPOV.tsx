@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Eye, EyeOff, Target, Brain, Camera } from 'lucide-react';
+import { Eye, EyeOff, Target, Brain, Camera, ZoomIn, ZoomOut } from 'lucide-react';
 import { intelligentVisionService, IntelligentVisionAnalysis, VisionPoint } from '@/lib/services/intelligentVisionService';
 import { simpleVisionService } from '@/lib/services/simpleVisionService';
 
@@ -33,6 +33,7 @@ const GawinVisionPOV: React.FC<GawinVisionPOVProps> = ({ isVisible, onToggle }) 
   const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [trainingMode, setTrainingMode] = useState(false);
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
+  const [zoomLevel, setZoomLevel] = useState(1);
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -149,6 +150,14 @@ const GawinVisionPOV: React.FC<GawinVisionPOVProps> = ({ isVisible, onToggle }) 
     return 'Basic Vision Active';
   };
 
+  const handleZoomIn = () => {
+    setZoomLevel(prev => Math.min(prev + 0.25, 3));
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel(prev => Math.max(prev - 0.25, 0.5));
+  };
+
   if (!isVisible) {
     return (
       <button
@@ -200,6 +209,30 @@ const GawinVisionPOV: React.FC<GawinVisionPOVProps> = ({ isVisible, onToggle }) 
             <div className={`text-xs ${currentAnalysis ? getStatusColor(currentAnalysis.confidence) : 'text-gray-400'}`}>
               {currentAnalysis && formatConfidence(currentAnalysis.confidence)}
             </div>
+
+            {/* Zoom Controls */}
+            <div className="flex items-center space-x-1 bg-white/10 rounded px-1">
+              <button
+                onClick={handleZoomOut}
+                disabled={zoomLevel <= 0.5}
+                className="w-5 h-5 rounded flex items-center justify-center hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="Zoom Out"
+              >
+                <ZoomOut size={10} className="text-white" />
+              </button>
+              <span className="text-xs text-white min-w-[32px] text-center">
+                {Math.round(zoomLevel * 100)}%
+              </span>
+              <button
+                onClick={handleZoomIn}
+                disabled={zoomLevel >= 3}
+                className="w-5 h-5 rounded flex items-center justify-center hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="Zoom In"
+              >
+                <ZoomIn size={10} className="text-white" />
+              </button>
+            </div>
+
             <button
               onClick={onToggle}
               className="w-6 h-6 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
@@ -219,6 +252,10 @@ const GawinVisionPOV: React.FC<GawinVisionPOVProps> = ({ isVisible, onToggle }) 
                 autoPlay
                 muted
                 playsInline
+                style={{
+                  transform: `scale(${zoomLevel})`,
+                  transformOrigin: 'center center'
+                }}
               />
               
               {/* AI Detection Overlay */}

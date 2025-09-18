@@ -9,6 +9,7 @@ import SimpleVision from './SimpleVision';
 import VoiceInput from './VoiceInput';
 import TranslationControl from './TranslationControl';
 import CreatorDashboard from './CreatorDashboard';
+import GawinVisionPOV from './GawinVisionPOV';
 import { hapticService } from '@/lib/services/hapticService';
 
 // Screen Share Component
@@ -2603,13 +2604,19 @@ Questions: ${count}`
 
 
       {/* Braille Keyboard */}
-        <BrailleKeyboard 
+        <BrailleKeyboard
           isVisible={isBrailleKeyboardOpen}
           onInput={handleBrailleInput}
           onClose={() => setIsBrailleKeyboardOpen(false)}
           onVoiceAnnounce={announceToUser}
         />
-        
+
+      {/* Gawin Vision POV - Inside chat space, floating bottom right */}
+      <GawinVisionPOV
+        isVisible={isVisionPOVVisible}
+        onToggle={() => setIsVisionPOVVisible(!isVisionPOVVisible)}
+      />
+
       </div>
     </div>
   );

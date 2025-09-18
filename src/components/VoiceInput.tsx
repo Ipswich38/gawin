@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, MicOff, Languages, Loader } from 'lucide-react';
+import { Mic, MicOff, Languages, Loader, MessageCircle, Ear } from 'lucide-react';
 import { speechRecognitionService, RecognitionResult } from '@/lib/services/speechRecognitionService';
 import { hapticService } from '@/lib/services/hapticService';
 
@@ -162,23 +162,51 @@ const VoiceInput: React.FC<VoiceInputProps> = ({
     }
   };
 
-  const getMicIcon = () => {
+  const getTalkListenIcon = () => {
     if (!isSupported || disabled) {
-      return <MicOff size={20} className="text-gray-500" />;
-    }
-    
-    if (isListening) {
       return (
-        <motion.div
-          animate={{ scale: isProcessingVoice ? [1, 1.2, 1] : 1 }}
-          transition={{ duration: 0.6, repeat: isProcessingVoice ? Infinity : 0 }}
-        >
-          <Mic size={20} className="text-white" />
-        </motion.div>
+        <div className="flex items-center space-x-1">
+          <MessageCircle size={10} className="text-gray-500" />
+          <Ear size={10} className="text-gray-500" />
+        </div>
       );
     }
-    
-    return <Mic size={20} className="text-gray-300" />;
+
+    if (isListening) {
+      return (
+        <div className="relative flex items-center space-x-1">
+          <motion.div
+            animate={{ scale: isProcessingVoice ? [1, 1.3, 1] : 1 }}
+            transition={{ duration: 0.6, repeat: isProcessingVoice ? Infinity : 0 }}
+          >
+            <MessageCircle size={10} className={isProcessingVoice ? "text-red-400" : "text-green-400"} />
+          </motion.div>
+          <motion.div
+            animate={{ scale: [1, 1.2, 1] }}
+            transition={{ duration: 0.8, repeat: Infinity }}
+          >
+            <Ear size={10} className="text-blue-400" />
+          </motion.div>
+          {/* Tiny floating listening text */}
+          {isListening && (
+            <motion.div
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="absolute -top-5 left-1/2 transform -translate-x-1/2 text-xs text-green-300 whitespace-nowrap pointer-events-none"
+            >
+              listening...
+            </motion.div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex items-center space-x-1">
+        <MessageCircle size={10} className="text-gray-300" />
+        <Ear size={10} className="text-gray-300" />
+      </div>
+    );
   };
 
   const getButtonStyle = () => {
@@ -221,7 +249,7 @@ const VoiceInput: React.FC<VoiceInputProps> = ({
           isListening ? 'Stop listening (Braille: ⠍)' : 'Start voice input (Braille: ⠍)'
         }
       >
-        {getMicIcon()}
+        {getTalkListenIcon()}
         
         {/* Voice level indicator */}
         {isListening && (
@@ -266,11 +294,6 @@ const VoiceInput: React.FC<VoiceInputProps> = ({
               <div className="text-xs text-blue-300 flex items-center space-x-1">
                 <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
                 <span className="truncate italic">"{currentTranscript}"</span>
-              </div>
-            ) : isListening ? (
-              <div className="text-xs text-green-300 flex items-center space-x-1">
-                <Loader size={12} className="animate-spin" />
-                <span>Listening...</span>
               </div>
             ) : null}
           </motion.div>
