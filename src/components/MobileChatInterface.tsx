@@ -2258,25 +2258,13 @@ Questions: ${count}`
                         />
                       </div>
 
-                      {/* Vision Toggle */}
-                      <button
-                        onClick={() => setIsVisionPOVVisible(!isVisionPOVVisible)}
-                        className={`
-                          w-7 h-7 rounded-lg flex items-center justify-center
-                          transition-all duration-200
-                          ${isVisionPOVVisible
-                            ? 'bg-purple-600 text-white shadow-lg'
-                            : 'bg-gray-700/50 text-gray-400 hover:bg-gray-600/60 hover:text-gray-300'
-                          }
-                        `}
-                        title="Toggle Vision"
-                      >
-                        <Eye size={14} />
-                      </button>
-
-                      {/* Camera */}
+                      {/* Combined Camera & Vision Control */}
                       <div className="relative">
-                        <SimpleVision />
+                        <SimpleVision
+                          onVisionToggle={() => setIsVisionPOVVisible(!isVisionPOVVisible)}
+                          isVisionActive={isVisionPOVVisible}
+                          compact={true}
+                        />
                       </div>
 
                       {/* Screen Share Placeholder */}

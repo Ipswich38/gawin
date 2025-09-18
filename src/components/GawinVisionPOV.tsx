@@ -24,10 +24,15 @@ const GawinVisionPOV: React.FC<GawinVisionPOVProps> = ({ isVisible, onToggle }) 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Draggable state
+  // Draggable and Resizable state
   const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [size, setSize] = useState({ width: 320, height: 256 });
   const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [trainingMode, setTrainingMode] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -71,28 +76,52 @@ const GawinVisionPOV: React.FC<GawinVisionPOVProps> = ({ isVisible, onToggle }) 
     }
   };
 
+  // Resize event handlers
+  const handleResizeMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (panelRef.current) {
+      const rect = panelRef.current.getBoundingClientRect();
+      setResizeStart({
+        x: e.clientX,
+        y: e.clientY,
+        width: rect.width,
+        height: rect.height
+      });
+      setIsResizing(true);
+    }
+  };
+
   const handleMouseMove = (e: MouseEvent) => {
     if (isDragging) {
       const newX = e.clientX - dragOffset.x;
       const newY = e.clientY - dragOffset.y;
 
       // Keep panel within viewport bounds
-      const maxX = window.innerWidth - 320; // panel width
-      const maxY = window.innerHeight - 256; // panel height
+      const maxX = window.innerWidth - size.width;
+      const maxY = window.innerHeight - size.height;
 
       setPosition({
         x: Math.max(0, Math.min(newX, maxX)),
         y: Math.max(0, Math.min(newY, maxY))
       });
+    } else if (isResizing) {
+      const deltaX = e.clientX - resizeStart.x;
+      const deltaY = e.clientY - resizeStart.y;
+
+      const newWidth = Math.max(280, Math.min(800, resizeStart.width + deltaX));
+      const newHeight = Math.max(200, Math.min(600, resizeStart.height + deltaY));
+
+      setSize({ width: newWidth, height: newHeight });
     }
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
+    setIsResizing(false);
   };
 
   useEffect(() => {
-    if (isDragging) {
+    if (isDragging || isResizing) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
 
@@ -101,7 +130,7 @@ const GawinVisionPOV: React.FC<GawinVisionPOVProps> = ({ isVisible, onToggle }) 
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDragging, dragOffset]);
+  }, [isDragging, isResizing, dragOffset, resizeStart]);
 
   const formatConfidence = (confidence: number): string => {
     return `${(confidence * 100).toFixed(0)}%`;
@@ -303,6 +332,15 @@ const GawinVisionPOV: React.FC<GawinVisionPOVProps> = ({ isVisible, onToggle }) 
             />
           </div>
         )}
+
+        {/* Resize Handle */}
+        <div
+          className="absolute bottom-0 right-0 w-4 h-4 cursor-nw-resize opacity-50 hover:opacity-100 transition-opacity"
+          onMouseDown={handleResizeMouseDown}
+          style={{
+            background: 'linear-gradient(-45deg, transparent 30%, #6B7280 30%, #6B7280 70%, transparent 70%)'
+          }}
+        />
       </motion.div>
     </AnimatePresence>
   );
