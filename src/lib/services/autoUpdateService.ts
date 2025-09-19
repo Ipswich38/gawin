@@ -113,7 +113,7 @@ class AutoUpdateService {
         console.log('🔄 New service worker installing...');
 
         newWorker.addEventListener('statechange', () => {
-          if (newWorker.state === 'installed') {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
             console.log('⏳ New service worker waiting to activate');
             this.handleUpdateAvailable();
           }
