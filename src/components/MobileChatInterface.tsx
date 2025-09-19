@@ -13,6 +13,7 @@ import GawinVisionPOV from './GawinVisionPOV';
 import UpdateNotification from './UpdateNotification';
 import { hapticService } from '@/lib/services/hapticService';
 import { autoUpdateService } from '@/lib/services/autoUpdateService';
+import { UniversalDocumentFormatter } from '@/lib/formatters/universalDocumentFormatter';
 
 // Screen Share Component
 const ScreenShareButton: React.FC = () => {
@@ -196,6 +197,7 @@ interface Message {
   timestamp: string;
   imageUrl?: string;
   thinking?: string; // For Gawin's internal thought process
+  documentType?: string; // For universal document formatting
 }
 
 interface Tab {
@@ -644,21 +646,31 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
     return inappropriateTerms.some(term => lowerText.includes(term));
   };
 
-  // Format detection helper function following the specification
-  const detectFormatRequest = (message: string) => {
-    const lowerMessage = message.toLowerCase();
-    const formatTriggers = [
-      'write a poem', 'create a poem', 'poem about', 'compose a poem',
-      'write lyrics', 'song lyrics', 'write a song', 'create lyrics',
-      'research paper', 'write research', 'academic paper', 'research about',
-      'write an essay', 'create an essay', 'essay about',
-      'make a list', 'list of', 'steps to', 'ways to',
-      'recipe for', 'how to', 'instructions for',
-      'business report', 'executive summary', 'write a report',
-      'story about', 'write a story', 'tell a story', 'create a narrative'
+  // Enhanced document detection using the universal document formatter
+  const detectDocumentRequest = (message: string) => {
+    const detection = UniversalDocumentFormatter.detectDocumentType(message);
+    return {
+      isDocumentRequest: detection.confidence > 0.3,
+      documentType: detection.documentType,
+      confidence: detection.confidence,
+      keywords: detection.keywords
+    };
+  };
+
+  // Detect if the user is requesting specific formatting
+  const detectFormatRequest = (message: string): boolean => {
+    const formatKeywords = [
+      'poem', 'poetry', 'verse', 'stanza',
+      'song', 'lyrics', 'chorus', 'verse',
+      'list', 'numbered list', 'bullet points',
+      'essay', 'paragraph', 'article',
+      'research paper', 'academic', 'study',
+      'format', 'formatting', 'structure',
+      'organize', 'break down', 'outline'
     ];
 
-    return formatTriggers.some(trigger => lowerMessage.includes(trigger));
+    const lowerMessage = message.toLowerCase();
+    return formatKeywords.some(keyword => lowerMessage.includes(keyword));
   };
 
   const handleSend = async (text: string) => {
@@ -821,8 +833,17 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
           // Handle code generation
           await handleCodeGeneration(messageText, newMessage);
         } else {
-          // Handle regular chat
-          await handleTextGeneration(messageText, newMessage);
+          // Check for document formatting requests using universal document formatter
+          const documentDetection = detectDocumentRequest(messageText);
+
+          if (documentDetection.isDocumentRequest) {
+            console.log(`📄 Document type detected: ${documentDetection.documentType} (confidence: ${documentDetection.confidence.toFixed(2)})`);
+            // Handle document generation with enhanced formatting
+            await handleDocumentGeneration(messageText, newMessage, documentDetection.documentType);
+          } else {
+            // Handle regular chat
+            await handleTextGeneration(messageText, newMessage);
+          }
         }
       }
     } catch (error) {
@@ -1278,6 +1299,96 @@ Provide a helpful explanation followed by properly formatted code in markdown bl
       
       setTabs(prev => prev.map(tab => 
         tab.id === activeTab?.id 
+          ? { ...tab, messages: [...tab.messages, errorResponse], isLoading: false }
+          : tab
+      ));
+    }
+  };
+
+  // Handle document generation with universal document formatting
+  const handleDocumentGeneration = async (messageText: string, userMessage: Message, documentType: string) => {
+    // Get document-specific formatting instructions
+    const formattingInstructions = UniversalDocumentFormatter.getFormattingInstructions(documentType as any);
+
+    // Enhanced system prompt with document-specific formatting
+    const documentPrompt = {
+      role: 'system',
+      content: `You are Gawin, an AI assistant specialized in creating professional documents. You have detected that the user wants to create a ${documentType.replace('_', ' ')} document.
+
+${formattingInstructions}
+
+CRITICAL FORMATTING REQUIREMENTS:
+- Follow the EXACT formatting structure provided above
+- Use proper markdown formatting with headers, bold text, and lists
+- Maintain professional document standards for ${documentType.replace('_', ' ')}
+- Include appropriate sections and subsections based on the document type
+- Use consistent spacing and indentation
+- Apply document-specific styling and organization
+- Ensure the content is comprehensive and well-structured
+
+Generate a complete, professional ${documentType.replace('_', ' ')} document based on the user's request. Follow the formatting guidelines precisely to create a document that looks professional and is properly structured.`
+    };
+
+    try {
+      // Create contextual message history with document-specific prompt
+      const contextualMessages = [
+        documentPrompt,
+        ...(activeTab?.messages || []).slice(-5).map(msg => ({ // Last 5 messages for context
+          role: msg.role,
+          content: msg.content
+        })),
+        { role: 'user', content: messageText }
+      ];
+
+      const response = await fetch('/api/groq', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: contextualMessages,
+          model: 'llama-3.3-70b-versatile',
+          temperature: 0.6, // Balanced creativity for documents
+          max_tokens: 3000, // Longer responses for documents
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const aiResponse = data.choices[0].message.content;
+
+      // Apply enhanced formatting using the universal document formatter
+      const formattedContent = UniversalDocumentFormatter.applySpecialFormatting(aiResponse, documentType as any);
+
+      const aiMessage: Message = {
+        id: Date.now() + 1,
+        role: 'assistant',
+        content: formattedContent,
+        timestamp: new Date().toISOString(),
+        documentType: documentType, // Store document type for rendering
+      };
+
+      setTabs(prev => prev.map(tab =>
+        tab.id === activeTab?.id
+          ? { ...tab, messages: [...tab.messages, aiMessage], isLoading: false }
+          : tab
+      ));
+
+      console.log(`📄 Generated ${documentType} document successfully`);
+
+    } catch (error) {
+      console.error('Error generating document:', error);
+
+      const errorResponse: Message = {
+        id: Date.now() + 1,
+        role: 'assistant',
+        content: `I apologize, but I encountered an error while generating your ${documentType.replace('_', ' ')} document. Please try again.`,
+        timestamp: new Date().toISOString()
+      };
+
+      setTabs(prev => prev.map(tab =>
+        tab.id === activeTab?.id
           ? { ...tab, messages: [...tab.messages, errorResponse], isLoading: false }
           : tab
       ));
