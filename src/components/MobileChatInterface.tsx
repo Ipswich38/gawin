@@ -2375,11 +2375,14 @@ Questions: ${count}`
                     </div>
                   ) : (
                     <div className="leading-relaxed">
-                      {message.content}
+                      <MessageRenderer
+                        text={message.content}
+                        showActions={false}
+                      />
                       {message.imageUrl && (
                         <div className="mt-3 rounded-lg overflow-hidden border border-white/20">
-                          <img 
-                            src={message.imageUrl} 
+                          <img
+                            src={message.imageUrl}
                             alt="Generated image"
                             className="w-full h-auto max-w-sm max-h-64 object-contain"
                           />

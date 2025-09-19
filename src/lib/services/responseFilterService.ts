@@ -102,6 +102,143 @@ class ResponseFilterService {
   ];
 
   /**
+   * Aggressively force correct formatting based on content type
+   */
+  private forceCorrectFormatting(content: string): string {
+    let formatted = content;
+
+    // Detect if this looks like a poem and force poem formatting
+    if (this.detectPoem(formatted)) {
+      formatted = this.forcePoemFormatting(formatted);
+    }
+
+    // Detect if this looks like song lyrics and force song formatting
+    else if (this.detectSongLyrics(formatted)) {
+      formatted = this.forceSongLyricsFormatting(formatted);
+    }
+
+    // Force numbered list formatting if detected
+    else if (this.detectNumberedList(formatted)) {
+      formatted = this.forceNumberedListFormatting(formatted);
+    }
+
+    return formatted;
+  }
+
+  /**
+   * Detect if content looks like a poem
+   */
+  private detectPoem(content: string): boolean {
+    const lines = content.split('\n').filter(l => l.trim());
+    const avgLineLength = lines.reduce((sum, line) => sum + line.length, 0) / lines.length;
+
+    return lines.length >= 3 && lines.length <= 50 &&
+           avgLineLength < 80 &&
+           !content.includes('[Verse]') &&
+           !content.includes('[Chorus]') &&
+           !/^\d+\./m.test(content);
+  }
+
+  /**
+   * Detect if content looks like song lyrics
+   */
+  private detectSongLyrics(content: string): boolean {
+    return /\[(verse|chorus|bridge|outro|intro)\]/i.test(content) ||
+           /🎵/.test(content);
+  }
+
+  /**
+   * Detect if content looks like a numbered list
+   */
+  private detectNumberedList(content: string): boolean {
+    return /^\d+\./m.test(content);
+  }
+
+  /**
+   * Force poem formatting
+   */
+  private forcePoemFormatting(content: string): string {
+    const lines = content.split('\n');
+    let result: string[] = [];
+    let title = '';
+
+    // Extract title (first line)
+    if (lines.length > 0 && lines[0].trim() && !lines[0].match(/^\d+\./)) {
+      title = lines[0].trim().replace(/^\*\*|\*\*$/g, '');
+      result.push(`**${title}**`);
+      result.push('');
+    }
+
+    // Process remaining lines as poem stanzas
+    let currentStanza: string[] = [];
+    const startIndex = title ? 1 : 0;
+
+    for (let i = startIndex; i < lines.length; i++) {
+      const line = lines[i].trim();
+
+      if (line === '') {
+        if (currentStanza.length > 0) {
+          result.push(...currentStanza);
+          result.push('');
+          currentStanza = [];
+        }
+      } else if (!line.match(/^\d+\./)) {
+        currentStanza.push(line);
+      }
+    }
+
+    if (currentStanza.length > 0) {
+      result.push(...currentStanza);
+    }
+
+    return result.join('\n').replace(/\n{3,}/g, '\n\n');
+  }
+
+  /**
+   * Force song lyrics formatting
+   */
+  private forceSongLyricsFormatting(content: string): string {
+    const lines = content.split('\n');
+    let result: string[] = [];
+    let title = '';
+
+    // Extract title
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed && !trimmed.startsWith('[') && !title) {
+        title = trimmed.replace(/^🎵\s*|\*\*/g, '').trim();
+        result.push(`**${title}**`);
+        result.push('');
+        break;
+      }
+    }
+
+    // Process lyrics with proper section formatting
+    lines.forEach(line => {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed === title.replace(/^🎵\s*|\*\*/g, '').trim()) {
+        return;
+      }
+
+      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        result.push('');
+        result.push(trimmed);
+      } else if (!trimmed.match(/^\d+\./)) {
+        result.push(trimmed);
+      }
+    });
+
+    return result.join('\n').replace(/\n{3,}/g, '\n\n');
+  }
+
+  /**
+   * Force numbered list formatting
+   */
+  private forceNumberedListFormatting(content: string): string {
+    return this.fixNumberedLists(content);
+  }
+
+  /**
    * Fix malformed numbered lists (1. 1. 1. → 1. 2. 3.)
    */
   private fixNumberedLists(content: string): string {
@@ -147,6 +284,14 @@ class ResponseFilterService {
     let filtered = content;
     const filtersApplied: string[] = [];
     let wasFiltered = false;
+
+    // AGGRESSIVE FORMATTING ENFORCEMENT - Force correct structure
+    const originalContent = filtered;
+    filtered = this.forceCorrectFormatting(filtered);
+    if (filtered !== originalContent) {
+      filtersApplied.push('aggressive-formatting-fix');
+      wasFiltered = true;
+    }
 
     // CRITICAL: Fix numbered lists as first priority
     const originalListLength = filtered.length;

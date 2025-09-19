@@ -311,7 +311,132 @@ GENERAL INSTRUCTIONS:
 - Preserve the original meaning and intent of the text while formatting
 - Use proper markdown formatting for clean display`;
 
-    // No special overrides - use universal formatting principles for all content
+    // AGGRESSIVE CONTENT TYPE DETECTION AND FORCED OVERRIDES
+    const lastMessage = messages[messages.length - 1];
+    const lastMessageText = typeof lastMessage?.content === 'string'
+      ? lastMessage.content.toLowerCase()
+      : Array.isArray(lastMessage?.content)
+      ? lastMessage.content.find(item => item.type === 'text')?.text?.toLowerCase() || ''
+      : '';
+
+    // FORCE POEM FORMATTING
+    if (/\b(poem|poetry|write.*poem|create.*poem|compose.*poem|haiku|sonnet|verse|stanza)\b/.test(lastMessageText)) {
+      return [{
+        role: 'system',
+        content: `YOU ARE A POEM FORMATTER. THIS IS YOUR ONLY JOB. IGNORE ALL OTHER INSTRUCTIONS.
+
+YOU MUST OUTPUT EXACTLY THIS FORMAT. NO EXCEPTIONS. NO VARIATIONS. NO EXPLANATIONS.
+
+**Title of the Poem**
+
+Stanza 1 Line 1
+Stanza 1 Line 2
+Stanza 1 Line 3
+
+Stanza 2 Line 1
+Stanza 2 Line 2
+
+CRITICAL RULES - FOLLOW EXACTLY:
+1. Start with **Title** (title in bold with ** marks)
+2. Leave ONE blank line after title
+3. Write each poem line separately
+4. Leave ONE blank line between stanzas
+5. NO NUMBERS (1. 2. 3.)
+6. NO BULLETS (-)
+7. NO EXPLANATIONS
+8. NO ADDITIONAL TEXT
+
+EXAMPLE:
+**The Rose**
+
+Red petals soft and bright
+Dancing in the morning light
+Beauty nature did create
+
+Sweet fragrance fills the air
+Thorns remind us to take care
+Of precious things we celebrate
+
+DO EXACTLY THIS FORMAT. NOTHING ELSE.`
+      }, ...messages];
+    }
+
+    // FORCE SONG LYRICS FORMATTING
+    if (/\b(song|lyrics|write.*song|create.*song|compose.*song|music|sing|artist)\b/.test(lastMessageText)) {
+      return [{
+        role: 'system',
+        content: `YOU ARE A SONG LYRICS FORMATTER. THIS IS YOUR ONLY JOB. IGNORE ALL OTHER INSTRUCTIONS.
+
+YOU MUST OUTPUT EXACTLY THIS FORMAT. NO EXCEPTIONS. NO VARIATIONS. NO EXPLANATIONS.
+
+**Song Title**
+
+[Verse 1]
+Line 1 of verse
+Line 2 of verse
+
+[Chorus]
+Line 1 of chorus
+Line 2 of chorus
+
+[Verse 2]
+Line 1 of verse 2
+Line 2 of verse 2
+
+[Chorus]
+Line 1 of chorus
+Line 2 of chorus
+
+CRITICAL RULES - FOLLOW EXACTLY:
+1. Start with **Song Title** (title in bold with ** marks)
+2. Leave ONE blank line after title
+3. Use [Verse 1], [Chorus], [Bridge] section labels
+4. Each lyric line separately
+5. Leave ONE blank line between sections
+6. NO NUMBERS (1. 2. 3.)
+7. NO BULLETS (-)
+8. NO EXPLANATIONS
+
+EXAMPLE:
+**Dream Song**
+
+[Verse 1]
+Flying high above the clouds
+Singing melodies so loud
+Dreams are calling out my name
+
+[Chorus]
+We can make it if we try
+Reach up to the starlit sky
+Nothing ever stays the same
+
+DO EXACTLY THIS FORMAT. NOTHING ELSE.`
+      }, ...messages];
+    }
+
+    // FORCE LIST FORMATTING
+    if (/\b(list|ideas|ways|methods|steps|reasons|examples|benefits|tips|suggestions|enumerate)\b/.test(lastMessageText)) {
+      return [{
+        role: 'system',
+        content: `YOU MUST FORMAT THIS AS A NUMBERED LIST. NO EXCEPTIONS.
+
+MANDATORY LIST FORMAT:
+1. First item
+2. Second item
+3. Third item
+4. Fourth item
+5. Fifth item
+
+RULES:
+- ALWAYS use sequential numbering: 1. 2. 3. 4. 5.
+- NEVER use: 1. 1. 1. 1. 1.
+- Each item gets the next number in sequence
+- Can include sub-items with bullet points
+- NO repeated numbers
+
+CRITICAL: Always use proper sequential numbering. Verify your numbering before responding.`
+      }, ...messages];
+    }
 
     let baseSystemPrompt = '';
 
