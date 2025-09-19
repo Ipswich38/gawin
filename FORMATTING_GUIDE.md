@@ -41,26 +41,35 @@
 ### 2. 🎵 Song Lyrics
 **When to use:** Writing songs, musical content
 
-**Format:**
+**Enhanced Format:**
 ```markdown
-🎵 Song Title
+🎵 Sa Puso ng Bayan
 
 [Verse 1]
-Line one of the verse
-Line two of the verse
+Sa bawat sulok ng lupang ito,
+May pag-asa at pagmamahal,
+Mga pangarap na hindi naglalaho,
+Sa puso ng mga Pilipino.
 
 [Chorus]
-Chorus line one
-Chorus line two
+Malasakit at bayanihan,
+Sangkot na puso, nagkakaisa,
+Sa hirap at ginhawa,
+Sama-sama tayong lalaban.
 
-[Verse 2]
-Next verse content
+[Bridge]
+Hindi tayo susuko,
+Sa laban na ito,
+Para sa kinabukasan,
+Ng aming bayan.
 ```
 
-**Key points:**
-- One line per lyric line
-- Group by stanza with blank lines
-- Use [Chorus], [Verse], [Bridge] labels
+**Enhanced Rules:**
+- Capitalize first letter of each line
+- Title centered with 🎵 symbol
+- Clear section divisions with visual spacing
+- Support for Verse, Chorus, Bridge, Pre-Chorus, Outro
+- Maintain consistent rhythm and flow
 
 ---
 
@@ -110,26 +119,41 @@ Leo nodded silently, gripping his staff tighter.
 ### 5. 🎬 Scriptwriting (Film/Theater)
 **When to use:** Screenplays, theater scripts, dramatic content
 
-**Format:**
+**Enhanced Industry Standard Format:**
 ```markdown
-INT. COFFEE SHOP – DAY
+Title: Shadows of the Past
+Genre: Drama/Thriller
 
-The café hums with quiet chatter. Steam rises from the espresso machine.
+INT. COFFEE SHOP – NIGHT
 
-MIRA
-(whispering)
-Do you think they noticed us?
+Rain pours outside the large windows. MAYA (late 20s, determined) sits across from ALEX (30s, conflicted). The café is nearly empty.
 
-LEO
-(smiling)
-Not yet. But they will.
+ALEX
+(voice low, nervous)
+You really think running away will fix anything?
+
+MAYA
+(leaning forward)
+I'm not running, Alex. I just... need to start over.
+
+The barista drops a cup. Both characters flinch.
+
+ALEX
+(standing abruptly)
+They know we're here.
+
+FADE TO BLACK.
 ```
 
-**Industry standards:**
-- Scene headings: ALL CAPS (INT./EXT. LOCATION – TIME)
-- Action: Present tense, regular text
-- Character names: ALL CAPS, centered
-- Parentheticals: (in parentheses) under character name
+**Enhanced Industry Standards:**
+- Title and genre at the top
+- Scene headings: INT./EXT. LOCATION – TIME (always uppercase)
+- Character descriptions in parentheses on first appearance
+- Action lines in present tense, descriptive
+- Character names: ALL CAPS, centered above dialogue
+- Parentheticals: Brief stage directions under character names
+- Dialogue: Natural, character-specific voice
+- Visual cues: Camera directions when necessary
 
 ---
 
@@ -188,30 +212,97 @@ In summary...
 ### 8. 💼 Feasibility Studies
 **When to use:** Business analysis, project evaluation
 
-**Format:**
+**Enhanced Business Format:**
 ```markdown
 # Feasibility Study for Eco-Friendly Café
 
-## Executive Summary
-This study evaluates the feasibility of establishing...
+## 📋 Executive Summary
+This comprehensive study evaluates the viability of establishing a sustainable café in downtown Manila. Based on market research and financial projections, the project shows strong potential for success with moderate investment requirements.
 
-## Market Analysis
-- Target customers: university students, young professionals
-- Competitors: 5 coffee shops within 1 km radius
+**Key Findings:**
+- Market demand: High (78% of surveyed customers interested)
+- Initial investment: ₱2,500,000
+- Break-even point: 14 months
+- ROI projection: 23% annually
 
-## Technical Feasibility
-Equipment and infrastructure requirements...
+## 📊 Market Analysis
+### Target Demographics
+- Primary: University students (25-30 years)
+- Secondary: Young professionals (28-35 years)
+- Tertiary: Eco-conscious families
 
-## Financial Feasibility
-Initial investment: $50,000
-Monthly operating costs: $8,000
+### Competition Assessment
+- Direct competitors: 3 cafés within 500m radius
+- Competitive advantage: Sustainable practices + premium location
+- Market share opportunity: 15-20% within first year
 
-## Operational Plan
-Daily operations and staffing requirements...
+## ⚙️ Technical Feasibility
+### Equipment Requirements
+- Espresso machines: ₱180,000
+- Sustainable packaging systems: ₱45,000
+- Solar panel installation: ₱320,000
 
-## Conclusion & Recommendation
-Based on this analysis, the project is viable...
+### Infrastructure
+- Location size: 120 sqm
+- Seating capacity: 45 customers
+- Kitchen space: Fully equipped
+
+## 💰 Financial Analysis
+### Startup Costs
+- Equipment and setup: ₱1,200,000
+- Initial inventory: ₱150,000
+- Marketing launch: ₱200,000
+- Working capital: ₱350,000
+- **Total Investment: ₱2,500,000**
+
+### Monthly Projections
+- Revenue: ₱450,000
+- Operating costs: ₱280,000
+- **Net profit: ₱170,000**
+
+## 🚀 Operational Plan
+### Staffing
+- Manager: 1 full-time
+- Baristas: 3 full-time, 2 part-time
+- Kitchen staff: 2 full-time
+
+### Hours of Operation
+- Monday-Friday: 6:00 AM - 10:00 PM
+- Weekends: 7:00 AM - 11:00 PM
+
+## ⚠️ Risk Assessment
+### High Risk
+- Economic downturn affecting disposable income
+- New competitors entering market
+
+### Medium Risk
+- Supply chain disruptions for sustainable materials
+- Seasonal variations in customer traffic
+
+### Mitigation Strategies
+- Diversified revenue streams (events, catering)
+- Strong supplier relationships
+- Emergency fund (6 months operating costs)
+
+## ✅ Conclusion & Recommendations
+**Recommendation: PROCEED WITH PROJECT**
+
+The feasibility study indicates strong market potential and financial viability. The combination of growing environmental consciousness and strategic location positioning makes this venture highly promising.
+
+**Next Steps:**
+1. Secure funding and permits (Month 1-2)
+2. Begin construction and equipment installation (Month 3-4)
+3. Staff recruitment and training (Month 5)
+4. Soft opening and marketing campaign (Month 6)
 ```
+
+**Enhanced Business Standards:**
+- Use icons for major sections (📋 📊 ⚙️ 💰 🚀 ⚠️ ✅)
+- Include specific financial figures and timelines
+- Highlight key metrics in callout boxes
+- Provide actionable recommendations
+- Structure with clear executive summary at top
+- Include risk assessment and mitigation strategies
 
 ---
 
