@@ -644,6 +644,23 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
     return inappropriateTerms.some(term => lowerText.includes(term));
   };
 
+  // Format detection helper function following the specification
+  const detectFormatRequest = (message: string) => {
+    const lowerMessage = message.toLowerCase();
+    const formatTriggers = [
+      'write a poem', 'create a poem', 'poem about', 'compose a poem',
+      'write lyrics', 'song lyrics', 'write a song', 'create lyrics',
+      'research paper', 'write research', 'academic paper', 'research about',
+      'write an essay', 'create an essay', 'essay about',
+      'make a list', 'list of', 'steps to', 'ways to',
+      'recipe for', 'how to', 'instructions for',
+      'business report', 'executive summary', 'write a report',
+      'story about', 'write a story', 'tell a story', 'create a narrative'
+    ];
+
+    return formatTriggers.some(trigger => lowerMessage.includes(trigger));
+  };
+
   const handleSend = async (text: string) => {
     const messageText = text.trim();
     if (!messageText || !activeTab || activeTab.isLoading) return;
@@ -1658,6 +1675,29 @@ Provide a helpful explanation followed by properly formatted code in markdown bl
         .map(m => `- ${m.content}`)
         .join('\n');
       systemPrompt += `\n\nRelevant conversation context from our previous interactions:\n${memoryContext}`;
+    }
+
+    // Add formatting instructions if the request requires specific formatting
+    const needsFormatting = detectFormatRequest(messageText);
+    if (needsFormatting) {
+      systemPrompt += `
+
+CRITICAL FORMATTING INSTRUCTIONS:
+When creating formatted content like poems, lyrics, research papers, lists, or essays, please:
+
+1. For poems/lyrics: Use proper line breaks between verses, stanzas separated by empty lines
+2. For research papers: Use clear paragraph breaks, proper headings (Abstract:, Introduction:, etc.)
+3. For lists: Use numbered items (1., 2., 3.) or bullet points (•, -, *)
+4. For essays: Use paragraph breaks between main ideas
+5. Always maintain proper formatting with line breaks and spacing
+
+IMPORTANT: Use actual line breaks (\\n) in your response for proper formatting.
+- For poems: **Title**\\n\\nStanza 1 Line 1\\nStanza 1 Line 2\\n\\nStanza 2 Line 1
+- For lists: 1. First item\\n2. Second item\\n3. Third item
+- For research: ## Abstract\\nContent here\\n\\n## Introduction\\nContent here
+- Preserve user input formatting exactly as provided
+
+Format your response according to the content type requested.`;
     }
 
     // Create contextual message history

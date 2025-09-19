@@ -24,30 +24,74 @@ export type ContentType =
 export class ComprehensiveFormatter {
 
   /**
-   * Content type detection for formatting hints
+   * Enhanced content type detection following the specification
    */
   static detectContentType(text: string): ContentType {
-    const lowerText = text.toLowerCase();
+    const lowerContent = text.toLowerCase();
     const lines = text.split('\n').filter(line => line.trim());
 
-    // Song detection
-    if (lowerText.includes('🎵') || /\[(verse|chorus|bridge)\]/i.test(text)) return 'song';
-
-    // Poem detection (enhanced)
-    if (lines.length >= 3 && lines.length <= 50) {
-      const avgLineLength = lines.reduce((sum, line) => sum + line.length, 0) / lines.length;
-      const hasShortLines = avgLineLength < 60;
-      const hasPoetryWords = /poem|poetry|stanza|verse|rhyme/.test(lowerText);
-      const hasNaturalBreaks = text.includes('\n\n');
-
-      if ((hasShortLines && hasNaturalBreaks) || hasPoetryWords) return 'poem';
+    // Poem/Poetry detection - enhanced with more keywords
+    if (lowerContent.includes('poem') ||
+        lowerContent.includes('poetry') ||
+        lowerContent.includes('verse') ||
+        lowerContent.includes('stanza') ||
+        lowerContent.includes('rhyme') ||
+        lowerContent.includes('haiku') ||
+        lowerContent.includes('sonnet')) {
+      return 'poem';
     }
 
-    // Research paper detection
-    if (/^#{1,3}\s+(abstract|introduction|methodology)/im.test(text)) return 'research';
+    // Song/Lyrics detection - enhanced
+    if (lowerContent.includes('song') ||
+        lowerContent.includes('lyrics') ||
+        lowerContent.includes('🎵') ||
+        /\[(verse|chorus|bridge|intro|outro)\]/i.test(text)) {
+      return 'song';
+    }
 
-    // List detection
-    if (/^\d+\./m.test(text) || /list|ideas|ways|steps/.test(lowerText)) return 'enumeration';
+    // Research paper detection - enhanced
+    if (lowerContent.includes('research') ||
+        lowerContent.includes('abstract:') ||
+        lowerContent.includes('introduction:') ||
+        lowerContent.includes('methodology') ||
+        lowerContent.includes('discussion') ||
+        lowerContent.includes('references') ||
+        /^#{1,3}\s+(abstract|introduction|methodology|results|discussion|references)/im.test(text)) {
+      return 'research';
+    }
+
+    // Business document detection
+    if (lowerContent.includes('executive summary') ||
+        lowerContent.includes('business report') ||
+        lowerContent.includes('recommendations') ||
+        lowerContent.includes('conclusion')) {
+      return 'business';
+    }
+
+    // List/Enumeration detection - enhanced
+    if (/^\d+\./m.test(text) ||
+        /^[-*•]/m.test(text) ||
+        lowerContent.includes('list') ||
+        lowerContent.includes('steps') ||
+        lowerContent.includes('ways') ||
+        lowerContent.includes('ideas') ||
+        lowerContent.includes('features') ||
+        lowerContent.includes('items')) {
+      return 'enumeration';
+    }
+
+    // Story/Creative content detection
+    if (lowerContent.includes('story') ||
+        lowerContent.includes('tale') ||
+        lowerContent.includes('narrative') ||
+        lowerContent.includes('script')) {
+      return 'story';
+    }
+
+    // Multi-line formatted content
+    if (lines.length > 4 && text.includes('\n')) {
+      return 'creative';
+    }
 
     return 'general';
   }
@@ -158,26 +202,38 @@ export class ComprehensiveFormatter {
   }
 
   /**
-   * Apply minimal content-specific formatting hints
+   * Apply content-specific formatting based on detected type
    */
   private static applyContentHints(text: string, contentType?: ContentType): string {
     if (!contentType || contentType === 'general') return text;
 
     let formatted = text;
 
-    // Song lyrics: Ensure proper section formatting
-    if (contentType === 'song') {
-      formatted = this.formatSongLyricsSimple(formatted);
-    }
-
-    // Poems: Ensure proper stanza formatting
-    else if (contentType === 'poem') {
-      formatted = this.formatPoemSimple(formatted);
-    }
-
-    // Research papers: Ensure proper headings
-    else if (contentType === 'research') {
-      formatted = this.formatResearchSimple(formatted);
+    switch (contentType) {
+      case 'song':
+        formatted = this.formatSongLyricsAdvanced(formatted);
+        break;
+      case 'poem':
+        formatted = this.formatPoemAdvanced(formatted);
+        break;
+      case 'research':
+        formatted = this.formatResearchAdvanced(formatted);
+        break;
+      case 'business':
+        formatted = this.formatBusinessDocument(formatted);
+        break;
+      case 'enumeration':
+        formatted = this.formatListContent(formatted);
+        break;
+      case 'story':
+        formatted = this.formatStoryContent(formatted);
+        break;
+      case 'creative':
+        formatted = this.formatCreativeContent(formatted);
+        break;
+      default:
+        // For general content, ensure proper paragraph formatting
+        formatted = this.formatGeneralContent(formatted);
     }
 
     return formatted;
@@ -284,5 +340,239 @@ export class ComprehensiveFormatter {
       .replace(/^#{3}\s+(.+)$/gm, '### **$1**');
 
     return formatted;
+  }
+
+  /**
+   * Advanced song lyrics formatting following specification
+   */
+  private static formatSongLyricsAdvanced(text: string): string {
+    const lines = text.split('\n');
+    let result: string[] = [];
+    let title = '';
+
+    // Extract title (first line or line with 🎵)
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (line && !line.startsWith('[') && !title) {
+        title = line.replace(/^🎵\s*/, '').replace(/^\*\*|\*\*$/g, '').trim();
+        break;
+      }
+    }
+
+    // Format: **Song Title**
+    if (title) {
+      result.push(`**${title}**`);
+      result.push('');
+    }
+
+    // Process lyrics with proper section formatting
+    lines.forEach(line => {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed === title) {
+        if (result[result.length - 1] !== '') result.push('');
+      } else if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        // Section labels like [Verse 1], [Chorus]
+        if (result[result.length - 1] !== '') result.push('');
+        result.push(trimmed);
+      } else {
+        // Lyric lines
+        result.push(trimmed);
+      }
+    });
+
+    return result.join('\n').replace(/\n{3,}/g, '\n\n');
+  }
+
+  /**
+   * Advanced poem formatting following specification
+   */
+  private static formatPoemAdvanced(text: string): string {
+    const lines = text.split('\n');
+    let result: string[] = [];
+    let title = '';
+
+    // Extract title (first line if it looks like a title)
+    if (lines.length > 0 && lines[0].trim() && lines[0].trim().length < 100) {
+      title = lines[0].trim().replace(/^\*\*|\*\*$/g, '');
+    }
+
+    // Format: **Title of the Poem**
+    if (title) {
+      result.push(`**${title}**`);
+      result.push('');
+    }
+
+    // Process poem with stanza structure preservation
+    let currentStanza: string[] = [];
+    const startIndex = title ? 1 : 0;
+
+    for (let i = startIndex; i < lines.length; i++) {
+      const line = lines[i].trim();
+
+      if (line === '') {
+        // Empty line - end current stanza
+        if (currentStanza.length > 0) {
+          result.push(...currentStanza);
+          result.push('');
+          currentStanza = [];
+        }
+      } else {
+        // Add line to current stanza (center align for poems)
+        currentStanza.push(line);
+      }
+    }
+
+    // Add final stanza
+    if (currentStanza.length > 0) {
+      result.push(...currentStanza);
+    }
+
+    return result.join('\n').replace(/\n{3,}/g, '\n\n');
+  }
+
+  /**
+   * Advanced research paper formatting
+   */
+  private static formatResearchAdvanced(text: string): string {
+    let formatted = text;
+
+    // Format main sections
+    formatted = formatted
+      .replace(/^#\s*(.+)$/gm, '# $1')
+      .replace(/^##\s*(abstract|introduction|methodology|methods|results|discussion|conclusion|references)(\s*:?)/gmi, '## **$1**')
+      .replace(/^###\s*(.+)$/gm, '### **$1**');
+
+    // Ensure proper paragraph breaks
+    const sections = formatted.split('\n\n');
+    const formattedSections = sections.map(section => {
+      if (section.trim().startsWith('#')) {
+        return section;
+      }
+      // Split long paragraphs
+      const sentences = section.split('. ');
+      if (sentences.length > 4) {
+        const midpoint = Math.ceil(sentences.length / 2);
+        return sentences.slice(0, midpoint).join('. ') + '.\n\n' + sentences.slice(midpoint).join('. ');
+      }
+      return section;
+    });
+
+    return formattedSections.join('\n\n');
+  }
+
+  /**
+   * Business document formatting
+   */
+  private static formatBusinessDocument(text: string): string {
+    let formatted = text;
+
+    // Format business sections
+    formatted = formatted
+      .replace(/^#\s*(business report.*)/gmi, '# **$1**')
+      .replace(/^##\s*(executive summary|introduction|data\/analysis|analysis|recommendations|conclusion)(\s*:?)/gmi, '## **$1**')
+      .replace(/^-\s*\*\*(.*?):\*\*(.*)/gm, '- **$1:**$2');
+
+    return formatted;
+  }
+
+  /**
+   * List/Enumeration formatting
+   */
+  private static formatListContent(text: string): string {
+    const lines = text.split('\n');
+    let result: string[] = [];
+    let listNumber = 1;
+    let inNumberedList = false;
+
+    lines.forEach(line => {
+      const trimmed = line.trim();
+
+      // Handle numbered lists
+      if (/^\d+\.\s/.test(trimmed)) {
+        if (!inNumberedList) {
+          listNumber = 1;
+          inNumberedList = true;
+        }
+        result.push(line.replace(/^\s*\d+\.\s/, `${listNumber}. `));
+        listNumber++;
+      }
+      // Handle bullet points
+      else if (/^[-*•]\s/.test(trimmed)) {
+        result.push(line.replace(/^(\s*)[-*•]\s/, '$1• '));
+        inNumberedList = false;
+      }
+      // Handle sub-items
+      else if (/^\s+[-*•]\s/.test(line)) {
+        result.push(line.replace(/^(\s+)[-*•]\s/, '$1- '));
+      }
+      else {
+        result.push(line);
+        if (trimmed.length > 0) inNumberedList = false;
+      }
+    });
+
+    return result.join('\n');
+  }
+
+  /**
+   * Story/Script content formatting
+   */
+  private static formatStoryContent(text: string): string {
+    // Split into paragraphs and ensure proper spacing
+    const paragraphs = text.split('\n\n');
+    return paragraphs.map(paragraph => {
+      // Split very long paragraphs
+      const sentences = paragraph.split('. ');
+      if (sentences.length > 5) {
+        const midpoint = Math.ceil(sentences.length / 2);
+        return sentences.slice(0, midpoint).join('. ') + '.\n\n' + sentences.slice(midpoint).join('. ');
+      }
+      return paragraph;
+    }).join('\n\n');
+  }
+
+  /**
+   * Creative content formatting
+   */
+  private static formatCreativeContent(text: string): string {
+    // Preserve line breaks and ensure proper spacing
+    return text
+      .replace(/\n{3,}/g, '\n\n')  // Max 2 consecutive line breaks
+      .replace(/^(.{200,}?[.!?])\s+(.)/gm, '$1\n\n$2'); // Break long lines at sentence boundaries
+  }
+
+  /**
+   * General content formatting with paragraph breaks
+   */
+  private static formatGeneralContent(text: string): string {
+    // Split long paragraphs and ensure readability
+    const paragraphs = text.split('\n\n');
+
+    return paragraphs.map(paragraph => {
+      // If paragraph is very long, try to split it intelligently
+      if (paragraph.length > 400) {
+        const sentences = paragraph.split(/([.!?])\s+/);
+        let currentParagraph = '';
+        let result = [];
+
+        for (let i = 0; i < sentences.length; i += 2) {
+          const sentence = sentences[i] + (sentences[i + 1] || '');
+          if (currentParagraph.length + sentence.length > 300 && currentParagraph.length > 0) {
+            result.push(currentParagraph.trim());
+            currentParagraph = sentence;
+          } else {
+            currentParagraph += sentence + ' ';
+          }
+        }
+
+        if (currentParagraph.trim()) {
+          result.push(currentParagraph.trim());
+        }
+
+        return result.join('\n\n');
+      }
+
+      return paragraph;
+    }).join('\n\n');
   }
 }

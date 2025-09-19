@@ -299,12 +299,69 @@ export default function MessageRenderer({ text, showActions, onCopy, onThumbsUp,
 
   // Old formatInlineElements removed - comprehensive formatter handles all special formatting
 
+  // Add CSS styles for proper formatting display
+  const formatContentStyles = `
+    .formatted-content {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      line-height: 1.6;
+    }
+
+    .formatted-content.poem-lyrics .verse-line {
+      margin: 4px 0;
+      text-align: left;
+      line-height: 1.5;
+    }
+
+    .formatted-content.list .list-item {
+      margin: 6px 0;
+      padding-left: 10px;
+    }
+
+    .formatted-content.research-paper .research-paragraph {
+      margin: 12px 0;
+      text-align: justify;
+    }
+
+    .formatted-content h1, .formatted-content h2, .formatted-content h3 {
+      margin: 16px 0 8px 0;
+      font-weight: bold;
+    }
+
+    .formatted-content strong {
+      font-weight: 600;
+      color: inherit;
+    }
+
+    .formatted-content em {
+      font-style: italic;
+    }
+
+    .formatted-content p {
+      margin: 8px 0;
+      line-height: 1.6;
+    }
+
+    .formatted-content ul, .formatted-content ol {
+      margin: 8px 0;
+      padding-left: 20px;
+    }
+
+    .formatted-content li {
+      margin: 4px 0;
+    }
+  `;
+
   return (
     <div className="message-content" style={{
       letterSpacing: 'normal',
       wordSpacing: 'normal',
       whiteSpace: 'normal'
     }}>
+      {/* Add CSS styles for formatting */}
+      <style dangerouslySetInnerHTML={{ __html: formatContentStyles }} />
+
       {/* Gawin's Thinking Process - Subtle Display */}
       {thinking && (
         <div className="mb-3 text-xs italic text-gray-400 opacity-75 border-l-2 border-gray-600/30 pl-3 py-1">
@@ -312,7 +369,7 @@ export default function MessageRenderer({ text, showActions, onCopy, onThumbsUp,
           {thinking}
         </div>
       )}
-      
+
       {renderText(text)}
       
       {/* Action buttons for AI responses */}
