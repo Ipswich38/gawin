@@ -133,14 +133,14 @@ export class ComprehensiveFormatter {
       // Song title (first line or with 🎵)
       if ((index === 0 && !hasTitle) || trimmed.match(/^🎵\s*/)) {
         const title = trimmed.replace(/^🎵\s*/, '');
-        result.push(`<h1 class="text-2xl font-bold text-purple-700 text-center mb-6">🎵 ${title}</h1>`);
+        result.push(`<h1 class="text-2xl font-bold text-gray-900 text-center mb-6">🎵 ${title}</h1>`);
         hasTitle = true;
         return;
       }
 
       // Section labels [Verse 1], [Chorus], etc.
       if (trimmed.match(/^\[(Verse|Chorus|Bridge|Outro|Intro|Pre-Chorus).*?\]$/i)) {
-        result.push(`<h3 class="text-lg font-semibold text-purple-600 mt-6 mb-3 bg-purple-50 px-3 py-1 rounded-md inline-block">
+        result.push(`<h3 class="text-lg font-semibold text-white bg-purple-600 mt-6 mb-3 px-3 py-2 rounded-md inline-block">
           ${trimmed.replace(/[\[\]]/g, '')}
         </h3>`);
         return;
@@ -149,11 +149,11 @@ export class ComprehensiveFormatter {
       // Regular lyric lines - capitalize first letter
       if (trimmed.length > 0) {
         const capitalizedLine = trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
-        result.push(`<p class="text-gray-700 leading-relaxed mb-1 pl-4">${capitalizedLine}</p>`);
+        result.push(`<p class="text-gray-900 leading-relaxed mb-1 pl-4">${capitalizedLine}</p>`);
       }
     });
 
-    return `<div class="song-lyrics bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-200">
+    return `<div class="song-lyrics bg-white p-6 rounded-xl border border-purple-200 shadow-sm">
       ${result.join('\n')}
     </div>`;
   }
@@ -174,7 +174,7 @@ export class ComprehensiveFormatter {
 
     // Add title
     if (title) {
-      result.push(`<h2 class="text-xl font-bold text-indigo-700 text-center mb-6 italic">${title}</h2>`);
+      result.push(`<h2 class="text-xl font-bold text-gray-900 text-center mb-6 italic">${title}</h2>`);
     }
 
     // Process poem lines with stanza breaks
@@ -188,7 +188,7 @@ export class ComprehensiveFormatter {
         if (currentStanza.length > 0) {
           result.push('<div class="mb-4">');
           currentStanza.forEach(stanzaLine => {
-            result.push(`<p class="text-gray-700 leading-relaxed">${stanzaLine}</p>`);
+            result.push(`<p class="text-gray-900 leading-relaxed">${stanzaLine}</p>`);
           });
           result.push('</div>');
           currentStanza = [];
@@ -202,12 +202,12 @@ export class ComprehensiveFormatter {
     if (currentStanza.length > 0) {
       result.push('<div class="mb-4">');
       currentStanza.forEach(stanzaLine => {
-        result.push(`<p class="text-gray-700 leading-relaxed">${stanzaLine}</p>`);
+        result.push(`<p class="text-gray-900 leading-relaxed">${stanzaLine}</p>`);
       });
       result.push('</div>');
     }
 
-    return `<div class="poem bg-gradient-to-br from-indigo-50 to-purple-50 p-6 rounded-xl border border-indigo-200 text-center">
+    return `<div class="poem bg-white p-6 rounded-xl border border-gray-200 text-center shadow-sm">
       ${result.join('\n')}
     </div>`;
   }
@@ -249,7 +249,7 @@ export class ComprehensiveFormatter {
 
       // Character names (ALL CAPS)
       if (trimmed.match(/^[A-Z\s]{3,30}$/) && trimmed.length < 30) {
-        result.push(`<div class="font-bold text-center text-blue-700 mt-6 mb-2">
+        result.push(`<div class="font-bold text-center text-gray-900 mt-6 mb-2">
           ${trimmed}
         </div>`);
         return;
@@ -264,7 +264,7 @@ export class ComprehensiveFormatter {
       }
 
       // Dialogue or action
-      result.push(`<div class="text-gray-700 mb-3 leading-relaxed text-center max-w-md mx-auto">
+      result.push(`<div class="text-gray-900 mb-3 leading-relaxed text-center max-w-md mx-auto">
         ${trimmed}
       </div>`);
     });
@@ -278,7 +278,7 @@ export class ComprehensiveFormatter {
       </div>`;
     }
 
-    return `<div class="screenplay bg-gray-50 p-8 rounded-xl border font-mono">
+    return `<div class="screenplay bg-white p-8 rounded-xl border border-gray-200 font-mono shadow-sm">
       ${header}
       ${result.join('\n')}
     </div>`;
@@ -302,12 +302,12 @@ export class ComprehensiveFormatter {
     const paragraphs = formatted.split('\n\n');
     const result = paragraphs.map(paragraph => {
       if (paragraph.trim() && !paragraph.includes('<h') && !paragraph.includes('<div')) {
-        return `<p class="mb-4 leading-relaxed text-gray-700">${paragraph.trim()}</p>`;
+        return `<p class="mb-4 leading-relaxed text-gray-900">${paragraph.trim()}</p>`;
       }
       return paragraph;
     }).join('\n');
 
-    return `<div class="storybook bg-green-50 p-6 rounded-xl border border-green-200">
+    return `<div class="storybook bg-white p-6 rounded-xl border border-green-200 shadow-sm">
       ${result}
     </div>`;
   }
@@ -323,7 +323,7 @@ export class ComprehensiveFormatter {
 
     // Section headers with emojis
     formatted = formatted.replace(/^#{1,2}\s+(Executive Summary|Market Analysis|Financial|Technical|Operational|Risk|Conclusion).*?$/gm,
-      '<h2 class="text-xl font-bold text-emerald-700 bg-emerald-100 px-4 py-3 rounded-lg mt-8 mb-4">📊 $1</h2>');
+      '<h2 class="text-xl font-bold text-white bg-emerald-600 px-4 py-3 rounded-lg mt-8 mb-4">📊 $1</h2>');
 
     // Subsection headers
     formatted = formatted.replace(/^#{2,3}\s+(.+)$/gm,
@@ -337,7 +337,7 @@ export class ComprehensiveFormatter {
     formatted = formatted.replace(/^[\-•]\s+(.+)$/gm,
       '<div class="flex items-start space-x-3 mb-2 ml-6"><span class="text-emerald-600">•</span><span class="flex-1">$1</span></div>');
 
-    return `<div class="business-document bg-emerald-50 p-6 rounded-xl border border-emerald-200">
+    return `<div class="business-document bg-white p-6 rounded-xl border border-emerald-200 shadow-sm">
       ${formatted}
     </div>`;
   }
@@ -354,7 +354,7 @@ export class ComprehensiveFormatter {
 
     // Major sections
     formatted = formatted.replace(/^#{2}\s+(Abstract|Introduction|Methodology|Results|Discussion|Conclusion|References)$/gm,
-      '<h2 class="text-xl font-bold text-blue-700 bg-blue-50 px-4 py-2 rounded-lg border-l-4 border-blue-600 mt-8 mb-4">$1</h2>');
+      '<h2 class="text-xl font-bold text-white bg-blue-600 px-4 py-2 rounded-lg mt-8 mb-4">$1</h2>');
 
     // Subsections
     formatted = formatted.replace(/^#{3}\s+(.+)$/gm,
@@ -364,12 +364,12 @@ export class ComprehensiveFormatter {
     const paragraphs = formatted.split('\n\n');
     const result = paragraphs.map(paragraph => {
       if (paragraph.trim() && !paragraph.includes('<h')) {
-        return `<p class="mb-4 leading-relaxed text-gray-700 text-justify">${paragraph.trim()}</p>`;
+        return `<p class="mb-4 leading-relaxed text-gray-900 text-justify">${paragraph.trim()}</p>`;
       }
       return paragraph;
     }).join('\n');
 
-    return `<div class="research-paper bg-blue-50 p-8 rounded-xl border border-blue-200">
+    return `<div class="research-paper bg-white p-8 rounded-xl border border-blue-200 shadow-sm">
       ${result}
     </div>`;
   }
@@ -392,12 +392,12 @@ export class ComprehensiveFormatter {
     const paragraphs = formatted.split('\n\n');
     const result = paragraphs.map(paragraph => {
       if (paragraph.trim() && !paragraph.includes('<h')) {
-        return `<p class="mb-4 leading-relaxed text-gray-700">${paragraph.trim()}</p>`;
+        return `<p class="mb-4 leading-relaxed text-gray-900">${paragraph.trim()}</p>`;
       }
       return paragraph;
     }).join('\n');
 
-    return `<div class="creative-writing bg-indigo-50 p-6 rounded-xl border border-indigo-200">
+    return `<div class="creative-writing bg-white p-6 rounded-xl border border-indigo-200 shadow-sm">
       ${result}
     </div>`;
   }
@@ -441,7 +441,7 @@ export class ComprehensiveFormatter {
     const paragraphs = formatted.split('\n\n');
     const result = paragraphs.map(paragraph => {
       if (paragraph.trim() && !paragraph.includes('<h')) {
-        return `<p class="mb-3 leading-relaxed text-gray-700">${paragraph.trim()}</p>`;
+        return `<p class="mb-3 leading-relaxed text-gray-900">${paragraph.trim()}</p>`;
       }
       return paragraph;
     }).join('\n');
