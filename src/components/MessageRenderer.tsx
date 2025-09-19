@@ -14,11 +14,14 @@ interface MessageRendererProps {
 }
 
 export default function MessageRenderer({ text, showActions, onCopy, onThumbsUp, onThumbsDown, thinking }: MessageRendererProps) {
+  // Add state for copy functionality at component level
+  const [copiedCodeBlocks, setCopiedCodeBlocks] = useState<{ [key: number]: boolean }>({});
+
   // For OCR-related messages, render as plain text without any processing
-  const isOCRMessage = text.includes('uploaded') || text.includes('PDF') || text.includes('images') || 
+  const isOCRMessage = text.includes('uploaded') || text.includes('PDF') || text.includes('images') ||
                       text.includes('OCR') || text.includes('extraction') || text.includes('convert') ||
                       text.includes('PNG') || text.includes('JPG') || text.includes('analyze');
-  
+
   if (isOCRMessage) {
     return (
       <div className="message-content" style={{
@@ -69,13 +72,15 @@ export default function MessageRenderer({ text, showActions, onCopy, onThumbsUp,
 
   // Handle code blocks with syntax highlighting - ChatGPT style
   const renderCodeBlock = (language: string, code: string, key: number) => {
-    const [copied, setCopied] = useState(false);
+    const copied = copiedCodeBlocks[key] || false;
 
     const handleCopy = async () => {
       try {
         await navigator.clipboard.writeText(code);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+        setCopiedCodeBlocks(prev => ({ ...prev, [key]: true }));
+        setTimeout(() => {
+          setCopiedCodeBlocks(prev => ({ ...prev, [key]: false }));
+        }, 2000);
       } catch (err) {
         console.error('Failed to copy code:', err);
       }
