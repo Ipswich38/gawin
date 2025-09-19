@@ -10,7 +10,6 @@ import VoiceInput from './VoiceInput';
 import TranslationControl from './TranslationControl';
 import CreatorDashboard from './CreatorDashboard';
 import GawinVisionPOV from './GawinVisionPOV';
-import AICodeEditor from './AICodeEditor';
 import UpdateNotification from './UpdateNotification';
 import { hapticService } from '@/lib/services/hapticService';
 import { autoUpdateService } from '@/lib/services/autoUpdateService';
@@ -285,10 +284,7 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   // 🎯 Creator Dashboard states
   const [showCreatorDashboard, setShowCreatorDashboard] = useState(false);
 
-  // 💻 Code Editor states
-  const [showCodeEditor, setShowCodeEditor] = useState(false);
-  const [generatedCode, setGeneratedCode] = useState('');
-  const [codeLanguage, setCodeLanguage] = useState('javascript');
+  // 📱 Mobile detection for responsive behavior
   const [isMobile, setIsMobile] = useState(false);
 
   // 🔄 Auto-Update states
@@ -1071,27 +1067,19 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
       else if (languageDetection.includes('php')) detectedLanguage = 'php';
       else if (languageDetection.includes('sql')) detectedLanguage = 'sql';
 
-      // Set the detected language for the code editor
-      setCodeLanguage(detectedLanguage);
-
       const codePrompt = {
         role: 'system',
-        content: `You are an expert programmer and coding mentor. When asked to generate code, you must provide TWO separate responses:
+        content: `You are an expert programmer and coding mentor. When asked to generate code, always format it in proper markdown code blocks for clear readability.
 
-1. CHAT_RESPONSE: A brief explanation of what you're creating, any important notes, and guidance for the user. This should be conversational and helpful.
+IMPORTANT FORMATTING RULES:
+- Always use proper markdown code blocks with language identifiers
+- Format: \`\`\`${detectedLanguage}
+- Include brief explanations before code blocks
+- Add helpful comments within the code
+- Use proper indentation and formatting standards
+- Make code production-ready and well-structured
 
-2. CODE_RESPONSE: The actual code, properly formatted and commented. This should be clean, production-ready code.
-
-Format your response like this:
-CHAT_RESPONSE:
-[Your conversational explanation here]
-
-CODE_RESPONSE:
-\`\`\`${detectedLanguage}
-[Your code here]
-\`\`\`
-
-Make sure the code is well-documented, follows best practices, and includes helpful comments.`
+Provide a helpful explanation followed by properly formatted code in markdown blocks.`
       };
 
       const response = await fetch('/api/groq', {
@@ -2855,15 +2843,7 @@ Questions: ${count}`
           onVoiceAnnounce={announceToUser}
         />
 
-      {/* AI Code Editor */}
-      {showCodeEditor && (
-        <AICodeEditor
-          onMinimize={() => setShowCodeEditor(false)}
-          initialCode={generatedCode}
-          language={codeLanguage}
-          isInline={isMobile}
-        />
-      )}
+      {/* Removed complex code editor - now using inline ChatGPT-style code rendering */}
 
       {/* 🔄 Update Notification */}
       <UpdateNotification
