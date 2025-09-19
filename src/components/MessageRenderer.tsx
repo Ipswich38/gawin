@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { BlockMath, InlineMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 
@@ -45,6 +45,8 @@ export default function MessageRenderer({ text, showActions, onCopy, onThumbsUp,
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       // Convert *italic* to proper HTML italic (keep semantic meaning)
       .replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>')
+      // Convert inline code with backticks to HTML - ChatGPT style
+      .replace(/`([^`]+)`/g, '<code class="inline-code bg-gray-100 text-gray-800 px-1.5 py-0.5 rounded text-sm font-mono border">$1</code>')
       // Convert simple fractions like 1/2 to LaTeX when they appear to be mathematical
       .replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}')
       // Convert fractions with parentheses like (a+b)/(c+d) to LaTeX
@@ -65,39 +67,66 @@ export default function MessageRenderer({ text, showActions, onCopy, onThumbsUp,
       .replace(/°/g, '^\\circ');
   };
 
-  // Handle code blocks with syntax highlighting
+  // Handle code blocks with syntax highlighting - ChatGPT style
   const renderCodeBlock = (language: string, code: string, key: number) => {
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = async () => {
+      try {
+        await navigator.clipboard.writeText(code);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error('Failed to copy code:', err);
+      }
+    };
+
     return (
-      <div key={key} className="my-4">
-        <div className="bg-gray-900 rounded-lg overflow-hidden border border-gray-700">
-          {/* Code block header */}
-          <div className="flex items-center justify-between px-4 py-2 bg-gray-800 border-b border-gray-700">
-            <span className="text-sm text-gray-300 font-medium">
-              {language.charAt(0).toUpperCase() + language.slice(1)}
+      <div key={key} className="my-4 group">
+        <div className="bg-black rounded-lg overflow-hidden border border-gray-700/50 shadow-lg">
+          {/* Code block header - ChatGPT style */}
+          <div className="flex items-center justify-between px-4 py-3 bg-gray-800/90 border-b border-gray-700/50">
+            <span className="text-sm text-gray-300 font-medium tracking-wide">
+              {language ? language.charAt(0).toUpperCase() + language.slice(1) : 'Code'}
             </span>
             <button
-              onClick={() => {
-                navigator.clipboard.writeText(code);
-              }}
-              className="text-gray-400 hover:text-white transition-colors p-1 rounded"
-              title="Copy code"
+              onClick={handleCopy}
+              className="flex items-center gap-2 text-gray-400 hover:text-white transition-all duration-200 p-2 rounded-md hover:bg-gray-700/50"
+              title={copied ? "Copied!" : "Copy code"}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/>
-              </svg>
+              {copied ? (
+                <>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="20,6 9,17 4,12"/>
+                  </svg>
+                  <span className="text-xs font-medium text-green-400">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/>
+                  </svg>
+                  <span className="text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">Copy code</span>
+                </>
+              )}
             </button>
           </div>
-          {/* Code content with proper formatting */}
-          <pre className="p-4 overflow-x-auto text-sm bg-gray-900">
-            <code className={`language-${language} text-gray-100 block whitespace-pre`} style={{
-              fontFamily: 'Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace',
-              lineHeight: '1.5',
-              tabSize: 2
-            }}>
-              {code}
-            </code>
-          </pre>
+          {/* Code content with enhanced formatting */}
+          <div className="relative">
+            <pre className="p-4 overflow-x-auto text-sm bg-black leading-relaxed">
+              <code className={`language-${language} text-gray-100 block whitespace-pre`} style={{
+                fontFamily: '"SF Mono", Monaco, Menlo, "Ubuntu Mono", Consolas, "Courier New", monospace',
+                lineHeight: '1.6',
+                tabSize: 2,
+                fontSize: '14px'
+              }}>
+                {code}
+              </code>
+            </pre>
+            {/* Subtle gradient overlay for better readability */}
+            <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-transparent via-transparent to-black/5"></div>
+          </div>
         </div>
       </div>
     );
