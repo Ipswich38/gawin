@@ -49,7 +49,7 @@ export default function MessageRenderer({ text, showActions, onCopy, onThumbsUp,
       // Convert *italic* to proper HTML italic (keep semantic meaning)
       .replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>')
       // Convert inline code with backticks to HTML - Mobile-first ChatGPT style
-      .replace(/`([^`]+)`/g, '<code class="inline-code bg-gray-200 text-gray-900 px-1.5 py-0.5 rounded-md text-xs sm:text-sm font-mono border border-gray-300/50 break-words">$1</code>')
+      .replace(/`([^`]+)`/g, '<code class="inline-code bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-1.5 py-0.5 rounded-md text-xs sm:text-sm font-mono border border-gray-300/50 dark:border-gray-600/50 whitespace-nowrap">$1</code>')
       // Convert simple fractions like 1/2 to LaTeX when they appear to be mathematical
       .replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}')
       // Convert fractions with parentheses like (a+b)/(c+d) to LaTeX
@@ -90,7 +90,7 @@ export default function MessageRenderer({ text, showActions, onCopy, onThumbsUp,
       <div key={key} className="my-3 group">
         <div className="bg-gray-950 rounded-xl overflow-hidden border border-gray-700/30 shadow-lg">
           {/* Mobile-first code block header - ChatGPT style */}
-          <div className="flex items-center justify-between px-3 py-2.5 bg-gray-800/80 border-b border-gray-700/30">
+          <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 bg-gray-800/80 border-b border-gray-700/30">
             <span className="text-xs sm:text-sm text-gray-300 font-medium tracking-wide">
               {language ? language.charAt(0).toUpperCase() + language.slice(1) : 'Code'}
             </span>
@@ -119,14 +119,16 @@ export default function MessageRenderer({ text, showActions, onCopy, onThumbsUp,
           </div>
           {/* Mobile-optimized code content */}
           <div className="relative">
-            <pre className="p-3 sm:p-4 overflow-x-auto text-xs sm:text-sm bg-gray-950 leading-relaxed">
+            <pre className="p-3 sm:p-4 overflow-x-auto text-xs sm:text-sm lg:text-base bg-gray-950 leading-relaxed">
               <code className={`language-${language} text-gray-100 block whitespace-pre`} style={{
                 fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Monaco, Menlo, "Ubuntu Mono", Consolas, "Courier New", monospace',
-                lineHeight: '1.5',
+                lineHeight: '1.6',
                 tabSize: 2,
                 fontSize: 'inherit',
-                wordBreak: 'break-all',
-                overflowWrap: 'break-word'
+                wordBreak: 'normal',
+                overflowWrap: 'normal',
+                whiteSpace: 'pre',
+                textAlign: 'left'
               }}>
                 {code}
               </code>
@@ -153,9 +155,9 @@ export default function MessageRenderer({ text, showActions, onCopy, onThumbsUp,
         parts.push(...renderNonCodeContent(beforeText, parts.length));
       }
 
-      // Add the code block
+      // Add the code block - preserve original spacing and indentation
       const language = codeMatch[1] || 'text';
-      const code = codeMatch[2].trim();
+      const code = codeMatch[2].replace(/^\n+|\n+$/g, ''); // Remove only leading/trailing newlines
       parts.push(renderCodeBlock(language, code, parts.length));
 
       currentIndex = codeMatch.index + codeMatch[0].length;
