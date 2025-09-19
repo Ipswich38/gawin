@@ -6,9 +6,11 @@ interface CodingMentorProps {
   onMinimize?: () => void;
   initialCode?: string;
   language?: string;
+  isInline?: boolean;
+  onCollapse?: () => void;
 }
 
-const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize, initialCode, language }) => {
+const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize, initialCode, language, isInline = false, onCollapse }) => {
   const [generatedCode, setGeneratedCode] = useState(initialCode || '# Welcome to Gawin AI Coding Mentor\n# Your AI-powered coding companion and tutor\n\nprint("Hello, World!")');
   const [isGenerating, setIsGenerating] = useState(false);
   const [prompt, setPrompt] = useState('');
@@ -21,6 +23,7 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize, initialCode, la
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isMobile, setIsMobile] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [preFullScreenState, setPreFullScreenState] = useState({ position: { x: 0, y: 0 }, size: { width: 400, height: 600 } });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -183,27 +186,153 @@ const CodingMentor: React.FC<CodingMentorProps> = ({ onMinimize, initialCode, la
     setIsGenerating(false);
   };
 
+  // For inline mode on mobile, render differently
+  if (isInline || isMobile) {
+    return (
+      <div className="w-full border border-gray-200 rounded-lg overflow-hidden mb-4 bg-gray-800">
+        {/* Collapsible Header */}
+        <div className="px-4 py-3 bg-gray-700 border-b border-gray-600">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-6 h-6 bg-blue-600 rounded-md flex items-center justify-center">
+                <span className="text-white text-xs font-bold">{'</>'}</span>
+              </div>
+              <div>
+                <div className="font-medium text-white text-sm">Code Editor</div>
+                <div className="text-gray-300 text-xs">{selectedLanguage}</div>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                className="p-1 text-gray-300 hover:text-white transition-colors"
+                title={isCollapsed ? 'Expand' : 'Collapse'}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  {isCollapsed ? (
+                    <path d="M18 15l-6-6-6 6"/>
+                  ) : (
+                    <path d="M6 9l6 6 6-6"/>
+                  )}
+                </svg>
+              </button>
+
+              {onMinimize && (
+                <button
+                  onClick={onMinimize}
+                  className="p-1 text-gray-300 hover:text-white transition-colors"
+                  title="Close"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Collapsible Content */}
+        {!isCollapsed && (
+          <div className="space-y-3 p-4">
+            {/* Language Selector */}
+            <div className="flex items-center space-x-3">
+              <label className="text-sm font-medium text-gray-300">Language:</label>
+              <select
+                value={selectedLanguage}
+                onChange={(e) => setSelectedLanguage(e.target.value)}
+                className="px-3 py-1 text-sm bg-gray-600 text-white border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {languages.map(lang => (
+                  <option key={lang.id} value={lang.id}>{lang.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Prompt Input */}
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && generateCode()}
+                placeholder="Ask AI to generate code..."
+                className="flex-1 px-3 py-2 text-sm bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
+              />
+              <button
+                onClick={generateCode}
+                disabled={!prompt.trim() || isGenerating}
+                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md disabled:opacity-50 hover:bg-blue-700 transition-colors"
+              >
+                {isGenerating ? 'Generating...' : 'Generate'}
+              </button>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={copyToClipboard}
+                className="flex items-center space-x-1 px-3 py-1 text-sm text-gray-300 hover:text-white transition-colors"
+                title="Copy code"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+                <span>Copy</span>
+              </button>
+
+              <button
+                onClick={clearCode}
+                className="flex items-center space-x-1 px-3 py-1 text-sm text-gray-300 hover:text-white transition-colors"
+                title="Clear code"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/>
+                </svg>
+                <span>Clear</span>
+              </button>
+            </div>
+
+            {/* Code Editor */}
+            <div className="relative">
+              <textarea
+                ref={textareaRef}
+                value={generatedCode}
+                onChange={(e) => setGeneratedCode(e.target.value)}
+                placeholder="Your code will appear here..."
+                className="w-full h-64 p-4 font-mono text-sm bg-gray-900 text-gray-100 border border-gray-600 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                spellCheck={false}
+                style={{
+                  lineHeight: '1.5',
+                  tabSize: 2
+                }}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Desktop popup mode
   return (
-    <div 
+    <div
       className="fixed z-50"
-      style={isMobile ? {
-        inset: 0,
-        width: '100%',
-        height: '100%'
-      } : {
+      style={{
         left: position.x,
         top: position.y,
         width: size.width,
         height: size.height
       }}
     >
-      {isMobile && <div className="fixed inset-0 bg-black/50" />}
-      
-      <div 
+      <div
         ref={containerRef}
-        className={`w-full h-full flex flex-col border border-gray-200 rounded-3xl overflow-hidden ${isMobile ? '' : 'cursor-move'}`}
+        className="w-full h-full flex flex-col border border-gray-200 rounded-3xl overflow-hidden cursor-move"
         style={{ backgroundColor: '#435b67' }}
-        onMouseDown={isMobile ? undefined : handleMouseDown}
+        onMouseDown={handleMouseDown}
       >
         {/* Header */}
         <div className="px-3 py-2">

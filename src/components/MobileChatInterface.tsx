@@ -289,6 +289,7 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   const [showCodeEditor, setShowCodeEditor] = useState(false);
   const [generatedCode, setGeneratedCode] = useState('');
   const [codeLanguage, setCodeLanguage] = useState('javascript');
+  const [isMobile, setIsMobile] = useState(false);
 
   // 🔄 Auto-Update states
   const [showUpdateNotification, setShowUpdateNotification] = useState(false);
@@ -345,6 +346,13 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
     setDeviceInfo(detected);
     setOptimizationConfig(config);
 
+    // Check mobile status
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
     console.log('🎯 Device Optimization Applied:', {
       device: `${detected.brand} ${detected.model}`,
       type: detected.type,
@@ -358,7 +366,10 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
       setOptimizationConfig(updatedConfig);
     });
 
-    return unsubscribe;
+    return () => {
+      unsubscribe();
+      window.removeEventListener('resize', checkMobile);
+    };
   }, []);
 
   // 🧬 Initialize consciousness recognition on component mount
@@ -2850,6 +2861,7 @@ Questions: ${count}`
           onMinimize={() => setShowCodeEditor(false)}
           initialCode={generatedCode}
           language={codeLanguage}
+          isInline={isMobile}
         />
       )}
 

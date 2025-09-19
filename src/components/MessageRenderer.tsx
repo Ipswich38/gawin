@@ -65,31 +65,103 @@ export default function MessageRenderer({ text, showActions, onCopy, onThumbsUp,
       .replace(/°/g, '^\\circ');
   };
 
-  // Split text by LaTeX blocks and images, process each part
+  // Handle code blocks with syntax highlighting
+  const renderCodeBlock = (language: string, code: string, key: number) => {
+    return (
+      <div key={key} className="my-4">
+        <div className="bg-gray-900 rounded-lg overflow-hidden border border-gray-700">
+          {/* Code block header */}
+          <div className="flex items-center justify-between px-4 py-2 bg-gray-800 border-b border-gray-700">
+            <span className="text-sm text-gray-300 font-medium">
+              {language.charAt(0).toUpperCase() + language.slice(1)}
+            </span>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(code);
+              }}
+              className="text-gray-400 hover:text-white transition-colors p-1 rounded"
+              title="Copy code"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/>
+              </svg>
+            </button>
+          </div>
+          {/* Code content with proper formatting */}
+          <pre className="p-4 overflow-x-auto text-sm bg-gray-900">
+            <code className={`language-${language} text-gray-100 block whitespace-pre`} style={{
+              fontFamily: 'Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace',
+              lineHeight: '1.5',
+              tabSize: 2
+            }}>
+              {code}
+            </code>
+          </pre>
+        </div>
+      </div>
+    );
+  };
+
+  // Split text by code blocks, LaTeX blocks and images, process each part
   const renderText = (input: string) => {
     const parts = [];
     let currentIndex = 0;
-    
-    // Find markdown images FIRST (before preprocessing) to avoid LaTeX interference
+
+    // Find code blocks FIRST (before images and LaTeX) to avoid interference
+    const codeBlockRegex = /```(\w+)?\n?([\s\S]*?)```/g;
+    let codeMatch;
+
+    while ((codeMatch = codeBlockRegex.exec(input)) !== null) {
+      // Add text before the code block (process for images and other content)
+      if (codeMatch.index > currentIndex) {
+        const beforeText = input.slice(currentIndex, codeMatch.index);
+        parts.push(...renderNonCodeContent(beforeText, parts.length));
+      }
+
+      // Add the code block
+      const language = codeMatch[1] || 'text';
+      const code = codeMatch[2].trim();
+      parts.push(renderCodeBlock(language, code, parts.length));
+
+      currentIndex = codeMatch.index + codeMatch[0].length;
+    }
+
+    // Add remaining text (process for images and other content)
+    if (currentIndex < input.length) {
+      const remainingText = input.slice(currentIndex);
+      parts.push(...renderNonCodeContent(remainingText, parts.length));
+    }
+
+    // If no code blocks were found, process the entire input for images and other content
+    return parts.length > 0 ? parts : renderNonCodeContent(input, 0);
+  };
+
+  // Handle non-code content (images, math, text)
+  const renderNonCodeContent = (input: string, keyOffset: number = 0) => {
+    const parts = [];
+    let currentIndex = 0;
+
+    // Find markdown images (after code blocks) to avoid LaTeX interference
     const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
     let imageMatch;
-    
+
     while ((imageMatch = imageRegex.exec(input)) !== null) {
       // Add text before the image (apply preprocessing to non-image text)
       if (imageMatch.index > currentIndex) {
         const beforeText = input.slice(currentIndex, imageMatch.index);
         const processedBeforeText = preprocessText(beforeText);
-        parts.push(processDisplayMathAndInline(processedBeforeText, parts.length));
+        parts.push(processDisplayMathAndInline(processedBeforeText, keyOffset + parts.length));
       }
-      
+
       // Add the image
       const altText = imageMatch[1] || 'Generated Image';
       const imageUrl = imageMatch[2];
-      
+
       parts.push(
-        <div key={parts.length} className="my-4 flex justify-center">
-          <img 
-            src={imageUrl} 
+        <div key={keyOffset + parts.length} className="my-4 flex justify-center">
+          <img
+            src={imageUrl}
             alt={altText}
             className="max-w-full h-auto rounded-lg shadow-lg border border-gray-200"
             style={{ maxHeight: '500px' }}
@@ -112,19 +184,19 @@ export default function MessageRenderer({ text, showActions, onCopy, onThumbsUp,
           />
         </div>
       );
-      
+
       currentIndex = imageMatch.index + imageMatch[0].length;
     }
-    
+
     // Add remaining text (apply preprocessing to remaining non-image text)
     if (currentIndex < input.length) {
       const remainingText = input.slice(currentIndex);
       const processedRemainingText = preprocessText(remainingText);
-      parts.push(processDisplayMathAndInline(processedRemainingText, parts.length));
+      parts.push(processDisplayMathAndInline(processedRemainingText, keyOffset + parts.length));
     }
-    
+
     // If no images were found, process the entire input with preprocessing
-    return parts.length > 0 ? parts : [processDisplayMathAndInline(preprocessText(input), 0)];
+    return parts.length > 0 ? parts : [processDisplayMathAndInline(preprocessText(input), keyOffset)];
   };
 
   // Separate function to handle display math blocks
