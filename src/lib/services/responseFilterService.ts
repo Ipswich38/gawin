@@ -102,12 +102,59 @@ class ResponseFilterService {
   ];
 
   /**
+   * Fix malformed numbered lists (1. 1. 1. → 1. 2. 3.)
+   */
+  private fixNumberedLists(content: string): string {
+    const lines = content.split('\n');
+    let listNumber = 1;
+    let inList = false;
+
+    return lines.map(line => {
+      const trimmedLine = line.trim();
+
+      // Check if this line starts a numbered list
+      if (trimmedLine.match(/^1\.\s+/)) {
+        if (!inList) {
+          listNumber = 1;
+          inList = true;
+        }
+        const result = line.replace(/^(\s*)1\.\s+/, `$1${listNumber}. `);
+        listNumber++;
+        return result;
+      }
+
+      // Check if this continues a numbered list with wrong numbering
+      if (trimmedLine.match(/^\d+\.\s+/) && inList) {
+        const result = line.replace(/^(\s*)\d+\.\s+/, `$1${listNumber}. `);
+        listNumber++;
+        return result;
+      }
+
+      // Not a numbered list item - reset list state
+      if (trimmedLine.length > 0 && !trimmedLine.match(/^\d+\.\s+/)) {
+        inList = false;
+        listNumber = 1;
+      }
+
+      return line;
+    }).join('\n');
+  }
+
+  /**
    * Main filtering method - cleans and improves response quality
    */
   filterResponse(content: string): FilteredResponse {
     let filtered = content;
     const filtersApplied: string[] = [];
     let wasFiltered = false;
+
+    // CRITICAL: Fix numbered lists as first priority
+    const originalListLength = filtered.length;
+    filtered = this.fixNumberedLists(filtered);
+    if (filtered.length !== originalListLength || filtered !== content) {
+      filtersApplied.push('numbered-list-fix');
+      wasFiltered = true;
+    }
 
     // Remove thinking process leakage
     const originalLength = filtered.length;
@@ -167,8 +214,7 @@ class ResponseFilterService {
   private fixFormatting(content: string): string {
     let fixed = content;
 
-    // Fix numbering issues (2, 4, 6 -> 1, 2, 3)
-    fixed = this.fixNumberedLists(fixed);
+    // Fix numbering issues handled above already
 
     // Reduce excessive asterisks
     fixed = fixed.replace(/\*{3,}/g, '**'); // Multiple asterisks -> bold
@@ -188,35 +234,6 @@ class ResponseFilterService {
     return fixed.trim();
   }
 
-  /**
-   * Fix numbered list formatting
-   */
-  private fixNumberedLists(content: string): string {
-    const lines = content.split('\n');
-    let counter = 1;
-    let inNumberedList = false;
-
-    return lines.map(line => {
-      const numberMatch = line.match(/^\s*(\d+)\.\s+/);
-      
-      if (numberMatch) {
-        if (!inNumberedList) {
-          counter = 1; // Reset counter for new list
-          inNumberedList = true;
-        }
-        return line.replace(/^\s*\d+\./, `${counter}.`);
-        counter++;
-      } else if (line.trim() === '') {
-        // Empty line might end the list
-        return line;
-      } else if (!line.match(/^\s*[-•]/)) {
-        // Non-bullet, non-numbered line ends the list
-        inNumberedList = false;
-      }
-      
-      return line;
-    }).join('\n');
-  }
 
   /**
    * Add dynamic variety to responses

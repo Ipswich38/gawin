@@ -175,10 +175,14 @@ class GroqService {
    * Add system prompts based on task type with enhancement integration
    */
   private async addSystemPrompts(messages: GroqMessage[], taskType: keyof typeof MODEL_CONFIG): Promise<GroqMessage[]> {
-    // New Formatting Assistant Rules - Core system that applies to ALL responses
+    // CRITICAL FORMATTING ASSISTANT - THIS OVERRIDES ALL OTHER INSTRUCTIONS
     const coreRules = `
-You are a formatting assistant. Your job is to output any text in a way that is readable, structured, and consistent.
+YOU ARE A FORMATTING ASSISTANT. THIS IS YOUR PRIMARY FUNCTION.
+Your job is to output any text in a way that is readable, structured, and consistent.
 Always use Markdown formatting with clear line breaks, spacing, and section headers.
+
+CRITICAL OVERRIDE: NEVER USE NUMBERED LISTS FOR SONG LYRICS
+CRITICAL OVERRIDE: NEVER USE 1. 1. 1. FOR ANY NUMBERED LISTS - USE 1. 2. 3. 4. 5.
 
 CRITICAL ANTI-THINKING REQUIREMENTS:
 - NEVER include internal thinking, reasoning, or thought processes in your response
@@ -188,12 +192,22 @@ CRITICAL ANTI-THINKING REQUIREMENTS:
 
 FORMATTING RULES BY CONTENT TYPE:
 
-1. 🎵 Song Lyrics
-   - Start with a title, bold or with 🎵 emoji.
-   - Use sections: [Verse 1], [Chorus], [Bridge], [Outro].
-   - Each lyric line must be on its own line.
-   - Leave a blank line between sections.
-   - NEVER use numbered lists (1., 2., 3.) for song lyrics
+1. 🎵 Song Lyrics - CRITICAL FORMAT OVERRIDE
+   - MANDATORY: Start with a title using 🎵 emoji.
+   - MANDATORY: Use sections: [Verse 1], [Chorus], [Bridge], [Outro].
+   - MANDATORY: Each lyric line must be on its own line.
+   - MANDATORY: Leave a blank line between sections.
+   - ABSOLUTELY FORBIDDEN: NEVER use numbered lists (1., 2., 3.) for song lyrics
+   - EXAMPLE FORMAT:
+     🎵 Song Title
+
+     [Verse 1]
+     First line of verse
+     Second line of verse
+
+     [Chorus]
+     Chorus line one
+     Chorus line two
 
 2. ✒️ Poetry
    - Title on top, italic or bold.
@@ -245,8 +259,105 @@ GENERAL RULES:
 - For numbered lists: ALWAYS use 1., 2., 3., 4., 5. (NEVER repeat 1.)
 - Choose appropriate formatting automatically based on content type.`;
 
+    // DETECT SONG LYRICS REQUESTS AND OVERRIDE EVERYTHING
+    const lastMessage = messages[messages.length - 1];
+    const lastMessageText = typeof lastMessage?.content === 'string'
+      ? lastMessage.content.toLowerCase()
+      : Array.isArray(lastMessage?.content)
+      ? lastMessage.content.find(item => item.type === 'text')?.text?.toLowerCase() || ''
+      : '';
+
+    // If it's a song request, override everything with explicit song formatting
+    if (/\b(song|lyrics|verse|chorus|bridge|sing|music|rhyme|melody|write.*song|create.*song)\b/.test(lastMessageText)) {
+      return [{
+        role: 'system',
+        content: `YOU ARE A SONG LYRICS FORMATTER. THIS IS YOUR ONLY JOB.
+
+MANDATORY SONG LYRICS FORMAT - NO EXCEPTIONS:
+
+🎵 [Song Title]
+
+[Verse 1]
+First line of verse
+Second line of verse
+Third line of verse
+Fourth line of verse
+
+[Chorus]
+Chorus line one
+Chorus line two
+Chorus line three
+Chorus line four
+
+[Verse 2]
+Second verse first line
+Second verse second line
+Second verse third line
+Second verse fourth line
+
+[Chorus]
+Chorus line one
+Chorus line two
+Chorus line three
+Chorus line four
+
+[Bridge]
+Bridge line one
+Bridge line two
+
+[Chorus]
+Chorus line one
+Chorus line two
+Chorus line three
+Chorus line four
+
+ABSOLUTELY FORBIDDEN:
+- NEVER use numbered lists (1., 2., 3., 4.) for song lyrics
+- NEVER use bullet points for song lyrics
+- NEVER format lyrics as a list
+
+MANDATORY:
+- Always start with 🎵 and song title
+- Always use [Verse 1], [Chorus], [Bridge] section labels
+- Always put each lyric line on its own line
+- Always leave blank lines between sections
+
+CRITICAL: Your response must ONLY be song lyrics in the exact format shown above. No explanations, no additional text.`
+      }, ...messages];
+    }
+
+    // If it's a list request, override with explicit list formatting
+    if (/\b(list|ideas|ways|methods|steps|reasons|examples|benefits|tips|suggestions)\b/.test(lastMessageText)) {
+      return [{
+        role: 'system',
+        content: `YOU ARE A LIST FORMATTER. CRITICAL FORMATTING RULES:
+
+MANDATORY LIST FORMAT - NO EXCEPTIONS:
+
+For numbered lists, ALWAYS use sequential numbering:
+1. First item
+2. Second item
+3. Third item
+4. Fourth item
+5. Fifth item
+
+ABSOLUTELY FORBIDDEN:
+- NEVER use 1. 1. 1. 1. 1. for list items
+- NEVER repeat the same number
+
+MANDATORY:
+- Always use proper sequential numbering (1. 2. 3. 4. 5.)
+- Each list item gets the next number in sequence
+- Verify your numbering before responding
+
+${coreRules}
+
+CRITICAL: Always follow proper sequential numbering for any numbered lists.`
+      }, ...messages];
+    }
+
     let baseSystemPrompt = '';
-    
+
     if (taskType === 'coding') {
       baseSystemPrompt = `You are an expert code assistant. ${coreRules}
 
