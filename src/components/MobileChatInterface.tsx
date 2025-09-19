@@ -235,6 +235,8 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   const [activeTabId, setActiveTabId] = useState('general-1');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
+  const [inputHtml, setInputHtml] = useState('');
+  const inputRef = useRef<HTMLDivElement>(null);
   
   // 📱 DEVICE OPTIMIZATION
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | null>(null);
@@ -308,6 +310,9 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
       setCurrentVoiceTranscript(transcript);
       // Update input value with interim transcript
       setInputValue(transcript);
+      if (inputRef.current) {
+        inputRef.current.textContent = transcript;
+      }
     }
   };
 
@@ -2580,39 +2585,96 @@ Questions: ${count}`
             <div className="relative w-full max-w-4xl mx-auto">
               <div className="relative bg-gray-800/60 backdrop-blur-lg rounded-3xl border border-gray-700/50 focus-within:border-teal-500 transition-colors">
 
-                {/* Top Section: Text Input Area */}
+                {/* Top Section: Rich Text Input Area */}
                 <div className="relative px-6 pt-5 pb-3">
-                  <textarea
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyPress={(e) => {
+                  <div
+                    ref={inputRef}
+                    contentEditable={!activeTab.isLoading}
+                    suppressContentEditableWarning={true}
+                    onInput={(e) => {
+                      const target = e.target as HTMLDivElement;
+                      const text = target.innerText || '';
+                      const html = target.innerHTML || '';
+                      setInputValue(text);
+                      setInputHtml(html);
+
+                      // Auto-resize
+                      target.style.height = 'auto';
+                      target.style.height = `${Math.min(target.scrollHeight, 128)}px`;
+                    }}
+                    onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
-                        handleSend(inputValue);
+                        const text = inputRef.current?.innerText || '';
+                        if (text.trim()) {
+                          handleSend(text);
+                          // Clear the input
+                          if (inputRef.current) {
+                            inputRef.current.innerHTML = '';
+                            setInputValue('');
+                            setInputHtml('');
+                          }
+                        }
                       }
                     }}
-                    placeholder={`Ask me anything ${
-                      activeTab.type === 'creative' ? 'creative...' :
-                      'about your studies...'
-                    }`}
+                    onPaste={(e) => {
+                      e.preventDefault();
+
+                      // Get clipboard data
+                      const clipboardData = e.clipboardData;
+                      const htmlData = clipboardData.getData('text/html');
+                      const textData = clipboardData.getData('text/plain');
+
+                      if (htmlData) {
+                        // Clean the HTML to preserve formatting but remove dangerous elements
+                        const cleanHtml = htmlData
+                          .replace(/<script[^>]*>.*?<\/script>/gi, '')
+                          .replace(/<style[^>]*>.*?<\/style>/gi, '')
+                          .replace(/on\w+="[^"]*"/gi, '')
+                          .replace(/javascript:/gi, '');
+
+                        // Insert the clean HTML
+                        document.execCommand('insertHTML', false, cleanHtml);
+                      } else if (textData) {
+                        // If no HTML, insert as plain text but preserve line breaks
+                        const formattedText = textData.replace(/\n/g, '<br>');
+                        document.execCommand('insertHTML', false, formattedText);
+                      }
+
+                      // Update state
+                      const target = e.target as HTMLDivElement;
+                      const text = target.innerText || '';
+                      const html = target.innerHTML || '';
+                      setInputValue(text);
+                      setInputHtml(html);
+                    }}
                     className="
                       w-full bg-transparent text-white
-                      resize-none overflow-hidden focus:outline-none
-                      placeholder-gray-400 text-sm sm:text-base
-                      min-h-[4rem] max-h-32 leading-relaxed
+                      resize-none overflow-auto focus:outline-none
+                      text-sm sm:text-base min-h-[4rem] max-h-32 leading-relaxed
+                      whitespace-pre-wrap break-words
                     "
                     style={{
                       wordWrap: 'break-word',
                       whiteSpace: 'pre-wrap'
                     }}
-                    rows={2}
-                    disabled={activeTab.isLoading}
-                    onInput={(e) => {
-                      const target = e.target as HTMLTextAreaElement;
-                      target.style.height = 'auto';
-                      target.style.height = `${Math.min(target.scrollHeight, 128)}px`;
-                    }}
+                    data-placeholder={`Ask me anything ${
+                      activeTab.type === 'creative' ? 'creative...' :
+                      'about your studies...'
+                    }`}
                   />
+
+                  {/* Placeholder styling via CSS */}
+                  <style dangerouslySetInnerHTML={{
+                    __html: `
+                      [contenteditable]:empty:before {
+                        content: attr(data-placeholder);
+                        color: rgb(156 163 175);
+                        pointer-events: none;
+                        opacity: 0.7;
+                      }
+                    `
+                  }} />
                 </div>
 
                 {/* Bottom Section: Tool Icons */}
