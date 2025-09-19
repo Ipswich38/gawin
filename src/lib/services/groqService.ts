@@ -163,8 +163,8 @@ class GroqService {
       return 'analysis';
     }
     
-    // Writing detection
-    if (/write|essay|story|letter|email|article|blog|creative|compose|grammar|spelling/.test(lastMessageText)) {
+    // Writing detection (enhanced to catch song lyrics)
+    if (/write|essay|story|letter|email|article|blog|creative|compose|grammar|spelling|song|lyrics|poem|poetry|verse|chorus|rhyme/.test(lastMessageText)) {
       return 'writing';
     }
     
@@ -193,7 +193,48 @@ CRITICAL FORMATTING REQUIREMENTS:
 ENUMERATION RULES:
 - Lists MUST be numbered sequentially: 1., 2., 3., 4., 5. (not 1., 1., 1., 1., 1.)
 - Each list item gets the next number in sequence
-- Verify your numbering before responding`;
+- Verify your numbering before responding
+
+CONTENT TYPE FORMATTING:
+When generating specific content types, follow these professional standards:
+
+SONG LYRICS:
+- Format with title at top (🎵 Song Title)
+- Use section labels: [Verse 1], [Chorus], [Bridge], [Verse 2], etc.
+- Capitalize first letter of each lyric line
+- Group lines into stanzas with blank lines between sections
+- NO numbered lists in song lyrics - use proper verse/chorus structure
+
+POEMS:
+- Use proper line breaks and stanza spacing
+- For Haiku: exactly 3 lines (5-7-5 syllable pattern)
+- For other poems: group related lines into stanzas
+- Use natural line breaks, not numbered lists
+
+SCREENPLAYS/SCRIPTS:
+- Use industry standard format:
+  * Scene headings: INT./EXT. LOCATION – TIME
+  * Character names: ALL CAPS, centered
+  * Dialogue: under character name
+  * Action: descriptive, present tense
+
+RESEARCH PAPERS:
+- Use academic structure: Title → Abstract → Introduction → Methodology → Results → Discussion → Conclusion
+- Use proper heading hierarchy (# ## ###)
+- Sequential numbering for lists and references
+
+BUSINESS DOCUMENTS:
+- Use professional structure with clear sections
+- Include Executive Summary for reports
+- Use sequential numbering for recommendations
+- Highlight key metrics and findings
+
+CREATIVE WRITING:
+- Use proper chapter/section headers
+- Short paragraphs for readability
+- Proper dialogue formatting with quotes
+
+Remember: Choose appropriate formatting automatically based on content type. NEVER use repeated "1." numbering for any content type.`;
 
     let baseSystemPrompt = '';
     
@@ -236,14 +277,45 @@ MATH FORMATTING RULES:
     }
     
     else if (taskType === 'writing') {
-      baseSystemPrompt = `You are an expert writing assistant. ${coreRules}
+      baseSystemPrompt = `You are an expert writing assistant specializing in creative and professional content. ${coreRules}
 
 WRITING SPECIFIC REQUIREMENTS:
 1. Provide clear, well-structured writing assistance
 2. Break content into digestible paragraphs
-3. Use proper grammar and academic formatting
+3. Use proper grammar and professional formatting
 4. Structure responses with clear headings when appropriate
-5. Ensure content flows logically from paragraph to paragraph`;
+5. Ensure content flows logically from paragraph to paragraph
+
+SPECIAL WRITING FORMATS:
+For SONG LYRICS:
+- MUST use this exact format:
+  🎵 [Song Title]
+
+  [Verse 1]
+  First line of verse
+  Second line of verse
+
+  [Chorus]
+  Chorus line one
+  Chorus line two
+
+  [Verse 2]
+  Next verse content
+
+- NEVER use numbered lists (1., 2., 3.) for song lyrics
+- Each line should be on its own line
+- Use [Verse 1], [Chorus], [Bridge], [Verse 2], [Outro] labels
+- Capitalize first letter of each lyric line
+
+For POEMS:
+- Use proper stanza breaks (blank lines between stanzas)
+- No numbered lists - use natural line breaks
+- For Haiku: exactly 3 lines in 5-7-5 syllable pattern
+
+For STORIES:
+- Use chapter headers (## Chapter 1)
+- Short paragraphs for readability
+- Proper dialogue with quotes on new lines`;
     }
     
     else {
