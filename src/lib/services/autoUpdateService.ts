@@ -113,7 +113,7 @@ class AutoUpdateService {
         console.log('🔄 New service worker installing...');
 
         newWorker.addEventListener('statechange', () => {
-          if (newWorker.state === 'waiting') {
+          if (newWorker.state === 'installed') {
             console.log('⏳ New service worker waiting to activate');
             this.handleUpdateAvailable();
           }
@@ -196,7 +196,7 @@ class AutoUpdateService {
         };
 
         // Send check request
-        navigator.serviceWorker.controller.postMessage(
+        navigator.serviceWorker.controller!.postMessage(
           { type: 'CHECK_UPDATE_NOW' },
           [channel.port2]
         );
