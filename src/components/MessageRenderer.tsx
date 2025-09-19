@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { BlockMath, InlineMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
+import { ComprehensiveFormatter, ContentType } from '@/lib/formatters/comprehensiveFormatter';
 
 interface MessageRendererProps {
   text: string;
@@ -34,40 +35,16 @@ export default function MessageRenderer({ text, showActions, onCopy, onThumbsUp,
     );
   }
   
-  // Preprocess text to handle various fraction formats and improve formatting
-  const preprocessText = (input: string) => {
-    return input
-      // Fix numbered lists - convert "1. " patterns to proper sequential numbering
-      .replace(/(\n|^)1\.\s+/g, (match, prefix, offset, str) => {
-        // Count previous numbered items to determine correct number
-        const beforeText = str.slice(0, offset);
-        const itemCount = (beforeText.match(/(\n|^)\d+\.\s+/g) || []).length;
-        return `${prefix}${itemCount + 1}. `;
-      })
-      // Convert **bold** to proper HTML bold (keep semantic meaning)
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      // Convert *italic* to proper HTML italic (keep semantic meaning)
-      .replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>')
-      // Convert inline code with backticks to HTML - Mobile-first ChatGPT style
-      .replace(/`([^`]+)`/g, '<code class="inline-code bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-1.5 py-0.5 rounded-md text-xs sm:text-sm font-mono border border-gray-300/50 dark:border-gray-600/50 whitespace-nowrap">$1</code>')
-      // Convert simple fractions like 1/2 to LaTeX when they appear to be mathematical
-      .replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}')
-      // Convert fractions with parentheses like (a+b)/(c+d) to LaTeX
-      .replace(/\(([^)]+)\)\/\(([^)]+)\)/g, '\\frac{$1}{$2}')
-      // Convert complex fractions with variables - but be more specific to avoid matching normal text
-      .replace(/\b([a-zA-Z0-9\+\-\*]{1,3})\/([a-zA-Z0-9\+\-\*]{1,3})\b/g, (match, p1, p2) => {
-        // Only convert if it looks like a mathematical expression (short terms)
-        if (p1.length <= 3 && p2.length <= 3 && /^[a-zA-Z0-9\+\-\*]+$/.test(p1) && /^[a-zA-Z0-9\+\-\*]+$/.test(p2)) {
-          return `\\frac{${p1}}{${p2}}`;
-        }
-        return match;
-      })
-      // Fix common math symbols
-      .replace(/\+\-/g, '\\pm')
-      .replace(/\-\+/g, '\\mp')
-      .replace(/sqrt\(([^)]+)\)/g, '\\sqrt{$1}')
-      // Convert degree symbol
-      .replace(/°/g, '^\\circ');
+  // New comprehensive formatting system
+  const formatContentWithNewSystem = (input: string) => {
+    // Detect content type and apply appropriate formatting
+    const contentType = ComprehensiveFormatter.detectContentType(input);
+
+    return ComprehensiveFormatter.formatText(input, contentType, {
+      enableMathRendering: true,
+      enableCodeSyntaxHighlighting: true,
+      preserveOriginalFormatting: false
+    });
   };
 
   // Handle code blocks with syntax highlighting - ChatGPT style
@@ -183,10 +160,10 @@ export default function MessageRenderer({ text, showActions, onCopy, onThumbsUp,
     let imageMatch;
 
     while ((imageMatch = imageRegex.exec(input)) !== null) {
-      // Add text before the image (apply preprocessing to non-image text)
+      // Add text before the image (apply new formatting to non-image text)
       if (imageMatch.index > currentIndex) {
         const beforeText = input.slice(currentIndex, imageMatch.index);
-        const processedBeforeText = preprocessText(beforeText);
+        const processedBeforeText = formatContentWithNewSystem(beforeText);
         parts.push(processDisplayMathAndInline(processedBeforeText, keyOffset + parts.length));
       }
 
@@ -224,33 +201,37 @@ export default function MessageRenderer({ text, showActions, onCopy, onThumbsUp,
       currentIndex = imageMatch.index + imageMatch[0].length;
     }
 
-    // Add remaining text (apply preprocessing to remaining non-image text)
+    // Add remaining text (apply new formatting to remaining non-image text)
     if (currentIndex < input.length) {
       const remainingText = input.slice(currentIndex);
-      const processedRemainingText = preprocessText(remainingText);
+      const processedRemainingText = formatContentWithNewSystem(remainingText);
       parts.push(processDisplayMathAndInline(processedRemainingText, keyOffset + parts.length));
     }
 
-    // If no images were found, process the entire input with preprocessing
-    return parts.length > 0 ? parts : [processDisplayMathAndInline(preprocessText(input), keyOffset)];
+    // If no images were found, process the entire input with new formatting
+    return parts.length > 0 ? parts : [processDisplayMathAndInline(formatContentWithNewSystem(input), keyOffset)];
   };
 
-  // Separate function to handle display math blocks
-  const processDisplayMathAndInline = (input: string, keyOffset: number) => {
+  // Simplified function to handle display math and render formatted HTML
+  const processDisplayMathAndInline = (htmlContent: string, keyOffset: number) => {
     const parts = [];
     let currentIndex = 0;
-    
-    // Find display math blocks ($$...$$)
+
+    // Find display math blocks ($$...$$) in the HTML content
     const displayMathRegex = /\$\$([^$]+)\$\$/g;
     let match;
-    
-    while ((match = displayMathRegex.exec(input)) !== null) {
-      // Add text before the math
+
+    while ((match = displayMathRegex.exec(htmlContent)) !== null) {
+      // Add HTML content before the math
       if (match.index > currentIndex) {
-        const beforeText = input.slice(currentIndex, match.index);
-        parts.push(processInlineText(beforeText, keyOffset + parts.length));
+        const beforeHTML = htmlContent.slice(currentIndex, match.index);
+        parts.push(
+          <div key={keyOffset + parts.length}
+               className="formatted-content"
+               dangerouslySetInnerHTML={{ __html: beforeHTML }} />
+        );
       }
-      
+
       // Add the display math
       try {
         parts.push(
@@ -266,256 +247,57 @@ export default function MessageRenderer({ text, showActions, onCopy, onThumbsUp,
           </div>
         );
       }
-      
+
       currentIndex = match.index + match[0].length;
     }
-    
-    // Add remaining text
-    if (currentIndex < input.length) {
-      const remainingText = input.slice(currentIndex);
-      parts.push(processInlineText(remainingText, keyOffset + parts.length));
+
+    // Add remaining HTML content
+    if (currentIndex < htmlContent.length) {
+      const remainingHTML = htmlContent.slice(currentIndex);
+      parts.push(
+        <div key={keyOffset + parts.length}
+             className="formatted-content"
+             dangerouslySetInnerHTML={{ __html: remainingHTML }} />
+      );
     }
-    
-    return parts.length > 0 ? parts : [processInlineText(input, keyOffset)];
+
+    return parts.length > 0 ? parts : [
+      <div key={keyOffset}
+           className="formatted-content"
+           dangerouslySetInnerHTML={{ __html: htmlContent }} />
+    ];
   };
 
-  const processInlineText = (text: string, keyOffset: number) => {
-    const parts = [];
-    let currentIndex = 0;
-    
-    // Enhanced regex for various math formats
-    const mathRegex = /\\?\[([^\]]+)\\?\]|\\?\(([^)]+)\\?\)|\\frac\{([^}]+)\}\{([^}]+)\}|\$([^$]+)\$/g;
-    let match;
-    
-    while ((match = mathRegex.exec(text)) !== null) {
-      // Add text before the math
-      if (match.index > currentIndex) {
-        const beforeText = text.slice(currentIndex, match.index);
-        parts.push(formatText(beforeText, keyOffset + parts.length));
-      }
-      
-      // Determine which type of math was matched and process accordingly
-      let mathContent = '';
-      if (match[1]) {
-        // \[...\] display math
-        mathContent = match[1].trim();
-      } else if (match[2]) {
-        // \(...\) inline math
-        mathContent = match[2].trim();
-      } else if (match[3] && match[4]) {
-        // \frac{numerator}{denominator}
-        mathContent = `\\frac{${match[3].trim()}}{${match[4].trim()}}`;
-      } else if (match[5]) {
-        // $...$ inline math
-        mathContent = match[5].trim();
-      }
-      
-      // Add the processed math
+  const processInlineText = (htmlContent: string, keyOffset: number) => {
+    // Handle inline math in already formatted HTML content
+    const mathRegex = /\$([^$]+)\$/g;
+    let processedHTML = htmlContent;
+
+    processedHTML = processedHTML.replace(mathRegex, (match, mathContent) => {
       try {
-        parts.push(
-          <InlineMath key={keyOffset + parts.length} math={mathContent} />
-        );
+        // For inline math, we'll create a placeholder that gets processed later
+        return `<span class="inline-math" data-math="${mathContent.trim()}"></span>`;
       } catch (error) {
-        // Fallback for invalid LaTeX
-        parts.push(
-          <span key={keyOffset + parts.length} className="bg-red-50 text-red-700 px-1 rounded text-xs">
-            Invalid LaTeX: {mathContent}
-          </span>
-        );
-      }
-      
-      currentIndex = match.index + match[0].length;
-    }
-    
-    // Add remaining text
-    if (currentIndex < text.length) {
-      const remainingText = text.slice(currentIndex);
-      parts.push(formatText(remainingText, keyOffset + parts.length));
-    }
-    
-    return parts.length > 0 ? parts : [formatText(text, keyOffset)];
-  };
-
-  const formatText = (text: string, key: number) => {
-    // Enhanced paragraph processing for better readability
-    let processedText = text;
-
-    // Identify numbered lists and group them
-    const lines = processedText.split('\n').filter(line => line.trim().length > 0);
-    const elements: any[] = [];
-    let currentList: string[] = [];
-    let inList = false;
-
-    lines.forEach((line, index) => {
-      const trimmedLine = line.trim();
-
-      // Check if this line is a numbered list item
-      if (/^\d+\.\s+/.test(trimmedLine)) {
-        if (!inList) {
-          // Start new list
-          if (currentList.length > 0) {
-            // Finish previous non-list content
-            elements.push(
-              <div key={`text-${elements.length}`} className="leading-relaxed space-y-2">
-                {currentList.map((text, i) => (
-                  <div key={i} dangerouslySetInnerHTML={{ __html: text }} />
-                ))}
-              </div>
-            );
-            currentList = [];
-          }
-          inList = true;
-        }
-        currentList.push(trimmedLine);
-      } else {
-        if (inList) {
-          // End list and add it to elements
-          elements.push(
-            <ol key={`list-${elements.length}`} className="list-decimal list-inside space-y-2 ml-4 leading-relaxed">
-              {currentList.map((item, i) => {
-                const content = item.replace(/^\d+\.\s+/, '');
-                return (
-                  <li key={i} className="pl-2" dangerouslySetInnerHTML={{ __html: content }} />
-                );
-              })}
-            </ol>
-          );
-          currentList = [];
-          inList = false;
-        }
-        currentList.push(trimmedLine);
+        return `<span class="bg-red-50 text-red-700 px-1 rounded text-xs">Invalid LaTeX: ${mathContent}</span>`;
       }
     });
 
-    // Add remaining content
-    if (currentList.length > 0) {
-      if (inList) {
-        // Add remaining list items
-        elements.push(
-          <ol key={`list-${elements.length}`} className="list-decimal list-inside space-y-2 ml-4 leading-relaxed">
-            {currentList.map((item, i) => {
-              const content = item.replace(/^\d+\.\s+/, '');
-              return (
-                <li key={i} className="pl-2" dangerouslySetInnerHTML={{ __html: content }} />
-              );
-            })}
-          </ol>
-        );
-      } else {
-        // Add remaining text
-        elements.push(
-          <div key={`text-${elements.length}`} className="leading-relaxed space-y-2">
-            {currentList.map((text, i) => (
-              <div key={i} dangerouslySetInnerHTML={{ __html: text }} />
-            ))}
-          </div>
-        );
-      }
-    }
+    return [
+      <div key={keyOffset}
+           className="formatted-content"
+           dangerouslySetInnerHTML={{ __html: processedHTML }} />
+    ];
+  };
 
-    if (elements.length === 0) {
-      return <div key={key} className="leading-relaxed" dangerouslySetInnerHTML={{ __html: text }} />;
-    }
-
+  // Simplified formatText - comprehensive formatter handles complex logic
+  const formatText = (htmlContent: string, key: number) => {
     return (
-      <div key={key} className="space-y-4">
-        {elements}
-      </div>
+      <div key={key} className="formatted-content leading-relaxed"
+           dangerouslySetInnerHTML={{ __html: htmlContent }} />
     );
   };
 
-  const formatInlineElements = (text: string) => {
-    // Handle Step headings (Step 1:, Step 2:, etc.)
-    if (/^Step \d+:/i.test(text)) {
-      const [, stepNum, content] = text.match(/^Step (\d+):\s*(.*)$/i) || [];
-      if (stepNum && content) {
-        return (
-          <div className="mt-6 mb-4">
-            <h3 className="text-lg font-bold text-teal-600 mb-2">Step {stepNum}: {content}</h3>
-          </div>
-        );
-      }
-    }
-    
-    // Handle ### Step headings (### Step 1:, etc.)
-    if (/^#{1,3}\s*Step \d+:/i.test(text)) {
-      const [, stepNum, content] = text.match(/^#{1,3}\s*Step (\d+):\s*(.*)$/i) || [];
-      if (stepNum && content) {
-        return (
-          <div className="mt-6 mb-4">
-            <h3 className="text-lg font-bold text-teal-600 mb-2">Step {stepNum}: {content}</h3>
-          </div>
-        );
-      }
-    }
-    
-    // Handle numbered lists
-    if (/^\d+\./.test(text)) {
-      const [, number, content] = text.match(/^(\d+)\.\s*(.*)$/) || [];
-      if (number && content) {
-        return (
-          <div className="flex items-start space-x-2 mb-2">
-            <span className="font-semibold text-teal-600 flex-shrink-0">{number}.</span>
-            <span>{content}</span>
-          </div>
-        );
-      }
-    }
-    
-    // Handle bullet points
-    if (text.startsWith('•') || text.startsWith('-')) {
-      const content = text.replace(/^[•\-]\s*/, '');
-      return (
-        <div className="flex items-start space-x-2 mb-2">
-          <span className="text-teal-600 flex-shrink-0">•</span>
-          <span>{content}</span>
-        </div>
-      );
-    }
-    
-    // Handle "✅ Final Answer" specially
-    if (text.includes('✅ Final Answer') || text.includes('Final Answer:')) {
-      const delimiter = text.includes('✅ Final Answer') ? '✅ Final Answer' : 'Final Answer:';
-      const parts = text.split(delimiter);
-      return (
-        <div>
-          {parts[0] && <span>{parts[0]}</span>}
-          <div className="mt-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-r shadow-sm">
-            <div className="font-bold text-teal-600 mb-2 text-lg">✅ Final Answer</div>
-            <div className="text-green-700 font-medium">{parts[1]}</div>
-          </div>
-        </div>
-      );
-    }
-    
-    // Handle "### ✅ Final Answer" specially
-    if (text.includes('### ✅ Final Answer')) {
-      const parts = text.split('### ✅ Final Answer');
-      return (
-        <div>
-          {parts[0] && <span>{parts[0]}</span>}
-          <div className="mt-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-r shadow-sm">
-            <div className="font-bold text-teal-600 mb-2 text-lg">✅ Final Answer</div>
-            <div className="text-green-700 font-medium">{parts[1]}</div>
-          </div>
-        </div>
-      );
-    }
-    
-    // Handle "Solution:" specially
-    if (text.includes('Solution:')) {
-      const parts = text.split('Solution:');
-      return (
-        <div>
-          {parts[0] && <span>{parts[0]}</span>}
-          <div className="mt-3 font-semibold text-teal-600">Solution:</div>
-          <div className="text-gray-700">{parts[1]}</div>
-        </div>
-      );
-    }
-    
-    return <span>{text}</span>;
-  };
+  // Old formatInlineElements removed - comprehensive formatter handles all special formatting
 
   return (
     <div className="message-content" style={{
