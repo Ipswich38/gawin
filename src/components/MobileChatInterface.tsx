@@ -1131,11 +1131,7 @@ Provide a helpful explanation followed by properly formatted code in markdown bl
           }
         }
 
-        // Show the code in the editor
-        if (codeResponse) {
-          setGeneratedCode(codeResponse);
-          setShowCodeEditor(true);
-        }
+        // Code blocks are now handled inline in MessageRenderer
 
         // Show the chat response in the chat
         const aiResponse: Message = {
