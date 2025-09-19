@@ -1,0 +1,237 @@
+Here’s a master guide for your AI to follow when formatting different types of text. This guide includes rules for poems, lyrics, research, business reports, enumerations, and splitting long paragraphs. I’ll also provide a Python code template to enforce these rules programmatically.
+
+Master Guide to Text Formatting for AI
+
+1. Poems
+
+Structure: Preserve line breaks and stanzas.
+Formatting:
+
+**Title of the Poem**
+
+Stanza 1 Line 1
+Stanza 1 Line 2
+Stanza 1 Line 3
+
+Stanza 2 Line 1
+Stanza 2 Line 2
+
+Example:
+
+**The Road Not Taken**
+
+Two roads diverged in a yellow wood,
+And sorry I could not travel both
+And be one traveler, long I stood
+
+2. Lyrics
+
+Structure: Separate verses, choruses, and bridges.
+Formatting:
+
+**Song Title** – *Artist*
+
+[Verse 1]
+Line 1 of verse
+Line 2 of verse
+
+[Chorus]
+Line 1 of chorus
+Line 2 of chorus
+
+Example:
+**Bohemian Rhapsody** – *Queen*
+
+[Verse 1]
+Is this the real life?
+Is this just fantasy?
+
+[Chorus]
+We will, we will rock you!
+
+3. Research Papers
+
+Structure: Use clear sections: Abstract, Introduction, Methods, Results, Discussion, References.
+Formatting:
+
+# Title of the Research Paper
+
+## Abstract
+Brief summary of the research.
+
+## Introduction
+Background and objectives.
+
+## Methods
+- Method 1
+- Method 2
+
+## Results
+- Key finding 1
+- Key finding 2
+
+## Discussion
+Interpretation of results.
+
+## References
+- [1] Author, Title, Journal, Year
+- [2] Author, Title, Journal, Year
+
+4. Business Reports
+
+Structure: Executive Summary, Introduction, Data/Analysis, Recommendations, Conclusion.
+Formatting:
+
+# Business Report: [Title]
+
+## Executive Summary
+Brief overview of findings.
+
+## Introduction
+Purpose and scope.
+
+## Data/Analysis
+- **Metric 1:** Data and analysis
+- **Metric 2:** Data and analysis
+
+## Recommendations
+- Action 1
+- Action 2
+
+## Conclusion
+Summary and next steps.
+
+5. Enumerations (Lists)
+
+Use Cases: Steps, features, or items.
+Formatting:
+1. First item
+2. Second item
+- Sub-item 1
+- Sub-item 2
+
+
+6. Splitting Long Paragraphs
+
+
+Rule: Split paragraphs longer than 3-4 sentences.
+
+
+Methods:
+
+By Topic: Separate distinct ideas.
+By Example: Use bullet points for examples or details.
+By Emphasis: Highlight key points in bold or italics.
+
+Example:
+**Original Long Paragraph:**
+Artificial Intelligence (AI) is transforming industries by automating tasks, improving decision-making, and enabling innovation. In healthcare, AI is used for diagnostics and personalized treatment plans. In finance, AI algorithms analyze market trends and detect fraud. The adoption of AI is growing rapidly, with businesses investing heavily in AI research and development.
+
+**Formatted Version:**
+Artificial Intelligence (AI) is transforming industries by **automating tasks**, improving decision-making, and enabling innovation.
+
+- **Healthcare:** AI is used for diagnostics and personalized treatment plans.
+- **Finance:** AI algorithms analyze market trends and detect fraud.
+
+The adoption of AI is growing rapidly, with businesses investing heavily in AI research and development.
+
+Python Code Template to Enforce Formatting Rules
+Below is a Python function to enforce these formatting rules. You can integrate this into your AI’s response generation pipeline.
+
+Example:
+def format_text(text_type: str, content: str) -> str:
+    """
+    Formats text based on the specified type.
+
+    Args:
+        text_type (str): Type of text (e.g., "poem", "lyrics", "research", "business", "list").
+        content (str): Raw text content to format.
+
+    Returns:
+        str: Formatted text.
+    """
+    if text_type == "poem":
+        # Preserve line breaks and stanzas
+        formatted = f"**{content.split('\n')[0]}**\n\n"
+        formatted += "\n".join(content.split("\n")[1:])
+        return formatted
+
+    elif text_type == "lyrics":
+        # Separate verses and choruses
+        formatted = f"**{content.split('\n')[0]}**\n\n"
+        lines = content.split("\n")[1:]
+        for line in lines:
+            if line.startswith("["):
+                formatted += f"\n{line}\n"
+            else:
+                formatted += f"{line}\n"
+        return formatted
+
+    elif text_type == "research":
+        # Structure research paper sections
+        sections = content.split("\n# ")
+        formatted = f"# {sections[0]}\n\n"
+        for section in sections[1:]:
+            formatted += f"## {section.split('\n')[0]}\n"
+            formatted += "\n".join(section.split("\n")[1:]) + "\n\n"
+        return formatted
+
+    elif text_type == "business":
+        # Structure business report sections
+        sections = content.split("\n# ")
+        formatted = f"# {sections[0]}\n\n"
+        for section in sections[1:]:
+            formatted += f"## {section.split('\n')[0]}\n"
+            formatted += "\n".join(section.split("\n")[1:]) + "\n\n"
+        return formatted
+
+    elif text_type == "list":
+        # Format enumerations
+        items = content.split("\n")
+        formatted = ""
+        for i, item in enumerate(items, 1):
+            if item.strip():
+                formatted += f"{i}. {item}\n"
+        return formatted
+
+    elif text_type == "paragraph":
+        # Split long paragraphs
+        sentences = content.split(". ")
+        formatted = ""
+        for i, sentence in enumerate(sentences):
+            if i % 3 == 0 and i != 0:  # Split every 3 sentences
+                formatted += "\n\n"
+            formatted += f"{sentence}. "
+        return formatted
+
+    else:
+        return content
+
+
+7. . Prompt for Splitting Long Paragraphs
+
+Split the following long paragraph into shorter paragraphs or bullet points for better readability.
+- Split every 3-4 sentences or by distinct ideas.
+- Use bullet points for examples or details.
+- Highlight key points in bold or italics.
+
+**Example Format:**
+**Original Long Paragraph:**
+Long paragraph text here.
+
+**Formatted Version:**
+First 2-3 sentences of the original paragraph.
+
+- **Key Point 1:** Supporting detail or example.
+- **Key Point 2:** Supporting detail or example.
+
+Next 2-3 sentences of the original paragraph.
+
+**Text to Format:**
+[Insert long paragraph text here]
+
+General Instructions for AI
+
+Always follow the formatting rules strictly.
+If the text type is unclear, ask for clarification.
+Preserve the original meaning and intent of the text while formatting

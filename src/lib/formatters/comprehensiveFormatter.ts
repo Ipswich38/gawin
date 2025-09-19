@@ -28,10 +28,25 @@ export class ComprehensiveFormatter {
    */
   static detectContentType(text: string): ContentType {
     const lowerText = text.toLowerCase();
+    const lines = text.split('\n').filter(line => line.trim());
 
-    // Quick detection for formatting hints
+    // Song detection
     if (lowerText.includes('🎵') || /\[(verse|chorus|bridge)\]/i.test(text)) return 'song';
+
+    // Poem detection (enhanced)
+    if (lines.length >= 3 && lines.length <= 50) {
+      const avgLineLength = lines.reduce((sum, line) => sum + line.length, 0) / lines.length;
+      const hasShortLines = avgLineLength < 60;
+      const hasPoetryWords = /poem|poetry|stanza|verse|rhyme/.test(lowerText);
+      const hasNaturalBreaks = text.includes('\n\n');
+
+      if ((hasShortLines && hasNaturalBreaks) || hasPoetryWords) return 'poem';
+    }
+
+    // Research paper detection
     if (/^#{1,3}\s+(abstract|introduction|methodology)/im.test(text)) return 'research';
+
+    // List detection
     if (/^\d+\./m.test(text) || /list|ideas|ways|steps/.test(lowerText)) return 'enumeration';
 
     return 'general';
@@ -155,6 +170,11 @@ export class ComprehensiveFormatter {
       formatted = this.formatSongLyricsSimple(formatted);
     }
 
+    // Poems: Ensure proper stanza formatting
+    else if (contentType === 'poem') {
+      formatted = this.formatPoemSimple(formatted);
+    }
+
     // Research papers: Ensure proper headings
     else if (contentType === 'research') {
       formatted = this.formatResearchSimple(formatted);
@@ -164,27 +184,91 @@ export class ComprehensiveFormatter {
   }
 
   /**
-   * Simple song lyrics formatting (no special containers)
+   * Format song lyrics following the exact guide format
    */
   private static formatSongLyricsSimple(text: string): string {
-    let formatted = text;
+    const lines = text.split('\n');
+    let result: string[] = [];
+    let title = '';
 
-    // Ensure song title has proper formatting
-    if (!formatted.startsWith('🎵')) {
-      const lines = formatted.split('\n');
-      if (lines.length > 0 && lines[0].trim()) {
-        lines[0] = `🎵 **${lines[0].trim()}**`;
-        formatted = lines.join('\n');
+    // Extract title (first line or line with 🎵)
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (line && !line.startsWith('[') && !title) {
+        title = line.replace(/^🎵\s*/, '').trim();
+        break;
       }
     }
 
-    // Ensure section labels are properly formatted
-    formatted = formatted.replace(/^\[(Verse|Chorus|Bridge|Outro|Intro|Pre-Chorus).*?\]$/gm, '**[$1]**');
+    // Format according to guide: **Song Title** – *Artist*
+    if (title) {
+      result.push(`**${title}**`);
+      result.push('');
+    }
 
-    // Ensure proper line breaks between sections
-    formatted = formatted.replace(/(\*\*\[.*?\]\*\*)\n/g, '$1\n\n');
+    // Process remaining lines
+    lines.forEach(line => {
+      const trimmed = line.trim();
+      if (!trimmed) {
+        result.push('');
+      } else if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        // Section labels like [Verse 1], [Chorus]
+        result.push('');
+        result.push(trimmed);
+      } else if (trimmed !== title.replace(/^🎵\s*/, '').trim()) {
+        // Lyric lines
+        result.push(trimmed);
+      }
+    });
 
-    return formatted;
+    return result.join('\n').replace(/\n{3,}/g, '\n\n');
+  }
+
+  /**
+   * Format poems following the exact guide format
+   */
+  private static formatPoemSimple(text: string): string {
+    const lines = text.split('\n');
+    let result: string[] = [];
+    let title = '';
+
+    // Extract title (first line if it looks like a title)
+    if (lines.length > 0 && lines[0].trim() && lines[0].trim().length < 100) {
+      title = lines[0].trim();
+    }
+
+    // Format according to guide: **Title of the Poem**
+    if (title) {
+      result.push(`**${title}**`);
+      result.push('');
+    }
+
+    // Process remaining lines, preserving stanza structure
+    let currentStanza: string[] = [];
+    const startIndex = title ? 1 : 0;
+
+    for (let i = startIndex; i < lines.length; i++) {
+      const line = lines[i].trim();
+
+      if (line === '') {
+        // Empty line - end current stanza
+        if (currentStanza.length > 0) {
+          result.push(...currentStanza);
+          result.push('');
+          currentStanza = [];
+        }
+      } else {
+        // Add line to current stanza
+        currentStanza.push(line);
+      }
+    }
+
+    // Add final stanza
+    if (currentStanza.length > 0) {
+      result.push(...currentStanza);
+    }
+
+    return result.join('\n').replace(/\n{3,}/g, '\n\n');
   }
 
   /**
