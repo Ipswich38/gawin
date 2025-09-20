@@ -18,6 +18,7 @@ import { GawinConversationEngine, type ConversationContext, type EnhancedRespons
 import { LocationService, type UserLocation } from '@/lib/services/locationService';
 import LocationStatusBar from './LocationStatusBar';
 import PrivacyDashboard from './PrivacyDashboard';
+import VoiceModePopup from './VoiceModePopup';
 
 // Screen Share Component
 const ScreenShareButton: React.FC = () => {
@@ -185,7 +186,7 @@ import { useIntelligentTranslation } from '../hooks/useTranslation';
 // 🎨 UI ENHANCEMENTS
 import {
   ChatIcon, QuizIcon, CreativeIcon, SearchIcon as ResearchIcon,
-  SendIcon, MenuIcon, CloseIcon, LoadingIcon, PermissionsIcon
+  SendIcon, MenuIcon, CloseIcon, LoadingIcon, PermissionsIcon, VoiceModeIcon
 } from './ui/LineIcons';
 import { Eye, Mic } from 'lucide-react';
 import { deviceDetection, DeviceInfo, OptimizationConfig } from '../utils/deviceDetection';
@@ -319,6 +320,9 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   const [currentVoiceTranscript, setCurrentVoiceTranscript] = useState('');
   const [isGawinSpeaking, setIsGawinSpeaking] = useState(false);
 
+  // 🎙️ Voice Mode states
+  const [showVoiceModePopup, setShowVoiceModePopup] = useState(false);
+
   // Voice input handlers
   const handleVoiceTranscript = (transcript: string, isFinal: boolean) => {
     if (isFinal) {
@@ -337,6 +341,13 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
     if (message.trim()) {
       handleSend(message);
       setCurrentVoiceTranscript('');
+    }
+  };
+
+  // 🎙️ Voice Mode handlers
+  const handleVoiceModeMessage = (message: string) => {
+    if (message.trim()) {
+      handleSend(message);
     }
   };
 
@@ -3262,6 +3273,20 @@ Questions: ${count}`
                         />
                       </div>
 
+                      {/* Voice Mode (Hands-Free) */}
+                      <button
+                        onClick={() => setShowVoiceModePopup(true)}
+                        className="p-2 sm:p-2.5 bg-gray-800/60 hover:bg-purple-600/20 border border-gray-700/50 hover:border-purple-500/50 rounded-xl transition-all duration-200 group relative"
+                        title="Voice Mode - Talk with Gawin hands-free"
+                      >
+                        <VoiceModeIcon
+                          size={14}
+                          className="sm:size-4 text-gray-400 group-hover:text-purple-400 transition-colors"
+                        />
+                        {/* Animated pulse for voice mode */}
+                        <div className="absolute inset-0 rounded-xl bg-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </button>
+
                       {/* Vision Control */}
                       <div className="relative">
                         <SimpleVision
@@ -3508,6 +3533,13 @@ Questions: ${count}`
           setShowUpdateNotification(false);
         }}
         autoApplySeconds={10}
+      />
+
+      {/* 🎙️ Voice Mode Popup */}
+      <VoiceModePopup
+        isOpen={showVoiceModePopup}
+        onClose={() => setShowVoiceModePopup(false)}
+        onVoiceMessage={handleVoiceModeMessage}
       />
 
       </div>
