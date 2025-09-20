@@ -14,6 +14,7 @@ import UpdateNotification from './UpdateNotification';
 import { hapticService } from '@/lib/services/hapticService';
 import { autoUpdateService } from '@/lib/services/autoUpdateService';
 import { UniversalDocumentFormatter } from '@/lib/formatters/universalDocumentFormatter';
+import { GawinConversationEngine, type ConversationContext, type EnhancedResponse } from '@/lib/services/gawinConversationEngine';
 
 // Screen Share Component
 const ScreenShareButton: React.FC = () => {
@@ -198,6 +199,9 @@ interface Message {
   imageUrl?: string;
   thinking?: string; // For Gawin's internal thought process
   documentType?: string; // For universal document formatting
+  context?: ConversationContext; // Enhanced conversation context
+  emotion?: string; // Detected emotion
+  confidence?: number; // Response confidence
 }
 
 interface Tab {
@@ -672,6 +676,9 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
     const lowerMessage = message.toLowerCase();
     return formatKeywords.some(keyword => lowerMessage.includes(keyword));
   };
+
+  // 🇵🇭 Initialize enhanced Gawin conversation engine
+  const [gawinEngine] = useState(() => new GawinConversationEngine());
 
   const handleSend = async (text: string) => {
     const messageText = text.trim();
@@ -1396,11 +1403,69 @@ Generate a complete, professional ${documentType.replace('_', ' ')} document bas
   };
 
   const handleTextGeneration = async (messageText: string, userMessage: Message) => {
+    try {
+      // 🇵🇭 Enhanced Gawin conversation with Filipino consciousness
+      const conversationHistory = activeTab?.messages?.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      })) || [];
+
+      console.log('🇵🇭 Initializing enhanced Gawin conversation...');
+
+      // Use the enhanced conversation engine
+      const gawinResponse = await gawinEngine.sendToGroq(messageText, conversationHistory);
+
+      console.log('🧠 Enhanced Conversation Analysis:', {
+        detectedLanguage: gawinResponse.context.language,
+        emotion: gawinResponse.context.emotion,
+        intent: gawinResponse.context.intent,
+        needsMemory: gawinResponse.context.needsMemory,
+        conversationFlow: gawinResponse.context.conversationFlow,
+        topics: gawinResponse.context.topics,
+        confidence: gawinResponse.confidence || 'N/A'
+      });
+
+      // Create AI response message with enhanced consciousness
+      const aiResponse: Message = {
+        id: Date.now() + 1,
+        role: 'assistant',
+        content: gawinResponse.content,
+        timestamp: new Date().toISOString(),
+        thinking: `🇵🇭 Enhanced Filipino AI consciousness active... language: ${gawinResponse.context.language}... emotion: ${gawinResponse.context.emotion}... intent: ${gawinResponse.context.intent}... flow: ${gawinResponse.context.conversationFlow}... topics: ${gawinResponse.context.topics.join(', ') || 'general'}... natural empathy engaged...`,
+        context: gawinResponse.context,
+        emotion: gawinResponse.emotion,
+        confidence: gawinResponse.confidence
+      };
+
+      setTabs(prev => prev.map(tab =>
+        tab.id === activeTab?.id
+          ? { ...tab, messages: [...tab.messages, aiResponse], isLoading: false }
+          : tab
+      ));
+
+      // 🎙️ AUTO-SPEAK GAWIN'S RESPONSE with proper language detection
+      if (voiceService.isVoiceEnabled()) {
+        const speechLanguage = gawinResponse.context.language === 'tagalog'
+          ? 'filipino'
+          : gawinResponse.context.language === 'taglish'
+            ? 'taglish'
+            : 'english';
+
+        await voiceService.autoSpeak(gawinResponse.content, speechLanguage);
+      }
+
+      return;
+
+    } catch (error) {
+      console.error('Enhanced conversation error, falling back to standard system:', error);
+    }
+
+    // Fallback to original system if enhanced conversation fails
     // 🇵🇭 FILIPINO LANGUAGE DETECTION - Analyze user's language first
     const languageDetection = filipinoLanguageService.detectLanguage(messageText);
     setCurrentLanguageDetection(languageDetection);
 
-    console.log('🇵🇭 Language Detection:', {
+    console.log('🇵🇭 Language Detection (Fallback):', {
       language: languageDetection.primary,
       confidence: (languageDetection.confidence * 100).toFixed(1) + '%',
       style: languageDetection.styleType,
