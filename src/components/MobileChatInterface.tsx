@@ -2797,14 +2797,14 @@ Questions: ${count}`
       {/* Main App Content with transparency */}
       <div className="relative z-20 h-full flex flex-col">
 
-        {/* 🌍 Location Status Bar */}
-        <LocationStatusBar
+        {/* 🌍 Location Status Bar - Hidden for cleaner UI */}
+        {/* <LocationStatusBar
           location={userLocation}
           status={locationStatus}
           onLocationChange={handleLocationChange}
           onClearLocation={handleClearLocation}
           onRefreshLocation={handleRefreshLocation}
-        />
+        /> */}
 
         {/* Mobile Tabs - Reduced Height */}
         <div className={`

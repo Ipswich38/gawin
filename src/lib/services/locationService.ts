@@ -95,7 +95,7 @@ export class LocationService {
   }
 
   /**
-   * Create privacy-focused consent modal
+   * Create simple consent modal
    */
   private createConsentModal(): HTMLElement {
     const modal = document.createElement('div');
@@ -107,7 +107,7 @@ export class LocationService {
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0,0,0,0.6);
+        background: rgba(0,0,0,0.5);
         z-index: 10000;
         display: flex;
         align-items: center;
@@ -116,68 +116,44 @@ export class LocationService {
       ">
         <div style="
           background: white;
-          padding: 30px;
-          border-radius: 16px;
-          max-width: 450px;
+          padding: 24px;
+          border-radius: 12px;
+          max-width: 320px;
           text-align: center;
-          box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+          box-shadow: 0 4px 20px rgba(0,0,0,0.15);
           margin: 20px;
         ">
-          <div style="font-size: 48px; margin-bottom: 16px;">🌍</div>
-          <h3 style="margin: 0 0 16px 0; color: #1a1a1a; font-size: 20px;">Personalize Your Gawin Experience</h3>
-          <p style="color: #666; line-height: 1.5; margin-bottom: 20px;">
-            Gawin can provide better local information like weather, time, and cultural context if it knows your general location.
+          <div style="font-size: 32px; margin-bottom: 12px;">📍</div>
+          <h3 style="margin: 0 0 12px 0; color: #1a1a1a; font-size: 18px;">Allow Location?</h3>
+          <p style="color: #666; line-height: 1.4; margin-bottom: 20px; font-size: 14px;">
+            Gawin can provide better local context like weather and time.
           </p>
 
-          <div style="
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 12px;
-            margin: 20px 0;
-            text-align: left;
-            border-left: 4px solid #007bff;
-          ">
-            <div style="font-weight: 600; color: #007bff; margin-bottom: 8px;">🔒 Privacy Promise</div>
-            <div style="font-size: 14px; color: #555; line-height: 1.4;">
-              • Only your city/country is detected<br>
-              • No precise coordinates stored<br>
-              • You control and can change this anytime<br>
-              • Data stays private in your device<br>
-              • Never shared with third parties
-            </div>
-          </div>
-
-          <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+          <div style="display: flex; gap: 10px; justify-content: center;">
             <button class="consent-allow" style="
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              background: #007bff;
               color: white;
               border: none;
-              padding: 12px 24px;
-              border-radius: 8px;
+              padding: 10px 20px;
+              border-radius: 6px;
               cursor: pointer;
               font-weight: 500;
               font-size: 14px;
-              transition: transform 0.2s;
-            " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-              🎯 Allow Location
+            ">
+              Allow
             </button>
             <button class="consent-deny" style="
               background: #6c757d;
               color: white;
               border: none;
-              padding: 12px 24px;
-              border-radius: 8px;
+              padding: 10px 20px;
+              border-radius: 6px;
               cursor: pointer;
               font-weight: 500;
               font-size: 14px;
-              transition: transform 0.2s;
-            " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-              ❌ No Thanks
+            ">
+              Skip
             </button>
-          </div>
-
-          <div style="font-size: 12px; color: #999; margin-top: 16px;">
-            You can change this setting anytime in privacy controls
           </div>
         </div>
       </div>
