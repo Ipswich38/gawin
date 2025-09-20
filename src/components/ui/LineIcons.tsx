@@ -166,3 +166,11 @@ export const WriteIcon: React.FC<IconProps> = ({ size = 20, className = "", stro
     <path d="M18.5,2.5a2.121,2.121 0,0 1 3,3L12,15l-4,1,1-4Z"/>
   </svg>
 );
+
+export const PermissionsIcon: React.FC<IconProps> = ({ size = 20, className = "", strokeWidth = 1.5 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+    <circle cx="12" cy="16" r="1"/>
+    <path d="M7,11V7a5,5 0,0 1 10,0v4"/>
+  </svg>
+);

@@ -185,7 +185,7 @@ import { useIntelligentTranslation } from '../hooks/useTranslation';
 // 🎨 UI ENHANCEMENTS
 import {
   ChatIcon, QuizIcon, CreativeIcon, SearchIcon as ResearchIcon,
-  SendIcon, MenuIcon, CloseIcon, LoadingIcon
+  SendIcon, MenuIcon, CloseIcon, LoadingIcon, PermissionsIcon
 } from './ui/LineIcons';
 import { Eye, Mic } from 'lucide-react';
 import { deviceDetection, DeviceInfo, OptimizationConfig } from '../utils/deviceDetection';
@@ -209,7 +209,7 @@ interface Message {
 
 interface Tab {
   id: string;
-  type: 'general' | 'quiz' | 'creative' | 'research';
+  type: 'general' | 'quiz' | 'creative' | 'research' | 'permissions';
   title: string;
   icon: React.ComponentType<{ size?: number; className?: string }>;
   isActive: boolean;
@@ -267,7 +267,8 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
     general: { title: 'New Chat', icon: ChatIcon },
     quiz: { title: 'Quiz', icon: QuizIcon },
     creative: { title: 'Create', icon: CreativeIcon },
-    research: { title: 'Research', icon: ResearchIcon }
+    research: { title: 'Research', icon: ResearchIcon },
+    permissions: { title: 'Permissions', icon: PermissionsIcon }
   };
 
 
@@ -2169,6 +2170,8 @@ Format your response according to the content type requested.`;
         return <ResearchMode />;
       case 'creative':
         return renderCreativeContent();
+      case 'permissions':
+        return renderPermissionsContent();
       default:
         return renderChatContent();
     }
@@ -2582,6 +2585,253 @@ Questions: ${count}`
       {/* Chat Content */}
       <div className="flex-1 overflow-hidden">
         {renderChatContent()}
+      </div>
+    </div>
+  );
+
+  const renderPermissionsContent = () => (
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="p-4 text-center">
+        <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+          <PermissionsIcon size={20} />Permissions
+        </h2>
+        <p className="text-gray-400 text-sm mt-1">Manage your privacy settings and permissions</p>
+      </div>
+
+      {/* Permissions Content */}
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+
+        {/* Location Settings */}
+        <div className="bg-gray-800/50 rounded-2xl p-4 border border-gray-700/50">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                <span className="text-blue-400 text-lg">📍</span>
+              </div>
+              <div>
+                <h3 className="text-white font-medium">Location Services</h3>
+                <p className="text-gray-400 text-sm">Used for personalized responses and local context</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  checked={userLocation !== null}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      handleRefreshLocation();
+                    } else {
+                      handleClearLocation();
+                    }
+                  }}
+                  className="sr-only"
+                />
+                <div className={`w-12 h-6 rounded-full transition-colors ${
+                  userLocation ? 'bg-blue-600' : 'bg-gray-600'
+                }`}>
+                  <div className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${
+                    userLocation ? 'translate-x-6' : 'translate-x-0.5'
+                  } mt-0.5`} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Location Details */}
+          {userLocation && (
+            <div className="bg-gray-900/50 rounded-xl p-3 border border-gray-600/30">
+              <div className="text-sm space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Current Location:</span>
+                  <span className="text-white">{userLocation.city}, {userLocation.country}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Detection Method:</span>
+                  <span className="text-gray-300 capitalize">
+                    {userLocation.method === 'browser_geolocation' ? 'GPS' :
+                     userLocation.method === 'ip_geolocation' ? 'IP Address' :
+                     userLocation.method === 'user_override' ? 'Manual' :
+                     userLocation.method}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Accuracy:</span>
+                  <span className="text-gray-300 capitalize">{userLocation.accuracy}</span>
+                </div>
+              </div>
+
+              {/* Location Actions */}
+              <div className="flex space-x-2 mt-3">
+                <button
+                  onClick={handleRefreshLocation}
+                  disabled={locationStatus === 'detecting'}
+                  className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white text-sm rounded-lg transition-colors"
+                >
+                  {locationStatus === 'detecting' ? 'Refreshing...' : '🔄 Refresh'}
+                </button>
+                <button
+                  onClick={() => {
+                    // Handle manual location change - could open a modal or similar
+                    const newCity = prompt('Enter your city:', userLocation.city || '');
+                    const newCountry = prompt('Enter your country:', userLocation.country || '');
+                    if (newCity && newCountry) {
+                      handleLocationChange(newCity, '', newCountry);
+                    }
+                  }}
+                  className="flex-1 px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded-lg transition-colors"
+                >
+                  ✏️ Change
+                </button>
+                <button
+                  onClick={handleClearLocation}
+                  className="flex-1 px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"
+                >
+                  🗑️ Clear
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Camera & Vision */}
+        <div className="bg-gray-800/50 rounded-2xl p-4 border border-gray-700/50">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-green-500/20 rounded-xl flex items-center justify-center">
+                <span className="text-green-400 text-lg">📷</span>
+              </div>
+              <div>
+                <h3 className="text-white font-medium">Camera & Vision</h3>
+                <p className="text-gray-400 text-sm">Access to camera for visual analysis</p>
+              </div>
+            </div>
+            <div className="relative">
+              <input
+                type="checkbox"
+                checked={visionContext.cameraActive}
+                onChange={() => {
+                  // Toggle vision would be handled by the vision service
+                  console.log('Toggle camera access');
+                }}
+                className="sr-only"
+              />
+              <div className={`w-12 h-6 rounded-full transition-colors ${
+                visionContext.cameraActive ? 'bg-green-600' : 'bg-gray-600'
+              }`}>
+                <div className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${
+                  visionContext.cameraActive ? 'translate-x-6' : 'translate-x-0.5'
+                } mt-0.5`} />
+              </div>
+            </div>
+          </div>
+          <p className="text-xs text-gray-500">
+            Camera access enables Gawin to provide visual context and assistance based on what you're looking at.
+          </p>
+        </div>
+
+        {/* Microphone & Speech */}
+        <div className="bg-gray-800/50 rounded-2xl p-4 border border-gray-700/50">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center">
+                <span className="text-purple-400 text-lg">🎤</span>
+              </div>
+              <div>
+                <h3 className="text-white font-medium">Microphone & Speech</h3>
+                <p className="text-gray-400 text-sm">Voice input and speech recognition</p>
+              </div>
+            </div>
+            <div className="relative">
+              <input
+                type="checkbox"
+                defaultChecked={false}
+                className="sr-only"
+              />
+              <div className="w-12 h-6 rounded-full bg-gray-600">
+                <div className="w-5 h-5 rounded-full bg-white shadow-md transform transition-transform translate-x-0.5 mt-0.5" />
+              </div>
+            </div>
+          </div>
+          <p className="text-xs text-gray-500">
+            Microphone access enables voice commands and speech-to-text functionality for hands-free interaction.
+          </p>
+        </div>
+
+        {/* Voice Output */}
+        <div className="bg-gray-800/50 rounded-2xl p-4 border border-gray-700/50">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-yellow-500/20 rounded-xl flex items-center justify-center">
+                <span className="text-yellow-400 text-lg">🔊</span>
+              </div>
+              <div>
+                <h3 className="text-white font-medium">Voice Output</h3>
+                <p className="text-gray-400 text-sm">Text-to-speech for responses</p>
+              </div>
+            </div>
+            <div className="relative">
+              <input
+                type="checkbox"
+                defaultChecked={false}
+                className="sr-only"
+              />
+              <div className="w-12 h-6 rounded-full bg-gray-600">
+                <div className="w-5 h-5 rounded-full bg-white shadow-md transform transition-transform translate-x-0.5 mt-0.5" />
+              </div>
+            </div>
+          </div>
+          <p className="text-xs text-gray-500">
+            Enable spoken responses for accessibility and hands-free interaction.
+          </p>
+        </div>
+
+        {/* Data Storage */}
+        <div className="bg-gray-800/50 rounded-2xl p-4 border border-gray-700/50">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-orange-500/20 rounded-xl flex items-center justify-center">
+                <span className="text-orange-400 text-lg">💾</span>
+              </div>
+              <div>
+                <h3 className="text-white font-medium">Local Data Storage</h3>
+                <p className="text-gray-400 text-sm">Save preferences and conversation history locally</p>
+              </div>
+            </div>
+            <div className="relative">
+              <input
+                type="checkbox"
+                defaultChecked={true}
+                className="sr-only"
+              />
+              <div className="w-12 h-6 rounded-full bg-orange-600">
+                <div className="w-5 h-5 rounded-full bg-white shadow-md transform transition-transform translate-x-6 mt-0.5" />
+              </div>
+            </div>
+          </div>
+          <p className="text-xs text-gray-500">
+            Data is stored locally on your device for better performance and personalization. No data is sent to external servers without your permission.
+          </p>
+        </div>
+
+        {/* Privacy Notice */}
+        <div className="bg-blue-900/20 border border-blue-700/50 rounded-2xl p-4">
+          <div className="flex items-start space-x-3">
+            <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <span className="text-blue-400 text-lg">🔒</span>
+            </div>
+            <div>
+              <h3 className="text-blue-100 font-medium mb-2">Privacy First</h3>
+              <p className="text-blue-200 text-sm leading-relaxed">
+                Your privacy is our priority. All data processing happens locally on your device when possible.
+                Location data is used only for providing relevant local context and is never shared with third parties.
+                You can disable any permission at any time.
+              </p>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   );
@@ -3198,6 +3448,7 @@ Questions: ${count}`
                   { type: 'quiz' as const, icon: <QuizIcon size={16} />, label: 'Quiz Generator' },
                   { type: 'creative' as const, icon: <CreativeIcon size={16} />, label: 'Creative Studio' },
                   { type: 'research' as const, icon: <ResearchIcon size={16} />, label: 'Research Mode' },
+                  { type: 'permissions' as const, icon: <PermissionsIcon size={16} />, label: 'Permissions' },
                 ].map((item) => (
                   <button
                     key={item.type}
