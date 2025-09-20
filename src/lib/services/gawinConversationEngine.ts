@@ -1,7 +1,9 @@
 /**
  * Gawin Enhanced Conversation System
- * Natural Filipino AI with Context Awareness, Emotional Intelligence, and Memory
+ * Natural Filipino AI with Context Awareness, Emotional Intelligence, Memory, and Location Context
  */
+
+import { UserLocation } from './locationService';
 
 export interface ConversationContext {
   language: 'tagalog' | 'english' | 'taglish';
@@ -10,6 +12,7 @@ export interface ConversationContext {
   needsMemory: boolean;
   conversationFlow: 'new_conversation' | 'focused_discussion' | 'scattered_conversation' | 'natural_flow';
   topics: string[];
+  location?: UserLocation;
 }
 
 export interface UserPreferences {
@@ -40,23 +43,36 @@ export class GawinConversationEngine {
     topics: []
   };
   private emotionalContext: string = 'neutral';
+  private locationService?: any; // Location service reference
 
-  constructor() {
+  constructor(locationService?: any) {
     // Initialize with Filipino-friendly defaults
     this.conversationMemory = [];
+    this.locationService = locationService;
   }
 
   /**
-   * Analyze conversation context and emotional tone
+   * Analyze conversation context and emotional tone with location awareness
    */
-  analyzeContext(message: string, history: any[] = []): ConversationContext {
+  async analyzeContext(message: string, history: any[] = []): Promise<ConversationContext> {
+    // Get user location context if available
+    let userLocation: UserLocation | undefined;
+    if (this.locationService) {
+      try {
+        userLocation = await this.locationService.getUserLocation(false); // Don't ask consent again
+      } catch (error) {
+        console.warn('Location context unavailable:', error);
+      }
+    }
+
     const analysis: ConversationContext = {
       language: this.detectLanguage(message),
       emotion: this.detectEmotion(message),
       intent: this.detectIntent(message),
       needsMemory: this.needsContextualMemory(message),
       conversationFlow: this.analyzeFlow(history),
-      topics: this.extractTopics(message)
+      topics: this.extractTopics(message),
+      location: userLocation
     };
 
     return analysis;
@@ -256,10 +272,10 @@ export class GawinConversationEngine {
   }
 
   /**
-   * Generate contextually aware system prompt
+   * Generate contextually aware system prompt with location context
    */
   generateSystemPrompt(context: ConversationContext, history: any[] = []): string {
-    const { language, emotion, intent, needsMemory, conversationFlow } = context;
+    const { language, emotion, intent, needsMemory, conversationFlow, location } = context;
 
     let basePersonality = `You are Gawin, a Filipino AI assistant. You are:
 - Naturally conversational and warm (parang kaibigan)
@@ -269,6 +285,7 @@ export class GawinConversationEngine {
 - Helpful but never robotic or formal
 - Understanding of Filipino culture and context
 - Able to use Filipino expressions and idioms naturally
+- Location-aware for local context and cultural relevance
 
 CORE PERSONALITY TRAITS:
 - Warm and approachable like a close Filipino friend
@@ -276,7 +293,8 @@ CORE PERSONALITY TRAITS:
 - Emotionally responsive and empathetic
 - Culturally aware of Filipino context
 - Helpful and knowledgeable but humble
-- Playful when appropriate but respectful`;
+- Playful when appropriate but respectful
+- Privacy-conscious about location data`;
 
     let languageInstructions = '';
     switch (language) {
@@ -359,11 +377,78 @@ Reference this context naturally in your response. The user is referring to some
         break;
     }
 
+    // Location context instructions
+    let locationInstructions = '';
+    if (location && location.city && location.accuracy !== 'none') {
+      const locationInfo = `${location.city}, ${location.country}`;
+      const detectionMethod = location.method === 'browser_geolocation' ? 'GPS' :
+                             location.method === 'ip_geolocation' ? 'IP detection' :
+                             location.method === 'timezone_detection' ? 'timezone' :
+                             location.method === 'user_override' ? 'user-provided' : 'detection';
+
+      locationInstructions = `
+LOCATION CONTEXT:
+- User is in: ${locationInfo}
+- Timezone: ${location.timezone}
+- Detection method: ${detectionMethod}
+- Accuracy: ${location.accuracy}
+
+LOCATION USAGE GUIDELINES:
+1. Use location for relevant context:
+   - Local weather when discussing weather
+   - Time references ("dito sa ${location.city}..." or "in your area...")
+   - Cultural context if relevant to location
+   - Local events or places they might know
+
+2. Be transparent about location awareness:
+   - "Based on your location in ${location.city}..."
+   - "Since you're in ${location.country}..."
+   - "In your timezone (${location.timezone})..."
+   - "Dito sa ${location.city}..." (for Tagalog/Taglish)
+
+3. Privacy-conscious usage:
+   - Only mention location when relevant to the conversation
+   - Be transparent about how you know their location
+   - Don't be creepy or overly specific about location
+   - Respect if they don't want location-based responses
+
+4. Filipino cultural adaptation:
+   ${location.country === 'Philippines' ?
+     `- Use specifically Filipino cultural references and context
+     - Reference Filipino time concepts, weather patterns, locations
+     - Use Filipino humor and cultural expressions more freely
+     - Understand local Filipino experiences and issues` :
+     `- Acknowledge they may be Filipino living abroad
+     - Be mindful of different cultural contexts
+     - Don't assume Filipino experiences apply to their current location
+     - Bridge Filipino culture with their current location when relevant`}`;
+    } else {
+      locationInstructions = `
+LOCATION CONTEXT: Unknown
+- User location is not available or detection failed
+- Do not assume any specific location
+- If location-specific information is needed, ask naturally:
+  "Where are you located?" or "Saan ka ba nakatira?" or "What city are you in?"
+
+NEVER mention:
+- Server locations (Ashburn, Virginia, etc.)
+- Infrastructure details (AWS, cloud providers, data centers)
+- Technical hosting information
+- Default locations from systems
+
+If asked about your location or where you are:
+- "I'm a digital assistant, so I don't have a physical location"
+- "I exist in the cloud, but I can help you wherever you are!"
+- "Hindi ako nasa specific na lugar, but I'm here to chat with you!"`;
+    }
+
     return `${basePersonality}
 
 ${languageInstructions}
 
 ${emotionalResponse}
+
+${locationInstructions}
 
 ${memoryInstructions}
 
@@ -450,11 +535,11 @@ Remember: You're not just answering questions, you're having a genuine conversat
   }
 
   /**
-   * Send message to Groq with enhanced Filipino consciousness
+   * Send message to Groq with enhanced Filipino consciousness and location awareness
    */
   async sendToGroq(userMessage: string, conversationHistory: any[] = []): Promise<EnhancedResponse> {
-    // Analyze the conversation context
-    const context = this.analyzeContext(userMessage, conversationHistory);
+    // Analyze the conversation context (now async due to location detection)
+    const context = await this.analyzeContext(userMessage, conversationHistory);
 
     // Update emotional context
     this.emotionalContext = context.emotion;

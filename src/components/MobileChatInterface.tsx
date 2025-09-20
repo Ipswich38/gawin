@@ -15,6 +15,9 @@ import { hapticService } from '@/lib/services/hapticService';
 import { autoUpdateService } from '@/lib/services/autoUpdateService';
 import { UniversalDocumentFormatter } from '@/lib/formatters/universalDocumentFormatter';
 import { GawinConversationEngine, type ConversationContext, type EnhancedResponse } from '@/lib/services/gawinConversationEngine';
+import { LocationService, type UserLocation } from '@/lib/services/locationService';
+import LocationStatusBar from './LocationStatusBar';
+import PrivacyDashboard from './PrivacyDashboard';
 
 // Screen Share Component
 const ScreenShareButton: React.FC = () => {
@@ -567,6 +570,65 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
     }
   }, [activeTab?.messages]);
 
+  // 🌍 Location Service Initialization
+  useEffect(() => {
+    const initializeLocation = async () => {
+      try {
+        setLocationStatus('detecting');
+
+        // First try to load saved location
+        const saved = locationService.getCurrentLocation();
+        if (saved) {
+          setUserLocation(saved);
+          setLocationStatus('loaded');
+          return;
+        }
+
+        // If no saved location, try to detect it (with consent)
+        const location = await locationService.getUserLocation(true);
+        setUserLocation(location);
+
+        if (location.accuracy === 'none') {
+          setLocationStatus('failed');
+        } else if (location.method === 'user_override') {
+          setLocationStatus('manual');
+        } else {
+          setLocationStatus('loaded');
+        }
+      } catch (error) {
+        console.error('Location initialization failed:', error);
+        setLocationStatus('failed');
+      }
+    };
+
+    initializeLocation();
+  }, [locationService]);
+
+  // Location helper functions
+  const handleLocationChange = (city: string, region: string, country: string) => {
+    const location = locationService.setManualLocation(city, region, country);
+    setUserLocation(location);
+    setLocationStatus('manual');
+  };
+
+  const handleClearLocation = () => {
+    locationService.clearAllLocationData();
+    setUserLocation(null);
+    setLocationStatus('failed');
+  };
+
+  const handleRefreshLocation = async () => {
+    try {
+      setLocationStatus('detecting');
+      const location = await locationService.getUserLocation(false); // Don't ask consent again
+      setUserLocation(location);
+      setLocationStatus(location.accuracy === 'none' ? 'failed' : 'loaded');
+    } catch (error) {
+      console.error('Location refresh failed:', error);
+      setLocationStatus('failed');
+    }
+  };
+
   // Research functionality (replaced browser navigation)
   const handleResearchComplete = (document: any) => {
     console.log('Research completed:', document);
@@ -677,8 +739,12 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
     return formatKeywords.some(keyword => lowerMessage.includes(keyword));
   };
 
-  // 🇵🇭 Initialize enhanced Gawin conversation engine
-  const [gawinEngine] = useState(() => new GawinConversationEngine());
+  // 🇵🇭 Location-aware enhanced Gawin conversation engine
+  const [locationService] = useState(() => new LocationService());
+  const [gawinEngine] = useState(() => new GawinConversationEngine(locationService));
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
+  const [locationStatus, setLocationStatus] = useState<'detecting' | 'loaded' | 'manual' | 'failed' | 'denied'>('detecting');
+  const [showPrivacyDashboard, setShowPrivacyDashboard] = useState(false);
 
   const handleSend = async (text: string) => {
     const messageText = text.trim();
@@ -2676,9 +2742,38 @@ Questions: ${count}`
   // Show Creator Dashboard if open
   if (showCreatorDashboard && isCreator) {
     return (
-      <CreatorDashboard 
+      <CreatorDashboard
         onClose={() => setShowCreatorDashboard(false)}
       />
+    );
+  }
+
+  // Show Privacy Dashboard if open
+  if (showPrivacyDashboard) {
+    return (
+      <div className="h-screen bg-gray-900 overflow-auto">
+        <div className="max-w-4xl mx-auto p-4">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold text-white">Privacy Dashboard</h2>
+            <button
+              onClick={() => setShowPrivacyDashboard(false)}
+              className="text-gray-400 hover:text-white text-2xl"
+            >
+              ✕
+            </button>
+          </div>
+          <PrivacyDashboard
+            locationService={locationService}
+            userLocation={userLocation}
+            onLocationChange={() => {
+              // Refresh location state when changed
+              const currentLocation = locationService.getCurrentLocation();
+              setUserLocation(currentLocation);
+              setLocationStatus(currentLocation ? 'loaded' : 'failed');
+            }}
+          />
+        </div>
+      </div>
     );
   }
 
@@ -2701,6 +2796,15 @@ Questions: ${count}`
       
       {/* Main App Content with transparency */}
       <div className="relative z-20 h-full flex flex-col">
+
+        {/* 🌍 Location Status Bar */}
+        <LocationStatusBar
+          location={userLocation}
+          status={locationStatus}
+          onLocationChange={handleLocationChange}
+          onClearLocation={handleClearLocation}
+          onRefreshLocation={handleRefreshLocation}
+        />
 
         {/* Mobile Tabs - Reduced Height */}
         <div className={`
@@ -3025,6 +3129,26 @@ Questions: ${count}`
                   </button>
                 </div>
               )}
+
+              {/* Privacy Dashboard */}
+              <div className="space-y-3">
+                <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wide">Privacy</h3>
+                <button
+                  onClick={() => {
+                    setShowPrivacyDashboard(true);
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full flex items-center space-x-3 p-3 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 transition-colors"
+                >
+                  <div className="flex-shrink-0 w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                    <span className="text-blue-400 text-lg">🔒</span>
+                  </div>
+                  <div className="text-left">
+                    <div className="text-white font-medium">Privacy Dashboard</div>
+                    <div className="text-blue-300 text-xs">Control your data & location</div>
+                  </div>
+                </button>
+              </div>
 
               {/* Accessibility Settings */}
               <div className="space-y-3">
