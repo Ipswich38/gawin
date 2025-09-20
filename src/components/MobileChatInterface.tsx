@@ -301,6 +301,13 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   // 🔄 Auto-Update states
   const [showUpdateNotification, setShowUpdateNotification] = useState(false);
 
+  // 🇵🇭 Location-aware enhanced Gawin conversation engine
+  const [locationService] = useState(() => new LocationService());
+  const [gawinEngine] = useState(() => new GawinConversationEngine(locationService));
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
+  const [locationStatus, setLocationStatus] = useState<'detecting' | 'loaded' | 'manual' | 'failed' | 'denied'>('detecting');
+  const [showPrivacyDashboard, setShowPrivacyDashboard] = useState(false);
+
   // 👁️🧠 GAWIN'S ENHANCED SENSES
   const [gawinVisionAnalysis, setGawinVisionAnalysis] = useState<VisualAnalysis | null>(null);
   const [gawinAudioAnalysis, setGawinAudioAnalysis] = useState<AudioAnalysis | null>(null);
@@ -738,13 +745,6 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
     const lowerMessage = message.toLowerCase();
     return formatKeywords.some(keyword => lowerMessage.includes(keyword));
   };
-
-  // 🇵🇭 Location-aware enhanced Gawin conversation engine
-  const [locationService] = useState(() => new LocationService());
-  const [gawinEngine] = useState(() => new GawinConversationEngine(locationService));
-  const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
-  const [locationStatus, setLocationStatus] = useState<'detecting' | 'loaded' | 'manual' | 'failed' | 'denied'>('detecting');
-  const [showPrivacyDashboard, setShowPrivacyDashboard] = useState(false);
 
   const handleSend = async (text: string) => {
     const messageText = text.trim();
