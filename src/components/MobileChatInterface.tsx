@@ -17,7 +17,8 @@ import { GawinConversationEngine, type ConversationContext, type EnhancedRespons
 import { LocationService, type UserLocation } from '@/lib/services/locationService';
 import LocationStatusBar from './LocationStatusBar';
 import PrivacyDashboard from './PrivacyDashboard';
-import VoiceOverlay from './VoiceOverlay';
+import ImmersiveVoiceMode from './ImmersiveVoiceMode';
+import { MiniatureCube } from './MiniatureCube';
 import PremiumFeatureGate from './PremiumFeatureGate';
 import { userPermissionService } from '../lib/services/userPermissionService';
 
@@ -321,6 +322,7 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
 
   // 🎙️ Voice Mode states
   const [showVoiceModePopup, setShowVoiceModePopup] = useState(false);
+  const [lastAIResponse, setLastAIResponse] = useState<string>('');
 
   // 🚫 Guest limitations
   const [guestChatCount, setGuestChatCount] = useState(0);
@@ -354,6 +356,16 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
       handleSend(message);
     }
   };
+
+  // Monitor for new AI responses to pass to voice mode
+  useEffect(() => {
+    if (activeTab && activeTab.messages.length > 0) {
+      const lastMessage = activeTab.messages[activeTab.messages.length - 1];
+      if (lastMessage.role === 'assistant' && lastMessage.content !== lastAIResponse) {
+        setLastAIResponse(lastMessage.content);
+      }
+    }
+  }, [activeTab?.messages, lastAIResponse]);
 
   // 🧬 Consciousness and Identity Recognition states
   const [currentConsciousness, setCurrentConsciousness] = useState<ConsciousnessMemory | null>(null);
@@ -3270,31 +3282,35 @@ Questions: ${count}`
                         />
                       </div>
 
-                      {/* Voice Mode (Hands-Free) - Premium Feature */}
+                      {/* Immersive Voice Mode (3D Cube) - Premium Feature */}
                       {userPermissions.voiceMode ? (
                         <button
                           onClick={() => setShowVoiceModePopup(true)}
-                          className="p-2 sm:p-2.5 bg-gray-800/60 hover:bg-purple-600/20 border border-gray-700/50 hover:border-purple-500/50 rounded-xl transition-all duration-200 group relative"
-                          title="Voice Mode - Talk with Gawin hands-free"
+                          className="p-2 sm:p-2.5 bg-gray-800/60 hover:bg-teal-600/20 border border-gray-700/50 hover:border-teal-500/50 rounded-xl transition-all duration-200 group relative"
+                          title="Immersive Voice Mode - 3D Cube Interface"
                         >
-                          <VoiceModeIcon
-                            size={14}
-                            className="sm:size-4 text-gray-400 group-hover:text-purple-400 transition-colors"
-                          />
-                          <div className="absolute inset-0 rounded-xl bg-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <div className="flex items-center justify-center">
+                            <MiniatureCube
+                              isActive={showVoiceModePopup}
+                              size={16}
+                            />
+                          </div>
+                          <div className="absolute inset-0 rounded-xl bg-teal-500/20 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </button>
                       ) : (
                         <button
                           onClick={() => {
-                            alert('Voice Mode is a premium feature. Please create an account to access advanced voice capabilities.');
+                            alert('Immersive Voice Mode is a premium feature. Please create an account to access the 3D cube voice interface.');
                           }}
                           className="p-2 sm:p-2.5 bg-gray-800/60 border border-gray-700/50 rounded-xl relative group opacity-60"
-                          title="Voice Mode (Premium Feature)"
+                          title="Immersive Voice Mode (Premium Feature)"
                         >
-                          <VoiceModeIcon
-                            size={14}
-                            className="sm:size-4 text-gray-500"
-                          />
+                          <div className="flex items-center justify-center">
+                            <MiniatureCube
+                              isActive={false}
+                              size={16}
+                            />
+                          </div>
                           <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full text-xs text-white flex items-center justify-center">
                             <span style={{ fontSize: '8px' }}>P</span>
                           </div>
@@ -3569,12 +3585,13 @@ Questions: ${count}`
         autoApplySeconds={10}
       />
 
-      {/* 🎙️ Voice Mode Overlay */}
-      <VoiceOverlay
+      {/* 🎙️ Immersive Voice Mode */}
+      <ImmersiveVoiceMode
         isOpen={showVoiceModePopup}
         onClose={() => setShowVoiceModePopup(false)}
         onVoiceInput={handleVoiceModeMessage}
         isProcessing={activeTab?.isLoading || false}
+        aiResponse={lastAIResponse}
       />
 
       </div>
