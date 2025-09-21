@@ -4,6 +4,7 @@ import { huggingFaceService } from '@/lib/services/huggingFaceService';
 import { deepseekService } from '@/lib/services/deepseekService';
 import { validationService } from '@/lib/services/validationService';
 import { responseFilterService } from '@/lib/services/responseFilterService';
+import { contentFilterService } from '@/lib/services/contentFilterService';
 import { naturalConversationService, type ConversationContext } from '@/lib/services/naturalConversationService';
 
 /**
@@ -329,11 +330,57 @@ export async function POST(request: NextRequest) {
 
     // Check for image generation request
     const lastMessage = body.messages[body.messages.length - 1];
-    const messageContent = typeof lastMessage.content === 'string' 
-      ? lastMessage.content 
+    const messageContent = typeof lastMessage.content === 'string'
+      ? lastMessage.content
       : Array.isArray(lastMessage.content)
       ? lastMessage.content.find(item => item.type === 'text')?.text || ''
       : String(lastMessage.content);
+
+    // **Content Filtering - Block inappropriate content**
+    const contentFilter = contentFilterService.filterContent(messageContent);
+
+    if (contentFilter.wasFiltered && contentFilter.filterResult.isBlocked) {
+      console.log(`🛡️ Content blocked: ${contentFilter.filterResult.category} (${contentFilter.filterResult.detectedLanguage})`);
+
+      return NextResponse.json({
+        success: true,
+        choices: [{
+          message: {
+            role: 'assistant',
+            content: contentFilter.filtered
+          },
+          finish_reason: 'stop',
+          index: 0
+        }],
+        usage: {
+          prompt_tokens: messageContent.length,
+          completion_tokens: contentFilter.filtered.length,
+          total_tokens: messageContent.length + contentFilter.filtered.length
+        }
+      });
+    }
+
+    // Handle academic context clarification
+    if (contentFilter.filterResult.category === 'academic_context') {
+      console.log(`📚 Academic context detected, requesting clarification`);
+
+      return NextResponse.json({
+        success: true,
+        choices: [{
+          message: {
+            role: 'assistant',
+            content: contentFilter.filtered
+          },
+          finish_reason: 'stop',
+          index: 0
+        }],
+        usage: {
+          prompt_tokens: messageContent.length,
+          completion_tokens: contentFilter.filtered.length,
+          total_tokens: messageContent.length + contentFilter.filtered.length
+        }
+      });
+    }
 
     // Enhanced context-aware image detection
     const hasCodeContexts = /\b(code|program|function|algorithm|script|software|javascript|python|html|css|programming|coding|development)\b/i.test(messageContent);
