@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import MessageRenderer from './MessageRenderer';
+import ClaudeStyleMessageRenderer from './ClaudeStyleMessageRenderer';
 import ResearchMode from './ResearchMode';
 import SimpleVision from './SimpleVision';
 import VoiceInput from './VoiceInput';
@@ -2879,13 +2879,14 @@ Questions: ${count}`
                   transition-all duration-200 hover:shadow-xl transform hover:scale-[1.01]
                 `}>
                   {message.role === 'assistant' ? (
-                    <div className="prose prose-stone max-w-none">
-                      <MessageRenderer 
-                        text={message.content} 
+                    <div className="w-full max-w-none">
+                      <ClaudeStyleMessageRenderer
+                        text={message.content}
                         showActions={true}
                         thinking={message.thinking}
                         onCopy={() => {
                           // Show copy feedback
+                          navigator.clipboard.writeText(message.content);
                           console.log('Copied message:', message.id);
                         }}
                         onThumbsUp={() => {
@@ -2919,7 +2920,7 @@ Questions: ${count}`
                     </div>
                   ) : (
                     <div className="leading-relaxed">
-                      <MessageRenderer
+                      <ClaudeStyleMessageRenderer
                         text={message.content}
                         showActions={false}
                       />
