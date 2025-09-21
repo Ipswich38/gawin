@@ -40,14 +40,28 @@ function MiniCube({ isActive = false }: { isActive: boolean }) {
   )
 }
 
-export function MiniatureCube({ isActive = false, size = 16, onClick }: MiniatureCubeProps) {
+export function MiniatureCube({ isActive = false, size = 32, onClick }: MiniatureCubeProps) {
   return (
     <div
-      className="cursor-pointer"
-      style={{ width: size, height: size }}
+      className="cursor-pointer touch-manipulation"
+      style={{
+        width: size,
+        height: size,
+        minWidth: size,
+        minHeight: size
+      }}
       onClick={onClick}
+      onTouchEnd={onClick} // Add touch support for mobile
     >
-      <Canvas camera={{ position: [0, 0, 3], fov: 50 }}>
+      <Canvas
+        camera={{ position: [0, 0, 3], fov: 50 }}
+        gl={{
+          antialias: true,
+          alpha: true,
+          powerPreference: "high-performance"
+        }}
+        dpr={typeof window !== 'undefined' ? Math.min(window.devicePixelRatio, 2) : 1} // Optimize for mobile
+      >
         <ambientLight intensity={0.6} />
         <directionalLight position={[2, 2, 2]} intensity={0.8} />
         <MiniCube isActive={isActive} />

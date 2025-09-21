@@ -348,13 +348,21 @@ export default function ImmersiveVoiceMode({
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.8, opacity: 0 }}
-          className="relative z-10"
+          className="relative z-10 w-full h-full flex items-center justify-center"
           style={{
             transform: `scale(${1 + audioLevel * 0.2})`,
             transition: 'transform 0.1s ease-out',
           }}
         >
-          <div className="w-64 h-64 sm:w-80 sm:h-80">
+          <div
+            className="touch-manipulation"
+            style={{
+              width: 'min(80vw, 80vh, 400px)',
+              height: 'min(80vw, 80vh, 400px)',
+              minWidth: '200px',
+              minHeight: '200px'
+            }}
+          >
             <GawinIceCube
               state={state}
               onClick={handleCubeInteraction}

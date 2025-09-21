@@ -3284,37 +3284,26 @@ Questions: ${count}`
 
                       {/* Immersive Voice Mode (3D Cube) - Premium Feature */}
                       {userPermissions.voiceMode ? (
-                        <button
-                          onClick={() => setShowVoiceModePopup(true)}
-                          className="p-2 sm:p-2.5 bg-gray-800/60 hover:bg-teal-600/20 border border-gray-700/50 hover:border-teal-500/50 rounded-xl transition-all duration-200 group relative"
-                          title="Immersive Voice Mode - 3D Cube Interface"
-                        >
-                          <div className="flex items-center justify-center">
-                            <MiniatureCube
-                              isActive={showVoiceModePopup}
-                              size={16}
-                            />
-                          </div>
-                          <div className="absolute inset-0 rounded-xl bg-teal-500/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </button>
+                        <div className="touch-manipulation">
+                          <MiniatureCube
+                            isActive={showVoiceModePopup}
+                            size={44}
+                            onClick={() => setShowVoiceModePopup(true)}
+                          />
+                        </div>
                       ) : (
-                        <button
-                          onClick={() => {
-                            alert('Immersive Voice Mode is a premium feature. Please create an account to access the 3D cube voice interface.');
-                          }}
-                          className="p-2 sm:p-2.5 bg-gray-800/60 border border-gray-700/50 rounded-xl relative group opacity-60"
-                          title="Immersive Voice Mode (Premium Feature)"
-                        >
-                          <div className="flex items-center justify-center">
-                            <MiniatureCube
-                              isActive={false}
-                              size={16}
-                            />
-                          </div>
+                        <div className="touch-manipulation opacity-60 relative">
+                          <MiniatureCube
+                            isActive={false}
+                            size={44}
+                            onClick={() => {
+                              alert('Immersive Voice Mode is a premium feature. Please create an account to access the 3D cube voice interface.');
+                            }}
+                          />
                           <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full text-xs text-white flex items-center justify-center">
                             <span style={{ fontSize: '8px' }}>P</span>
                           </div>
-                        </button>
+                        </div>
                       )}
 
                       {/* Vision Control - Premium Feature */}

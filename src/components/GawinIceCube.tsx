@@ -82,8 +82,20 @@ function IceCube({ state, onClick }: IceCubeProps) {
 
 export function GawinIceCube({ state, onClick }: IceCubeProps) {
   return (
-    <div className="w-48 h-48 cursor-pointer" onClick={onClick}>
-      <Canvas camera={{ position: [0, 0, 5], fov: 50 }}>
+    <div
+      className="w-full h-full cursor-pointer touch-manipulation"
+      onClick={onClick}
+      onTouchEnd={onClick} // Add touch support for mobile
+    >
+      <Canvas
+        camera={{ position: [0, 0, 5], fov: 50 }}
+        gl={{
+          antialias: true,
+          alpha: true,
+          powerPreference: "high-performance"
+        }}
+        dpr={typeof window !== 'undefined' ? Math.min(window.devicePixelRatio, 2) : 1}
+      >
         <ambientLight intensity={0.5} />
         <directionalLight position={[10, 10, 5]} intensity={1} />
         <Environment preset="studio" />
