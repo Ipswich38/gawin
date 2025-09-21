@@ -34,6 +34,13 @@ export default function ImmersiveVoiceMode({
   const [lastResponse, setLastResponse] = useState('');
   const [audioLevel, setAudioLevel] = useState(0);
 
+  // New subtitle and karaoke states
+  const [subtitlesEnabled, setSubtitlesEnabled] = useState(false);
+  const [currentSubtitle, setCurrentSubtitle] = useState('');
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [karaokeWords, setKaraokeWords] = useState<string[]>([]);
+  const [isMicEnabled, setIsMicEnabled] = useState(true);
+
   const recognitionRef = useRef<any>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -228,9 +235,17 @@ export default function ImmersiveVoiceMode({
     onVoiceInput(text);
   };
 
-  // Handle AI response with voice synthesis
+  // Handle AI response with voice synthesis and karaoke
   const handleAIResponse = (response: string) => {
     setLastResponse(response);
+
+    // Set up karaoke if subtitles are enabled
+    if (subtitlesEnabled) {
+      const words = response.split(' ').filter(word => word.trim());
+      setKaraokeWords(words);
+      setCurrentWordIndex(0);
+      setCurrentSubtitle(response);
+    }
 
     if (synthRef.current) {
       setState('speaking');
@@ -260,15 +275,29 @@ export default function ImmersiveVoiceMode({
           const speakingPattern = [100, 50, 100, 50, 100];
           navigator.vibrate(speakingPattern);
         }
+
+        // Start karaoke word highlighting
+        if (subtitlesEnabled && karaokeWords.length > 0) {
+          startKaraokeAnimation();
+        }
       };
 
       utterance.onend = () => {
         setState('listening');
         startVibrationSync();
 
+        // Clear karaoke
+        if (subtitlesEnabled) {
+          setTimeout(() => {
+            setCurrentSubtitle('');
+            setKaraokeWords([]);
+            setCurrentWordIndex(0);
+          }, 2000);
+        }
+
         // Restart speech recognition
         setTimeout(() => {
-          if (recognitionRef.current && isOpen) {
+          if (recognitionRef.current && isOpen && isMicEnabled) {
             recognitionRef.current.start();
           }
         }, 500);
@@ -277,10 +306,33 @@ export default function ImmersiveVoiceMode({
       utterance.onerror = () => {
         setState('listening');
         startVibrationSync();
+        setCurrentSubtitle('');
       };
 
       synthRef.current.speak(utterance);
     }
+  };
+
+  // Karaoke word animation
+  const startKaraokeAnimation = () => {
+    if (!karaokeWords.length) return;
+
+    const wordDuration = 600; // ms per word
+    let currentIndex = 0;
+
+    const interval = setInterval(() => {
+      if (currentIndex < karaokeWords.length) {
+        setCurrentWordIndex(currentIndex);
+        currentIndex++;
+      } else {
+        clearInterval(interval);
+      }
+    }, wordDuration);
+
+    // Clean up when speaking ends
+    setTimeout(() => {
+      clearInterval(interval);
+    }, karaokeWords.length * wordDuration + 1000);
   };
 
   // Handle cube click/tap
@@ -306,9 +358,12 @@ export default function ImmersiveVoiceMode({
     }
   };
 
-  // Close on background tap
-  const handleBackgroundTap = (e: React.MouseEvent) => {
+  // Close on background tap or touch
+  const handleBackgroundTap = (e: React.MouseEvent | React.TouchEvent) => {
+    // Ensure we're clicking on the background, not the cube or its children
     if (e.target === e.currentTarget) {
+      e.preventDefault();
+      e.stopPropagation();
       onClose();
     }
   };
@@ -323,7 +378,37 @@ export default function ImmersiveVoiceMode({
         exit={{ opacity: 0 }}
         className="fixed inset-0 bg-black z-50 flex items-center justify-center"
         onClick={handleBackgroundTap}
+        onTouchEnd={handleBackgroundTap}
       >
+        {/* Subtitle Display - Top of screen */}
+        {subtitlesEnabled && currentSubtitle && (
+          <motion.div
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            className="absolute top-8 left-4 right-4 z-20"
+          >
+            <div className="bg-black/80 backdrop-blur-md rounded-2xl p-6 max-w-4xl mx-auto">
+              <div className="text-white text-2xl font-serif leading-relaxed text-center">
+                {karaokeWords.map((word, index) => (
+                  <span
+                    key={index}
+                    className={`inline-block mr-2 transition-all duration-300 ${
+                      index <= currentWordIndex
+                        ? 'text-teal-400 scale-110 shadow-lg'
+                        : 'text-white/70'
+                    }`}
+                    style={{
+                      textShadow: index <= currentWordIndex ? '0 0 10px rgba(20, 184, 166, 0.5)' : 'none'
+                    }}
+                  >
+                    {word}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
         {/* Ambient background effects */}
         <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-900">
           {/* Subtle animated particles */}
@@ -353,22 +438,111 @@ export default function ImmersiveVoiceMode({
             transform: `scale(${1 + audioLevel * 0.2})`,
             transition: 'transform 0.1s ease-out',
           }}
+          onClick={(e) => e.stopPropagation()} // Prevent background click when clicking cube area
+          onTouchEnd={(e) => e.stopPropagation()}
         >
           <div
             className="touch-manipulation"
             style={{
-              width: 'min(85vw, 85vh, 500px)',
-              height: 'min(85vw, 85vh, 500px)',
-              minWidth: '280px',
-              minHeight: '280px'
+              // Smaller cube when subtitles are enabled for karaoke mode
+              width: subtitlesEnabled && state === 'speaking' ? 'min(40vw, 40vh, 200px)' : 'min(85vw, 85vh, 500px)',
+              height: subtitlesEnabled && state === 'speaking' ? 'min(40vw, 40vh, 200px)' : 'min(85vw, 85vh, 500px)',
+              minWidth: subtitlesEnabled && state === 'speaking' ? '120px' : '280px',
+              minHeight: subtitlesEnabled && state === 'speaking' ? '120px' : '280px',
+              transition: 'all 0.5s ease-in-out'
             }}
           >
-            <GawinIceCube
-              state={state}
-              onClick={handleCubeInteraction}
-            />
+            <motion.div
+              animate={{
+                y: subtitlesEnabled && state === 'speaking' && currentWordIndex >= 0
+                  ? [0, -20, 0] : 0
+              }}
+              transition={{
+                duration: 0.6,
+                repeat: subtitlesEnabled && state === 'speaking' ? Infinity : 0,
+                repeatType: "reverse",
+                ease: "easeInOut"
+              }}
+              className="w-full h-full"
+            >
+              <GawinIceCube
+                state={state}
+                onClick={handleCubeInteraction}
+              />
+            </motion.div>
           </div>
         </motion.div>
+
+        {/* Control Buttons */}
+        <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center space-x-6 bg-black/60 backdrop-blur-md rounded-full px-6 py-3"
+          >
+            {/* Microphone Toggle */}
+            <button
+              onClick={() => {
+                setIsMicEnabled(!isMicEnabled);
+                if (!isMicEnabled && recognitionRef.current && state === 'listening') {
+                  recognitionRef.current.start();
+                } else if (isMicEnabled && recognitionRef.current) {
+                  recognitionRef.current.stop();
+                }
+              }}
+              className={`p-3 rounded-full transition-all duration-300 ${
+                isMicEnabled
+                  ? 'bg-teal-500 hover:bg-teal-400 shadow-lg shadow-teal-500/30'
+                  : 'bg-gray-600 hover:bg-gray-500'
+              }`}
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="text-white"
+              >
+                {isMicEnabled ? (
+                  <path
+                    d="M12 2C10.34 2 9 3.34 9 5V11C9 12.66 10.34 14 12 14C13.66 14 15 12.66 15 11V5C15 3.34 13.66 2 12 2ZM19 11C19 15.18 15.84 18.5 12 18.5C8.16 18.5 5 15.18 5 11H7C7 14.08 9.24 16.5 12 16.5C14.76 16.5 17 14.08 17 11H19ZM12 21V23H8V21H12ZM16 21V23H12V21H16Z"
+                    fill="currentColor"
+                  />
+                ) : (
+                  <path
+                    d="M12 2C10.34 2 9 3.34 9 5V11C9 12.66 10.34 14 12 14C13.66 14 15 12.66 15 11V5C15 3.34 13.66 2 12 2ZM19 11C19 15.18 15.84 18.5 12 18.5C8.16 18.5 5 15.18 5 11H7C7 14.08 9.24 16.5 12 16.5C14.76 16.5 17 14.08 17 11H19ZM12 21V23H8V21H12ZM16 21V23H12V21H16ZM2 2L22 22L20.5 23.5L2 4.5L2 2Z"
+                    fill="currentColor"
+                  />
+                )}
+              </svg>
+            </button>
+
+            {/* Subtitle Toggle */}
+            <button
+              onClick={() => setSubtitlesEnabled(!subtitlesEnabled)}
+              className={`p-3 rounded-full transition-all duration-300 ${
+                subtitlesEnabled
+                  ? 'bg-teal-500 hover:bg-teal-400 shadow-lg shadow-teal-500/30'
+                  : 'bg-gray-600 hover:bg-gray-500'
+              }`}
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="text-white"
+              >
+                <path
+                  d="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM4 18V6H20V18H4ZM6 10H8V12H6V10ZM6 14H12V16H6V14ZM14 14H18V16H14V14ZM10 10H18V12H10V10Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+          </motion.div>
+        </div>
 
         {/* Minimal state indicator */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
