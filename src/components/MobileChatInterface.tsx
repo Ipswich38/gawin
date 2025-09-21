@@ -19,6 +19,8 @@ import { LocationService, type UserLocation } from '@/lib/services/locationServi
 import LocationStatusBar from './LocationStatusBar';
 import PrivacyDashboard from './PrivacyDashboard';
 import VoiceModePopup from './VoiceModePopup';
+import PremiumFeatureGate from './PremiumFeatureGate';
+import { userPermissionService } from '../lib/services/userPermissionService';
 
 // Screen Share Component
 const ScreenShareButton: React.FC = () => {
@@ -227,8 +229,10 @@ interface MobileChatInterfaceProps {
 
 
 export default function MobileChatInterface({ user, onLogout, onBackToLanding }: MobileChatInterfaceProps) {
-  // Creator detection
-  const isCreator = user.isCreator || user.email === 'kreativloops@gmail.com';
+  // User permissions and access control
+  const userPermissions = userPermissionService.getFeaturePermissions();
+  const isGuest = userPermissionService.isGuestUser();
+  const isCreator = userPermissionService.isCreator() || user.email === 'kreativloops@gmail.com';
   
   // States
   const [tabs, setTabs] = useState<Tab[]>([
@@ -322,6 +326,10 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
 
   // 🎙️ Voice Mode states
   const [showVoiceModePopup, setShowVoiceModePopup] = useState(false);
+
+  // 🚫 Guest limitations
+  const [guestChatCount, setGuestChatCount] = useState(0);
+  const dailyLimit = userPermissions.dailyChatLimit;
 
   // Voice input handlers
   const handleVoiceTranscript = (transcript: string, isFinal: boolean) => {
@@ -762,6 +770,12 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
     const messageText = text.trim();
     if (!messageText || !activeTab || activeTab.isLoading) return;
 
+    // Check guest limitations
+    if (isGuest && dailyLimit > 0 && guestChatCount >= dailyLimit) {
+      alert(`Guest users are limited to ${dailyLimit} messages per day. Please create an account for unlimited access.`);
+      return;
+    }
+
     // Enable voice for mobile when user sends a message
     voiceService.enableVoiceForMobile();
 
@@ -813,11 +827,16 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
     }
 
     // Update tab with message and loading
-    setTabs(prev => prev.map(tab => 
-      tab.id === activeTab?.id 
+    setTabs(prev => prev.map(tab =>
+      tab.id === activeTab?.id
         ? { ...tab, messages: [...tab.messages, newMessage], isLoading: true }
         : tab
     ));
+
+    // Increment guest chat counter
+    if (isGuest) {
+      setGuestChatCount(prev => prev + 1);
+    }
 
     try {
       // Check if this is a creative tab
@@ -3273,28 +3292,63 @@ Questions: ${count}`
                         />
                       </div>
 
-                      {/* Voice Mode (Hands-Free) */}
-                      <button
-                        onClick={() => setShowVoiceModePopup(true)}
-                        className="p-2 sm:p-2.5 bg-gray-800/60 hover:bg-purple-600/20 border border-gray-700/50 hover:border-purple-500/50 rounded-xl transition-all duration-200 group relative"
-                        title="Voice Mode - Talk with Gawin hands-free"
-                      >
-                        <VoiceModeIcon
-                          size={14}
-                          className="sm:size-4 text-gray-400 group-hover:text-purple-400 transition-colors"
-                        />
-                        {/* Animated pulse for voice mode */}
-                        <div className="absolute inset-0 rounded-xl bg-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </button>
+                      {/* Voice Mode (Hands-Free) - Premium Feature */}
+                      {userPermissions.voiceMode ? (
+                        <button
+                          onClick={() => setShowVoiceModePopup(true)}
+                          className="p-2 sm:p-2.5 bg-gray-800/60 hover:bg-purple-600/20 border border-gray-700/50 hover:border-purple-500/50 rounded-xl transition-all duration-200 group relative"
+                          title="Voice Mode - Talk with Gawin hands-free"
+                        >
+                          <VoiceModeIcon
+                            size={14}
+                            className="sm:size-4 text-gray-400 group-hover:text-purple-400 transition-colors"
+                          />
+                          <div className="absolute inset-0 rounded-xl bg-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            alert('Voice Mode is a premium feature. Please create an account to access advanced voice capabilities.');
+                          }}
+                          className="p-2 sm:p-2.5 bg-gray-800/60 border border-gray-700/50 rounded-xl relative group opacity-60"
+                          title="Voice Mode (Premium Feature)"
+                        >
+                          <VoiceModeIcon
+                            size={14}
+                            className="sm:size-4 text-gray-500"
+                          />
+                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full text-xs text-white flex items-center justify-center">
+                            <span style={{ fontSize: '8px' }}>P</span>
+                          </div>
+                        </button>
+                      )}
 
-                      {/* Vision Control */}
-                      <div className="relative">
-                        <SimpleVision
-                          onVisionToggle={() => setIsVisionPOVVisible(!isVisionPOVVisible)}
-                          isVisionActive={isVisionPOVVisible}
-                          compact={true}
-                        />
-                      </div>
+                      {/* Vision Control - Premium Feature */}
+                      {userPermissions.visionControl ? (
+                        <div className="relative">
+                          <SimpleVision
+                            onVisionToggle={() => setIsVisionPOVVisible(!isVisionPOVVisible)}
+                            isVisionActive={isVisionPOVVisible}
+                            compact={true}
+                          />
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            alert('Vision Control is a premium feature. Please create an account to access camera and image analysis capabilities.');
+                          }}
+                          className="p-2 sm:p-2.5 bg-gray-800/60 border border-gray-700/50 rounded-xl relative group opacity-60"
+                          title="Vision Control (Premium Feature)"
+                        >
+                          <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full text-xs text-white flex items-center justify-center">
+                            <span style={{ fontSize: '8px' }}>P</span>
+                          </div>
+                        </button>
+                      )}
 
                       {/* Screen Share Control */}
                       <ScreenShareButton />
@@ -3466,23 +3520,72 @@ Questions: ${count}`
                 </div>
               </div>
 
+              {/* User Status & Limitations */}
+              {isGuest && (
+                <div className="bg-gradient-to-r from-amber-900/20 to-orange-900/20 border border-amber-500/30 rounded-xl p-4 mb-4">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <div className="w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-sm font-bold">G</span>
+                    </div>
+                    <div>
+                      <h3 className="text-amber-200 font-semibold">Guest Mode</h3>
+                      <p className="text-amber-300 text-xs">Limited features for security</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-amber-300">Messages today:</span>
+                      <span className="text-amber-200">{guestChatCount}/{dailyLimit}</span>
+                    </div>
+                    <div className="w-full bg-amber-900/30 rounded-full h-2">
+                      <div
+                        className="bg-amber-500 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${Math.min((guestChatCount / dailyLimit) * 100, 100)}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => window.location.href = '/'}
+                    className="w-full mt-3 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium rounded-lg transition-colors"
+                  >
+                    Create Account for Full Access
+                  </button>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wide">New Tab</h3>
                 {[
-                  { type: 'general' as const, icon: '💬', label: 'General Chat' },
-                  { type: 'quiz' as const, icon: <QuizIcon size={16} />, label: 'Quiz Generator' },
-                  { type: 'creative' as const, icon: <CreativeIcon size={16} />, label: 'Creative Studio' },
-                  { type: 'research' as const, icon: <ResearchIcon size={16} />, label: 'Research Mode' },
-                  { type: 'permissions' as const, icon: <PermissionsIcon size={16} />, label: 'Permissions' },
-                ].map((item) => (
-                  <button
-                    key={item.type}
-                    onClick={() => createNewTab(item.type)}
-                    className="w-full p-3 text-left hover:bg-gray-800/50 rounded-lg transition-colors flex items-center space-x-3 text-gray-300 hover:text-white"
-                  >
-                    <span className="text-lg flex items-center">{item.icon}</span>
-                    <span className="font-medium">{item.label}</span>
-                  </button>
+                  { type: 'general' as const, icon: '💬', label: 'General Chat', allowed: userPermissions.basicChat },
+                  { type: 'quiz' as const, icon: <QuizIcon size={16} />, label: 'Quiz Generator', allowed: userPermissions.quizGenerator },
+                  { type: 'creative' as const, icon: <CreativeIcon size={16} />, label: 'Creative Studio', allowed: userPermissions.creativeStudio },
+                  { type: 'research' as const, icon: <ResearchIcon size={16} />, label: 'Research Mode', allowed: userPermissions.researchMode },
+                  { type: 'permissions' as const, icon: <PermissionsIcon size={16} />, label: 'Permissions', allowed: userPermissions.permissionsTab },
+                ].filter(item => item.allowed || isCreator).map((item) => (
+                  <div key={item.type} className="relative">
+                    {item.allowed || isCreator ? (
+                      <button
+                        onClick={() => createNewTab(item.type)}
+                        className="w-full p-3 text-left hover:bg-gray-800/50 rounded-lg transition-colors flex items-center space-x-3 text-gray-300 hover:text-white"
+                      >
+                        <span className="text-lg flex items-center">{item.icon}</span>
+                        <span className="font-medium">{item.label}</span>
+                      </button>
+                    ) : (
+                      <div className="w-full p-3 text-left rounded-lg flex items-center justify-between text-gray-500 cursor-not-allowed opacity-50">
+                        <div className="flex items-center space-x-3">
+                          <span className="text-lg flex items-center">{item.icon}</span>
+                          <div>
+                            <span className="font-medium">{item.label}</span>
+                            <div className="text-xs text-amber-400">Premium Feature</div>
+                          </div>
+                        </div>
+                        <div className="w-6 h-6 bg-amber-500 rounded-full text-xs text-white flex items-center justify-center">
+                          <span>P</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
               
