@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MessageRenderer from './MessageRenderer';
 import ResearchMode from './ResearchMode';
-import BrailleKeyboard from './BrailleKeyboard';
 import SimpleVision from './SimpleVision';
 import VoiceInput from './VoiceInput';
 import TranslationControl from './TranslationControl';
@@ -18,7 +17,7 @@ import { GawinConversationEngine, type ConversationContext, type EnhancedRespons
 import { LocationService, type UserLocation } from '@/lib/services/locationService';
 import LocationStatusBar from './LocationStatusBar';
 import PrivacyDashboard from './PrivacyDashboard';
-import VoiceModePopup from './VoiceModePopup';
+import VoiceOverlay from './VoiceOverlay';
 import PremiumFeatureGate from './PremiumFeatureGate';
 import { userPermissionService } from '../lib/services/userPermissionService';
 
@@ -280,10 +279,6 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   // Removed redundant dynamic code editor - now handled inline in chat messages
 
   // Accessibility states
-  const [accessibilitySettings, setAccessibilitySettings] = useState({
-    brailleMode: false
-  });
-  const [isBrailleKeyboardOpen, setIsBrailleKeyboardOpen] = useState(false);
 
   // 👁️ Vision Processing states  
   const [visionContext, setVisionContext] = useState<VisionContext>({
@@ -352,9 +347,10 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
     }
   };
 
-  // 🎙️ Voice Mode handlers
+  // 🎙️ Voice Mode handlers - Same as regular chat
   const handleVoiceModeMessage = (message: string) => {
     if (message.trim()) {
+      // Use the exact same send function as regular chat
       handleSend(message);
     }
   };
@@ -683,25 +679,6 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
     setQuizState('completed');
   };
 
-  // Handle accessibility settings changes
-  const handleAccessibilityChange = (settings: typeof accessibilitySettings) => {
-    setAccessibilitySettings(settings);
-    
-    // Handle Braille keyboard toggle
-    if (settings.brailleMode && !isBrailleKeyboardOpen) {
-      setIsBrailleKeyboardOpen(true);
-    } else if (!settings.brailleMode && isBrailleKeyboardOpen) {
-      setIsBrailleKeyboardOpen(false);
-    }
-  };
-
-  const handleBrailleInput = (text: string) => {
-    // Append braille input to the current input
-    setInputValue(prev => prev + text);
-    
-    // Announce to screen readers if device accessibility is enabled
-    announceToUser(`Entered: ${text}`);
-  };
 
   const announceToUser = (text: string) => {
     // Create an aria-live region for screen readers to announce
@@ -3479,46 +3456,6 @@ Questions: ${count}`
                 </button>
               </div>
 
-              {/* Accessibility Settings */}
-              <div className="space-y-3">
-                <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wide">Accessibility</h3>
-                <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center bg-teal-100">
-                        <span className="text-base">⠃</span>
-                      </div>
-                      <div>
-                        <div className="text-white font-medium text-sm">Braille Keyboard</div>
-                        <div className="text-gray-400 text-xs">Touch-based Braille input</div>
-                      </div>
-                    </div>
-                    <div className="relative">
-                      <input
-                        type="checkbox"
-                        checked={accessibilitySettings.brailleMode}
-                        onChange={() => handleAccessibilityChange({
-                          brailleMode: !accessibilitySettings.brailleMode
-                        })}
-                        className="sr-only"
-                      />
-                      <div className={`w-10 h-5 rounded-full transition-colors ${
-                        accessibilitySettings.brailleMode ? 'bg-teal-600' : 'bg-gray-600'
-                      }`}>
-                        <div className={`w-4 h-4 rounded-full bg-white shadow-md transform transition-transform ${
-                          accessibilitySettings.brailleMode ? 'translate-x-5' : 'translate-x-0.5'
-                        } mt-0.5`} />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-3 text-xs text-teal-600 font-medium">
-                    ✨ Gawin Innovation
-                  </div>
-                  <div className="mt-2 text-xs text-gray-500">
-                    For other accessibility features, use your device settings: Settings → Accessibility
-                  </div>
-                </div>
-              </div>
 
               {/* User Status & Limitations */}
               {isGuest && (
@@ -3615,13 +3552,6 @@ Questions: ${count}`
       {/* Removed redundant code editor - now handled inline in MessageRenderer */}
 
 
-      {/* Braille Keyboard */}
-        <BrailleKeyboard
-          isVisible={isBrailleKeyboardOpen}
-          onInput={handleBrailleInput}
-          onClose={() => setIsBrailleKeyboardOpen(false)}
-          onVoiceAnnounce={announceToUser}
-        />
 
       {/* Removed complex code editor - now using inline ChatGPT-style code rendering */}
 
@@ -3638,11 +3568,12 @@ Questions: ${count}`
         autoApplySeconds={10}
       />
 
-      {/* 🎙️ Voice Mode Popup */}
-      <VoiceModePopup
+      {/* 🎙️ Voice Mode Overlay */}
+      <VoiceOverlay
         isOpen={showVoiceModePopup}
         onClose={() => setShowVoiceModePopup(false)}
-        onVoiceMessage={handleVoiceModeMessage}
+        onVoiceInput={handleVoiceModeMessage}
+        isProcessing={activeTab?.isLoading || false}
       />
 
       </div>
