@@ -109,6 +109,18 @@ class ContentFilterService {
       "Let's maintain a respectful tone. How else can I assist you?",
       "I'm here for helpful and respectful conversations. What else would you like to discuss?"
     ],
+    explicit: [
+      "I'm designed to keep our conversations respectful and appropriate. Let's discuss something else!",
+      "Let's keep our conversation appropriate and helpful. What other topics can I assist with?",
+      "I prefer to maintain respectful discussions. How else can I help you today?",
+      "I'm here for appropriate and constructive conversations. What would you like to explore?"
+    ],
+    academic_context: [
+      "I notice you may be asking for academic or educational purposes. Could you clarify the context?",
+      "For academic discussions, I'd appreciate more context about your educational needs.",
+      "I want to ensure I provide appropriate academic support. Could you provide more details?",
+      "For educational purposes, please clarify the specific academic context you need help with."
+    ],
     general: [
       "I'd prefer to keep our conversation appropriate and helpful. What else can I assist you with?",
       "Let's focus on positive and constructive topics. How can I help you today?",
@@ -146,8 +158,9 @@ class ContentFilterService {
     // Check for inappropriate content
     const filterResult = this.analyzeContent(lowerInput);
 
-    if (filterResult.isBlocked) {
-      const blockedResponse = this.getBlockedResponse(filterResult.category);
+    if (filterResult.isBlocked && filterResult.category !== 'clean') {
+      const category = filterResult.category as 'sexual' | 'profanity' | 'explicit' | 'academic_context';
+      const blockedResponse = this.getBlockedResponse(category);
       return {
         original: input,
         filtered: blockedResponse,
@@ -318,7 +331,7 @@ class ContentFilterService {
   /**
    * Get appropriate blocked response
    */
-  private getBlockedResponse(category: 'sexual' | 'profanity' | 'explicit'): string {
+  private getBlockedResponse(category: 'sexual' | 'profanity' | 'explicit' | 'academic_context'): string {
     const responses = this.blockedResponses[category] || this.blockedResponses.general;
     return responses[Math.floor(Math.random() * responses.length)];
   }
