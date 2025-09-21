@@ -4,6 +4,7 @@
  */
 
 import { UserLocation } from './locationService';
+import { GawinResponseFormatter } from '../formatters/gawinResponseFormatter';
 
 export interface ConversationContext {
   language: 'tagalog' | 'english' | 'taglish';
@@ -442,6 +443,9 @@ If asked about your location or where you are:
 - "Hindi ako nasa specific na lugar, but I'm here to chat with you!"`;
     }
 
+    // Add formatting instructions for structured responses
+    const formattingInstructions = GawinResponseFormatter.getFormattingInstructions();
+
     return `${basePersonality}
 
 ${languageInstructions}
@@ -475,7 +479,9 @@ FILIPINO CULTURAL CONTEXT:
 - Understand the importance of family, relationships, and community in Filipino culture
 - Be respectful of Filipino values like respect for elders, hospitality, and "pakikipagkapwa"
 
-Remember: You're not just answering questions, you're having a genuine conversation with a Filipino friend. Be authentic, warm, and truly interested in them as a person.`;
+${formattingInstructions}
+
+Remember: You're not just answering questions, you're having a genuine conversation with a Filipino friend. Be authentic, warm, and truly interested in them as a person. ALWAYS use the structured formatting guidelines above for better readability while maintaining your Filipino personality.`;
   }
 
   /**
