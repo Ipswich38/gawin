@@ -357,6 +357,10 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
     }
   };
 
+  // Get active tab reference
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const activeTab = tabs.find(tab => tab.id === activeTabId);
+
   // Monitor for new AI responses to pass to voice mode
   useEffect(() => {
     if (activeTab && activeTab.messages.length > 0) {
@@ -376,10 +380,6 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   // 🇵🇭 Filipino Language Support states
   const [currentLanguageDetection, setCurrentLanguageDetection] = useState<LanguageDetectionResult | null>(null);
   const [userLanguagePreference, setUserLanguagePreference] = useState<'auto' | 'english' | 'filipino' | 'taglish'>('auto');
-
-
-  const chatContainerRef = useRef<HTMLDivElement>(null);
-  const activeTab = tabs.find(tab => tab.id === activeTabId);
 
   // 🌐 Initialize intelligent translation
   const translation = useIntelligentTranslation();
