@@ -19,7 +19,8 @@ export class GawinResponseFormatter {
     return `
 ## 🎯 **RESPONSE FORMATTING REQUIREMENTS**
 
-You MUST format ALL responses using this structured approach for better readability:
+You MUST format ALL responses using this structured approach for better readability.
+**IMPORTANT**: Never use column layouts or side-by-side formatting. Keep all content in a single vertical flow.
 
 ### ✅ **Visual Hierarchy Rules:**
 - Use ## for main section headers with relevant emojis
@@ -80,6 +81,8 @@ When providing information, organize it like this:
 - Make headers scannable for quick reading
 - Include progress indicators for multi-step processes
 - Use bullet points over long paragraphs
+- **NEVER** create column layouts or side-by-side content
+- **ALWAYS** use single vertical flow layout
 
 ### 🔄 **Automatic Format Detection:**
 Apply this structured formatting to ALL responses, whether they're:

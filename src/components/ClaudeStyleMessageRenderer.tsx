@@ -248,8 +248,8 @@ export default function ClaudeStyleMessageRenderer({
       )}
 
       {/* Main Message Content */}
-      <div className="prose prose-invert max-w-none">
-        <div className="markdown-content">
+      <div className="prose prose-invert max-w-none" style={{ columnCount: 'unset', columns: 'unset' }}>
+        <div className="markdown-content" style={{ columnCount: 'unset', columns: 'unset' }}>
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={components}
@@ -324,6 +324,33 @@ export default function ClaudeStyleMessageRenderer({
 
         .markdown-content blockquote {
           margin: 1rem 0 !important;
+        }
+
+        /* Disable column layouts completely */
+        .prose, .prose * {
+          column-count: unset !important;
+          columns: unset !important;
+          column-width: unset !important;
+          column-gap: unset !important;
+          column-rule: unset !important;
+          column-fill: unset !important;
+          column-span: unset !important;
+          break-inside: auto !important;
+          break-before: auto !important;
+          break-after: auto !important;
+        }
+
+        .markdown-content, .markdown-content * {
+          column-count: unset !important;
+          columns: unset !important;
+          column-width: unset !important;
+          column-gap: unset !important;
+          column-rule: unset !important;
+          column-fill: unset !important;
+          column-span: unset !important;
+          break-inside: auto !important;
+          break-before: auto !important;
+          break-after: auto !important;
         }
       `}</style>
     </div>
