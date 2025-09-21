@@ -3287,7 +3287,7 @@ Questions: ${count}`
                         <div className="touch-manipulation">
                           <MiniatureCube
                             isActive={showVoiceModePopup}
-                            size={44}
+                            size={60}
                             onClick={() => setShowVoiceModePopup(true)}
                           />
                         </div>
@@ -3295,7 +3295,7 @@ Questions: ${count}`
                         <div className="touch-manipulation opacity-60 relative">
                           <MiniatureCube
                             isActive={false}
-                            size={44}
+                            size={60}
                             onClick={() => {
                               alert('Immersive Voice Mode is a premium feature. Please create an account to access the 3D cube voice interface.');
                             }}

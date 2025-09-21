@@ -15,17 +15,17 @@ interface IceCubeProps {
 function IceCube({ state, onClick }: IceCubeProps) {
   const meshRef = useRef<THREE.Mesh>(null)
 
-  // Rotation speed based on state
+  // Optimized rotation speed based on state
   const rotationSpeed = useMemo(() => {
     switch (state) {
       case "listening":
-        return 0.01
+        return 0.8
       case "processing":
-        return 0.02
+        return 1.2
       case "speaking":
-        return 0.03
+        return 1.6
       default:
-        return 0.005
+        return 0.4
     }
   }, [state])
 
@@ -39,41 +39,42 @@ function IceCube({ state, onClick }: IceCubeProps) {
       case "speaking":
         return "#10b981" // emerald
       default:
-        return "#e5e7eb" // gray
+        return "#e2e8f0" // lighter gray
     }
   }, [state])
 
-  useFrame((frameState) => {
+  useFrame((frameState, delta) => {
     if (meshRef.current) {
-      const breathingScale = 1 + Math.sin(frameState.clock.elapsedTime * 2) * 0.05
-      const stateScale = state === "listening" ? 1.1 : state === "speaking" ? 1.05 : 1
+      // Smooth delta-based animation
+      const breathingScale = 1 + Math.sin(frameState.clock.elapsedTime * 1.8) * 0.08
+      const stateScale = state === "listening" ? 1.12 : state === "speaking" ? 1.08 : 1
       meshRef.current.scale.setScalar(breathingScale * stateScale)
 
-      // Rotation animation
-      meshRef.current.rotation.x += rotationSpeed
-      meshRef.current.rotation.y += rotationSpeed * 0.7
-      meshRef.current.rotation.z += rotationSpeed * 0.3
+      // Delta-based rotation for consistent speed
+      meshRef.current.rotation.x += delta * rotationSpeed
+      meshRef.current.rotation.y += delta * rotationSpeed * 0.8
+      meshRef.current.rotation.z += delta * rotationSpeed * 0.4
     }
   })
 
   return (
     <mesh ref={meshRef} onClick={onClick}>
-      <RoundedBox args={[2, 2, 2]} radius={0.8} smoothness={4}>
+      <RoundedBox args={[2.2, 2.2, 2.2]} radius={0.6} smoothness={3}>
         <MeshTransmissionMaterial
           color={color}
-          thickness={0.5}
-          roughness={0.05}
-          transmission={0.95}
-          ior={1.33}
-          chromaticAberration={0.08}
+          thickness={0.4}
+          roughness={0.08}
+          transmission={0.92}
+          ior={1.25}
+          chromaticAberration={0.06}
           backside={true}
-          samples={32}
-          resolution={1024}
-          distortion={0.2}
-          distortionScale={0.3}
-          temporalDistortion={0.15}
-          clearcoat={1.0}
-          clearcoatRoughness={0.1}
+          samples={16} // Reduced for performance
+          resolution={512} // Reduced for performance
+          distortion={0.15}
+          distortionScale={0.25}
+          temporalDistortion={0.1}
+          clearcoat={0.8}
+          clearcoatRoughness={0.15}
         />
       </RoundedBox>
     </mesh>
@@ -85,20 +86,25 @@ export function GawinIceCube({ state, onClick }: IceCubeProps) {
     <div
       className="w-full h-full cursor-pointer touch-manipulation"
       onClick={onClick}
-      onTouchEnd={onClick} // Add touch support for mobile
+      onTouchEnd={onClick}
     >
       <Canvas
-        camera={{ position: [0, 0, 5], fov: 50 }}
+        camera={{ position: [0, 0, 4.5], fov: 55 }}
         gl={{
-          antialias: true,
+          antialias: false, // Disabled for performance
           alpha: true,
-          powerPreference: "high-performance"
+          powerPreference: "high-performance",
+          stencil: false,
+          depth: true,
+          logarithmicDepthBuffer: false
         }}
-        dpr={typeof window !== 'undefined' ? Math.min(window.devicePixelRatio, 2) : 1}
+        dpr={1} // Lock to 1 for consistent performance
+        frameloop="always" // Keep running for smooth animation
+        performance={{ min: 0.5, max: 1, debounce: 100 }}
       >
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[10, 10, 5]} intensity={1} />
-        <Environment preset="studio" />
+        <ambientLight intensity={0.4} />
+        <directionalLight position={[8, 8, 4]} intensity={0.8} />
+        <Environment preset="city" />
         <IceCube state={state} onClick={onClick} />
       </Canvas>
     </div>

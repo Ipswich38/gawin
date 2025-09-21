@@ -357,10 +357,10 @@ export default function ImmersiveVoiceMode({
           <div
             className="touch-manipulation"
             style={{
-              width: 'min(80vw, 80vh, 400px)',
-              height: 'min(80vw, 80vh, 400px)',
-              minWidth: '200px',
-              minHeight: '200px'
+              width: 'min(85vw, 85vh, 500px)',
+              height: 'min(85vw, 85vh, 500px)',
+              minWidth: '280px',
+              minHeight: '280px'
             }}
           >
             <GawinIceCube
