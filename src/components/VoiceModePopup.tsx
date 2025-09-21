@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { VoiceModeIcon } from './ui/LineIcons';
+import { GawinIceCube } from './GawinIceCube';
 
 type VoiceState = 'idle' | 'listening' | 'processing' | 'speaking';
 
@@ -173,16 +174,37 @@ export default function VoiceModePopup({ isOpen, onClose, onVoiceMessage }: Voic
     // Send to parent component for processing
     onVoiceMessage(text);
 
-    // For now, simulate AI response - in real implementation this would come from the chat system
+    // Simulate getting AI response from chat system
     try {
-      // This would be replaced with actual AI response from your existing chat system
-      const response = `I heard you say: "${text}". Let me help you with that.`;
+      // In real implementation, this would come from the chat system
+      // For now, create a contextual response
+      const response = generateContextualResponse(text);
       setAiResponse(response);
 
       if (synthRef.current) {
         setState('speaking');
         const utterance = new SpeechSynthesisUtterance(response);
+
+        // Configure voice settings for better quality
+        const voices = speechSynthesis.getVoices();
+        const femaleVoice = voices.find(voice =>
+          voice.name.includes('Female') ||
+          voice.name.includes('Samantha') ||
+          voice.name.includes('Karen') ||
+          voice.name.includes('Moira')
+        );
+
+        if (femaleVoice) {
+          utterance.voice = femaleVoice;
+        }
+
+        utterance.rate = 0.9;
+        utterance.pitch = 1.1;
+        utterance.volume = 0.8;
+
         utterance.onend = () => setState('idle');
+        utterance.onerror = () => setState('idle');
+
         synthRef.current.speak(utterance);
       } else {
         setState('idle');
@@ -190,6 +212,26 @@ export default function VoiceModePopup({ isOpen, onClose, onVoiceMessage }: Voic
     } catch (error) {
       console.error('Error processing voice input:', error);
       setState('idle');
+    }
+  };
+
+  const generateContextualResponse = (input: string): string => {
+    const lowerInput = input.toLowerCase();
+
+    // Basic contextual responses - in real app this would come from your AI system
+    if (lowerInput.includes('hello') || lowerInput.includes('hi')) {
+      return "Hello! I'm Gawin, your AI assistant. How can I help you today?";
+    } else if (lowerInput.includes('how are you')) {
+      return "I'm doing great! Thank you for asking. I'm here and ready to assist you with anything you need.";
+    } else if (lowerInput.includes('weather')) {
+      return "I can help you with weather information. Let me check the current conditions for your location.";
+    } else if (lowerInput.includes('time')) {
+      const now = new Date();
+      return `The current time is ${now.toLocaleTimeString()}.`;
+    } else if (lowerInput.includes('help')) {
+      return "I'm here to help! You can ask me questions, request information, or have a conversation. What would you like to know?";
+    } else {
+      return `I heard you say: "${input}". I'm processing your request and will help you with that right away.`;
     }
   };
 
@@ -252,25 +294,14 @@ export default function VoiceModePopup({ isOpen, onClose, onVoiceMessage }: Voic
             <p className="text-gray-400 text-sm">Talk with Gawin hands-free</p>
           </div>
 
-          {/* Voice Visualization */}
+          {/* Voice Visualization - Animated 3D Cube */}
           <div className="flex flex-col items-center mb-8">
-            {/* Animated Voice Circle */}
+            {/* Gawin Ice Cube Animation */}
             <div className="relative mb-6">
-              <div
-                className="w-32 h-32 rounded-full border-4 transition-all duration-300 flex items-center justify-center cursor-pointer"
-                style={{
-                  borderColor: getStateColor(),
-                  backgroundColor: `${getStateColor()}20`,
-                  transform: `scale(${1 + audioLevel * 0.3})`,
-                  color: getStateColor(),
-                }}
+              <GawinIceCube
+                state={state}
                 onClick={isListening ? handleStopListening : handleStartListening}
-              >
-                <VoiceModeIcon
-                  size={48}
-                  className="transition-colors duration-300"
-                />
-              </div>
+              />
 
               {/* Pulse animation for listening state */}
               {state === 'listening' && (
