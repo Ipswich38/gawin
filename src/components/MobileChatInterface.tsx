@@ -3283,42 +3283,6 @@ Questions: ${count}`
                         />
                       </div>
 
-                      {/* HIGHLIGHTED: Immersive Voice Mode (3D Cube) */}
-                      {userPermissions.voiceMode ? (
-                        <div className="relative touch-manipulation">
-                          {/* Glowing ring for emphasis */}
-                          <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-teal-500/30 to-cyan-500/30 blur-md animate-pulse"></div>
-                          <div className="relative bg-gradient-to-br from-teal-600/20 to-cyan-600/20 p-1 rounded-xl border border-teal-500/30">
-                            <MiniatureCube
-                              isActive={showVoiceModePopup}
-                              size={64}
-                              onClick={() => setShowVoiceModePopup(true)}
-                            />
-                          </div>
-                          {/* Voice Mode Label */}
-                          <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-teal-400 font-medium whitespace-nowrap">
-                            Voice Mode
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="relative touch-manipulation">
-                          <div className="relative bg-gradient-to-br from-amber-600/20 to-orange-600/20 p-1 rounded-xl border border-amber-500/30 opacity-60">
-                            <MiniatureCube
-                              isActive={false}
-                              size={64}
-                              onClick={() => {
-                                alert('Immersive Voice Mode is a premium feature. Please create an account to access the 3D cube voice interface.');
-                              }}
-                            />
-                          </div>
-                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full text-xs text-white flex items-center justify-center">
-                            <span style={{ fontSize: '8px' }}>P</span>
-                          </div>
-                          <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-amber-400 font-medium whitespace-nowrap">
-                            Voice Mode
-                          </div>
-                        </div>
-                      )}
 
                       {/* Secondary Tools - More Compact */}
                       <div className="flex items-center space-x-1 ml-2">
