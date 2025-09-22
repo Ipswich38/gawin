@@ -3174,7 +3174,7 @@ Questions: ${count}`
 
             {/* Enhanced Input Container with Two Sections */}
             <div className="relative w-full max-w-4xl mx-auto">
-              <div className="relative bg-gray-800/20 backdrop-blur-sm rounded-3xl border border-gray-700/20 focus-within:border-teal-500/50 transition-colors">
+              <div className="relative bg-gray-800/30 backdrop-blur-sm rounded-3xl border border-teal-500/30 focus-within:border-teal-400/60 transition-all duration-300 shadow-lg shadow-teal-500/10 focus-within:shadow-teal-500/20">
 
                 {/* Top Section: Rich Text Input Area */}
                 <div className="relative px-6 pt-5 pb-3">
@@ -3269,7 +3269,7 @@ Questions: ${count}`
                 </div>
 
                 {/* Bottom Section: Streamlined Tool Icons */}
-                <div className="px-6 pb-4 pt-2 border-t border-gray-700/10">
+                <div className="px-6 pb-4 pt-2">
                   <div className="flex items-center justify-between">
                     {/* Left Side: Primary Voice Controls */}
                     <div className="flex items-center space-x-2 sm:space-x-3">
@@ -3360,29 +3360,54 @@ Questions: ${count}`
                       </div>
                     </div>
 
-                    {/* Right Side: Send Button */}
-                    <button
-                      onClick={() => {
-                        // Trigger haptic feedback for send action
-                        hapticService.triggerHaptic('send');
-                        handleSend(inputValue);
-                      }}
-                      disabled={activeTab.isLoading || !inputValue.trim()}
-                      className="
-                        w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center
-                        bg-teal-600 hover:bg-teal-500 disabled:bg-gray-700
-                        text-white disabled:text-gray-500
-                        transition-all duration-200 flex-shrink-0
-                        shadow-lg disabled:shadow-none
-                      "
-                      title="Send Message (Braille: ⠎)"
-                    >
-                      {activeTab.isLoading ? (
-                        <LoadingIcon size={14} className="sm:size-4 animate-spin" />
+                    {/* Right Side: 3D Cube or Send Button based on input state */}
+                    <div className="relative flex items-center justify-center">
+                      {!inputValue.trim() && !activeTab.isLoading ? (
+                        /* 3D Cube when not typing */
+                        <div className="relative touch-manipulation">
+                          <div className="relative bg-gradient-to-br from-teal-600/20 to-cyan-600/20 p-1 rounded-xl border border-teal-500/30">
+                            <MiniatureCube
+                              isActive={showVoiceModePopup}
+                              size={48}
+                              onClick={() => setShowVoiceModePopup(true)}
+                            />
+                          </div>
+                          {/* Glowing ring for emphasis */}
+                          <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-teal-500/20 to-cyan-500/20 blur-sm animate-pulse pointer-events-none"></div>
+                        </div>
                       ) : (
-                        <SendIcon size={14} className="sm:size-4" />
+                        /* Send Button when typing or loading */
+                        <button
+                          onClick={() => {
+                            // Trigger haptic feedback for send action
+                            hapticService.triggerHaptic('send');
+                            handleSend(inputValue);
+                            // Clear the input
+                            if (inputRef.current) {
+                              inputRef.current.innerHTML = '';
+                              setInputValue('');
+                              setInputHtml('');
+                            }
+                          }}
+                          disabled={activeTab.isLoading || !inputValue.trim()}
+                          className="
+                            w-12 h-12 rounded-full flex items-center justify-center
+                            bg-teal-600 hover:bg-teal-500 disabled:bg-gray-700
+                            text-white disabled:text-gray-500
+                            transition-all duration-200 flex-shrink-0
+                            shadow-lg disabled:shadow-none
+                            transform hover:scale-105 active:scale-95
+                          "
+                          title="Send Message (Braille: ⠎)"
+                        >
+                          {activeTab.isLoading ? (
+                            <LoadingIcon size={16} className="animate-spin" />
+                          ) : (
+                            <SendIcon size={16} />
+                          )}
+                        </button>
                       )}
-                    </button>
+                    </div>
                   </div>
 
                   {/* Expandable More Tools Menu */}
