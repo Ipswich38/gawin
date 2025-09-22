@@ -40,6 +40,7 @@ export default function ImmersiveVoiceMode({
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [karaokeWords, setKaraokeWords] = useState<string[]>([]);
   const [isMicEnabled, setIsMicEnabled] = useState(true);
+  const [allSubtitles, setAllSubtitles] = useState<string[]>([]); // Store all Gawin messages
 
   const recognitionRef = useRef<any>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
@@ -239,13 +240,16 @@ export default function ImmersiveVoiceMode({
   const handleAIResponse = (response: string) => {
     setLastResponse(response);
 
-    // Set up karaoke if subtitles are enabled
+    // Always store subtitle when subtitles are enabled
     if (subtitlesEnabled) {
-      const words = response.split(' ').filter(word => word.trim());
-      setKaraokeWords(words);
-      setCurrentWordIndex(0);
-      setCurrentSubtitle(response);
+      setAllSubtitles(prev => [...prev, response]);
     }
+
+    // Set current subtitle and karaoke words for current response
+    const words = response.split(' ').filter(word => word.trim());
+    setKaraokeWords(words);
+    setCurrentWordIndex(0);
+    setCurrentSubtitle(response);
 
     if (synthRef.current) {
       setState('speaking');
@@ -358,14 +362,17 @@ export default function ImmersiveVoiceMode({
     }
   };
 
-  // Close on background tap or touch
-  const handleBackgroundTap = (e: React.MouseEvent | React.TouchEvent) => {
-    // Ensure we're clicking on the background, not the cube or its children
-    if (e.target === e.currentTarget) {
-      e.preventDefault();
-      e.stopPropagation();
-      onClose();
-    }
+  // Handle close button click
+  const handleCloseClick = () => {
+    onClose();
+  };
+
+  // Clear all subtitles
+  const clearAllSubtitles = () => {
+    setAllSubtitles([]);
+    setCurrentSubtitle('');
+    setKaraokeWords([]);
+    setCurrentWordIndex(0);
   };
 
   if (!isOpen) return null;
@@ -377,35 +384,99 @@ export default function ImmersiveVoiceMode({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 bg-black z-50 flex items-center justify-center"
-        onClick={handleBackgroundTap}
-        onTouchEnd={handleBackgroundTap}
       >
-        {/* Subtitle Display - Top of screen */}
-        {subtitlesEnabled && currentSubtitle && (
+        {/* Close Button - Top Right */}
+        <motion.button
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+          onClick={handleCloseClick}
+          className="absolute top-6 right-6 z-50 p-3 bg-black/60 backdrop-blur-md rounded-full border border-gray-600/30 hover:bg-black/80 hover:border-gray-500/50 transition-all duration-200"
+          title="Close Voice Mode and Return to Chat"
+        >
+          <svg
+            className="w-6 h-6 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </motion.button>
+        {/* Subtitle Display - Show all Gawin messages when enabled */}
+        {subtitlesEnabled && (
           <motion.div
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
-            className="absolute top-8 left-4 right-4 z-20"
+            className="absolute top-20 left-4 right-4 z-20 max-h-[60vh] overflow-y-auto"
           >
-            <div className="bg-black/80 backdrop-blur-md rounded-2xl p-6 max-w-4xl mx-auto">
-              <div className="text-white text-2xl font-serif leading-relaxed text-center">
-                {karaokeWords.map((word, index) => (
-                  <span
-                    key={index}
-                    className={`inline-block mr-2 transition-all duration-300 ${
-                      index <= currentWordIndex
-                        ? 'text-teal-400 scale-110 shadow-lg'
-                        : 'text-white/70'
-                    }`}
-                    style={{
-                      textShadow: index <= currentWordIndex ? '0 0 10px rgba(20, 184, 166, 0.5)' : 'none'
-                    }}
-                  >
-                    {word}
-                  </span>
-                ))}
-              </div>
+            <div className="bg-black/80 backdrop-blur-md rounded-2xl p-6 max-w-4xl mx-auto space-y-4">
+              {/* Show all stored subtitles */}
+              {allSubtitles.map((subtitle, index) => (
+                <div key={index} className="text-white text-2xl font-serif leading-relaxed text-center border-b border-gray-600/30 last:border-b-0 pb-4 last:pb-0">
+                  {index === allSubtitles.length - 1 && state === 'speaking' ? (
+                    // Current speaking message with karaoke effect
+                    <div>
+                      {karaokeWords.map((word, wordIndex) => (
+                        <span
+                          key={wordIndex}
+                          className={`inline-block mr-2 transition-all duration-300 ${
+                            wordIndex <= currentWordIndex
+                              ? 'text-teal-400 scale-110 shadow-lg'
+                              : 'text-white/70'
+                          }`}
+                          style={{
+                            textShadow: wordIndex <= currentWordIndex ? '0 0 10px rgba(20, 184, 166, 0.5)' : 'none'
+                          }}
+                        >
+                          {word}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    // Previous messages in normal serif font
+                    <div className="text-white/90">
+                      {subtitle}
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {/* Show current subtitle if no stored subtitles yet */}
+              {allSubtitles.length === 0 && currentSubtitle && (
+                <div className="text-white text-2xl font-serif leading-relaxed text-center">
+                  {state === 'speaking' ? (
+                    <div>
+                      {karaokeWords.map((word, index) => (
+                        <span
+                          key={index}
+                          className={`inline-block mr-2 transition-all duration-300 ${
+                            index <= currentWordIndex
+                              ? 'text-teal-400 scale-110 shadow-lg'
+                              : 'text-white/70'
+                          }`}
+                          style={{
+                            textShadow: index <= currentWordIndex ? '0 0 10px rgba(20, 184, 166, 0.5)' : 'none'
+                          }}
+                        >
+                          {word}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-white/90">
+                      {currentSubtitle}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </motion.div>
         )}
@@ -450,8 +521,8 @@ export default function ImmersiveVoiceMode({
             transform: `scale(${1 + audioLevel * 0.2})`,
             transition: 'transform 0.1s ease-out',
           }}
-          onClick={(e) => e.stopPropagation()} // Prevent background click when clicking cube area
-          onTouchEnd={(e) => e.stopPropagation()}
+          onClick={handleCubeInteraction}
+          onTouchEnd={handleCubeInteraction}
         >
           <div
             className="touch-manipulation"
@@ -507,6 +578,7 @@ export default function ImmersiveVoiceMode({
                   ? 'bg-teal-500 hover:bg-teal-400 shadow-lg shadow-teal-500/30'
                   : 'bg-gray-600 hover:bg-gray-500'
               }`}
+              title={`${isMicEnabled ? 'Disable' : 'Enable'} Microphone`}
             >
               <svg
                 width="24"
@@ -532,12 +604,19 @@ export default function ImmersiveVoiceMode({
 
             {/* Subtitle Toggle */}
             <button
-              onClick={() => setSubtitlesEnabled(!subtitlesEnabled)}
+              onClick={() => {
+                setSubtitlesEnabled(!subtitlesEnabled);
+                if (subtitlesEnabled) {
+                  // Clear subtitles when disabling
+                  clearAllSubtitles();
+                }
+              }}
               className={`p-3 rounded-full transition-all duration-300 ${
                 subtitlesEnabled
                   ? 'bg-teal-500 hover:bg-teal-400 shadow-lg shadow-teal-500/30'
                   : 'bg-gray-600 hover:bg-gray-500'
               }`}
+              title="Toggle Subtitles"
             >
               <svg
                 width="24"
@@ -553,6 +632,29 @@ export default function ImmersiveVoiceMode({
                 />
               </svg>
             </button>
+
+            {/* Clear Subtitles Button - Only show when subtitles enabled and there are messages */}
+            {subtitlesEnabled && allSubtitles.length > 0 && (
+              <button
+                onClick={clearAllSubtitles}
+                className="p-3 rounded-full transition-all duration-300 bg-red-600 hover:bg-red-500 shadow-lg shadow-red-500/30"
+                title="Clear All Subtitles"
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="text-white"
+                >
+                  <path
+                    d="M19 7L18.36 6.64L12 10.76L5.64 6.64L5 7L11.28 11.12L5 15.24L5.64 15.86L12 11.74L18.36 15.86L19 15.24L12.72 11.12L19 7Z"
+                    fill="currentColor"
+                  />
+                </svg>
+              </button>
+            )}
           </motion.div>
         </div>
 
@@ -580,14 +682,14 @@ export default function ImmersiveVoiceMode({
           </motion.div>
         </div>
 
-        {/* Close hint */}
+        {/* Voice Mode Title */}
         <div className="absolute top-8 left-1/2 transform -translate-x-1/2">
           <motion.p
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.5 }}
-            className="text-white text-sm text-center"
+            animate={{ opacity: 0.7 }}
+            className="text-white text-lg font-semibold text-center"
           >
-            Tap outside to exit
+            Voice Mode
           </motion.p>
         </div>
       </motion.div>
