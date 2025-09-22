@@ -133,7 +133,7 @@ export default function GoogleOnlyLogin({ onSuccess, onError }: GoogleOnlyLoginP
         className="absolute inset-0 w-full h-full object-cover z-0"
         poster="/background/loginbg-poster.jpg" // Optional: add a poster image as fallback
       >
-        <source src="/background/loginbg.mp4" type="video/mp4" />
+        <source src="/background/new.mp4" type="video/mp4" />
         {/* Fallback for browsers that don't support video */}
         <div className="absolute inset-0 bg-[#121212]"></div>
       </video>

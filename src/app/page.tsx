@@ -82,7 +82,7 @@ export default function HomePage() {
         playsInline
         className="absolute inset-0 w-full h-full object-cover z-0"
       >
-        <source src="/background/loginbg.mp4" type="video/mp4" />
+        <source src="/background/new.mp4" type="video/mp4" />
         <div className="absolute inset-0 bg-[#121212]"></div>
       </video>
       
