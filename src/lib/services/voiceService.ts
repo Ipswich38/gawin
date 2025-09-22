@@ -352,7 +352,7 @@ class VoiceService {
       const voiceResult = await Promise.race([
         enhancedVoiceService.speak(processedText, {
           emotion: options.emotion || 'neutral',
-          priority: options.priority || 'normal'
+          priority: (options.priority === 'low') ? 'normal' : (options.priority || 'normal')
         }),
         new Promise<boolean>((_, reject) =>
           setTimeout(() => reject(new Error('Voice synthesis timeout')), 6000)

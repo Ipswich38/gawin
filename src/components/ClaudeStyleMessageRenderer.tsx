@@ -248,8 +248,20 @@ export default function ClaudeStyleMessageRenderer({
       )}
 
       {/* Main Message Content */}
-      <div className="prose prose-invert max-w-none" style={{ columnCount: 'unset', columns: 'unset' }}>
-        <div className="markdown-content" style={{ columnCount: 'unset', columns: 'unset' }}>
+      <div className="prose prose-invert max-w-none" style={{
+        columnCount: '1',
+        columns: 'auto',
+        display: 'block',
+        gridTemplateColumns: 'none',
+        flexDirection: 'column'
+      }}>
+        <div className="markdown-content" style={{
+          columnCount: '1',
+          columns: 'auto',
+          display: 'block',
+          gridTemplateColumns: 'none',
+          flexDirection: 'column'
+        }}>
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={components}
@@ -326,31 +338,53 @@ export default function ClaudeStyleMessageRenderer({
           margin: 1rem 0 !important;
         }
 
-        /* Disable column layouts completely */
-        .prose, .prose * {
-          column-count: unset !important;
-          columns: unset !important;
-          column-width: unset !important;
-          column-gap: unset !important;
-          column-rule: unset !important;
-          column-fill: unset !important;
-          column-span: unset !important;
+        /* Disable column layouts completely - stronger enforcement */
+        * {
+          column-count: 1 !important;
+          columns: auto !important;
+          column-width: auto !important;
+          column-gap: normal !important;
+          column-rule: none !important;
+          column-fill: balance !important;
+          column-span: none !important;
           break-inside: auto !important;
           break-before: auto !important;
           break-after: auto !important;
         }
 
-        .markdown-content, .markdown-content * {
-          column-count: unset !important;
-          columns: unset !important;
-          column-width: unset !important;
-          column-gap: unset !important;
-          column-rule: unset !important;
-          column-fill: unset !important;
-          column-span: unset !important;
+        .prose, .prose *, .prose-invert, .prose-invert * {
+          column-count: 1 !important;
+          columns: auto !important;
+          column-width: auto !important;
+          column-gap: normal !important;
+          column-rule: none !important;
+          column-fill: balance !important;
+          column-span: none !important;
           break-inside: auto !important;
           break-before: auto !important;
           break-after: auto !important;
+          display: block !important;
+        }
+
+        .markdown-content, .markdown-content * {
+          column-count: 1 !important;
+          columns: auto !important;
+          column-width: auto !important;
+          column-gap: normal !important;
+          column-rule: none !important;
+          column-fill: balance !important;
+          column-span: none !important;
+          break-inside: auto !important;
+          break-before: auto !important;
+          break-after: auto !important;
+          display: block !important;
+        }
+
+        /* Ensure no grid or flex columns */
+        .prose, .prose-invert, .markdown-content {
+          display: block !important;
+          grid-template-columns: none !important;
+          flex-direction: column !important;
         }
       `}</style>
     </div>
