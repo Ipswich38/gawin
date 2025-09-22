@@ -409,23 +409,35 @@ export default function ImmersiveVoiceMode({
             </div>
           </motion.div>
         )}
-        {/* Ambient background effects */}
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-900">
-          {/* Subtle animated particles */}
-          <div className="absolute inset-0 opacity-20">
-            {Array.from({ length: 50 }, (_, i) => (
-              <div
-                key={i}
-                className="absolute w-1 h-1 bg-teal-400 rounded-full animate-pulse"
-                style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                  animationDelay: `${Math.random() * 3}s`,
-                  animationDuration: `${2 + Math.random() * 2}s`,
-                }}
-              />
-            ))}
-          </div>
+        {/* Background Video - Same as main app */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover z-0"
+        >
+          <source src="/background/new.mp4" type="video/mp4" />
+          <div className="absolute inset-0 bg-gray-900"></div>
+        </video>
+
+        {/* Subtle overlay for cube visibility */}
+        <div className="absolute inset-0 bg-black/40 z-5"></div>
+
+        {/* Enhanced ambient particles over video */}
+        <div className="absolute inset-0 z-10 opacity-30">
+          {Array.from({ length: 30 }, (_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-1 bg-teal-400 rounded-full animate-pulse"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 3}s`,
+                animationDuration: `${2 + Math.random() * 2}s`,
+              }}
+            />
+          ))}
         </div>
 
         {/* Main 3D Cube - Center Stage */}
