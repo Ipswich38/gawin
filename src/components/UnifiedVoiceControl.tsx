@@ -115,11 +115,25 @@ const UnifiedVoiceControl: React.FC<UnifiedVoiceControlProps> = ({
     };
   }, [onTranscript, onSendMessage]);
 
-  const handleVoiceInputToggle = async () => {
+  const handleVoiceToggle = async () => {
     if (!isInputSupported || disabled || isGawinSpeaking) return;
 
     hapticService.triggerHaptic('voice');
 
+    // Always ensure voice output is enabled when using voice
+    if (!isVoiceOutputEnabled) {
+      try {
+        const { voiceService } = await import('@/lib/services/voiceService');
+        const success = await voiceService.enableVoice();
+        if (success) {
+          setIsVoiceOutputEnabled(true);
+        }
+      } catch (error) {
+        console.error('Failed to enable voice output:', error);
+      }
+    }
+
+    // Toggle voice input
     if (isListening) {
       speechRecognitionService.stopListening();
     } else {
@@ -161,38 +175,21 @@ const UnifiedVoiceControl: React.FC<UnifiedVoiceControlProps> = ({
 
   const getVoiceIcon = () => {
     if (!isInputSupported || disabled) {
-      return (
-        <div className="flex items-center space-x-1">
-          <MicOff size={12} className="text-gray-500" />
-          <VolumeX size={12} className="text-gray-500" />
-        </div>
-      );
+      return <MicOff size={16} className="text-gray-500" />;
     }
 
     if (isListening) {
       return (
-        <div className="relative flex items-center space-x-1">
-          <motion.div
-            animate={{ scale: isProcessingVoice ? [1, 1.3, 1] : 1 }}
-            transition={{ duration: 0.6, repeat: isProcessingVoice ? Infinity : 0 }}
-          >
-            <Mic size={12} className={isProcessingVoice ? "text-red-400" : "text-green-400"} />
-          </motion.div>
-          <div className={`${isVoiceOutputEnabled ? 'text-green-400' : 'text-gray-400'}`}>
-            {isVoiceOutputEnabled ? <Volume2 size={12} /> : <VolumeX size={12} />}
-          </div>
-        </div>
+        <motion.div
+          animate={{ scale: isProcessingVoice ? [1, 1.3, 1] : 1 }}
+          transition={{ duration: 0.6, repeat: isProcessingVoice ? Infinity : 0 }}
+        >
+          <Mic size={16} className={isProcessingVoice ? "text-red-400" : "text-green-400"} />
+        </motion.div>
       );
     }
 
-    return (
-      <div className="flex items-center space-x-1">
-        <Mic size={12} className="text-gray-300" />
-        <div className={`${isVoiceOutputEnabled ? 'text-green-400' : 'text-gray-400'}`}>
-          {isVoiceOutputEnabled ? <Volume2 size={12} /> : <VolumeX size={12} />}
-        </div>
-      </div>
-    );
+    return <Mic size={16} className="text-gray-300" />;
   };
 
   const getButtonStyle = () => {
@@ -226,7 +223,7 @@ const UnifiedVoiceControl: React.FC<UnifiedVoiceControlProps> = ({
       {/* Main Voice Control Button */}
       <div className="relative">
         <button
-          onClick={handleVoiceInputToggle}
+          onClick={handleVoiceToggle}
           disabled={disabled || isGawinSpeaking}
           className={`
             relative flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all duration-200
@@ -234,9 +231,9 @@ const UnifiedVoiceControl: React.FC<UnifiedVoiceControlProps> = ({
             ${disabled || isGawinSpeaking ? 'opacity-50 cursor-not-allowed' : ''}
           `}
           title={
-            disabled ? 'Voice input disabled' :
+            disabled ? 'Voice disabled' :
             isGawinSpeaking ? 'Gawin is speaking...' :
-            isListening ? 'Stop listening' : 'Start voice input'
+            isListening ? 'Stop voice conversation' : 'Start voice conversation'
           }
         >
           {getVoiceIcon()}
@@ -284,21 +281,6 @@ const UnifiedVoiceControl: React.FC<UnifiedVoiceControlProps> = ({
         )}
       </div>
 
-      {/* Voice Output Toggle (Small secondary button) */}
-      <button
-        onClick={handleVoiceOutputToggle}
-        className={`
-          w-6 h-6 rounded-lg flex items-center justify-center
-          transition-all duration-200
-          ${isVoiceOutputEnabled
-            ? 'bg-teal-600 text-white shadow-lg'
-            : 'bg-gray-700/50 text-gray-400 hover:bg-gray-600/60 hover:text-gray-300'
-          }
-        `}
-        title={isVoiceOutputEnabled ? 'Disable Voice Output' : 'Enable Voice Output'}
-      >
-        {isVoiceOutputEnabled ? <Volume2 size={12} /> : <VolumeX size={12} />}
-      </button>
 
       {/* Error Display */}
       {inputError && (

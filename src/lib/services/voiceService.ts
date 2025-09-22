@@ -2,12 +2,14 @@
  * Voice Service for Gawin
  * Provides natural text-to-speech capabilities with personality-matched voice
  * Configured for male voice aged 22-28 with friendly, intelligent tone
+ * Integrated with Enhanced Voice Service for ElevenLabs primary + built-in fallback
  */
 
 import { huggingFaceService } from './huggingFaceService';
 import { naturalTTSService } from './naturalTTSService';
 import { autonomyService } from './autonomyService';
 import { filipinoLanguageService } from './filipinoLanguageService';
+import { enhancedVoiceService } from './enhancedVoiceService';
 
 export interface VoiceConfig {
   enabled: boolean;
@@ -346,18 +348,37 @@ class VoiceService {
 
       naturalTTSService.setConfig(ttsConfig);
       
-      // Generate natural speech with timeout for faster response
+      // Use Enhanced Voice Service (ElevenLabs primary, built-in fallback with learning)
+      const voiceResult = await Promise.race([
+        enhancedVoiceService.speak(processedText, {
+          emotion: options.emotion || 'neutral',
+          priority: options.priority || 'normal'
+        }),
+        new Promise<boolean>((_, reject) =>
+          setTimeout(() => reject(new Error('Voice synthesis timeout')), 6000)
+        )
+      ]);
+
+      if (voiceResult) {
+        console.log('✅ Enhanced voice synthesis completed successfully');
+
+        // Continue processing queue after a short delay
+        setTimeout(() => this.processVoiceQueue(), 100);
+        return;
+      }
+
+      // If enhanced voice service fails, fallback to original method
+      console.warn('⚠️ Enhanced voice service failed, using fallback...');
+
+      // Original natural TTS fallback
       const result = await Promise.race([
         naturalTTSService.generateSpeech(processedText, ttsConfig),
-        new Promise<any>((_, reject) => 
+        new Promise<any>((_, reject) =>
           setTimeout(() => reject(new Error('TTS timeout')), 6000)
         )
       ]);
-      
+
       if (result.success && result.audioUrl) {
-        // Autonomous learning: record successful generation
-        await autonomyService.learnFromElevenLabs();
-        
         // Play the natural TTS audio
         const audio = new Audio(result.audioUrl);
         
