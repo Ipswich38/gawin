@@ -21,6 +21,7 @@ import ImmersiveVoiceMode from './ImmersiveVoiceMode';
 import { MiniatureCube } from './MiniatureCube';
 import PremiumFeatureGate from './PremiumFeatureGate';
 import { userPermissionService } from '../lib/services/userPermissionService';
+import { tagalogSpeechAnalysisService } from '../lib/services/tagalogSpeechAnalysisService';
 
 // Screen Share Component
 const ScreenShareButton: React.FC = () => {
@@ -318,6 +319,10 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   const [currentLanguageDetection, setCurrentLanguageDetection] = useState<LanguageDetectionResult | null>(null);
   const [userLanguagePreference, setUserLanguagePreference] = useState<'auto' | 'english' | 'filipino' | 'taglish'>('auto');
 
+  // 🎤 Tagalog Speech Analysis
+  const [isTagalogListening, setIsTagalogListening] = useState(false);
+  const [speechLearningProgress, setSpeechLearningProgress] = useState<any>(null);
+
   // 🌐 Initialize intelligent translation
   const translation = useIntelligentTranslation();
 
@@ -575,6 +580,55 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
 
     initializeLocation();
   }, [locationService]);
+
+  // 🎤 Tagalog Speech Analysis Initialization
+  useEffect(() => {
+    const initializeTagalogAnalysis = async () => {
+      try {
+        // Load existing speech patterns
+        const progress = tagalogSpeechAnalysisService.getLearningProgress(user.email);
+        setSpeechLearningProgress(progress);
+
+        // Get consciousness adaptation if available
+        const adaptation = tagalogSpeechAnalysisService.getConsciousnessAdaptation(user.email);
+        if (adaptation) {
+          console.log('🧠 Loaded consciousness adaptation:', adaptation.communicationStyle);
+        }
+
+        console.log('🎤 Tagalog speech analysis initialized:', progress);
+      } catch (error) {
+        console.error('Failed to initialize Tagalog analysis:', error);
+      }
+    };
+
+    initializeTagalogAnalysis();
+  }, [user.email]);
+
+  // Toggle Tagalog listening
+  const toggleTagalogListening = async () => {
+    if (isTagalogListening) {
+      tagalogSpeechAnalysisService.stopListening();
+      setIsTagalogListening(false);
+    } else {
+      const success = await tagalogSpeechAnalysisService.startListening(user.email);
+      if (success) {
+        setIsTagalogListening(true);
+
+        // Update progress every 10 seconds while listening
+        const progressInterval = setInterval(() => {
+          const progress = tagalogSpeechAnalysisService.getLearningProgress(user.email);
+          setSpeechLearningProgress(progress);
+        }, 10000);
+
+        // Clean up interval when stopping
+        setTimeout(() => {
+          if (!isTagalogListening) {
+            clearInterval(progressInterval);
+          }
+        }, 100);
+      }
+    }
+  };
 
   // Location helper functions
   const handleLocationChange = (city: string, region: string, country: string) => {
@@ -1435,8 +1489,20 @@ Generate a complete, professional ${documentType.replace('_', ' ')} document bas
 
       console.log('🇵🇭 Initializing enhanced Gawin conversation...');
 
-      // Use the enhanced conversation engine
-      const gawinResponse = await gawinEngine.sendToGroq(messageText, conversationHistory);
+      // Get consciousness adaptation for this user
+      const consciousnessAdaptation = tagalogSpeechAnalysisService.getConsciousnessAdaptation(user.email);
+
+      // Enhanced conversation context with consciousness adaptation
+      const enhancedContext = consciousnessAdaptation ? {
+        communicationStyle: consciousnessAdaptation.communicationStyle,
+        personalizedGreetings: consciousnessAdaptation.responsePersonalization.greetings,
+        culturalReferences: consciousnessAdaptation.communicationStyle.culturalReferences,
+        empathyLevel: consciousnessAdaptation.empathyLevel,
+        languageMix: consciousnessAdaptation.communicationStyle.languageMix
+      } : undefined;
+
+      // Use the enhanced conversation engine with consciousness adaptation
+      const gawinResponse = await gawinEngine.sendToGroq(messageText, conversationHistory, enhancedContext);
 
       console.log('🧠 Enhanced Conversation Analysis:', {
         detectedLanguage: gawinResponse.context.language,
@@ -1449,12 +1515,16 @@ Generate a complete, professional ${documentType.replace('_', ' ')} document bas
       });
 
       // Create AI response message with enhanced consciousness
+      const consciousnessNote = consciousnessAdaptation
+        ? `🇵🇭 Consciousness adapted to ${consciousnessAdaptation.communicationStyle.formality} style (${speechLearningProgress?.totalNuances || 0} nuances learned)`
+        : '';
+
       const aiResponse: Message = {
         id: Date.now() + 1,
         role: 'assistant',
         content: gawinResponse.content,
         timestamp: new Date().toISOString(),
-        thinking: `🧠 Thinking...`,
+        thinking: `🧠 Enhanced consciousness processing... ${consciousnessNote}`,
         context: gawinResponse.context,
         emotion: gawinResponse.emotion,
         confidence: gawinResponse.confidence
@@ -3012,6 +3082,33 @@ Questions: ${count}`
           onClearLocation={handleClearLocation}
           onRefreshLocation={handleRefreshLocation}
         /> */}
+
+        {/* 🎤 Tagalog Speech Analysis Status */}
+        {speechLearningProgress && speechLearningProgress.totalNuances > 0 && (
+          <div className="px-4 py-2 bg-gradient-to-r from-green-600/20 to-blue-600/20 border-b border-green-500/30">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <span className="text-green-400">🇵🇭</span>
+                <span className="text-white text-sm">
+                  Tagalog Learning: {speechLearningProgress.totalNuances} nuances
+                </span>
+                <span className="text-green-300 text-xs">
+                  {speechLearningProgress.culturalAdaptation}%
+                </span>
+              </div>
+              <button
+                onClick={toggleTagalogListening}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                  isTagalogListening
+                    ? 'bg-red-500/20 text-red-300 border border-red-500/30'
+                    : 'bg-green-500/20 text-green-300 border border-green-500/30'
+                }`}
+              >
+                {isTagalogListening ? '🛑 Stop' : '🎤 Listen'}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Mobile Tabs - Fully Transparent */}
         <div className={`

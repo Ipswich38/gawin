@@ -31,9 +31,17 @@ export class LocationService {
    * Main function to get user location with privacy-first approach
    */
   async getUserLocation(askConsent: boolean = true): Promise<UserLocation> {
-    // Return cached location if available
+    // Return cached location if available and not too old (24 hours)
     if (this.userLocation && this.userLocation.city) {
-      return this.userLocation;
+      const locationAge = this.userLocation.timestamp ?
+        Date.now() - new Date(this.userLocation.timestamp).getTime() :
+        Infinity;
+      const twentyFourHours = 24 * 60 * 60 * 1000;
+
+      if (locationAge < twentyFourHours) {
+        console.log('📍 Using cached location:', this.userLocation.city);
+        return this.userLocation;
+      }
     }
 
     // Check if we need to ask for consent
@@ -456,11 +464,11 @@ export class LocationService {
       const savedConsent = localStorage.getItem('gawin_location_consent');
       if (savedConsent) {
         const consent: LocationConsentResult = JSON.parse(savedConsent);
-        // Consent expires after 30 days
+        // Consent expires after 90 days (extended for better UX)
         const consentAge = Date.now() - new Date(consent.timestamp).getTime();
-        const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+        const ninetyDays = 90 * 24 * 60 * 60 * 1000;
 
-        if (consentAge < thirtyDays && consent.granted) {
+        if (consentAge < ninetyDays && consent.granted) {
           this.consentGranted = true;
         }
       }
