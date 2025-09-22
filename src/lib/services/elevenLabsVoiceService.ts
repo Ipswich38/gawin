@@ -1,8 +1,10 @@
 /**
  * ElevenLabs Voice Service for Gawin
- * High-quality neural text-to-speech using ElevenLabs API
+ * High-quality neural text-to-speech using ElevenLabs SDK
  * Voice ID: s2tgiTzhkPovTa6bxAlx
  */
+
+// ElevenLabs SDK is used in the API route for server-side operations
 
 export interface ElevenLabsConfig {
   voiceId: string;
