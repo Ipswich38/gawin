@@ -323,6 +323,7 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   // 🎙️ Voice Mode states
   const [showVoiceModePopup, setShowVoiceModePopup] = useState(false);
   const [lastAIResponse, setLastAIResponse] = useState<string>('');
+  const [showMoreTools, setShowMoreTools] = useState(false);
 
   // 🚫 Guest limitations
   const [guestChatCount, setGuestChatCount] = useState(0);
@@ -3267,12 +3268,12 @@ Questions: ${count}`
                   }} />
                 </div>
 
-                {/* Bottom Section: Tool Icons */}
+                {/* Bottom Section: Streamlined Tool Icons */}
                 <div className="px-6 pb-4 pt-2 border-t border-gray-700/10">
                   <div className="flex items-center justify-between">
-                    {/* Left Side: Gawin's Senses & Communication */}
+                    {/* Left Side: Primary Voice Controls */}
                     <div className="flex items-center space-x-2 sm:space-x-3">
-                      {/* Voice Input (Microphone) */}
+                      {/* Regular Voice Input (Microphone) */}
                       <div className="relative">
                         <VoiceInput
                           onTranscript={handleVoiceTranscript}
@@ -3282,65 +3283,81 @@ Questions: ${count}`
                         />
                       </div>
 
-                      {/* Immersive Voice Mode (3D Cube) - Premium Feature */}
+                      {/* HIGHLIGHTED: Immersive Voice Mode (3D Cube) */}
                       {userPermissions.voiceMode ? (
-                        <div className="touch-manipulation">
-                          <MiniatureCube
-                            isActive={showVoiceModePopup}
-                            size={60}
-                            onClick={() => setShowVoiceModePopup(true)}
-                          />
+                        <div className="relative touch-manipulation">
+                          {/* Glowing ring for emphasis */}
+                          <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-teal-500/30 to-cyan-500/30 blur-md animate-pulse"></div>
+                          <div className="relative bg-gradient-to-br from-teal-600/20 to-cyan-600/20 p-1 rounded-xl border border-teal-500/30">
+                            <MiniatureCube
+                              isActive={showVoiceModePopup}
+                              size={64}
+                              onClick={() => setShowVoiceModePopup(true)}
+                            />
+                          </div>
+                          {/* Voice Mode Label */}
+                          <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-teal-400 font-medium whitespace-nowrap">
+                            Voice Mode
+                          </div>
                         </div>
                       ) : (
-                        <div className="touch-manipulation opacity-60 relative">
-                          <MiniatureCube
-                            isActive={false}
-                            size={60}
+                        <div className="relative touch-manipulation">
+                          <div className="relative bg-gradient-to-br from-amber-600/20 to-orange-600/20 p-1 rounded-xl border border-amber-500/30 opacity-60">
+                            <MiniatureCube
+                              isActive={false}
+                              size={64}
+                              onClick={() => {
+                                alert('Immersive Voice Mode is a premium feature. Please create an account to access the 3D cube voice interface.');
+                              }}
+                            />
+                          </div>
+                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full text-xs text-white flex items-center justify-center">
+                            <span style={{ fontSize: '8px' }}>P</span>
+                          </div>
+                          <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-amber-400 font-medium whitespace-nowrap">
+                            Voice Mode
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Secondary Tools - More Compact */}
+                      <div className="flex items-center space-x-1 ml-2">
+                        {/* Vision Control - Compact */}
+                        {userPermissions.visionControl ? (
+                          <div className="relative">
+                            <SimpleVision
+                              onVisionToggle={() => setIsVisionPOVVisible(!isVisionPOVVisible)}
+                              isVisionActive={isVisionPOVVisible}
+                              compact={true}
+                            />
+                          </div>
+                        ) : (
+                          <button
                             onClick={() => {
-                              alert('Immersive Voice Mode is a premium feature. Please create an account to access the 3D cube voice interface.');
+                              alert('Vision Control is a premium feature. Please create an account to access camera and image analysis capabilities.');
                             }}
-                          />
-                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full text-xs text-white flex items-center justify-center">
-                            <span style={{ fontSize: '8px' }}>P</span>
-                          </div>
-                        </div>
-                      )}
+                            className="p-1.5 bg-gray-800/40 border border-gray-700/30 rounded-lg relative group opacity-50 scale-90"
+                            title="Vision Control (Premium)"
+                          >
+                            <svg className="w-3 h-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-500 rounded-full"></div>
+                          </button>
+                        )}
 
-                      {/* Vision Control - Premium Feature */}
-                      {userPermissions.visionControl ? (
-                        <div className="relative">
-                          <SimpleVision
-                            onVisionToggle={() => setIsVisionPOVVisible(!isVisionPOVVisible)}
-                            isVisionActive={isVisionPOVVisible}
-                            compact={true}
-                          />
-                        </div>
-                      ) : (
+                        {/* More Tools Menu */}
                         <button
-                          onClick={() => {
-                            alert('Vision Control is a premium feature. Please create an account to access camera and image analysis capabilities.');
-                          }}
-                          className="p-2 sm:p-2.5 bg-gray-800/60 border border-gray-700/50 rounded-xl relative group opacity-60"
-                          title="Vision Control (Premium Feature)"
+                          onClick={() => setShowMoreTools(!showMoreTools)}
+                          className="p-1.5 bg-gray-800/40 border border-gray-700/30 rounded-lg hover:bg-gray-700/50 transition-colors scale-90"
+                          title="More Tools"
                         >
-                          <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <svg className="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                           </svg>
-                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full text-xs text-white flex items-center justify-center">
-                            <span style={{ fontSize: '8px' }}>P</span>
-                          </div>
                         </button>
-                      )}
-
-                      {/* Screen Share Control */}
-                      <ScreenShareButton />
-
-                      {/* Voice Output Control */}
-                      <VoiceOutputButton />
-
-                      {/* Translation Control */}
-                      <TranslationControl compact={true} />
+                      </div>
                     </div>
 
                     {/* Right Side: Send Button */}
@@ -3367,6 +3384,40 @@ Questions: ${count}`
                       )}
                     </button>
                   </div>
+
+                  {/* Expandable More Tools Menu */}
+                  <AnimatePresence>
+                    {showMoreTools && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="pt-3 border-t border-gray-700/10 mt-2">
+                          <div className="flex items-center justify-center space-x-3">
+                            {/* Screen Share Control */}
+                            <div className="flex flex-col items-center space-y-1">
+                              <ScreenShareButton />
+                              <span className="text-xs text-gray-400">Screen</span>
+                            </div>
+
+                            {/* Voice Output Control */}
+                            <div className="flex flex-col items-center space-y-1">
+                              <VoiceOutputButton />
+                              <span className="text-xs text-gray-400">Speaker</span>
+                            </div>
+
+                            {/* Translation Control */}
+                            <div className="flex flex-col items-center space-y-1">
+                              <TranslationControl compact={true} />
+                              <span className="text-xs text-gray-400">Translate</span>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
             </div>
