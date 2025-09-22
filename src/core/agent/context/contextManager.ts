@@ -78,7 +78,7 @@ export class ContextManager {
 
     // Update cultural adaptations if relevant
     if (updates.userPreferences?.language || updates.currentLocation) {
-      await this.updateCulturalAdaptations();
+      await this.refreshCulturalAdaptations();
     }
   }
 
@@ -174,8 +174,9 @@ export class ContextManager {
     let cultural = this.culturalAdaptations.get(language);
 
     if (!cultural) {
-      cultural = await this.buildCulturalContext(language);
-      if (cultural) {
+      const builtCultural = await this.buildCulturalContext(language);
+      if (builtCultural) {
+        cultural = builtCultural;
         this.culturalAdaptations.set(language, cultural);
       }
     }
@@ -470,6 +471,16 @@ export class ContextManager {
   private async loadCulturalAdaptations(): Promise<void> {
     // Load cultural adaptations from persistence
     // Implementation depends on storage solution
+  }
+
+  private async refreshCulturalAdaptations(): Promise<void> {
+    // Refresh cultural adaptations based on current context
+    if (this.currentContext.userPreferences?.language) {
+      const cultural = await this.buildCulturalContext(this.currentContext.userPreferences.language);
+      if (cultural) {
+        this.culturalAdaptations.set(this.currentContext.userPreferences.language, cultural);
+      }
+    }
   }
 
   private generateSnapshotId(): string {
