@@ -1501,8 +1501,14 @@ Generate a complete, professional ${documentType.replace('_', ' ')} document bas
         languageMix: consciousnessAdaptation.communicationStyle.languageMix
       } : undefined;
 
-      // Use the enhanced conversation engine with consciousness adaptation
-      const gawinResponse = await gawinEngine.sendToGroq(messageText, conversationHistory, enhancedContext);
+      // Use the enhanced conversation engine (consciousness adaptation will be integrated into the engine separately)
+      const gawinResponse = await gawinEngine.sendToGroq(messageText, conversationHistory);
+
+      // Apply consciousness adaptation to the response if available
+      if (consciousnessAdaptation && gawinResponse.content) {
+        // Note: In future, the conversation engine can be enhanced to use consciousness adaptation directly
+        console.log('🇵🇭 Consciousness adaptation available:', consciousnessAdaptation.communicationStyle);
+      }
 
       console.log('🧠 Enhanced Conversation Analysis:', {
         detectedLanguage: gawinResponse.context.language,

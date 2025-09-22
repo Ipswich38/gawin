@@ -9,10 +9,14 @@ import { voiceService } from './voiceService';
 import { elevenLabsVoiceService } from './elevenLabsVoiceService';
 
 interface VoicePattern {
-  phoneme: string;
-  duration: number;
-  pitch: number;
+  word: string;
   emotion: string;
+  pitch: number;
+  formants: number[];
+  prosody: {
+    stress: number;
+    duration: number;
+  };
   context: string;
 }
 
@@ -392,10 +396,14 @@ class EnhancedVoiceService {
     for (let i = 0; i < words.length; i++) {
       const word = words[i];
       patterns.push({
-        phoneme: word,
-        duration: word.length * 80 + Math.random() * 40, // ms
-        pitch: this.learnedVoiceCharacteristics.baseFrequency + (Math.random() - 0.5) * 50,
+        word: word,
         emotion,
+        pitch: this.learnedVoiceCharacteristics.baseFrequency + (Math.random() - 0.5) * 50,
+        formants: [800, 1200, 2500], // Default formants
+        prosody: {
+          stress: Math.random(),
+          duration: word.length * 80 + Math.random() * 40 // ms
+        },
         context: i === 0 ? 'start' : i === words.length - 1 ? 'end' : 'middle'
       });
     }
@@ -497,16 +505,17 @@ class EnhancedVoiceService {
    * Apply base voice characteristics learned from ElevenLabs
    */
   private applyLearnedBaseCharacteristics(utterance: SpeechSynthesisUtterance): void {
-    if (this.voiceLearningData.patterns.length > 0) {
+    if (this.voiceLearningData && this.voiceLearningData.patterns.length > 0) {
       // Calculate average pitch from learned patterns
-      const avgPitch = this.voiceLearningData.patterns.reduce((sum, p) => sum + p.pitch, 0) / this.voiceLearningData.patterns.length;
+      const patterns = this.voiceLearningData.patterns;
+      const avgPitch = patterns.reduce((sum, p) => sum + p.pitch, 0) / patterns.length;
 
       // Map ElevenLabs pitch (Hz) to Web Speech API pitch (0.1-2.0)
       utterance.pitch = Math.max(0.1, Math.min(2.0, avgPitch / 150));
 
       // Calculate speech rate from prosodic patterns
-      const avgDuration = this.voiceLearningData.patterns.reduce((sum, p) =>
-        sum + (p.prosody?.duration || 0.5), 0) / this.voiceLearningData.patterns.length;
+      const avgDuration = patterns.reduce((sum, p) =>
+        sum + (p.prosody?.duration || 0.5), 0) / patterns.length;
 
       // Map duration to speech rate (inverse relationship)
       utterance.rate = Math.max(0.1, Math.min(2.0, 0.8 / avgDuration));
@@ -544,7 +553,7 @@ class EnhancedVoiceService {
     // This is where we'd apply more sophisticated prosodic modeling
     // Since Web Speech API has limited prosody control, we simulate it through rate/pitch variation
 
-    const emotionPatterns = this.voiceLearningData.patterns.filter(p => p.emotion === emotion);
+    const emotionPatterns = this.voiceLearningData?.patterns.filter(p => p.emotion === emotion) || [];
 
     if (emotionPatterns.length > 0) {
       // Calculate stress patterns
