@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GawinIceCube } from './GawinIceCube';
+import { elevenLabsVoiceService } from '@/lib/services/elevenLabsVoiceService';
 
 type VoiceState = 'idle' | 'listening' | 'processing' | 'speaking';
 
@@ -43,7 +44,7 @@ export default function ImmersiveVoiceMode({
   const [allSubtitles, setAllSubtitles] = useState<string[]>([]); // Store all Gawin messages
 
   const recognitionRef = useRef<any>(null);
-  const synthRef = useRef<SpeechSynthesis | null>(null);
+  const elevenLabsRef = useRef(elevenLabsVoiceService);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -145,7 +146,38 @@ export default function ImmersiveVoiceMode({
         }, 500);
       }
 
-      synthRef.current = window.speechSynthesis;
+      // Initialize ElevenLabs voice service
+      elevenLabsRef.current.setCallbacks({
+        onStart: () => {
+          console.log('🎤 ElevenLabs voice started');
+        },
+        onEnd: () => {
+          console.log('✅ ElevenLabs voice finished');
+          setState('listening');
+          startVibrationSync();
+
+          // Clear karaoke
+          if (subtitlesEnabled) {
+            setTimeout(() => {
+              setCurrentSubtitle('');
+              setKaraokeWords([]);
+              setCurrentWordIndex(0);
+            }, 2000);
+          }
+
+          // Restart speech recognition
+          setTimeout(() => {
+            if (recognitionRef.current && isOpen && isMicEnabled) {
+              recognitionRef.current.start();
+            }
+          }, 500);
+        },
+        onError: (error) => {
+          console.error('❌ ElevenLabs voice error:', error);
+          setState('listening');
+          startVibrationSync();
+        }
+      });
     }
 
     initializeVoice();
@@ -163,8 +195,8 @@ export default function ImmersiveVoiceMode({
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
-      if (synthRef.current) {
-        synthRef.current.cancel();
+      if (elevenLabsRef.current) {
+        elevenLabsRef.current.stop();
       }
       stopVibrationSync();
     };
@@ -251,69 +283,54 @@ export default function ImmersiveVoiceMode({
     setCurrentWordIndex(0);
     setCurrentSubtitle(response);
 
-    if (synthRef.current) {
+    // Use ElevenLabs for high-quality voice synthesis
+    if (elevenLabsRef.current) {
       setState('speaking');
 
-      const utterance = new SpeechSynthesisUtterance(response);
-
-      // Configure voice for better quality
-      const voices = speechSynthesis.getVoices();
-      const preferredVoice = voices.find(voice =>
-        voice.name.includes('Samantha') ||
-        voice.name.includes('Karen') ||
-        voice.name.includes('Moira') ||
-        voice.lang.startsWith('en')
-      );
-
-      if (preferredVoice) {
-        utterance.voice = preferredVoice;
+      // Vibration pattern for speaking
+      if ('vibrate' in navigator) {
+        const speakingPattern = [100, 50, 100, 50, 100];
+        navigator.vibrate(speakingPattern);
       }
 
-      utterance.rate = 0.9;
-      utterance.pitch = 1.0;
-      utterance.volume = 0.8;
+      // Start karaoke word highlighting
+      if (subtitlesEnabled && karaokeWords.length > 0) {
+        startKaraokeAnimation();
+      }
 
-      utterance.onstart = () => {
-        // Vibration pattern for speaking
-        if ('vibrate' in navigator) {
-          const speakingPattern = [100, 50, 100, 50, 100];
-          navigator.vibrate(speakingPattern);
+      // Detect emotion from response for better voice expression
+      const detectEmotion = (text: string): 'neutral' | 'friendly' | 'excited' | 'thoughtful' | 'empathetic' => {
+        const lowerText = text.toLowerCase();
+        if (lowerText.includes('!') && (lowerText.includes('great') || lowerText.includes('awesome'))) {
+          return 'excited';
         }
-
-        // Start karaoke word highlighting
-        if (subtitlesEnabled && karaokeWords.length > 0) {
-          startKaraokeAnimation();
+        if (lowerText.includes('sorry') || lowerText.includes('understand')) {
+          return 'empathetic';
         }
+        if (lowerText.includes('think') || lowerText.includes('analyze')) {
+          return 'thoughtful';
+        }
+        if (lowerText.includes('hello') || lowerText.includes('welcome')) {
+          return 'friendly';
+        }
+        return 'neutral';
       };
 
-      utterance.onend = () => {
-        setState('listening');
-        startVibrationSync();
+      const emotion = detectEmotion(response);
+      const emotionSettings = elevenLabsRef.current.getEmotionSettings(emotion);
 
-        // Clear karaoke
-        if (subtitlesEnabled) {
-          setTimeout(() => {
-            setCurrentSubtitle('');
-            setKaraokeWords([]);
-            setCurrentWordIndex(0);
-          }, 2000);
-        }
-
-        // Restart speech recognition
-        setTimeout(() => {
-          if (recognitionRef.current && isOpen && isMicEnabled) {
-            recognitionRef.current.start();
-          }
-        }, 500);
-      };
-
-      utterance.onerror = () => {
+      // Use ElevenLabs with emotion-appropriate settings
+      elevenLabsRef.current.speak(response, {
+        voiceSettings: emotionSettings,
+        outputFormat: 'mp3_44100_128', // High quality
+        optimizeStreamingLatency: 2, // Optimize for faster playback
+      }).catch((error) => {
+        console.error('❌ ElevenLabs speech failed:', error);
+        // Fallback to continue listening
         setState('listening');
         startVibrationSync();
         setCurrentSubtitle('');
-      };
-
-      synthRef.current.speak(utterance);
+      });
     }
   };
 
@@ -348,8 +365,8 @@ export default function ImmersiveVoiceMode({
       }
     } else if (state === 'speaking') {
       // Stop speaking and restart listening
-      if (synthRef.current) {
-        synthRef.current.cancel();
+      if (elevenLabsRef.current) {
+        elevenLabsRef.current.stop();
         setState('listening');
         startVibrationSync();
 
@@ -488,7 +505,7 @@ export default function ImmersiveVoiceMode({
           playsInline
           className="absolute inset-0 w-full h-full object-cover z-0"
         >
-          <source src="/background/new.mp4" type="video/mp4" />
+          <source src="/background/loginbg.mp4" type="video/mp4" />
           <div className="absolute inset-0 bg-gray-900"></div>
         </video>
 
