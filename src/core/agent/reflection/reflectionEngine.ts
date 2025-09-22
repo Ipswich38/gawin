@@ -637,7 +637,10 @@ export class ReflectionEngine {
 
   private aggregateUserContext(reflections: ReflectionEntry[]): AgentContext {
     // Aggregate user context from recent reflections
-    return reflections.length > 0 ? reflections[0].context.userContext : {};
+    return reflections.length > 0 ? reflections[0].context.userContext : {
+      userId: 'default',
+      sessionId: 'default'
+    };
   }
 
   private determineOverallOutcome(reflections: ReflectionEntry[]): 'success' | 'partial' | 'failure' {
@@ -787,6 +790,32 @@ export class ReflectionEngine {
     item.targetDate = new Date();
 
     return true;
+  }
+
+  async applyImprovement(improvement: any): Promise<void> {
+    try {
+      console.log('📈 Applying improvement:', improvement);
+
+      // Create action item for this improvement
+      const actionItemId = `improvement_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const actionItem: ActionItem = {
+        id: actionItemId,
+        description: improvement.description || `Apply improvement: ${improvement.type}`,
+        priority: improvement.priority || 'medium',
+        category: 'performance',
+        estimatedImpact: 5,
+        implemented: false
+      };
+
+      this.actionItems.set(actionItemId, actionItem);
+
+      // Immediately try to implement if it's a high priority improvement
+      if (improvement.priority === 'high') {
+        await this.implementActionItem(actionItemId);
+      }
+    } catch (error) {
+      console.error('❌ Failed to apply improvement:', error);
+    }
   }
 
   getReflectionSummary(): Record<string, any> {

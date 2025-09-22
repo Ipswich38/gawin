@@ -174,7 +174,10 @@ export class GoalManager {
       dependencies: taskTemplate.dependencies || [],
       estimatedDuration: 60000,
       createdAt: new Date(),
-      context: context || {}
+      context: context || {
+        userId: 'default',
+        sessionId: 'default'
+      }
     }));
 
     return {
@@ -185,7 +188,10 @@ export class GoalManager {
       tasks,
       createdAt: new Date(),
       estimatedDuration: template.estimatedDuration,
-      context: context || {},
+      context: context || {
+        userId: 'default',
+        sessionId: 'default'
+      },
       category: template.category,
       requiredCapabilities: template.requiredCapabilities,
       metadata: {
@@ -214,7 +220,10 @@ export class GoalManager {
       dependencies: [],
       estimatedDuration: 60000,
       createdAt: new Date(),
-      context: context || {}
+      context: context || {
+        userId: 'default',
+        sessionId: 'default'
+      }
     }));
 
     return {
@@ -225,7 +234,10 @@ export class GoalManager {
       tasks,
       createdAt: new Date(),
       estimatedDuration: analysisResult.estimatedDuration,
-      context: context || {},
+      context: context || {
+        userId: 'default',
+        sessionId: 'default'
+      },
       category: analysisResult.category,
       requiredCapabilities: analysisResult.requiredCapabilities,
       metadata: {

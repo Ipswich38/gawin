@@ -420,6 +420,35 @@ export class AgentMemory {
     // Implementation would depend on chosen storage solution
   }
 
+  async storeError(error: any, context: AgentContext): Promise<string> {
+    return this.store({
+      type: 'error',
+      content: {
+        message: error.message || error,
+        stack: error.stack,
+        code: error.code,
+        timestamp: new Date(),
+        context: context
+      },
+      importance: 6, // Errors are moderately important
+      tags: ['error', 'system'],
+      userId: context.userId,
+      context: { errorType: typeof error === 'string' ? 'string' : error.constructor.name }
+    });
+  }
+
+  async getRecentErrors(userId: string, limit: number = 10): Promise<MemoryEntry[]> {
+    return this.retrieve({
+      userId,
+      type: 'error',
+      limit,
+      timeRange: {
+        start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Last 7 days
+        end: new Date()
+      }
+    });
+  }
+
   getMemoryStats(): Record<string, any> {
     return {
       totalMemories: this.memories.size,

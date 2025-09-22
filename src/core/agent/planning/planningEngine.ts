@@ -10,7 +10,8 @@
  * - Context-aware planning
  */
 
-import { AgentGoal, AgentTask, AgentPlan, AgentContext, AgentPerformance } from '../gawinAgent';
+import { AgentGoal, AgentTask, AgentContext, PerformanceMetrics } from '../types';
+import { AgentPlan } from '../gawinAgent';
 
 export interface PlanningStrategy {
   name: string;
@@ -33,7 +34,7 @@ export interface ReasoningStep {
 export interface PlanningContext {
   available_tools: string[];
   user_context: AgentContext;
-  historical_performance: AgentPerformance;
+  historical_performance: PerformanceMetrics;
   current_workload: number;
   time_constraints: string[];
   resource_constraints: string[];
@@ -283,7 +284,8 @@ export class PlanningEngine {
   private identifyRiskFactors(goal: AgentGoal, context: PlanningContext): string[] {
     const risks: string[] = [];
 
-    if (goal.deadline && goal.deadline.getTime() < Date.now() + 3600000) {
+    // Check for tight deadline based on estimatedDuration
+    if (goal.estimatedDuration && goal.estimatedDuration < 3600000) {
       risks.push('tight_deadline');
     }
 
@@ -333,8 +335,8 @@ export class PlanningEngine {
         score += 0.3;
       }
 
-      // Consider time constraints
-      if (goal.deadline && name === 'parallel') {
+      // Consider time constraints based on estimated duration
+      if (goal.estimatedDuration && goal.estimatedDuration < 600000 && name === 'parallel') {
         score += 0.1;
       }
 
@@ -680,19 +682,28 @@ export class PlanningEngine {
     dependencies: string[],
     estimatedDuration: number
   ): AgentTask {
+    // Convert numeric priority to string
+    const priorityMap: Record<number, "low" | "medium" | "high" | "critical"> = {
+      1: 'low',
+      2: 'medium',
+      3: 'high',
+      4: 'critical'
+    };
+
     return {
       id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      goalId,
-      description,
       type,
-      priority,
+      description,
+      priority: priorityMap[priority] || 'medium',
       status: 'pending',
-      requiredTools,
+      parameters: {},
       dependencies,
       estimatedDuration,
-      retryCount: 0,
-      maxRetries: 3,
-      createdAt: new Date()
+      createdAt: new Date(),
+      context: {
+        userId: 'default',
+        sessionId: 'default'
+      }
     };
   }
 
@@ -726,7 +737,7 @@ export class PlanningEngine {
     const contingencies = [];
 
     // Add timeout contingency for long tasks
-    const longTasks = tasks.filter(t => t.estimatedDuration > 30);
+    const longTasks = tasks.filter(t => t.estimatedDuration && t.estimatedDuration > 30000); // 30 seconds in milliseconds
     for (const task of longTasks) {
       contingencies.push({
         condition: `task_${task.id}_timeout`,
@@ -737,7 +748,7 @@ export class PlanningEngine {
     }
 
     // Add failure contingency for critical tasks
-    const criticalTasks = tasks.filter(t => t.priority >= 3);
+    const criticalTasks = tasks.filter(t => t.priority === 'high' || t.priority === 'critical');
     for (const task of criticalTasks) {
       contingencies.push({
         condition: `task_${task.id}_failed`,
@@ -815,7 +826,7 @@ export class PlanningEngine {
   /**
    * Adapt strategies based on performance
    */
-  async adaptStrategies(performance: AgentPerformance): Promise<void> {
+  async adaptStrategies(performance: PerformanceMetrics): Promise<void> {
     console.log('🔄 Adapting planning strategies based on performance...');
 
     // Update strategy confidence based on success rate

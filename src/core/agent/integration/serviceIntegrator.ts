@@ -272,7 +272,7 @@ export class ServiceIntegrator {
     const hasLearningAspect = lowerMessage.includes('learn') ||
                              lowerMessage.includes('adapt') ||
                              lowerMessage.includes('improve') ||
-                             context.userPreferences?.enableLearning;
+                             (context.userPreferences?.enableLearning || false);
 
     return hasAgentTrigger || hasComplexity || hasLearningAspect;
   }
@@ -495,7 +495,8 @@ export class ServiceIntegrator {
               currentStatus: integration.healthStatus,
               timestamp: new Date().toISOString()
             },
-            impact: integration.healthStatus === 'offline' ? 'high' : 'medium'
+            impact: (integration.healthStatus === 'healthy' || integration.healthStatus === 'degraded') ?
+                   (integration.healthStatus === 'degraded' ? 'medium' : 'low') : 'high'
           });
 
           // Update agent's capability reliability
