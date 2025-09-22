@@ -3076,9 +3076,9 @@ Questions: ${count}`
           onRefreshLocation={handleRefreshLocation}
         /> */}
 
-        {/* Mobile Tabs - Reduced Height */}
+        {/* Mobile Tabs - Fully Transparent */}
         <div className={`
-          bg-gray-800/40 backdrop-blur-lg border-b border-gray-600/30 px-3 sm:px-4 
+          bg-transparent backdrop-blur-none border-b border-transparent px-3 sm:px-4
           ${optimizationConfig?.compactMode ? 'py-1.5' : 'py-2'}
         `}>
         <div className="flex items-center justify-between">
@@ -3166,14 +3166,14 @@ Questions: ${count}`
         {renderTabContent()}
       </div>
 
-      {/* Enhanced Two-Section Chat Input */}
+      {/* Enhanced Two-Section Chat Input - Fully Transparent */}
       {activeTab && ['general', 'creative'].includes(activeTab.type) && (
-          <div className="px-3 sm:px-4 py-3 sm:py-4 bg-gray-900/60 backdrop-blur-lg border-t border-gray-600/30"
+          <div className="px-3 sm:px-4 py-3 sm:py-4 bg-transparent backdrop-blur-none border-t border-transparent"
                style={{ paddingBottom: `calc(1rem + env(safe-area-inset-bottom))` }}>
 
             {/* Enhanced Input Container with Two Sections */}
             <div className="relative w-full max-w-4xl mx-auto">
-              <div className="relative bg-gray-800/60 backdrop-blur-lg rounded-3xl border border-gray-700/50 focus-within:border-teal-500 transition-colors">
+              <div className="relative bg-gray-800/20 backdrop-blur-sm rounded-3xl border border-gray-700/20 focus-within:border-teal-500/50 transition-colors">
 
                 {/* Top Section: Rich Text Input Area */}
                 <div className="relative px-6 pt-5 pb-3">
@@ -3268,7 +3268,7 @@ Questions: ${count}`
                 </div>
 
                 {/* Bottom Section: Tool Icons */}
-                <div className="px-6 pb-4 pt-2 border-t border-gray-700/30">
+                <div className="px-6 pb-4 pt-2 border-t border-gray-700/10">
                   <div className="flex items-center justify-between">
                     {/* Left Side: Gawin's Senses & Communication */}
                     <div className="flex items-center space-x-2 sm:space-x-3">
