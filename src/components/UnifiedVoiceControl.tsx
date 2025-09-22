@@ -121,9 +121,9 @@ const UnifiedVoiceControl: React.FC<UnifiedVoiceControlProps> = ({
     hapticService.triggerHaptic('voice');
 
     if (isListening) {
-      speechRecognitionService.stopRecognition();
+      speechRecognitionService.stopListening();
     } else {
-      const success = await speechRecognitionService.startRecognition();
+      const success = await speechRecognitionService.startListening();
       if (!success) {
         setInputError('Microphone access denied. Please check permissions.');
         hapticService.triggerError();
