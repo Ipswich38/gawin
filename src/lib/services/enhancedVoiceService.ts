@@ -206,7 +206,6 @@ class EnhancedVoiceService {
 
       return new Promise((resolve) => {
         source.onended = () => resolve(true);
-        source.onerror = () => resolve(false);
         source.start();
       });
     } catch (error) {
