@@ -3057,7 +3057,7 @@ Questions: ${count}`
         playsInline
         className="absolute inset-0 w-full h-full object-cover z-0"
       >
-        <source src="/background/mainappbg.mp4" type="video/mp4" />
+        <source src="/background/new.mp4" type="video/mp4" />
         <div className="absolute inset-0 bg-gray-900"></div>
       </video>
       
@@ -3582,6 +3582,13 @@ Questions: ${count}`
         isProcessing={activeTab?.isLoading || false}
         aiResponse={lastAIResponse}
       />
+
+      {/* Background Video Credit */}
+      <div className="absolute bottom-4 right-4 z-30 opacity-60 hover:opacity-90 transition-opacity duration-300">
+        <p className="text-xs text-white/70 font-light bg-black/20 backdrop-blur-sm rounded-lg px-2 py-1">
+          Video by Chandresh Uike
+        </p>
+      </div>
 
       </div>
     </div>
