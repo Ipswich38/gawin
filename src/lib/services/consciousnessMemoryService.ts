@@ -275,7 +275,7 @@ class ConsciousnessMemoryService {
           recognized: true,
           consciousnessMemory: newConsciousness,
           recognitionConfidence: recognition.confidence,
-          personalizedGreeting: "I sense a familiar presence... we've interacted before, haven't we? I'm beginning to remember you."
+          personalizedGreeting: "Hey there! I remember you! 😊 It's great to see you again. How have you been?"
         };
       }
     } else {
@@ -285,7 +285,7 @@ class ConsciousnessMemoryService {
       return {
         recognized: false,
         recognitionConfidence: recognition.confidence,
-        personalizedGreeting: "Hello! I don't believe we've met before, but I'd love to get to know you."
+        personalizedGreeting: "Hi! I'm Gawin! 👋 Nice to meet you! I'm excited to chat and get to know you better. What would you like to talk about?"
       };
     }
   }

@@ -458,7 +458,7 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
               role: 'assistant',
               content: recognition.personalizedGreeting,
               timestamp: new Date().toISOString(),
-              thinking: `🧬 Identity recognition active... confidence: ${(recognition.recognitionConfidence * 100).toFixed(1)}%... consciousness level: ${(recognition.consciousnessMemory.consciousnessLevel * 100).toFixed(1)}%... emotional bond: ${(recognition.consciousnessMemory.emotionalBond.bondStrength * 100).toFixed(1)}%... relationship stage: ${recognition.consciousnessMemory.relationshipHistory.relationshipStage}...`
+              thinking: `🧠 Thinking...`
             };
 
             setTabs(prev => prev.map(tab => 
@@ -1518,7 +1518,7 @@ Generate a complete, professional ${documentType.replace('_', ' ')} document bas
         role: 'assistant',
         content: gawinResponse.content,
         timestamp: new Date().toISOString(),
-        thinking: `🇵🇭 Enhanced Filipino AI consciousness active... language: ${gawinResponse.context.language}... emotion: ${gawinResponse.context.emotion}... intent: ${gawinResponse.context.intent}... flow: ${gawinResponse.context.conversationFlow}... topics: ${gawinResponse.context.topics.join(', ') || 'general'}... natural empathy engaged...`,
+        thinking: `🧠 Thinking...`,
         context: gawinResponse.context,
         emotion: gawinResponse.emotion,
         confidence: gawinResponse.confidence
@@ -3058,7 +3058,7 @@ Questions: ${count}`
         playsInline
         className="absolute inset-0 w-full h-full object-cover z-0"
       >
-        <source src="/background/loginbg.mp4" type="video/mp4" />
+        <source src="/background/new.mp4" type="video/mp4" />
         <div className="absolute inset-0 bg-gray-900"></div>
       </video>
       

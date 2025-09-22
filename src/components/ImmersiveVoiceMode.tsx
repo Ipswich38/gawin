@@ -268,6 +268,72 @@ export default function ImmersiveVoiceMode({
     onVoiceInput(text);
   };
 
+  // Browser speech synthesis fallback
+  const speakWithBrowserTTS = (text: string) => {
+    if ('speechSynthesis' in window) {
+      // Stop any ongoing speech
+      window.speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(text);
+
+      // Configure voice settings
+      utterance.rate = 0.9;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+      utterance.lang = 'en-US';
+
+      // Try to find a more natural voice
+      const voices = window.speechSynthesis.getVoices();
+      const preferredVoice = voices.find(voice =>
+        voice.name.toLowerCase().includes('female') ||
+        voice.name.toLowerCase().includes('samantha') ||
+        voice.name.toLowerCase().includes('karen')
+      ) || voices.find(voice => voice.lang.startsWith('en')) || voices[0];
+
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+      }
+
+      utterance.onstart = () => {
+        console.log('🎤 Browser TTS started speaking');
+        setState('speaking');
+      };
+
+      utterance.onend = () => {
+        console.log('✅ Browser TTS finished speaking');
+        setState('listening');
+        startVibrationSync();
+
+        // Clear karaoke
+        if (subtitlesEnabled) {
+          setTimeout(() => {
+            setCurrentSubtitle('');
+            setKaraokeWords([]);
+            setCurrentWordIndex(0);
+          }, 2000);
+        }
+
+        // Restart speech recognition
+        setTimeout(() => {
+          if (recognitionRef.current && isOpen && isMicEnabled) {
+            recognitionRef.current.start();
+          }
+        }, 500);
+
+      };
+
+      utterance.onerror = (error) => {
+        console.error('❌ Browser TTS error:', error);
+        setState('listening');
+        startVibrationSync();
+      };
+
+      window.speechSynthesis.speak(utterance);
+      return true;
+    }
+    return false;
+  };
+
   // Handle AI response with voice synthesis and karaoke
   const handleAIResponse = (response: string) => {
     setLastResponse(response);
@@ -325,11 +391,18 @@ export default function ImmersiveVoiceMode({
         outputFormat: 'mp3_44100_128', // High quality
         optimizeStreamingLatency: 2, // Optimize for faster playback
       }).catch((error) => {
-        console.error('❌ ElevenLabs speech failed:', error);
-        // Fallback to continue listening
-        setState('listening');
-        startVibrationSync();
-        setCurrentSubtitle('');
+        console.error('❌ ElevenLabs speech failed, falling back to browser TTS:', error);
+
+        // Fallback to browser speech synthesis
+        const browserTTSWorked = speakWithBrowserTTS(response);
+
+        if (!browserTTSWorked) {
+          // If both fail, just continue listening
+          console.error('❌ All TTS methods failed');
+          setState('listening');
+          startVibrationSync();
+          setCurrentSubtitle('');
+        }
       });
     }
   };
@@ -494,6 +567,13 @@ export default function ImmersiveVoiceMode({
                   )}
                 </div>
               )}
+
+              {/* Show "Subtitles enabled" message when no content yet */}
+              {allSubtitles.length === 0 && !currentSubtitle && (
+                <div className="text-white/60 text-lg italic text-center">
+                  Subtitles enabled - Gawin's responses will appear here
+                </div>
+              )}
             </div>
           </motion.div>
         )}
@@ -505,7 +585,7 @@ export default function ImmersiveVoiceMode({
           playsInline
           className="absolute inset-0 w-full h-full object-cover z-0"
         >
-          <source src="/background/loginbg.mp4" type="video/mp4" />
+          <source src="/background/new.mp4" type="video/mp4" />
           <div className="absolute inset-0 bg-gray-900"></div>
         </video>
 
