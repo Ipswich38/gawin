@@ -161,14 +161,14 @@
 }
 
 .gawin-agent-response h1 {
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 1.5rem;
+  font-weight: 600;
   color: var(--agent-primary);
-  margin: var(--spacing-2xl) 0 var(--spacing-lg) 0;
-  line-height: 1.3;
+  margin: var(--spacing-lg) 0 var(--spacing-md) 0;
+  line-height: 1.4;
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: var(--spacing-sm);
   position: relative;
 }
 
@@ -179,16 +179,16 @@
 }
 
 .gawin-agent-response h2 {
-  font-size: 1.625rem;
+  font-size: 1.25rem;
   font-weight: 600;
   color: var(--agent-primary-dark);
-  margin: var(--spacing-xl) 0 var(--spacing-md) 0;
+  margin: var(--spacing-md) 0 var(--spacing-sm) 0;
   line-height: 1.4;
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  border-bottom: 2px solid var(--agent-border);
-  padding-bottom: var(--spacing-sm);
+  gap: var(--spacing-xs);
+  border-bottom: 1px solid var(--agent-border);
+  padding-bottom: var(--spacing-xs);
 }
 
 .gawin-agent-response h2::before {
@@ -198,10 +198,10 @@
 }
 
 .gawin-agent-response h3 {
-  font-size: 1.375rem;
+  font-size: 1.125rem;
   font-weight: 600;
   color: var(--agent-primary-darker);
-  margin: var(--spacing-lg) 0 var(--spacing-sm) 0;
+  margin: var(--spacing-md) 0 var(--spacing-xs) 0;
   line-height: 1.4;
   display: flex;
   align-items: center;
@@ -215,11 +215,10 @@
 }
 
 .gawin-agent-response p {
-  margin: var(--spacing-lg) 0;
+  margin: var(--spacing-md) 0;
   color: var(--agent-text);
-  text-align: justify;
-  hyphens: auto;
-  line-height: 1.7;
+  line-height: 1.6;
+  font-size: 0.95rem;
 }
 
 .gawin-agent-response ul,

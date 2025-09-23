@@ -7,12 +7,14 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import EnhancedMessageRenderer from './EnhancedMessageRenderer';
+import CleanMessageRenderer from './CleanMessageRenderer';
+import { ResponseProcessingService } from '@/lib/services/responseProcessingService';
 import { AgentModeToggle, AgentModeIndicator } from './AgentModeToggle';
 import { AgentModeService, AgentModeResponse } from '@/lib/services/agentModeService';
 import { AgentResearchService } from '@/lib/services/agentResearchService';
 import { userPermissionService } from '@/lib/services/userPermissionService';
 import PremiumFeatureGate from './PremiumFeatureGate';
+import EnhancedVoiceMode from './EnhancedVoiceMode';
 
 interface Message {
   id: string;
@@ -159,15 +161,26 @@ export default function EnhancedChatInterface({
           { userId, sessionId }
         );
 
-        response = agentResponse.content;
+        // Process response with formatting service
+        const processedResponse = ResponseProcessingService.processResponse(
+          agentResponse.content,
+          {
+            separateThinking: true,
+            preserveASCII: true,
+            enableCodeEditor: true,
+            enforceMarkdown: true
+          }
+        );
+
+        response = processedResponse.response;
+        thinkingProcess = processedResponse.thinking || generateThinkingProcess(agentResponse);
+
         metadata = {
           processingTime: agentResponse.metadata.processingTime,
           researchSources: agentResponse.metadata.researchSources,
           confidenceScore: agentResponse.metadata.confidenceScore,
           capabilities: agentResponse.capabilities
         };
-
-        thinkingProcess = generateThinkingProcess(agentResponse);
       } else {
         // Process with regular mode
         setThinking('💭 Processing your request...');
@@ -175,7 +188,20 @@ export default function EnhancedChatInterface({
         // Simulate regular processing
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-        response = generateRegularResponse(userMessage.content);
+        const rawResponse = generateRegularResponse(userMessage.content);
+
+        // Process response with formatting service
+        const processedResponse = ResponseProcessingService.processResponse(
+          rawResponse,
+          {
+            separateThinking: false,
+            preserveASCII: true,
+            enableCodeEditor: true,
+            enforceMarkdown: true
+          }
+        );
+
+        response = processedResponse.response;
         metadata = {
           processingTime: 1000,
           confidenceScore: 0.8
@@ -231,9 +257,63 @@ export default function EnhancedChatInterface({
     return steps.join(' → ');
   };
 
-  // Generate regular response
+  // Generate regular response with proper formatting examples
   const generateRegularResponse = (userInput: string): string => {
-    return `Thank you for your message: "${userInput}"\n\nI'm processing this in regular mode with standard formatting and capabilities. For enhanced analysis, structured responses, and comprehensive research, consider enabling Agent Mode with your premium subscription.`;
+    // Check if user is asking for code
+    if (userInput.toLowerCase().includes('code') || userInput.toLowerCase().includes('function')) {
+      return `# Code Example Response
+
+Here's a simple example based on your request: "${userInput}"
+
+## JavaScript Function
+\`\`\`javascript
+function example() {
+  console.log("Hello World!");
+  return true;
+}
+\`\`\`
+
+## Calculator Layout (ASCII Art)
+\`\`\`text
+┌─────────────────┐
+│  [  Display   ] │
+├─────────────────┤
+│ [7] [8] [9] [÷] │
+│ [4] [5] [6] [×] │
+│ [1] [2] [3] [-] │
+│ [0] [.] [=] [+] │
+└─────────────────┘
+\`\`\`
+
+This is a regular mode response with:
+- **Standard formatting**
+- Code blocks with syntax highlighting
+- ASCII art preservation
+- Markdown structure
+
+*For enhanced analysis and premium features, enable Agent Mode.*`;
+    }
+
+    return `# Response to: "${userInput}"
+
+Thank you for your message! I'm processing this in **regular mode** with consistent text formatting.
+
+## Features Available
+- ✅ Consistent Markdown rendering
+- ✅ Code syntax highlighting
+- ✅ ASCII art preservation
+- ✅ Monaco Editor for code blocks
+- ✅ Proper thinking separation
+
+## Example Code Block
+\`\`\`python
+def greet(name):
+    return f"Hello, {name}!"
+
+print(greet("World"))
+\`\`\`
+
+*For enhanced analysis, structured responses, and comprehensive research, consider enabling Agent Mode with your premium subscription.*`;
   };
 
   // Handle keyboard shortcuts
@@ -290,14 +370,10 @@ export default function EnhancedChatInterface({
               className={`message-wrapper ${message.role}`}
             >
               <div className="message-content">
-                <EnhancedMessageRenderer
-                  text={message.content}
-                  isAgentMode={message.isAgentMode}
-                  thinking={message.thinking}
-                  metadata={message.metadata}
-                  onCopy={() => handleCopy(message.id)}
-                  onThumbsUp={() => handleThumbsUp(message.id)}
-                  onThumbsDown={() => handleThumbsDown(message.id)}
+                <CleanMessageRenderer
+                  content={message.content}
+                  showCodeEditor={true}
+                  className={message.role === 'assistant' ? 'assistant-message' : 'user-message'}
                 />
               </div>
 
@@ -324,6 +400,24 @@ export default function EnhancedChatInterface({
 
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Enhanced Voice Mode */}
+      {isPremium && (
+        <EnhancedVoiceMode
+          onTranscript={(transcript, isFinal) => {
+            if (!isFinal) {
+              setInputText(transcript);
+            }
+          }}
+          onSendMessage={(message) => {
+            setInputText(message);
+            // Auto-send the message
+            setTimeout(() => sendMessage(), 100);
+          }}
+          isGawinSpeaking={isLoading}
+          disabled={isLoading}
+        />
+      )}
 
       {/* Input Section */}
       <div className="input-section">

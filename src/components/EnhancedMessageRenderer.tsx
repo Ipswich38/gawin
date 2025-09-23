@@ -12,6 +12,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { UnifiedFormatter, UnifiedFormattingOptions, FormattedContent } from '@/lib/formatters/unifiedFormatter';
 import { AgentModeIndicator } from './AgentModeToggle';
+import CodeCanvas from './CodeCanvas';
 
 interface EnhancedMessageRendererProps {
   text: string;
@@ -114,36 +115,22 @@ export default function EnhancedMessageRenderer({
       const codeString = String(children).replace(/\n$/, '');
 
       if (!inline && match) {
-        const codeIndex = parseInt(node?.position?.start?.line || '0');
-
         return (
-          <div className={`code-block-container ${isAgentMode ? 'agent-mode' : 'regular-mode'}`}>
-            {isAgentMode && (
-              <div className="code-header">
-                <span className="code-language">{language}</span>
-                <button
-                  onClick={() => handleCopyCode(codeString, codeIndex)}
-                  className="copy-code-btn"
-                >
-                  {copiedCodeBlocks[codeIndex] ? '✓ Copied' : '📋 Copy'}
-                </button>
-              </div>
-            )}
-            <SyntaxHighlighter
-              style={oneDark}
-              language={language}
-              PreTag="div"
-              customStyle={{
-                margin: 0,
-                borderRadius: isAgentMode ? '0 0 8px 8px' : '8px',
-                fontSize: '14px',
-                lineHeight: '1.5'
-              }}
-              {...props}
-            >
-              {codeString}
-            </SyntaxHighlighter>
-          </div>
+          <CodeCanvas
+            code={codeString}
+            language={language}
+            editable={isAgentMode}
+            runnable={isAgentMode && ['javascript', 'python', 'typescript'].includes(language.toLowerCase())}
+            onCodeChange={(newCode) => {
+              // Handle code changes if needed
+              console.log('Code changed:', newCode);
+            }}
+            onRun={async (code) => {
+              // Handle code execution
+              console.log('Running code:', code);
+              // You can implement actual code execution here
+            }}
+          />
         );
       }
 
@@ -338,10 +325,10 @@ export default function EnhancedMessageRenderer({
         }
 
         .enhanced-message-renderer.agent-mode {
-          background: linear-gradient(135deg, rgba(0, 212, 255, 0.05) 0%, rgba(0, 153, 204, 0.05) 100%);
-          border: 1px solid rgba(0, 212, 255, 0.2);
-          border-radius: 16px;
-          padding: 20px;
+          background: linear-gradient(135deg, rgba(0, 212, 255, 0.03) 0%, rgba(0, 153, 204, 0.03) 100%);
+          border: 1px solid rgba(0, 212, 255, 0.15);
+          border-radius: 12px;
+          padding: 16px;
         }
 
         /* Agent Mode Header */
@@ -426,54 +413,54 @@ export default function EnhancedMessageRenderer({
 
         /* Enhanced Typography */
         .enhanced-h1.agent-mode {
-          font-size: 24px;
-          font-weight: 700;
-          color: #00d4ff;
-          margin: 24px 0 16px 0;
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .enhanced-h1.regular-mode {
-          font-size: 22px;
-          font-weight: 600;
-          color: white;
-          margin: 20px 0 12px 0;
-        }
-
-        .enhanced-h2.agent-mode {
           font-size: 20px;
           font-weight: 600;
-          color: #00b8e6;
-          margin: 20px 0 12px 0;
+          color: #00d4ff;
+          margin: 16px 0 12px 0;
           display: flex;
           align-items: center;
           gap: 8px;
+        }
+
+        .enhanced-h1.regular-mode {
+          font-size: 20px;
+          font-weight: 600;
+          color: white;
+          margin: 16px 0 12px 0;
+        }
+
+        .enhanced-h2.agent-mode {
+          font-size: 18px;
+          font-weight: 600;
+          color: #00b8e6;
+          margin: 14px 0 10px 0;
+          display: flex;
+          align-items: center;
+          gap: 6px;
         }
 
         .enhanced-h2.regular-mode {
           font-size: 18px;
           font-weight: 600;
           color: white;
-          margin: 16px 0 10px 0;
+          margin: 14px 0 10px 0;
         }
 
         .enhanced-h3.agent-mode {
           font-size: 16px;
           font-weight: 600;
           color: #009fcc;
-          margin: 16px 0 8px 0;
+          margin: 12px 0 6px 0;
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: 4px;
         }
 
         .enhanced-h3.regular-mode {
           font-size: 16px;
           font-weight: 600;
           color: white;
-          margin: 14px 0 8px 0;
+          margin: 12px 0 6px 0;
         }
 
         .heading-number {
