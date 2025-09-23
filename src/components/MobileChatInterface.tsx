@@ -3207,12 +3207,12 @@ Questions: ${count}`
 
       {/* Enhanced Two-Section Chat Input - Fully Transparent */}
       {activeTab && ['general', 'creative'].includes(activeTab.type) && (
-          <div className="px-3 sm:px-4 py-3 sm:py-4 bg-transparent backdrop-blur-none border-t border-transparent"
-               style={{ paddingBottom: `calc(1rem + env(safe-area-inset-bottom))` }}>
+          <div className="px-3 sm:px-4 py-1 sm:py-2 bg-transparent backdrop-blur-none border-t border-transparent"
+               style={{ paddingBottom: `calc(0.5rem + env(safe-area-inset-bottom))` }}>
 
             {/* Enhanced Input Container with Two Sections */}
             <div className="relative w-full max-w-4xl mx-auto">
-              <div className="relative bg-gray-800/30 backdrop-blur-sm rounded-3xl border border-teal-500/30 focus-within:border-teal-400/60 transition-all duration-300 shadow-lg shadow-teal-500/10 focus-within:shadow-teal-500/20">
+              <div className="relative bg-gray-800/30 backdrop-blur-sm rounded-3xl border border-transparent focus-within:border-transparent transition-all duration-300 shadow-lg shadow-gray-900/10">
 
                 {/* Top Section: Rich Text Input Area */}
                 <div className="relative px-6 pt-5 pb-3">
@@ -3349,16 +3349,41 @@ Questions: ${count}`
                           </button>
                         )}
 
-                        {/* More Tools Menu */}
+                        {/* Tools Menu */}
                         <button
                           onClick={() => setShowMoreTools(!showMoreTools)}
                           className="p-1.5 bg-gray-800/40 border border-gray-700/30 rounded-lg hover:bg-gray-700/50 transition-colors scale-90"
-                          title="More Tools"
+                          title="Tools"
                         >
                           <svg className="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                           </svg>
                         </button>
+
+                        {/* Horizontal Tools - Show when Tools is active */}
+                        <AnimatePresence>
+                          {showMoreTools && (
+                            <motion.div
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              exit={{ opacity: 0, x: -20 }}
+                              className="flex items-center space-x-2 ml-2"
+                            >
+                              {/* Screen Share Control */}
+                              <div className="flex flex-col items-center">
+                                <ScreenShareButton />
+                                <span className="text-xs text-gray-400 mt-0.5">Screen</span>
+                              </div>
+
+                              {/* Translation Control */}
+                              <div className="flex flex-col items-center">
+                                <TranslationControl compact={true} />
+                                <span className="text-xs text-gray-400 mt-0.5">Translate</span>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
                     </div>
 
@@ -3412,34 +3437,6 @@ Questions: ${count}`
                     </div>
                   </div>
 
-                  {/* Expandable More Tools Menu */}
-                  <AnimatePresence>
-                    {showMoreTools && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="pt-3 border-t border-gray-700/10 mt-2">
-                          <div className="flex items-center justify-center space-x-3">
-                            {/* Screen Share Control */}
-                            <div className="flex flex-col items-center space-y-1">
-                              <ScreenShareButton />
-                              <span className="text-xs text-gray-400">Screen</span>
-                            </div>
-
-
-                            {/* Translation Control */}
-                            <div className="flex flex-col items-center space-y-1">
-                              <TranslationControl compact={true} />
-                              <span className="text-xs text-gray-400">Translate</span>
-                            </div>
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
                 </div>
               </div>
             </div>
