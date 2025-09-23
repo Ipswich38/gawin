@@ -492,52 +492,21 @@ export default function CleanMessageRenderer({
       </h3>
     ),
 
-    p: ({ children }: any) => {
-      // Function to split text into 2-sentence chunks
-      const formatParagraph = (text: any): React.ReactElement[] => {
-        if (typeof text !== 'string') {
-          return [<span key="0">{text}</span>];
-        }
-
-        // Split by sentence endings (. ! ?)
-        const sentences = text.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
-        const chunks = [];
-
-        for (let i = 0; i < sentences.length; i += 2) {
-          const chunk = sentences.slice(i, i + 2).join(' ');
-          chunks.push(
-            <span key={i} className="sentence-chunk">
-              {chunk}
-            </span>
-          );
-        }
-
-        return chunks;
-      };
-
-      return (
-        <p className="clean-paragraph">
-          {typeof children === 'string' ? formatParagraph(children) : children}
-          <style jsx>{`
-            .clean-paragraph {
-              font-family: 'Fraunces', serif;
-              font-weight: 200;
-              font-size: 0.9rem;
-              margin: 12px 0;
-              line-height: 1.6;
-              color: #ffffff;
-            }
-            .sentence-chunk {
-              display: block;
-              margin-bottom: 12px;
-            }
-            .sentence-chunk:last-child {
-              margin-bottom: 0;
-            }
-          `}</style>
-        </p>
-      );
-    },
+    p: ({ children }: any) => (
+      <p className="clean-paragraph">
+        {children}
+        <style jsx>{`
+          .clean-paragraph {
+            font-family: 'Fraunces', serif;
+            font-weight: 200;
+            font-size: 1rem;
+            margin: 0 0 16px 0;
+            line-height: 1.6;
+            color: #ffffff;
+          }
+        `}</style>
+      </p>
+    ),
 
     ul: ({ children }: any) => (
       <ul className="clean-list">
@@ -784,7 +753,8 @@ export default function CleanMessageRenderer({
           color: #ffffff;
           font-family: 'Fraunces', serif;
           font-weight: 200;
-          line-height: 1.7;
+          font-size: 1rem;
+          line-height: 1.6;
           letter-spacing: 0.01em;
         }
 
@@ -824,11 +794,13 @@ export default function CleanMessageRenderer({
         }
 
         .message-actions {
-          margin-top: 12px;
+          margin-top: 16px;
           display: flex;
           justify-content: flex-end;
-          opacity: 0.7;
+          opacity: 0.8;
           transition: opacity 0.2s;
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+          padding-top: 12px;
         }
 
         .message-actions:hover {
