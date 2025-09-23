@@ -11,13 +11,19 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Editor from '@monaco-editor/react';
-import { Copy, Play, Download, Maximize2, Minimize2, Check } from 'lucide-react';
+import { Copy, Play, Download, Maximize2, Minimize2, Check, Volume2, ThumbsUp, ThumbsDown } from 'lucide-react';
 
 interface CleanMessageRendererProps {
   content: string;
   isThinking?: boolean;
   showCodeEditor?: boolean;
   className?: string;
+  showActions?: boolean;
+  onCopy?: () => void;
+  onThumbsUp?: () => void;
+  onThumbsDown?: () => void;
+  onSpeak?: () => void;
+  onDownload?: () => void;
 }
 
 interface CodeBlockProps {
@@ -300,7 +306,13 @@ export default function CleanMessageRenderer({
   content,
   isThinking = false,
   showCodeEditor = true,
-  className = ''
+  className = '',
+  showActions = false,
+  onCopy,
+  onThumbsUp,
+  onThumbsDown,
+  onSpeak,
+  onDownload
 }: CleanMessageRendererProps) {
   const [processedContent, setProcessedContent] = useState({ thinking: '', response: content });
 
@@ -388,12 +400,13 @@ export default function CleanMessageRenderer({
         {children}
         <style jsx>{`
           .clean-h1 {
+            font-family: 'Fraunces', serif;
             font-size: 1.875rem;
-            font-weight: 700;
-            color: #ffffff;
-            margin: 24px 0 16px 0;
+            font-weight: 600;
+            color: #14b8a6;
+            margin: 32px 0 20px 0;
             line-height: 1.3;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            border-bottom: 2px solid rgba(20, 184, 166, 0.3);
             padding-bottom: 8px;
           }
         `}</style>
@@ -405,10 +418,11 @@ export default function CleanMessageRenderer({
         {children}
         <style jsx>{`
           .clean-h2 {
+            font-family: 'Fraunces', serif;
             font-size: 1.5rem;
             font-weight: 600;
-            color: #ffffff;
-            margin: 20px 0 12px 0;
+            color: #14b8a6;
+            margin: 28px 0 16px 0;
             line-height: 1.4;
           }
         `}</style>
@@ -420,36 +434,73 @@ export default function CleanMessageRenderer({
         {children}
         <style jsx>{`
           .clean-h3 {
+            font-family: 'Fraunces', serif;
             font-size: 1.25rem;
             font-weight: 600;
-            color: #ffffff;
-            margin: 16px 0 8px 0;
+            color: #14b8a6;
+            margin: 24px 0 12px 0;
             line-height: 1.4;
           }
         `}</style>
       </h3>
     ),
 
-    p: ({ children }: any) => (
-      <p className="clean-paragraph">
-        {children}
-        <style jsx>{`
-          .clean-paragraph {
-            margin: 12px 0;
-            line-height: 1.6;
-            color: #ffffff;
-          }
-        `}</style>
-      </p>
-    ),
+    p: ({ children }: any) => {
+      // Function to split text into 2-sentence chunks
+      const formatParagraph = (text: any): React.ReactElement[] => {
+        if (typeof text !== 'string') {
+          return [<span key="0">{text}</span>];
+        }
+
+        // Split by sentence endings (. ! ?)
+        const sentences = text.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
+        const chunks = [];
+
+        for (let i = 0; i < sentences.length; i += 2) {
+          const chunk = sentences.slice(i, i + 2).join(' ');
+          chunks.push(
+            <span key={i} className="sentence-chunk">
+              {chunk}
+            </span>
+          );
+        }
+
+        return chunks;
+      };
+
+      return (
+        <p className="clean-paragraph">
+          {typeof children === 'string' ? formatParagraph(children) : children}
+          <style jsx>{`
+            .clean-paragraph {
+              font-family: 'Fraunces', serif;
+              font-weight: 200;
+              margin: 16px 0;
+              line-height: 1.7;
+              color: #ffffff;
+            }
+            .sentence-chunk {
+              display: block;
+              margin-bottom: 12px;
+            }
+            .sentence-chunk:last-child {
+              margin-bottom: 0;
+            }
+          `}</style>
+        </p>
+      );
+    },
 
     ul: ({ children }: any) => (
       <ul className="clean-list">
         {children}
         <style jsx>{`
           .clean-list {
+            font-family: 'Fraunces', serif;
+            font-weight: 200;
             margin: 16px 0;
             padding-left: 24px;
+            line-height: 1.7;
           }
         `}</style>
       </ul>
@@ -460,8 +511,11 @@ export default function CleanMessageRenderer({
         {children}
         <style jsx>{`
           .clean-ordered-list {
+            font-family: 'Fraunces', serif;
+            font-weight: 200;
             margin: 16px 0;
             padding-left: 24px;
+            line-height: 1.7;
           }
         `}</style>
       </ol>
@@ -472,9 +526,12 @@ export default function CleanMessageRenderer({
         {children}
         <style jsx>{`
           .clean-list-item {
-            margin: 6px 0;
-            line-height: 1.6;
+            margin: 8px 0;
+            line-height: 1.7;
             color: #ffffff;
+          }
+          .clean-list-item::marker {
+            color: #14b8a6;
           }
         `}</style>
       </li>
@@ -485,16 +542,43 @@ export default function CleanMessageRenderer({
         {children}
         <style jsx>{`
           .clean-blockquote {
-            border-left: 4px solid rgba(255, 255, 255, 0.3);
-            background: rgba(255, 255, 255, 0.05);
+            font-family: 'Fraunces', serif;
+            font-weight: 200;
+            border-left: 4px solid rgba(20, 184, 166, 0.5);
+            background: rgba(20, 184, 166, 0.1);
             padding: 16px 20px;
             margin: 16px 0;
             border-radius: 0 8px 8px 0;
             color: rgba(255, 255, 255, 0.9);
             font-style: italic;
+            line-height: 1.7;
           }
         `}</style>
       </blockquote>
+    ),
+
+    strong: ({ children }: any) => (
+      <strong className="clean-strong">
+        {children}
+        <style jsx>{`
+          .clean-strong {
+            color: #14b8a6;
+            font-weight: 600;
+          }
+        `}</style>
+      </strong>
+    ),
+
+    em: ({ children }: any) => (
+      <em className="clean-em">
+        {children}
+        <style jsx>{`
+          .clean-em {
+            color: #14b8a6;
+            font-style: italic;
+          }
+        `}</style>
+      </em>
     ),
 
     table: ({ children }: any) => (
@@ -562,12 +646,71 @@ export default function CleanMessageRenderer({
         </ReactMarkdown>
       </div>
 
+      {/* Message Actions */}
+      {showActions && (
+        <div className="message-actions">
+          <div className="action-buttons">
+            {onCopy && (
+              <button
+                onClick={onCopy}
+                className="action-btn copy-message"
+                title="Copy message"
+              >
+                <Copy size={16} />
+              </button>
+            )}
+
+            {onSpeak && (
+              <button
+                onClick={onSpeak}
+                className="action-btn speak-btn"
+                title="Text to speech"
+              >
+                <Volume2 size={16} />
+              </button>
+            )}
+
+            {onDownload && (
+              <button
+                onClick={onDownload}
+                className="action-btn download-message"
+                title="Download message"
+              >
+                <Download size={16} />
+              </button>
+            )}
+
+            {onThumbsUp && (
+              <button
+                onClick={onThumbsUp}
+                className="action-btn thumbs-up"
+                title="Like this response"
+              >
+                <ThumbsUp size={16} />
+              </button>
+            )}
+
+            {onThumbsDown && (
+              <button
+                onClick={onThumbsDown}
+                className="action-btn thumbs-down"
+                title="Dislike this response"
+              >
+                <ThumbsDown size={16} />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       <style jsx>{`
         .clean-message-renderer {
           width: 100%;
           color: #ffffff;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          line-height: 1.6;
+          font-family: 'Fraunces', serif;
+          font-weight: 200;
+          line-height: 1.7;
+          letter-spacing: 0.01em;
         }
 
         .thinking-section {
@@ -605,6 +748,74 @@ export default function CleanMessageRenderer({
           /* Main content area */
         }
 
+        .message-actions {
+          margin-top: 12px;
+          display: flex;
+          justify-content: flex-end;
+          opacity: 0.7;
+          transition: opacity 0.2s;
+        }
+
+        .message-actions:hover {
+          opacity: 1;
+        }
+
+        .action-buttons {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+        }
+
+        .action-btn {
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          color: rgba(255, 255, 255, 0.8);
+          padding: 6px 8px;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 12px;
+        }
+
+        .action-btn:hover {
+          background: rgba(255, 255, 255, 0.2);
+          color: #ffffff;
+          transform: scale(1.05);
+        }
+
+        .speak-btn:hover {
+          background: rgba(20, 184, 166, 0.3);
+          border-color: rgba(20, 184, 166, 0.5);
+          color: #14b8a6;
+        }
+
+        .copy-message:hover {
+          background: rgba(59, 130, 246, 0.3);
+          border-color: rgba(59, 130, 246, 0.5);
+          color: #3b82f6;
+        }
+
+        .download-message:hover {
+          background: rgba(168, 85, 247, 0.3);
+          border-color: rgba(168, 85, 247, 0.5);
+          color: #a855f7;
+        }
+
+        .thumbs-up:hover {
+          background: rgba(34, 197, 94, 0.3);
+          border-color: rgba(34, 197, 94, 0.5);
+          color: #22c55e;
+        }
+
+        .thumbs-down:hover {
+          background: rgba(239, 68, 68, 0.3);
+          border-color: rgba(239, 68, 68, 0.5);
+          color: #ef4444;
+        }
+
         @media (max-width: 768px) {
           .thinking-section {
             padding: 12px;
@@ -613,6 +824,14 @@ export default function CleanMessageRenderer({
 
           .thinking-content {
             font-size: 13px;
+          }
+
+          .action-buttons {
+            gap: 6px;
+          }
+
+          .action-btn {
+            padding: 5px 6px;
           }
         }
       `}</style>

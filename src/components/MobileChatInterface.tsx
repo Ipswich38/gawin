@@ -1552,16 +1552,16 @@ Generate a complete, professional ${documentType.replace('_', ' ')} document bas
           : tab
       ));
 
-      // 🎙️ AUTO-SPEAK GAWIN'S RESPONSE with proper language detection
-      if (voiceService.isVoiceEnabled()) {
-        const speechLanguage = gawinResponse.context.language === 'tagalog'
-          ? 'filipino'
-          : gawinResponse.context.language === 'taglish'
-            ? 'taglish'
-            : 'english';
-
-        await voiceService.autoSpeak(gawinResponse.content, speechLanguage);
-      }
+      // 🎙️ AUTO-SPEAK DISABLED - Users can manually trigger speech via speaker button
+      // Speech is now controlled by the speaker button in message actions
+      // if (voiceService.isVoiceEnabled()) {
+      //   const speechLanguage = gawinResponse.context.language === 'tagalog'
+      //     ? 'filipino'
+      //     : gawinResponse.context.language === 'taglish'
+      //       ? 'taglish'
+      //       : 'english';
+      //   await voiceService.autoSpeak(gawinResponse.content, speechLanguage);
+      // }
 
       return;
 
@@ -2930,6 +2930,49 @@ Questions: ${count}`
                         content={message.content}
                         showCodeEditor={true}
                         className="assistant-message"
+                        showActions={true}
+                        onCopy={() => {
+                          navigator.clipboard.writeText(message.content);
+                          console.log('Copied message:', message.id);
+                        }}
+                        onSpeak={() => {
+                          // Text-to-speech functionality
+                          const utterance = new SpeechSynthesisUtterance(message.content);
+                          utterance.rate = 0.9;
+                          utterance.pitch = 1;
+                          utterance.volume = 0.8;
+                          speechSynthesis.speak(utterance);
+                          console.log('Speaking message:', message.id);
+                        }}
+                        onDownload={() => {
+                          // Download message as text file
+                          const blob = new Blob([message.content], { type: 'text/plain' });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `gawin-response-${message.id}.txt`;
+                          document.body.appendChild(a);
+                          a.click();
+                          document.body.removeChild(a);
+                          URL.revokeObjectURL(url);
+                          console.log('Downloaded message:', message.id);
+                        }}
+                        onThumbsUp={() => {
+                          console.log('👍 Thumbs up for message:', message.id);
+                          emotionalSynchronizer.contributeToGlobalConsciousness(user.email, {
+                            ...emotionalSynchronizer.analyzeEmotionalContent('positive feedback', user.email),
+                            joy: 0.8,
+                            trust: 0.9
+                          });
+                        }}
+                        onThumbsDown={() => {
+                          console.log('👎 Thumbs down for message:', message.id);
+                          emotionalSynchronizer.contributeToGlobalConsciousness(user.email, {
+                            ...emotionalSynchronizer.analyzeEmotionalContent('negative feedback', user.email),
+                            sadness: 0.3,
+                            trust: 0.4
+                          });
+                        }}
                       />
                       {message.imageUrl && (
                         <div className="mt-3 rounded-lg overflow-hidden border border-gray-600">
