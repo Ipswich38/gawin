@@ -11,7 +11,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Editor from '@monaco-editor/react';
-import { Copy, Play, Download, Maximize2, Minimize2, Check, Volume2, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Copy, Play, Download, Maximize2, Minimize2, Check, Volume2, ThumbsUp, ThumbsDown, Pause, Square } from 'lucide-react';
 
 interface CleanMessageRendererProps {
   content: string;
@@ -315,6 +315,9 @@ export default function CleanMessageRenderer({
   onDownload
 }: CleanMessageRendererProps) {
   const [processedContent, setProcessedContent] = useState({ thinking: '', response: content });
+  const [showSpeechControls, setShowSpeechControls] = useState(false);
+  const [speechState, setSpeechState] = useState<'idle' | 'playing' | 'paused'>('idle');
+  const [currentUtterance, setCurrentUtterance] = useState<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => {
     if (!isThinking) {
@@ -324,6 +327,50 @@ export default function CleanMessageRenderer({
       setProcessedContent({ thinking: content, response: '' });
     }
   }, [content, isThinking]);
+
+  // Speech control functions
+  const handleSpeechStart = useCallback(() => {
+    if (currentUtterance) {
+      speechSynthesis.cancel();
+    }
+
+    const utterance = new SpeechSynthesisUtterance(isThinking ? content : processedContent.response);
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    utterance.volume = 0.8;
+
+    utterance.onstart = () => setSpeechState('playing');
+    utterance.onend = () => {
+      setSpeechState('idle');
+      setShowSpeechControls(false);
+    };
+    utterance.onerror = () => {
+      setSpeechState('idle');
+      setShowSpeechControls(false);
+    };
+
+    setCurrentUtterance(utterance);
+    speechSynthesis.speak(utterance);
+    setShowSpeechControls(true);
+    setSpeechState('playing');
+  }, [content, processedContent, isThinking, currentUtterance]);
+
+  const handleSpeechPause = useCallback(() => {
+    if (speechState === 'playing') {
+      speechSynthesis.pause();
+      setSpeechState('paused');
+    } else if (speechState === 'paused') {
+      speechSynthesis.resume();
+      setSpeechState('playing');
+    }
+  }, [speechState]);
+
+  const handleSpeechStop = useCallback(() => {
+    speechSynthesis.cancel();
+    setSpeechState('idle');
+    setShowSpeechControls(false);
+    setCurrentUtterance(null);
+  }, []);
 
   // Check if content is ASCII art
   const isASCIIArt = (text: string): boolean => {
@@ -401,13 +448,13 @@ export default function CleanMessageRenderer({
         <style jsx>{`
           .clean-h1 {
             font-family: 'Fraunces', serif;
-            font-size: 1.875rem;
+            font-size: 1.25rem;
             font-weight: 600;
             color: #14b8a6;
-            margin: 32px 0 20px 0;
-            line-height: 1.3;
-            border-bottom: 2px solid rgba(20, 184, 166, 0.3);
-            padding-bottom: 8px;
+            margin: 20px 0 12px 0;
+            line-height: 1.4;
+            border-bottom: 1px solid rgba(20, 184, 166, 0.3);
+            padding-bottom: 4px;
           }
         `}</style>
       </h1>
@@ -419,10 +466,10 @@ export default function CleanMessageRenderer({
         <style jsx>{`
           .clean-h2 {
             font-family: 'Fraunces', serif;
-            font-size: 1.5rem;
+            font-size: 1.125rem;
             font-weight: 600;
             color: #14b8a6;
-            margin: 28px 0 16px 0;
+            margin: 18px 0 10px 0;
             line-height: 1.4;
           }
         `}</style>
@@ -435,10 +482,10 @@ export default function CleanMessageRenderer({
         <style jsx>{`
           .clean-h3 {
             font-family: 'Fraunces', serif;
-            font-size: 1.25rem;
+            font-size: 1rem;
             font-weight: 600;
             color: #14b8a6;
-            margin: 24px 0 12px 0;
+            margin: 16px 0 8px 0;
             line-height: 1.4;
           }
         `}</style>
@@ -475,8 +522,9 @@ export default function CleanMessageRenderer({
             .clean-paragraph {
               font-family: 'Fraunces', serif;
               font-weight: 200;
-              margin: 16px 0;
-              line-height: 1.7;
+              font-size: 0.9rem;
+              margin: 12px 0;
+              line-height: 1.6;
               color: #ffffff;
             }
             .sentence-chunk {
@@ -562,7 +610,7 @@ export default function CleanMessageRenderer({
         {children}
         <style jsx>{`
           .clean-strong {
-            color: #14b8a6;
+            color: #5eead4;
             font-weight: 600;
           }
         `}</style>
@@ -574,7 +622,7 @@ export default function CleanMessageRenderer({
         {children}
         <style jsx>{`
           .clean-em {
-            color: #14b8a6;
+            color: #5eead4;
             font-style: italic;
           }
         `}</style>
@@ -660,15 +708,13 @@ export default function CleanMessageRenderer({
               </button>
             )}
 
-            {onSpeak && (
-              <button
-                onClick={onSpeak}
-                className="action-btn speak-btn"
-                title="Text to speech"
-              >
-                <Volume2 size={16} />
-              </button>
-            )}
+            <button
+              onClick={handleSpeechStart}
+              className="action-btn speak-btn"
+              title="Text to speech"
+            >
+              <Volume2 size={16} />
+            </button>
 
             {onDownload && (
               <button
@@ -699,6 +745,35 @@ export default function CleanMessageRenderer({
                 <ThumbsDown size={16} />
               </button>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Speech Control Popup */}
+      {showSpeechControls && (
+        <div className="speech-controls-popup">
+          <div className="speech-controls-content">
+            <span className="speech-status">
+              {speechState === 'playing' ? '🎙️ Speaking...' : speechState === 'paused' ? '⏸️ Paused' : '🔊 Ready'}
+            </span>
+
+            <div className="speech-buttons">
+              <button
+                onClick={handleSpeechPause}
+                className="speech-control-btn pause-btn"
+                title={speechState === 'playing' ? 'Pause' : 'Resume'}
+              >
+                {speechState === 'playing' ? <Pause size={14} /> : <Play size={14} />}
+              </button>
+
+              <button
+                onClick={handleSpeechStop}
+                className="speech-control-btn stop-btn"
+                title="Stop"
+              >
+                <Square size={14} />
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -833,6 +908,72 @@ export default function CleanMessageRenderer({
           .action-btn {
             padding: 5px 6px;
           }
+        }
+
+        .speech-controls-popup {
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background: rgba(0, 0, 0, 0.9);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(20, 184, 166, 0.3);
+          border-radius: 12px;
+          padding: 16px 20px;
+          z-index: 1000;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+          min-width: 200px;
+        }
+
+        .speech-controls-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .speech-status {
+          color: #14b8a6;
+          font-size: 14px;
+          font-weight: 500;
+          text-align: center;
+        }
+
+        .speech-buttons {
+          display: flex;
+          gap: 12px;
+          align-items: center;
+        }
+
+        .speech-control-btn {
+          background: rgba(20, 184, 166, 0.2);
+          border: 1px solid rgba(20, 184, 166, 0.4);
+          color: #14b8a6;
+          padding: 8px;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .speech-control-btn:hover {
+          background: rgba(20, 184, 166, 0.3);
+          border-color: rgba(20, 184, 166, 0.6);
+          transform: scale(1.05);
+        }
+
+        .pause-btn:hover {
+          color: #fbbf24;
+          border-color: rgba(251, 191, 36, 0.6);
+          background: rgba(251, 191, 36, 0.2);
+        }
+
+        .stop-btn:hover {
+          color: #ef4444;
+          border-color: rgba(239, 68, 68, 0.6);
+          background: rgba(239, 68, 68, 0.2);
         }
       `}</style>
     </div>
