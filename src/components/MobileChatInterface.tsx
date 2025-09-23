@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import ClaudeStyleMessageRenderer from './ClaudeStyleMessageRenderer';
+import CleanMessageRenderer from './CleanMessageRenderer';
+import { ResponseProcessingService } from '@/lib/services/responseProcessingService';
 import ResearchMode from './ResearchMode';
 import SimpleVision from './SimpleVision';
 import UnifiedVoiceControl from './UnifiedVoiceControl';
@@ -1442,14 +1443,23 @@ Generate a complete, professional ${documentType.replace('_', ' ')} document bas
       const data = await response.json();
       const aiResponse = data.choices[0].message.content;
 
-      // Apply enhanced formatting using the universal document formatter
-      const formattedContent = UniversalDocumentFormatter.applySpecialFormatting(aiResponse, documentType as any);
+      // Process response with new formatting service
+      const processedResponse = ResponseProcessingService.processResponse(
+        aiResponse,
+        {
+          separateThinking: true,
+          preserveASCII: true,
+          enableCodeEditor: true,
+          enforceMarkdown: true
+        }
+      );
 
       const aiMessage: Message = {
         id: Date.now() + 1,
         role: 'assistant',
-        content: formattedContent,
+        content: processedResponse.response,
         timestamp: new Date().toISOString(),
+        thinking: processedResponse.thinking,
         documentType: documentType, // Store document type for rendering
       };
 
@@ -2077,12 +2087,23 @@ Format your response according to the content type requested.`;
         thinking = `🌌 Quantum consciousness networks active... super intelligence analyzing context depth... enhanced empathy detecting emotional patterns... consciousness alignment: ${quantumChoice.consciousnessAlignment.toFixed(3)}...`;
       }
 
+      // Process response with formatting service
+      const processedResponse = ResponseProcessingService.processResponse(
+        content,
+        {
+          separateThinking: true,
+          preserveASCII: true,
+          enableCodeEditor: true,
+          enforceMarkdown: true
+        }
+      );
+
       const aiResponse: Message = {
         id: Date.now() + 1,
         role: 'assistant',
-        content,
+        content: processedResponse.response,
         timestamp: new Date().toISOString(),
-        thinking
+        thinking: processedResponse.thinking || thinking
       };
 
       // Code blocks are now handled inline in MessageRenderer - no redundant editor
@@ -2905,33 +2926,10 @@ Questions: ${count}`
                 `}>
                   {message.role === 'assistant' ? (
                     <div className="w-full max-w-none">
-                      <ClaudeStyleMessageRenderer
-                        text={message.content}
-                        showActions={true}
-                        thinking={message.thinking}
-                        onCopy={() => {
-                          // Show copy feedback
-                          navigator.clipboard.writeText(message.content);
-                          console.log('Copied message:', message.id);
-                        }}
-                        onThumbsUp={() => {
-                          console.log('👍 Thumbs up for message:', message.id);
-                          // Here we could send feedback to consciousness system
-                          emotionalSynchronizer.contributeToGlobalConsciousness(user.email, {
-                            ...emotionalSynchronizer.analyzeEmotionalContent('positive feedback', user.email),
-                            joy: 0.8,
-                            trust: 0.9
-                          });
-                        }}
-                        onThumbsDown={() => {
-                          console.log('👎 Thumbs down for message:', message.id);
-                          // Here we could send negative feedback to consciousness system
-                          emotionalSynchronizer.contributeToGlobalConsciousness(user.email, {
-                            ...emotionalSynchronizer.analyzeEmotionalContent('negative feedback', user.email),
-                            sadness: 0.3,
-                            trust: 0.4
-                          });
-                        }}
+                      <CleanMessageRenderer
+                        content={message.content}
+                        showCodeEditor={true}
+                        className="assistant-message"
                       />
                       {message.imageUrl && (
                         <div className="mt-3 rounded-lg overflow-hidden border border-gray-600">
@@ -2945,9 +2943,10 @@ Questions: ${count}`
                     </div>
                   ) : (
                     <div className="leading-relaxed">
-                      <ClaudeStyleMessageRenderer
-                        text={message.content}
-                        showActions={false}
+                      <CleanMessageRenderer
+                        content={message.content}
+                        showCodeEditor={false}
+                        className="user-message"
                       />
                       {message.imageUrl && (
                         <div className="mt-3 rounded-lg overflow-hidden border border-white/20">
