@@ -3212,7 +3212,7 @@ Questions: ${count}`
 
             {/* Enhanced Input Container with Two Sections */}
             <div className="relative w-full max-w-4xl mx-auto">
-              <div className="relative bg-gray-800/30 backdrop-blur-sm rounded-3xl border border-transparent focus-within:border-transparent transition-all duration-300 shadow-lg shadow-gray-900/10">
+              <div className="relative bg-gray-800/30 backdrop-blur-sm rounded-3xl border border-transparent focus-within:border-transparent transition-all duration-300 shadow-lg shadow-teal-500/10 focus-within:shadow-teal-500/20">
 
                 {/* Top Section: Rich Text Input Area */}
                 <div className="relative px-6 pt-5 pb-3">
@@ -3279,7 +3279,7 @@ Questions: ${count}`
                     }}
                     className="
                       w-full bg-transparent text-white
-                      resize-none overflow-auto focus:outline-none
+                      resize-none overflow-auto focus:outline-none focus:ring-0 focus:border-transparent
                       text-sm sm:text-base min-h-[4rem] max-h-32 leading-relaxed
                       whitespace-pre-wrap break-words
                     "
@@ -3301,6 +3301,17 @@ Questions: ${count}`
                         color: rgb(156 163 175);
                         pointer-events: none;
                         opacity: 0.7;
+                      }
+                      [contenteditable]:focus {
+                        outline: none !important;
+                        border: none !important;
+                        box-shadow: none !important;
+                        -webkit-box-shadow: none !important;
+                        -moz-box-shadow: none !important;
+                      }
+                      [contenteditable] {
+                        outline: none !important;
+                        border: none !important;
                       }
                     `
                   }} />
@@ -3532,6 +3543,21 @@ Questions: ${count}`
                 </button>
               </div>
 
+              {/* Acknowledgments */}
+              <div className="space-y-3">
+                <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wide">Acknowledgments</h3>
+                <div className="bg-gray-800/50 rounded-xl p-3">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex-shrink-0 w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                      <span className="text-purple-400 text-lg">🎥</span>
+                    </div>
+                    <div className="text-left">
+                      <div className="text-white font-medium text-sm">Background Video</div>
+                      <div className="text-purple-300 text-xs">Video by Chandresh Uike</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               {/* User Status & Limitations */}
               {isGuest && (
@@ -3653,12 +3679,6 @@ Questions: ${count}`
         aiResponse={lastAIResponse}
       />
 
-      {/* Background Video Credit */}
-      <div className="absolute bottom-4 right-4 z-30 opacity-60 hover:opacity-90 transition-opacity duration-300">
-        <p className="text-xs text-white/70 font-light bg-black/20 backdrop-blur-sm rounded-lg px-2 py-1">
-          Video by Chandresh Uike
-        </p>
-      </div>
 
       </div>
     </div>
