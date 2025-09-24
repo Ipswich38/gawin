@@ -2233,10 +2233,10 @@ Format your response according to the content type requested.`;
   const renderQuizContent = () => {
     if (quizState === 'setup') {
       return (
-        <div className="p-8 flex items-center justify-center min-h-screen">
-          <div className="w-full max-w-2xl">
+        <div className="p-4 sm:p-8 min-h-screen overflow-y-auto">
+          <div className="w-full max-w-2xl mx-auto">
             {/* Main Quiz Generator Block */}
-            <div className="bg-white/5 backdrop-blur-md rounded-3xl border border-white/10 p-8 shadow-2xl">
+            <div className="bg-white/5 backdrop-blur-md rounded-3xl border border-white/10 p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-hide">
               {/* Header */}
               <div className="text-center mb-8">
                 <div className="w-16 h-16 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-white/20">
@@ -2329,6 +2329,51 @@ Format your response according to the content type requested.`;
                 <button
                   id="create-quiz-btn"
                   onClick={async () => {
+                    // Helper function to extract questions from text content
+                    const extractQuestionsFromText = (text: string) => {
+                      const questions = [];
+                      const lines = text.split('\n').filter(line => line.trim());
+                      let currentQuestion = null;
+                      let currentOptions: string[] = [];
+
+                      for (const line of lines) {
+                        const trimmed = line.trim();
+
+                        // Look for questions (ending with ? or numbered)
+                        if (trimmed.includes('?') || /^\d+\./.test(trimmed)) {
+                          if (currentQuestion && currentOptions.length >= 4) {
+                            questions.push({
+                              question: currentQuestion,
+                              options: currentOptions.slice(0, 4),
+                              correct: 0, // Default to first option
+                              explanation: `The correct answer is ${currentOptions[0]}`
+                            });
+                          }
+                          currentQuestion = trimmed.replace(/^\d+\.\s*/, '').replace(/^Question\s*\d*:?\s*/i, '');
+                          currentOptions = [];
+                        }
+                        // Look for options (A, B, C, D or 1, 2, 3, 4)
+                        else if (/^[A-D][.)]\s*/.test(trimmed) || /^[1-4][.)]\s*/.test(trimmed)) {
+                          const option = trimmed.replace(/^[A-D1-4][.)]\s*/, '');
+                          if (option && currentOptions.length < 4) {
+                            currentOptions.push(option);
+                          }
+                        }
+                      }
+
+                      // Add the last question if valid
+                      if (currentQuestion && currentOptions.length >= 4) {
+                        questions.push({
+                          question: currentQuestion,
+                          options: currentOptions.slice(0, 4),
+                          correct: 0,
+                          explanation: `The correct answer is ${currentOptions[0]}`
+                        });
+                      }
+
+                      return questions;
+                    };
+
                     const topic = (document.getElementById('quiz-topic') as HTMLInputElement).value;
                     const count = (document.getElementById('quiz-count') as HTMLSelectElement).value;
                     const time = (document.getElementById('quiz-time') as HTMLSelectElement).value;
@@ -2392,6 +2437,8 @@ Level: ${level}`
                         hasChoices: !!result.choices,
                         choicesLength: result.choices?.length,
                         hasContent: !!result.choices?.[0]?.message?.content,
+                        rawContent: result.choices?.[0]?.message?.content?.substring(0, 500),
+                        fullResponse: result,
                         error: result.error
                       });
 
@@ -2403,21 +2450,32 @@ Level: ${level}`
                         try {
                           let content = result.choices[0].message.content.trim();
                           console.log('Raw API content:', content);
-                          console.log('Raw content:', content);
 
-                          // More robust cleaning
+                          // Step 1: Find JSON array in the response
+                          const jsonArrayMatch = content.match(/\[[\s\S]*\]/);
+                          if (jsonArrayMatch) {
+                            content = jsonArrayMatch[0];
+                            console.log('Found JSON array:', content.substring(0, 200) + '...');
+                          } else {
+                            // Step 2: Look for individual question objects
+                            const questionsMatch = content.match(/\{[\s\S]*"question"[\s\S]*\}/g);
+                            if (questionsMatch && questionsMatch.length > 0) {
+                              content = '[' + questionsMatch.join(',') + ']';
+                              console.log('Reconstructed JSON from individual objects');
+                            } else {
+                              console.log('No JSON structure found, trying text parsing...');
+                            }
+                          }
+
+                          // Step 3: Clean up the JSON
                           content = content
                             .replace(/^```(?:json)?\s*/i, '')
                             .replace(/\s*```$/i, '')
-                            .replace(/^[^[{]*/, '')
-                            .replace(/[^}\]]*$/g, '');
-
-                          // Try to fix common JSON issues
-                          content = content
-                            .replace(/,\s*}/g, '}')
-                            .replace(/,\s*]/g, ']')
-                            .replace(/'/g, '"')
-                            .replace(/([{,]\s*)(\w+):/g, '$1"$2":');
+                            .replace(/,(\s*[}\]])/g, '$1') // Remove trailing commas
+                            .replace(/'/g, '"') // Convert single quotes to double
+                            .replace(/([{,]\s*)(\w+):/g, '$1"$2":') // Quote unquoted keys
+                            .replace(/\n/g, ' ') // Remove line breaks
+                            .replace(/\s+/g, ' '); // Normalize whitespace
 
                           console.log('Cleaned content:', content);
 
@@ -2448,50 +2506,55 @@ Level: ${level}`
                             } else {
                               console.log('JSON array extraction failed, trying manual extraction...');
 
-                              // Method 2: Manual extraction with improved regex
-                              const questionPattern = /"question"\s*:\s*"([^"\\]*(\\.[^"\\]*)*)"/g;
-                              const optionsPattern = /"options"\s*:\s*\[([^\]]+)\]/g;
-                              const correctPattern = /"correct"\s*:\s*(\d+)/g;
-                              const explanationPattern = /"explanation"\s*:\s*"([^"\\]*(\\.[^"\\]*)*)"/g;
+                              // Method 2: Manual extraction from text
+                              questions = extractQuestionsFromText(content);
 
-                              const questionMatches = [...content.matchAll(questionPattern)];
-                              const optionMatches = [...content.matchAll(optionsPattern)];
-                              const correctMatches = [...content.matchAll(correctPattern)];
-                              const explanationMatches = [...content.matchAll(explanationPattern)];
+                              if (!questions || questions.length === 0) {
+                                // Method 3: Pattern-based extraction
+                                const questionPattern = /"question"\s*:\s*"([^"\\]*(\\.[^"\\]*)*)"/g;
+                                const optionsPattern = /"options"\s*:\s*\[([^\]]+)\]/g;
+                                const correctPattern = /"correct"\s*:\s*(\d+)/g;
+                                const explanationPattern = /"explanation"\s*:\s*"([^"\\]*(\\.[^"\\]*)*)"/g;
 
-                              console.log('Manual extraction results:', {
-                                questions: questionMatches.length,
-                                options: optionMatches.length,
-                                correct: correctMatches.length,
-                                explanations: explanationMatches.length
-                              });
+                                const questionMatches = [...content.matchAll(questionPattern)];
+                                const optionMatches = [...content.matchAll(optionsPattern)];
+                                const correctMatches = [...content.matchAll(correctPattern)];
+                                const explanationMatches = [...content.matchAll(explanationPattern)];
 
-                              if (questionMatches.length > 0 && optionMatches.length === questionMatches.length) {
-                                questions = [];
-                                for (let i = 0; i < questionMatches.length; i++) {
-                                  const question = questionMatches[i][1];
-                                  const optionsStr = optionMatches[i][1];
-                                  const correct = correctMatches[i] ? parseInt(correctMatches[i][1]) : 0;
-                                  const explanation = explanationMatches[i] ? explanationMatches[i][1] : `The correct answer is option ${correct + 1}`;
+                                console.log('Manual extraction results:', {
+                                  questions: questionMatches.length,
+                                  options: optionMatches.length,
+                                  correct: correctMatches.length,
+                                  explanations: explanationMatches.length
+                                });
 
-                                  // Better option parsing
-                                  const options = optionsStr
-                                    .split(/,(?=\s*["'])/)
-                                    .map((opt: string) => opt.trim().replace(/^["']|["']$/g, ''))
-                                    .filter((opt: string) => opt.length > 0);
+                                if (questionMatches.length > 0 && optionMatches.length === questionMatches.length) {
+                                  questions = [];
+                                  for (let i = 0; i < questionMatches.length; i++) {
+                                    const question = questionMatches[i][1];
+                                    const optionsStr = optionMatches[i][1];
+                                    const correct = correctMatches[i] ? parseInt(correctMatches[i][1]) : 0;
+                                    const explanation = explanationMatches[i] ? explanationMatches[i][1] : `The correct answer is option ${correct + 1}`;
 
-                                  if (question && options.length >= 4) {
-                                    questions.push({
-                                      question: question,
-                                      options: options.slice(0, 4),
-                                      correct: Math.max(0, Math.min(correct, options.length - 1)),
-                                      explanation: explanation
-                                    });
+                                    // Better option parsing
+                                    const options = optionsStr
+                                      .split(/,(?=\s*["'])/)
+                                      .map((opt: string) => opt.trim().replace(/^["']|["']$/g, ''))
+                                      .filter((opt: string) => opt.length > 0);
+
+                                    if (question && options.length >= 4) {
+                                      questions.push({
+                                        question: question,
+                                        options: options.slice(0, 4),
+                                        correct: Math.max(0, Math.min(correct, options.length - 1)),
+                                        explanation: explanation
+                                      });
+                                    }
                                   }
+                                  console.log('Manual extraction created questions:', questions.length);
+                                } else {
+                                  throw new Error(`Failed to extract questions. Found: ${questionMatches.length} questions, ${optionMatches.length} option sets. Raw content: ${content.substring(0, 300)}`);
                                 }
-                                console.log('Manual extraction created questions:', questions.length);
-                              } else {
-                                throw new Error(`Failed to extract questions. Found: ${questionMatches.length} questions, ${optionMatches.length} option sets`);
                               }
                             }
                           }
@@ -2569,8 +2632,8 @@ Level: ${level}`
 
     if (quizState === 'taking') {
       return (
-        <div className="p-6 min-h-screen">
-          <div className="max-w-4xl mx-auto">
+        <div className="p-4 sm:p-6 min-h-screen overflow-y-auto">
+          <div className="max-w-4xl mx-auto pb-20">
             {/* Header Card */}
             <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 mb-6 shadow-lg">
               <div className="flex justify-between items-center">
