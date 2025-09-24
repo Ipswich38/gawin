@@ -45,6 +45,29 @@ p {
   font-weight: 400;
   line-height: 1.7;
   margin-bottom: 1em;
+  display: block;
+}
+
+/* Enhanced markdown paragraph spacing */
+.message-content p {
+  margin: 16px 0;
+  display: block;
+  line-height: 1.7;
+}
+
+.message-content p + p {
+  margin-top: 20px;
+}
+
+/* Improve list spacing */
+.message-content ul, .message-content ol {
+  margin: 16px 0;
+  padding-left: 24px;
+}
+
+.message-content li {
+  margin: 8px 0;
+  line-height: 1.6;
 }
 
 @layer utilities {

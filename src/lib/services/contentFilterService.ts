@@ -86,6 +86,14 @@ class ContentFilterService {
     'physiology', 'psychology', 'sociology', 'anthropology'
   ];
 
+  // Educational content that should bypass filtering
+  private educationalBypass = [
+    'quiz', 'questions', 'generate', 'mathematics', 'physics',
+    'chemistry', 'biology', 'computer science', 'engineering',
+    'test', 'exam', 'practice', 'multiple choice', 'mcq',
+    'difficulty', 'easy', 'medium', 'hard', 'explanation'
+  ];
+
   // Academic clarification questions
   private academicClarifications = [
     "I understand you're asking about anatomy. Is this for educational, medical, or academic purposes?",
@@ -133,6 +141,22 @@ class ContentFilterService {
    */
   filterContent(input: string): FilteredContent {
     const lowerInput = input.toLowerCase().trim();
+
+    // Check for educational bypass first (quiz generation, etc.)
+    if (this.isEducationalContent(lowerInput)) {
+      return {
+        original: input,
+        filtered: input,
+        wasFiltered: false,
+        filterResult: {
+          isBlocked: false,
+          category: 'clean',
+          confidence: 0.95,
+          detectedLanguage: this.detectLanguage(input),
+          reason: 'Educational content - bypassed filtering'
+        }
+      };
+    }
 
     // Check for academic context first
     const hasAcademicContext = this.hasAcademicContext(lowerInput);
@@ -258,6 +282,18 @@ class ContentFilterService {
       confidence: 0.9,
       detectedLanguage
     };
+  }
+
+  /**
+   * Check if content is educational and should bypass filtering
+   */
+  private isEducationalContent(input: string): boolean {
+    const educationalTermCount = this.educationalBypass.filter(term =>
+      input.includes(term)
+    ).length;
+
+    // If multiple educational terms are present, it's likely educational content
+    return educationalTermCount >= 2;
   }
 
   /**

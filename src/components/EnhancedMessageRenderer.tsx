@@ -483,13 +483,22 @@ export default function EnhancedMessageRenderer({
 
         /* Enhanced Paragraphs */
         .enhanced-paragraph.agent-mode {
-          margin: 12px 0;
+          margin: 16px 0;
           text-align: justify;
           hyphens: auto;
+          line-height: 1.7;
+          display: block;
         }
 
         .enhanced-paragraph.regular-mode {
-          margin: 10px 0;
+          margin: 14px 0;
+          line-height: 1.6;
+          display: block;
+        }
+
+        /* Ensure paragraph breaks are visible */
+        .enhanced-paragraph + .enhanced-paragraph {
+          margin-top: 18px;
         }
 
         /* Enhanced Lists */
