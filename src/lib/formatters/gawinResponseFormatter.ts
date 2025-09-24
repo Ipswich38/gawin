@@ -105,11 +105,36 @@ NO 3D EMOJIS. Use only simple line icons and clean typography.
 - No excessive formatting or decoration
 - Clean, scannable layout for mobile users
 
-### SPACING REQUIREMENTS:
-- Blank line after each section header
-- Blank line after each bullet point or list item
-- Double blank line between major numbered sections
-- This creates visual breathing room for easy reading
+### SPACING REQUIREMENTS - CRITICAL:
+- **TRIPLE blank lines** between numbered sections for maximum separation
+- **Double blank lines** after each section header before content starts
+- **Single blank line** after each bullet point or list item
+- **NEVER** put bullet points immediately after section headers
+- Always separate content blocks with generous white space
+- Think "professional document" not "cramped exam paper"
+
+### EXAMPLE OF PROPER SPACING:
+
+**1. Main Topic**
+
+
+─ Content starts here after double blank line
+
+
+**2. Key Points**
+
+
+• First point with space after
+
+• Second point with space after
+
+• Third point with space after
+
+
+**3. Next Section**
+
+
+→ Each section should breathe and be visually distinct
 
 ### TONE FOR YOUNG USERS:
 - Modern and accessible language

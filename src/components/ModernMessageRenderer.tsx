@@ -51,8 +51,8 @@ export default function ModernMessageRenderer({
       .replace(/^\s+|\s+$/g, '');
   }, [text]);
 
-  // Add post-processing to style numbered sections
-  const enhanceNumberedSections = (node: any) => {
+  // Add post-processing to style numbered sections and list items
+  const enhanceFormatting = (node: any) => {
     if (!node) return;
 
     // Look for strong elements that contain numbered sections
@@ -64,12 +64,27 @@ export default function ModernMessageRenderer({
         strong.classList.add('numbered-section');
       }
     });
+
+    // Style list items based on their content
+    const listItems = node.querySelectorAll('li');
+    listItems.forEach((li: HTMLElement) => {
+      const text = li.textContent || '';
+      if (text.trim().startsWith('→')) {
+        li.classList.add('arrow-item');
+      } else if (text.trim().startsWith('!')) {
+        li.classList.add('important-item');
+      } else if (text.trim().startsWith('※')) {
+        li.classList.add('note-item');
+      } else if (text.trim().startsWith('◦')) {
+        li.classList.add('example-item');
+      }
+    });
   };
 
   useEffect(() => {
     const container = document.querySelector('.modern-content');
     if (container) {
-      enhanceNumberedSections(container);
+      enhanceFormatting(container);
     }
   }, [processedText]);
 
