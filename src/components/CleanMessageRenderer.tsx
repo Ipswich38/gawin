@@ -518,6 +518,7 @@ export default function CleanMessageRenderer({
             margin: 16px 0;
             padding-left: 24px;
             line-height: 1.7;
+            color: #ffffff;
           }
         `}</style>
       </ul>
@@ -533,6 +534,7 @@ export default function CleanMessageRenderer({
             margin: 16px 0;
             padding-left: 24px;
             line-height: 1.7;
+            color: #ffffff;
           }
         `}</style>
       </ol>
@@ -579,7 +581,7 @@ export default function CleanMessageRenderer({
         {children}
         <style jsx>{`
           .clean-strong {
-            color: #5eead4;
+            color: #14b8a6;
             font-weight: 600;
           }
         `}</style>
@@ -591,7 +593,7 @@ export default function CleanMessageRenderer({
         {children}
         <style jsx>{`
           .clean-em {
-            color: #5eead4;
+            color: #14b8a6;
             font-style: italic;
           }
         `}</style>
@@ -750,12 +752,40 @@ export default function CleanMessageRenderer({
       <style jsx>{`
         .clean-message-renderer {
           width: 100%;
-          color: #ffffff;
+          color: #ffffff !important;
           font-family: 'Fraunces', serif;
           font-weight: 200;
           font-size: 1rem;
           line-height: 1.6;
           letter-spacing: 0.01em;
+        }
+
+        .clean-message-renderer * {
+          color: inherit;
+        }
+
+        .clean-message-renderer h1,
+        .clean-message-renderer h2,
+        .clean-message-renderer h3,
+        .clean-message-renderer h4,
+        .clean-message-renderer h5,
+        .clean-message-renderer h6 {
+          color: #14b8a6 !important;
+        }
+
+        .clean-message-renderer strong {
+          color: #14b8a6 !important;
+        }
+
+        .clean-message-renderer em {
+          color: #14b8a6 !important;
+        }
+
+        .clean-message-renderer p,
+        .clean-message-renderer li,
+        .clean-message-renderer ul,
+        .clean-message-renderer ol {
+          color: #ffffff !important;
         }
 
         .thinking-section {
