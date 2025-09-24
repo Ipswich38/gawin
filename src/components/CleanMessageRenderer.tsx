@@ -760,7 +760,9 @@ export default function CleanMessageRenderer({
 
   // Enhanced preprocessing to fix formatting issues while preserving paragraph structure
   const preprocessContent = (text: string): string => {
-    return text
+    console.log('PREPROCESSING INPUT:', text.substring(0, 200) + '...');
+
+    const result = text
       // Step 1: Clean up scattered asterisks that are not part of markdown formatting
       .replace(/\*(?![^\*]*\*)/g, '')
       .replace(/^\*\s*/gm, '')
@@ -785,6 +787,11 @@ export default function CleanMessageRenderer({
       // Step 7: Ensure sentences ending with punctuation start new paragraphs when appropriate
       .replace(/([.!?])\s*\n\s*([A-Z])/g, '$1\n\n$2')
 
+      // Step 7.5: Force paragraph breaks after specific patterns
+      .replace(/(#{1,6}\s+[^\n]+)\n([A-Z])/g, '$1\n\n$2') // After headers
+      .replace(/(\*\*[^*]+\*\*)\s*\n\s*([A-Z])/g, '$1\n\n$2') // After bold text
+      .replace(/(```[^`]+```)\s*\n\s*([A-Z])/g, '$1\n\n$2') // After code blocks
+
       // Step 8: Clean up excessive whitespace but preserve paragraph structure
       .replace(/\n{3,}/g, '\n\n')
       .replace(/^\s+/gm, '')
@@ -793,6 +800,9 @@ export default function CleanMessageRenderer({
       .replace(/(:)\s*\n\s*([^\n])/g, '$1 $2')
 
       .trim();
+
+    console.log('PREPROCESSING OUTPUT:', result.substring(0, 200) + '...');
+    return result;
   };
 
   return (
@@ -817,15 +827,44 @@ export default function CleanMessageRenderer({
 
       {/* Main Response */}
       <div className="response-section">
-        <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
-          components={markdownComponents}
-          remarkRehypeOptions={{
-            allowDangerousHtml: false,
-          }}
-        >
-          {preprocessContent(isThinking ? content : processedContent.response)}
-        </ReactMarkdown>
+        {(() => {
+          const processedText = preprocessContent(isThinking ? content : processedContent.response);
+
+          // Split by double line breaks and render each part as a separate markdown block
+          const paragraphs = processedText.split(/\n\s*\n/).filter(p => p.trim());
+
+          console.log('SPLIT PARAGRAPHS:', paragraphs.length, paragraphs.map(p => p.substring(0, 50) + '...'));
+
+          if (paragraphs.length <= 1) {
+            // If no clear paragraphs, render as single block
+            return (
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={markdownComponents}
+                remarkRehypeOptions={{
+                  allowDangerousHtml: false,
+                }}
+              >
+                {processedText}
+              </ReactMarkdown>
+            );
+          }
+
+          // Render each paragraph separately to force breaks
+          return paragraphs.map((paragraph, index) => (
+            <div key={index} className="paragraph-block">
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={markdownComponents}
+                remarkRehypeOptions={{
+                  allowDangerousHtml: false,
+                }}
+              >
+                {paragraph.trim()}
+              </ReactMarkdown>
+            </div>
+          ));
+        })()}
       </div>
 
       {/* Message Actions */}
@@ -1007,6 +1046,14 @@ export default function CleanMessageRenderer({
 
         .response-section {
           /* Main content area */
+        }
+
+        .paragraph-block {
+          margin-bottom: 24px;
+        }
+
+        .paragraph-block:last-child {
+          margin-bottom: 0;
         }
 
         .message-actions {
