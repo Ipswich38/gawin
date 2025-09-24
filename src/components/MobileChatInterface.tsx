@@ -2387,30 +2387,129 @@ Level: ${level}`
                       });
                   
                       const result = await response.json();
+                      console.log('Quiz API Response:', {
+                        success: result.success,
+                        hasChoices: !!result.choices,
+                        choicesLength: result.choices?.length,
+                        hasContent: !!result.choices?.[0]?.message?.content,
+                        error: result.error
+                      });
+
+                      if (!response.ok) {
+                        throw new Error(`API request failed with status ${response.status}`);
+                      }
 
                       if (result.success && result.choices?.[0]?.message?.content) {
                         try {
                           let content = result.choices[0].message.content.trim();
+                          console.log('Raw API content:', content);
+                          console.log('Raw content:', content);
 
-                          // Clean up the response
+                          // More robust cleaning
                           content = content
                             .replace(/^```(?:json)?\s*/i, '')
                             .replace(/\s*```$/i, '')
-                            .replace(/^[^[]*/, '')
-                            .replace(/[^}]*$/, '}]');
+                            .replace(/^[^[{]*/, '')
+                            .replace(/[^}\]]*$/g, '');
 
-                          const questions = JSON.parse(content);
+                          // Try to fix common JSON issues
+                          content = content
+                            .replace(/,\s*}/g, '}')
+                            .replace(/,\s*]/g, ']')
+                            .replace(/'/g, '"')
+                            .replace(/([{,]\s*)(\w+):/g, '$1"$2":');
+
+                          console.log('Cleaned content:', content);
+
+                          // Helper function to test if string is valid JSON
+                          const isValidJSON = (str: string): boolean => {
+                            try {
+                              JSON.parse(str);
+                              return true;
+                            } catch {
+                              return false;
+                            }
+                          };
+
+                          let questions;
+                          try {
+                            // First, try direct parse
+                            questions = JSON.parse(content);
+                            console.log('Direct JSON parse successful');
+                          } catch (parseError) {
+                            console.log('Direct JSON parse failed, trying extraction methods...');
+                            console.log('Parse error:', parseError);
+
+                            // Method 1: Try to find JSON array in the content
+                            const jsonArrayMatch = content.match(/\[[\s\S]*\]/);
+                            if (jsonArrayMatch && isValidJSON(jsonArrayMatch[0])) {
+                              questions = JSON.parse(jsonArrayMatch[0]);
+                              console.log('Extracted JSON array successfully');
+                            } else {
+                              console.log('JSON array extraction failed, trying manual extraction...');
+
+                              // Method 2: Manual extraction with improved regex
+                              const questionPattern = /"question"\s*:\s*"([^"\\]*(\\.[^"\\]*)*)"/g;
+                              const optionsPattern = /"options"\s*:\s*\[([^\]]+)\]/g;
+                              const correctPattern = /"correct"\s*:\s*(\d+)/g;
+                              const explanationPattern = /"explanation"\s*:\s*"([^"\\]*(\\.[^"\\]*)*)"/g;
+
+                              const questionMatches = [...content.matchAll(questionPattern)];
+                              const optionMatches = [...content.matchAll(optionsPattern)];
+                              const correctMatches = [...content.matchAll(correctPattern)];
+                              const explanationMatches = [...content.matchAll(explanationPattern)];
+
+                              console.log('Manual extraction results:', {
+                                questions: questionMatches.length,
+                                options: optionMatches.length,
+                                correct: correctMatches.length,
+                                explanations: explanationMatches.length
+                              });
+
+                              if (questionMatches.length > 0 && optionMatches.length === questionMatches.length) {
+                                questions = [];
+                                for (let i = 0; i < questionMatches.length; i++) {
+                                  const question = questionMatches[i][1];
+                                  const optionsStr = optionMatches[i][1];
+                                  const correct = correctMatches[i] ? parseInt(correctMatches[i][1]) : 0;
+                                  const explanation = explanationMatches[i] ? explanationMatches[i][1] : `The correct answer is option ${correct + 1}`;
+
+                                  // Better option parsing
+                                  const options = optionsStr
+                                    .split(/,(?=\s*["'])/)
+                                    .map((opt: string) => opt.trim().replace(/^["']|["']$/g, ''))
+                                    .filter((opt: string) => opt.length > 0);
+
+                                  if (question && options.length >= 4) {
+                                    questions.push({
+                                      question: question,
+                                      options: options.slice(0, 4),
+                                      correct: Math.max(0, Math.min(correct, options.length - 1)),
+                                      explanation: explanation
+                                    });
+                                  }
+                                }
+                                console.log('Manual extraction created questions:', questions.length);
+                              } else {
+                                throw new Error(`Failed to extract questions. Found: ${questionMatches.length} questions, ${optionMatches.length} option sets`);
+                              }
+                            }
+                          }
+
+                          console.log('Parsed questions:', questions);
 
                           if (Array.isArray(questions) && questions.length > 0) {
                             // Validate question structure
                             const validQuestions = questions.filter(q =>
                               q.question &&
                               Array.isArray(q.options) &&
-                              q.options.length === 4 &&
+                              q.options.length >= 4 &&
                               typeof q.correct === 'number' &&
                               q.correct >= 0 &&
-                              q.correct < 4
+                              q.correct < q.options.length
                             );
+
+                            console.log('Valid questions:', validQuestions.length);
 
                             if (validQuestions.length > 0) {
                               setQuizData({
@@ -2425,21 +2524,24 @@ Level: ${level}`
                               setUserAnswers([]);
                               setTimeLeft(parseInt(time) * 60);
                             } else {
-                              throw new Error('No valid questions generated');
+                              throw new Error(`No valid questions generated. Found ${questions.length} questions but none passed validation.`);
                             }
                           } else {
-                            throw new Error('Invalid question format');
+                            throw new Error('AI response was not a valid question array');
                           }
                         } catch (error) {
                           console.error('Quiz parsing error:', error);
-                          alert('Failed to generate quiz. Please try a different topic or try again.');
+                          const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+                          alert(`Failed to generate quiz: ${errorMessage}. Please try a different topic or simplify your request.`);
                         }
                       } else {
-                        alert('Failed to generate quiz. Please check your connection and try again.');
+                        console.error('API Error Response:', result);
+                        alert(`Failed to generate quiz: ${result.error || 'No response from AI'}. Please check your connection and try again.`);
                       }
                     } catch (error) {
-                      console.error('Quiz generation error:', error);
-                      alert('Network error. Please check your connection and try again.');
+                      console.error('Network error:', error);
+                      const errorMessage = error instanceof Error ? error.message : 'Network connection failed';
+                      alert(`Network error: ${errorMessage}. Please check your internet connection and try again.`);
                     } finally {
                       // Reset button state
                       const button = document.querySelector('#create-quiz-btn') as HTMLButtonElement;

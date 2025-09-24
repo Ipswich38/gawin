@@ -319,6 +319,11 @@ export default function CleanMessageRenderer({
   const [speechState, setSpeechState] = useState<'idle' | 'playing' | 'paused'>('idle');
   const [currentUtterance, setCurrentUtterance] = useState<SpeechSynthesisUtterance | null>(null);
 
+  // Dragging state for speech popup
+  const [speechPopupPosition, setSpeechPopupPosition] = useState({ x: 0, y: 0 });
+  const [isDraggingSpeechPopup, setIsDraggingSpeechPopup] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+
   useEffect(() => {
     if (!isThinking) {
       const { thinking, response } = separateThinkingFromResponse(content);
@@ -407,6 +412,45 @@ export default function CleanMessageRenderer({
     setShowSpeechControls(false);
     setCurrentUtterance(null);
   }, []);
+
+  // Drag handlers for speech popup
+  const handleSpeechPopupMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDraggingSpeechPopup(true);
+
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+  }, []);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDraggingSpeechPopup) {
+        setSpeechPopupPosition({
+          x: e.clientX - dragOffset.x - window.innerWidth / 2,
+          y: e.clientY - dragOffset.y - window.innerHeight / 2
+        });
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDraggingSpeechPopup(false);
+    };
+
+    if (isDraggingSpeechPopup) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = 'none'; // Prevent text selection while dragging
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = '';
+    };
+  }, [isDraggingSpeechPopup, dragOffset]);
 
   // Check if content is ASCII art
   const isASCIIArt = (text: string): boolean => {
@@ -779,10 +823,23 @@ export default function CleanMessageRenderer({
         </div>
       )}
 
-      {/* Speech Control Popup */}
+      {/* Speech Control Popup - Standardized & Draggable */}
       {showSpeechControls && (
-        <div className="speech-controls-popup">
-          <div className="speech-controls-content">
+        <div
+          className="speech-controls-popup"
+          style={{
+            transform: `translate(${speechPopupPosition.x}px, ${speechPopupPosition.y}px)`
+          }}
+        >
+          <div
+            className="speech-controls-content"
+            onMouseDown={handleSpeechPopupMouseDown}
+            style={{ cursor: isDraggingSpeechPopup ? 'grabbing' : 'grab' }}
+          >
+            <div className="drag-handle">
+              <div className="drag-indicator"></div>
+            </div>
+
             <span className="speech-status">
               {speechState === 'playing' ? '🎙️ Speaking...' : speechState === 'paused' ? '⏸️ Paused' : '🔊 Ready'}
             </span>
@@ -982,22 +1039,54 @@ export default function CleanMessageRenderer({
           position: fixed;
           top: 50%;
           left: 50%;
-          transform: translate(-50%, -50%);
-          background: rgba(0, 0, 0, 0.9);
-          backdrop-filter: blur(10px);
-          border: 1px solid rgba(20, 184, 166, 0.3);
-          border-radius: 12px;
-          padding: 16px 20px;
+          background: rgba(255, 255, 255, 0.05);
+          backdrop-filter: blur(16px);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 16px;
+          padding: 20px;
           z-index: 1000;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-          min-width: 200px;
+          box-shadow: 0 16px 64px rgba(0, 0, 0, 0.4);
+          min-width: 220px;
+          transition: all 0.2s ease;
+        }
+
+        .speech-controls-popup:hover {
+          box-shadow: 0 20px 80px rgba(20, 184, 166, 0.1);
         }
 
         .speech-controls-content {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 12px;
+          gap: 16px;
+          position: relative;
+        }
+
+        .drag-handle {
+          width: 100%;
+          height: 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: grab;
+          margin: -10px 0 4px 0;
+        }
+
+        .drag-handle:active {
+          cursor: grabbing;
+        }
+
+        .drag-indicator {
+          width: 32px;
+          height: 4px;
+          background: rgba(255, 255, 255, 0.3);
+          border-radius: 2px;
+          transition: all 0.2s ease;
+        }
+
+        .drag-handle:hover .drag-indicator {
+          background: rgba(20, 184, 166, 0.6);
+          width: 40px;
         }
 
         .speech-status {
@@ -1014,34 +1103,36 @@ export default function CleanMessageRenderer({
         }
 
         .speech-control-btn {
-          background: rgba(20, 184, 166, 0.2);
-          border: 1px solid rgba(20, 184, 166, 0.4);
-          color: #14b8a6;
-          padding: 8px;
-          border-radius: 8px;
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          color: rgba(255, 255, 255, 0.9);
+          padding: 10px;
+          border-radius: 12px;
           cursor: pointer;
-          transition: all 0.2s;
+          transition: all 0.3s ease;
           display: flex;
           align-items: center;
           justify-content: center;
+          backdrop-filter: blur(8px);
         }
 
         .speech-control-btn:hover {
-          background: rgba(20, 184, 166, 0.3);
-          border-color: rgba(20, 184, 166, 0.6);
+          background: rgba(255, 255, 255, 0.15);
+          border-color: rgba(255, 255, 255, 0.3);
           transform: scale(1.05);
+          color: #ffffff;
         }
 
         .pause-btn:hover {
           color: #fbbf24;
-          border-color: rgba(251, 191, 36, 0.6);
-          background: rgba(251, 191, 36, 0.2);
+          border-color: rgba(251, 191, 36, 0.4);
+          background: rgba(251, 191, 36, 0.1);
         }
 
         .stop-btn:hover {
           color: #ef4444;
-          border-color: rgba(239, 68, 68, 0.6);
-          background: rgba(239, 68, 68, 0.2);
+          border-color: rgba(239, 68, 68, 0.4);
+          background: rgba(239, 68, 68, 0.1);
         }
       `}</style>
     </div>
