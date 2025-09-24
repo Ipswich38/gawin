@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import CleanMessageRenderer from './CleanMessageRenderer';
+import ModernMessageRenderer from './ModernMessageRenderer';
 import { ResponseProcessingService } from '@/lib/services/responseProcessingService';
 import ResearchMode from './ResearchMode';
 import SimpleVision from './SimpleVision';
@@ -3142,88 +3142,12 @@ Level: ${level}`
                 `}>
                   {message.role === 'assistant' ? (
                     <div className="w-full max-w-none">
-                      <CleanMessageRenderer
-                        content={message.content}
-                        showCodeEditor={true}
-                        className="assistant-message"
+                      <ModernMessageRenderer
+                        text={message.content}
                         showActions={true}
                         onCopy={() => {
                           navigator.clipboard.writeText(message.content);
                           console.log('Copied message:', message.id);
-                        }}
-                        onSpeak={() => {
-                          // Text-to-speech functionality with consistent voice selection
-                          const speakMessage = () => {
-                            const voices = speechSynthesis.getVoices();
-                            const utterance = new SpeechSynthesisUtterance(message.content);
-
-                            // Try to find a natural human-like voice (prefer English voices)
-                            const preferredVoices = voices.filter(voice =>
-                              voice.lang.startsWith('en') &&
-                              (voice.name.toLowerCase().includes('natural') ||
-                               voice.name.toLowerCase().includes('enhanced') ||
-                               voice.name.toLowerCase().includes('premium') ||
-                               voice.name.toLowerCase().includes('neural'))
-                            );
-
-                            // Fallback to any English voice that's not explicitly robotic
-                            const englishVoices = voices.filter(voice =>
-                              voice.lang.startsWith('en') &&
-                              !voice.name.toLowerCase().includes('robot') &&
-                              !voice.name.toLowerCase().includes('microsoft')
-                            );
-
-                            // Set the voice (prefer human-like, fallback to any English, then default)
-                            if (preferredVoices.length > 0) {
-                              utterance.voice = preferredVoices[0];
-                            } else if (englishVoices.length > 0) {
-                              utterance.voice = englishVoices[0];
-                            }
-
-                            // Consistent settings for natural speech
-                            utterance.rate = 0.85;
-                            utterance.pitch = 1.0;
-                            utterance.volume = 0.8;
-
-                            speechSynthesis.speak(utterance);
-                            console.log('Speaking message:', message.id);
-                          };
-
-                          // Ensure voices are loaded before speaking
-                          if (speechSynthesis.getVoices().length === 0) {
-                            speechSynthesis.addEventListener('voiceschanged', speakMessage, { once: true });
-                          } else {
-                            speakMessage();
-                          }
-                        }}
-                        onDownload={() => {
-                          // Download message as text file
-                          const blob = new Blob([message.content], { type: 'text/plain' });
-                          const url = URL.createObjectURL(blob);
-                          const a = document.createElement('a');
-                          a.href = url;
-                          a.download = `gawin-response-${message.id}.txt`;
-                          document.body.appendChild(a);
-                          a.click();
-                          document.body.removeChild(a);
-                          URL.revokeObjectURL(url);
-                          console.log('Downloaded message:', message.id);
-                        }}
-                        onThumbsUp={() => {
-                          console.log('👍 Thumbs up for message:', message.id);
-                          emotionalSynchronizer.contributeToGlobalConsciousness(user.email, {
-                            ...emotionalSynchronizer.analyzeEmotionalContent('positive feedback', user.email),
-                            joy: 0.8,
-                            trust: 0.9
-                          });
-                        }}
-                        onThumbsDown={() => {
-                          console.log('👎 Thumbs down for message:', message.id);
-                          emotionalSynchronizer.contributeToGlobalConsciousness(user.email, {
-                            ...emotionalSynchronizer.analyzeEmotionalContent('negative feedback', user.email),
-                            sadness: 0.3,
-                            trust: 0.4
-                          });
                         }}
                       />
                       {message.imageUrl && (
@@ -3238,10 +3162,9 @@ Level: ${level}`
                     </div>
                   ) : (
                     <div className="leading-relaxed">
-                      <CleanMessageRenderer
-                        content={message.content}
-                        showCodeEditor={false}
-                        className="user-message"
+                      <ModernMessageRenderer
+                        text={message.content}
+                        showActions={false}
                       />
                       {message.imageUrl && (
                         <div className="mt-3 rounded-lg overflow-hidden border border-white/20">

@@ -13,89 +13,80 @@ export interface FormattingGuidelines {
 export class GawinResponseFormatter {
 
   /**
-   * Generate formatting instructions for system prompt
+   * Generate formatting instructions for system prompt - Modern Bible-verse inspired
    */
   static getFormattingInstructions(): string {
     return `
-## 🎯 **RESPONSE FORMATTING REQUIREMENTS**
+## MODERN MINIMALIST RESPONSE FORMAT
 
-You MUST format ALL responses using this structured approach for better readability.
-**IMPORTANT**: Never use column layouts or side-by-side formatting. Keep all content in a single vertical flow.
+Format ALL responses using this clean, Bible-verse inspired structure that appeals to young users.
+NO 3D EMOJIS. Use only simple line icons and clean typography.
 
-### ✅ **Visual Hierarchy Rules:**
-- Use ## for main section headers with relevant emojis
-- Use ### for subsections with status emojis (✅❌⚠️🎯🔧📊)
-- Use **bold** for important terms and key points
-- Use bullet points with clear structure
-- Include relevant emojis for section identification
+### FORMATTING RULES:
+1. Use simple line icons (─ • → ∴ ! ※) instead of 3D emojis
+2. Number main sections clearly like Bible verses
+3. Keep visual hierarchy clean and minimal
+4. Use consistent spacing and indentation
+5. Make content scannable and digestible
+6. Appeal to young generation with modern, clean design
 
-### 📝 **Structured Response Pattern:**
-When providing information, organize it like this:
+### STRUCTURE TEMPLATE:
 
-\`\`\`markdown
-## 🎯 **Main Topic/Answer**
+**1. [MAIN TOPIC]**
+─ Brief introduction or key context
 
-### ✅ **Key Points:**
-- **Important Item 1** - Clear explanation
-- **Important Item 2** - Detailed description
-- **Important Item 3** - Additional context
+**2. Key Points:**
+• First important point with clear explanation
+• Second important point with details
+• Third important point with context
 
-### 🔧 **How It Works:**
-1. **Step One** - First action to take
+**3. How It Works:**
+→ Step one with clear action
+→ Step two with next logical step
+→ Step three with final implementation
 
-2. **Step Two** - Next logical step
+**4. Important Notes:**
+! Critical information to remember
+! Warning or limitation to consider
+※ Additional tip or reference
 
-3. **Step Three** - Final implementation
+**5. Examples:**
+◦ First practical example
+◦ Second practical example
 
-### 📊 **Additional Details:**
-- **Technical Note** - Specific technical information
-- **Best Practice** - Recommended approach
-- **Consideration** - Important factor to remember
+**6. Summary:**
+∴ Main takeaway or conclusion
+∎ Final thought or next steps
 
-### ⚠️ **Important Notes:**
-- **Warning/Limitation** - What to be careful about
-- **Requirement** - What's needed for success
-\`\`\`
+### LINE ICON GUIDE:
+- ─ Main topic markers
+- • Key points and features
+- → Steps and processes
+- ∴ Explanations and reasoning
+- ! Important notes and warnings
+- ※ Tips and additional info
+- ◦ Examples and illustrations
+- ∎ Conclusions and summaries
+- │ Quotes and references
+- ═ Major conclusions
 
-### 🎨 **Section Emoji Guide:**
-- 🎯 **Main answers/goals**
-- ✅ **Completed items/confirmed info**
-- ❌ **Problems/restrictions/removed items**
-- ⚠️ **Warnings/limitations/considerations**
-- 🔧 **Technical details/how-to steps**
-- 📊 **Data/comparisons/lists**
-- 💡 **Tips/suggestions/ideas**
-- 🚀 **Benefits/results/improvements**
-- 🛡️ **Security/privacy/protection**
-- 📝 **Examples/code/documentation**
+### VISUAL GUIDELINES:
+- Use **bold** for section headers and key terms only
+- Keep paragraphs short (2-3 sentences max)
+- Single line break between related items
+- Double line break between major sections
+- Consistent 2-space indentation after icons
+- No excessive formatting or decoration
+- Clean, scannable layout for mobile users
 
-### 🎨 **Visual Enhancement Rules:**
-- Start with brief context or greeting in natural Filipino style
-- Use tables for comparisons when helpful
-- Include relevant status indicators (✅❌⚠️)
-- Break complex information into digestible sections
-- End with actionable summary when appropriate
-- Maintain conversational Filipino tone throughout
+### TONE FOR YOUNG USERS:
+- Modern and accessible language
+- Direct and conversational
+- No overwhelming formatting
+- Focus on clarity and usefulness
+- Maintain warm Filipino personality without excessive emojis
 
-### 📱 **Mobile-Friendly Requirements:**
-- Keep sections visually distinct
-- Use plenty of white space between sections
-- Make headers scannable for quick reading
-- Include progress indicators for multi-step processes
-- Use bullet points over long paragraphs
-- **NEVER** create column layouts or side-by-side content
-- **ALWAYS** use single vertical flow layout
-
-### 🔄 **Automatic Format Detection:**
-Apply this structured formatting to ALL responses, whether they're:
-- Technical explanations
-- Step-by-step guides
-- Problem solutions
-- Information summaries
-- Creative content
-- Casual conversations
-
-The goal is professional, scannable, easy-to-read responses that work perfectly on mobile and desktop while maintaining your warm Filipino personality.
+This format should feel clean, organized, and appealing to young users who prefer minimalist design.
 `;
   }
 

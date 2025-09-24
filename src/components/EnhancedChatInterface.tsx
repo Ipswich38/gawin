@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import CleanMessageRenderer from './CleanMessageRenderer';
+import ModernMessageRenderer from './ModernMessageRenderer';
 import { ResponseProcessingService } from '@/lib/services/responseProcessingService';
 import { AgentModeToggle, AgentModeIndicator } from './AgentModeToggle';
 import { AgentModeService, AgentModeResponse } from '@/lib/services/agentModeService';
@@ -370,10 +370,9 @@ print(greet("World"))
               className={`message-wrapper ${message.role}`}
             >
               <div className="message-content">
-                <CleanMessageRenderer
-                  content={message.content}
-                  showCodeEditor={true}
-                  className={message.role === 'assistant' ? 'assistant-message' : 'user-message'}
+                <ModernMessageRenderer
+                  text={message.content}
+                  showActions={message.role === 'assistant'}
                 />
               </div>
 
