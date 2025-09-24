@@ -24,7 +24,7 @@ export default function ModernMessageRenderer({
   onCopy
 }: ModernMessageRendererProps) {
 
-  // Process the text to use modern Bible-verse formatting
+  // Process the text to ensure proper paragraph spacing
   const processedText = useMemo(() => {
     return text
       // Replace 3D emojis with line icons
@@ -40,11 +40,15 @@ export default function ModernMessageRenderer({
       .replace(/📚/g, '∎')
       // Clean up excessive formatting
       .replace(/#{1,6}\s*\*\*(.*?)\*\*/g, '**$1**')
-      // Ensure consistent spacing
-      .replace(/\n{3,}/g, '\n\n')
-      // Clean multiple spaces
-      .replace(/  +/g, ' ')
-      .trim();
+      // Preserve important line breaks but normalize excessive ones
+      .replace(/\n{4,}/g, '\n\n\n')
+      // Ensure section breaks are preserved
+      .replace(/(\*\*\d+\.\s*[^*]+\*\*)\s*\n*/g, '$1\n\n')
+      // Clean multiple spaces but preserve intentional spacing
+      .replace(/[ \t]+/g, ' ')
+      // Remove leading/trailing whitespace but preserve structure
+      .split('\n').map(line => line.trim()).join('\n')
+      .replace(/^\s+|\s+$/g, '');
   }, [text]);
 
   const handleCopyMessage = async () => {
@@ -197,6 +201,22 @@ export default function ModernMessageRenderer({
           padding: 0;
         }
 
+        /* Force proper spacing for all content */
+        .modern-content > * {
+          margin-bottom: 20px;
+        }
+
+        .modern-content > *:last-child {
+          margin-bottom: 0;
+        }
+
+        /* Ensure ReactMarkdown respects our spacing */
+        .modern-content .markdown-body p {
+          margin: 0 0 20px 0 !important;
+          line-height: 1.7 !important;
+          display: block !important;
+        }
+
         /* Modern Typography - Bible-verse inspired */
         .modern-h1 {
           font-size: 24px;
@@ -223,18 +243,25 @@ export default function ModernMessageRenderer({
           line-height: 1.4;
         }
 
-        /* Bible-verse inspired paragraphs */
+        /* Simple, clean paragraphs with proper spacing */
         .modern-paragraph {
-          margin: 16px 0;
-          line-height: 1.8;
+          margin: 0 0 20px 0;
+          line-height: 1.7;
           color: #d1d5db;
           text-align: left;
           font-size: 16px;
           max-width: none;
+          display: block;
+          white-space: pre-wrap;
         }
 
-        .modern-paragraph + .modern-paragraph {
-          margin-top: 20px;
+        /* Ensure paragraph separation is always visible */
+        .modern-paragraph:not(:last-child) {
+          margin-bottom: 24px;
+        }
+
+        .modern-paragraph:empty {
+          display: none;
         }
 
         /* Clean, minimal lists */

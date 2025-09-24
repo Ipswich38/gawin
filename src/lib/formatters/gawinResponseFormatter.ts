@@ -33,29 +33,48 @@ NO 3D EMOJIS. Use only simple line icons and clean typography.
 ### STRUCTURE TEMPLATE:
 
 **1. [MAIN TOPIC]**
+
 ─ Brief introduction or key context
 
+
 **2. Key Points:**
+
 • First important point with clear explanation
+
 • Second important point with details
+
 • Third important point with context
 
+
 **3. How It Works:**
+
 → Step one with clear action
+
 → Step two with next logical step
+
 → Step three with final implementation
 
+
 **4. Important Notes:**
+
 ! Critical information to remember
+
 ! Warning or limitation to consider
+
 ※ Additional tip or reference
 
+
 **5. Examples:**
+
 ◦ First practical example
+
 ◦ Second practical example
 
+
 **6. Summary:**
+
 ∴ Main takeaway or conclusion
+
 ∎ Final thought or next steps
 
 ### LINE ICON GUIDE:
@@ -73,11 +92,17 @@ NO 3D EMOJIS. Use only simple line icons and clean typography.
 ### VISUAL GUIDELINES:
 - Use **bold** for section headers and key terms only
 - Keep paragraphs short (2-3 sentences max)
-- Single line break between related items
-- Double line break between major sections
-- Consistent 2-space indentation after icons
+- **CRITICAL**: Always add blank lines between sections and items
+- **CRITICAL**: Put each bullet point on its own line with blank line after
+- **CRITICAL**: Separate numbered sections with double blank lines
 - No excessive formatting or decoration
 - Clean, scannable layout for mobile users
+
+### SPACING REQUIREMENTS:
+- Blank line after each section header
+- Blank line after each bullet point or list item
+- Double blank line between major numbered sections
+- This creates visual breathing room for easy reading
 
 ### TONE FOR YOUNG USERS:
 - Modern and accessible language

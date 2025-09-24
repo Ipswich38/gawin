@@ -48,26 +48,61 @@ p {
   display: block;
 }
 
-/* Enhanced markdown paragraph spacing */
-.message-content p {
-  margin: 16px 0;
-  display: block;
-  line-height: 1.7;
+/* Force proper paragraph spacing for all message content */
+.message-content p,
+.modern-content p,
+.modern-paragraph {
+  margin: 0 0 24px 0 !important;
+  display: block !important;
+  line-height: 1.7 !important;
+  white-space: pre-wrap !important;
 }
 
-.message-content p + p {
-  margin-top: 20px;
+.message-content p:last-child,
+.modern-content p:last-child,
+.modern-paragraph:last-child {
+  margin-bottom: 0 !important;
 }
 
-/* Improve list spacing */
-.message-content ul, .message-content ol {
-  margin: 16px 0;
-  padding-left: 24px;
+/* Ensure section spacing */
+.message-content h1,
+.message-content h2,
+.message-content h3,
+.modern-h1,
+.modern-h2,
+.modern-h3 {
+  margin: 32px 0 16px 0 !important;
 }
 
-.message-content li {
-  margin: 8px 0;
-  line-height: 1.6;
+.message-content h1:first-child,
+.message-content h2:first-child,
+.message-content h3:first-child,
+.modern-h1:first-child,
+.modern-h2:first-child,
+.modern-h3:first-child {
+  margin-top: 0 !important;
+}
+
+/* Fix list spacing */
+.message-content ul,
+.message-content ol,
+.modern-list,
+.modern-ordered-list {
+  margin: 20px 0 !important;
+  padding-left: 24px !important;
+}
+
+.message-content li,
+.modern-list-item {
+  margin: 8px 0 !important;
+  line-height: 1.6 !important;
+}
+
+/* Prevent text compression */
+.message-content,
+.modern-content {
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
 }
 
 @layer utilities {
