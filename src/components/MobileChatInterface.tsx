@@ -2233,215 +2233,233 @@ Format your response according to the content type requested.`;
   const renderQuizContent = () => {
     if (quizState === 'setup') {
       return (
-        <div className="p-6 space-y-6">
-          <div className="text-center space-y-2">
-            <h2 className="text-2xl font-semibold text-white flex items-center gap-2"><QuizIcon size={22} />Quiz Generator</h2>
-            <p className="text-gray-400">Create your personalized quiz</p>
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <label className="text-white text-sm font-medium block mb-2">Topic</label>
-              <input
-                id="quiz-topic"
-                type="text"
-                placeholder="e.g., Philippine History, Math..."
-                className="w-full px-4 py-3 bg-gray-800 text-white rounded-2xl border border-gray-700 focus:outline-none focus:border-teal-500 placeholder-gray-500"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-white text-sm font-medium block mb-2">Questions</label>
-                <select id="quiz-count" className="w-full px-4 py-3 bg-gray-800 text-white rounded-2xl border border-gray-700 focus:outline-none focus:border-teal-500">
-                  <option value="5">5</option>
-                  <option value="10">10</option>
-                  <option value="15">15</option>
-                </select>
+        <div className="p-8 flex items-center justify-center min-h-screen">
+          <div className="w-full max-w-2xl">
+            {/* Main Quiz Generator Block */}
+            <div className="bg-white/5 backdrop-blur-md rounded-3xl border border-white/10 p-8 shadow-2xl">
+              {/* Header */}
+              <div className="text-center mb-8">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-white/20">
+                  <QuizIcon size={24} className="text-white" />
+                </div>
+                <h2 className="text-2xl font-semibold text-white mb-2">Academic Quiz Generator</h2>
+                <p className="text-gray-300">Create comprehensive quizzes for any academic topic worldwide</p>
               </div>
-              <div>
-                <label className="text-white text-sm font-medium block mb-2">Time</label>
-                <select id="quiz-time" className="w-full px-4 py-3 bg-gray-800 text-white rounded-2xl border border-gray-700 focus:outline-none focus:border-teal-500">
-                  <option value="5">5 min</option>
-                  <option value="10">10 min</option>
-                  <option value="15">15 min</option>
-                </select>
-              </div>
-            </div>
 
-            <button
-              id="create-quiz-btn"
-              onClick={async () => {
-                const topic = (document.getElementById('quiz-topic') as HTMLInputElement).value;
-                const count = (document.getElementById('quiz-count') as HTMLSelectElement).value;
-                const time = (document.getElementById('quiz-time') as HTMLSelectElement).value;
-                
-                if (!topic.trim()) {
-                  alert('Please enter a topic');
-                  return;
-                }
+              {/* Quiz Setup Form */}
+              <div className="space-y-6">
+                {/* Topic Input */}
+                <div>
+                  <label className="text-white font-medium block mb-3">Academic Topic</label>
+                  <input
+                    id="quiz-topic"
+                    type="text"
+                    placeholder="e.g., Quantum Physics, World History, Calculus, Biology, Literature..."
+                    className="w-full px-6 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 transition-all"
+                  />
+                  <p className="text-gray-400 text-sm mt-2">Enter any academic subject from elementary to university level</p>
+                </div>
 
-                // Show loading state
-                const button = document.querySelector('#create-quiz-btn') as HTMLButtonElement;
-                if (button) {
-                  button.textContent = 'Creating Quiz...';
-                  button.disabled = true;
-                }
+                {/* Settings Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Question Count */}
+                  <div>
+                    <label className="text-white font-medium block mb-3">Questions</label>
+                    <select id="quiz-count" className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-400/50 transition-all">
+                      <option value="5" className="bg-gray-800">5 Questions</option>
+                      <option value="10" className="bg-gray-800">10 Questions</option>
+                      <option value="15" className="bg-gray-800">15 Questions</option>
+                      <option value="20" className="bg-gray-800">20 Questions</option>
+                      <option value="25" className="bg-gray-800">25 Questions</option>
+                    </select>
+                  </div>
 
-                try {
-                  const response = await fetch('/api/groq', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      messages: [{
-                        role: 'system',
-                        content: 'You are a quiz generator. Always respond with valid JSON arrays only. No additional text, markdown, or explanations.'
-                      }, {
-                        role: 'user',
-                        content: `Generate ${count} multiple choice questions about ${topic} for Philippine education standards.
+                  {/* Time Limit */}
+                  <div>
+                    <label className="text-white font-medium block mb-3">Time Limit</label>
+                    <select id="quiz-time" className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-400/50 transition-all">
+                      <option value="10" className="bg-gray-800">10 minutes</option>
+                      <option value="15" className="bg-gray-800">15 minutes</option>
+                      <option value="20" className="bg-gray-800">20 minutes</option>
+                      <option value="30" className="bg-gray-800">30 minutes</option>
+                      <option value="45" className="bg-gray-800">45 minutes</option>
+                      <option value="60" className="bg-gray-800">1 hour</option>
+                    </select>
+                  </div>
+
+                  {/* Difficulty Level */}
+                  <div>
+                    <label className="text-white font-medium block mb-3">Difficulty</label>
+                    <select id="quiz-difficulty" className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-400/50 transition-all">
+                      <option value="beginner" className="bg-gray-800">Beginner</option>
+                      <option value="intermediate" className="bg-gray-800">Intermediate</option>
+                      <option value="advanced" className="bg-gray-800">Advanced</option>
+                      <option value="expert" className="bg-gray-800">Expert</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Academic Level */}
+                <div>
+                  <label className="text-white font-medium block mb-3">Academic Level</label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[
+                      { value: 'elementary', label: 'Elementary' },
+                      { value: 'secondary', label: 'High School' },
+                      { value: 'undergraduate', label: 'University' },
+                      { value: 'graduate', label: 'Graduate' }
+                    ].map((level) => (
+                      <label key={level.value} className="flex items-center cursor-pointer">
+                        <input
+                          type="radio"
+                          name="academic-level"
+                          value={level.value}
+                          defaultChecked={level.value === 'secondary'}
+                          className="sr-only peer"
+                        />
+                        <div className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-center text-white transition-all hover:bg-white/20 peer-checked:bg-blue-500/30 peer-checked:border-blue-400/50">
+                          {level.label}
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Generate Button */}
+                <button
+                  id="create-quiz-btn"
+                  onClick={async () => {
+                    const topic = (document.getElementById('quiz-topic') as HTMLInputElement).value;
+                    const count = (document.getElementById('quiz-count') as HTMLSelectElement).value;
+                    const time = (document.getElementById('quiz-time') as HTMLSelectElement).value;
+                    const difficulty = (document.getElementById('quiz-difficulty') as HTMLSelectElement).value;
+                    const level = (document.querySelector('input[name="academic-level"]:checked') as HTMLInputElement)?.value || 'secondary';
+
+                    if (!topic.trim()) {
+                      alert('Please enter an academic topic');
+                      return;
+                    }
+
+                    // Show loading state
+                    const button = document.querySelector('#create-quiz-btn') as HTMLButtonElement;
+                    if (button) {
+                      button.innerHTML = `
+                        <div class="flex items-center justify-center gap-2">
+                          <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          <span>Generating Quiz...</span>
+                        </div>
+                      `;
+                      button.disabled = true;
+                    }
+
+                    try {
+                      const response = await fetch('/api/groq', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          messages: [{
+                            role: 'system',
+                            content: `You are an expert academic quiz generator. Create high-quality, comprehensive multiple-choice questions suitable for ${level} level education. Always respond with valid JSON only - no markdown, explanations, or additional text.`
+                          }, {
+                            role: 'user',
+                            content: `Generate ${count} academically rigorous multiple-choice questions about "${topic}" at ${difficulty} difficulty level for ${level} students.
+
+Requirements:
+- Questions should be comprehensive and test deep understanding
+- Include varied question types (factual, analytical, application, synthesis)
+- Ensure options are plausible and not obviously wrong
+- Provide detailed explanations for learning
+- Cover different aspects of the topic
+- Use proper academic terminology
 
 Return ONLY this JSON format:
-[{"question":"Question text","options":["A","B","C","D"],"correct":0,"explanation":"Brief explanation"}]
+[{"question":"Clear, specific question text","options":["Option A","Option B","Option C","Option D"],"correct":0,"explanation":"Detailed explanation with reasoning","category":"Topic subcategory"}]
 
 Topic: ${topic}
-Questions: ${count}`
-                      }],
-                      model: 'llama-3.3-70b-versatile',
-                      temperature: 0.1,
-                      max_tokens: 4000,
-                    }),
-                  });
+Questions: ${count}
+Difficulty: ${difficulty}
+Level: ${level}`
+                          }],
+                          model: 'llama-3.3-70b-versatile',
+                          temperature: 0.3,
+                          max_tokens: 6000,
+                        }),
+                      });
                   
-                  const result = await response.json();
-                  console.log('Quiz API Response:', result);
-                  
-                  if (result.success && result.choices?.[0]?.message?.content) {
-                    try {
-                      let content = result.choices[0].message.content.trim();
-                      console.log('Raw quiz content:', content);
-                      
-                      // More robust JSON extraction
-                      content = content
-                        .replace(/^```(?:json)?\s*/i, '')
-                        .replace(/\s*```$/i, '')
-                        .replace(/^[^[]*/, '')
-                        .replace(/[^}]*$/, '}]');
-                      
-                      // Fix common JSON issues
-                      content = content
-                        .replace(/,\s*}/g, '}')
-                        .replace(/,\s*]/g, ']')
-                        .replace(/\n/g, ' ')
-                        .replace(/\s+/g, ' ');
-                      
-                      console.log('Cleaned content:', content);
-                      
-                      let questions;
-                      try {
-                        questions = JSON.parse(content);
-                      } catch (parseErr) {
-                        console.log('JSON parse failed, trying regex fallback...');
-                        
-                        // More robust regex fallback parsing
-                        const questionMatches = content.match(/"question"\s*:\s*"([^"]+)"/g);
-                        const optionMatches = content.match(/"options"\s*:\s*\[([^\]]+)\]/g);
-                        const correctMatches = content.match(/"correct"\s*:\s*(\d+)/g);
-                        
-                        console.log('Regex matches:', {
-                          questions: questionMatches?.length || 0,
-                          options: optionMatches?.length || 0,
-                          correct: correctMatches?.length || 0
-                        });
-                        
-                        if (questionMatches && optionMatches && correctMatches && 
-                            questionMatches.length === optionMatches.length && 
-                            questionMatches.length === correctMatches.length) {
-                          
-                          questions = [];
-                          for (let i = 0; i < questionMatches.length; i++) {
-                            // Extract question text more reliably
-                            const questionMatch = questionMatches[i].match(/"question"\s*:\s*"([^"]+)"/);
-                            const question = questionMatch?.[1];
-                            
-                            // Extract options more reliably
-                            const optionMatch = optionMatches[i].match(/"options"\s*:\s*\[([^\]]+)\]/);
-                            const optionsStr = optionMatch?.[1];
-                            const options = optionsStr?.split(',').map((opt: string) => 
-                              opt.trim().replace(/^["']|["']$/g, '')
+                      const result = await response.json();
+
+                      if (result.success && result.choices?.[0]?.message?.content) {
+                        try {
+                          let content = result.choices[0].message.content.trim();
+
+                          // Clean up the response
+                          content = content
+                            .replace(/^```(?:json)?\s*/i, '')
+                            .replace(/\s*```$/i, '')
+                            .replace(/^[^[]*/, '')
+                            .replace(/[^}]*$/, '}]');
+
+                          const questions = JSON.parse(content);
+
+                          if (Array.isArray(questions) && questions.length > 0) {
+                            // Validate question structure
+                            const validQuestions = questions.filter(q =>
+                              q.question &&
+                              Array.isArray(q.options) &&
+                              q.options.length === 4 &&
+                              typeof q.correct === 'number' &&
+                              q.correct >= 0 &&
+                              q.correct < 4
                             );
-                            
-                            // Extract correct answer
-                            const correctMatch = correctMatches[i].match(/"correct"\s*:\s*(\d+)/);
-                            const correct = parseInt(correctMatch?.[1] || '0');
-                            
-                            console.log(`Question ${i + 1}:`, { question, options: options?.length, correct });
-                            
-                            if (question && options && options.length >= 4) {
-                              questions.push({
-                                question,
-                                options,
-                                correct,
-                                explanation: `The correct answer is "${options[correct]}".`
+
+                            if (validQuestions.length > 0) {
+                              setQuizData({
+                                topic,
+                                questions: validQuestions,
+                                timeLimit: parseInt(time) * 60,
+                                difficulty,
+                                level
                               });
+                              setQuizState('taking');
+                              setCurrentQuestion(0);
+                              setUserAnswers([]);
+                              setTimeLeft(parseInt(time) * 60);
+                            } else {
+                              throw new Error('No valid questions generated');
                             }
+                          } else {
+                            throw new Error('Invalid question format');
                           }
-                        } else {
-                          console.error('Regex fallback failed - mismatched counts');
-                          throw parseErr;
-                        }
-                      }
-                      
-                      if (Array.isArray(questions) && questions.length > 0) {
-                        const validQuestions = questions.filter(q => 
-                          q.question && 
-                          Array.isArray(q.options) && 
-                          q.options.length >= 4 && 
-                          typeof q.correct === 'number' && 
-                          q.correct >= 0 && 
-                          q.correct < q.options.length
-                        );
-                        
-                        if (validQuestions.length > 0) {
-                          setQuizData({
-                            topic,
-                            questions: validQuestions,
-                            timeLimit: parseInt(time) * 60
-                          });
-                          setTimeLeft(parseInt(time) * 60);
-                          setUserAnswers(new Array(validQuestions.length).fill(null));
-                          setQuizState('taking');
-                          setCurrentQuestion(0);
-                          console.log('✅ Quiz created successfully:', validQuestions.length, 'questions');
-                        } else {
-                          throw new Error('No valid questions were generated');
+                        } catch (error) {
+                          console.error('Quiz parsing error:', error);
+                          alert('Failed to generate quiz. Please try a different topic or try again.');
                         }
                       } else {
-                        throw new Error('Invalid response format - not an array');
+                        alert('Failed to generate quiz. Please check your connection and try again.');
                       }
-                    } catch (parseError) {
-                      console.error('❌ Parse Error:', parseError);
-                      console.error('Content that failed to parse:', result.choices[0].message.content);
-                      alert('Failed to generate quiz. The AI response was not in the expected format. Please try a different topic or try again.');
+                    } catch (error) {
+                      console.error('Quiz generation error:', error);
+                      alert('Network error. Please check your connection and try again.');
+                    } finally {
+                      // Reset button state
+                      const button = document.querySelector('#create-quiz-btn') as HTMLButtonElement;
+                      if (button) {
+                        button.innerHTML = 'Generate Quiz';
+                        button.disabled = false;
+                      }
                     }
-                  } else {
-                    throw new Error(result.error || 'No response received from AI service');
-                  }
-                } catch (error) {
-                  console.error('❌ Quiz Generation Error:', error);
-                  alert(`Failed to generate quiz: ${error instanceof Error ? error.message : 'Unknown error'}. Please check your connection and try again.`);
-                } finally {
-                  // Reset button state
-                  const button = document.querySelector('#create-quiz-btn') as HTMLButtonElement;
-                  if (button) {
-                    button.textContent = 'Create Quiz';
-                    button.disabled = false;
-                  }
-                }
-              }}
-              className="w-full py-4 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-2xl transition-colors shadow-lg"
-            >
-              Create Quiz
-            </button>
+                  }}
+                  className="w-full py-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                >
+                  Generate Quiz
+                </button>
+
+                {/* Academic Coverage Note */}
+                <div className="text-center text-gray-400 text-sm bg-white/5 rounded-xl p-4">
+                  <p><strong>Comprehensive Coverage:</strong> Mathematics, Sciences, Literature, History, Geography, Languages, Arts, Philosophy, Economics, Psychology, and more academic disciplines worldwide.</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       );
@@ -2449,38 +2467,59 @@ Questions: ${count}`
 
     if (quizState === 'taking') {
       return (
-        <div className="p-4 space-y-4">
-          {/* Header */}
-          <div className="flex justify-between items-center p-4 bg-gray-800/50 rounded-2xl">
-            <div>
-              <h3 className="text-lg font-semibold text-white">{quizData?.topic}</h3>
-              <p className="text-gray-400 text-sm">Question {currentQuestion + 1} of {quizData?.questions?.length}</p>
-            </div>
-            <div className="text-right">
-              <div className="text-xl font-mono text-teal-400">
-                {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+        <div className="p-6 min-h-screen">
+          <div className="max-w-4xl mx-auto">
+            {/* Header Card */}
+            <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 mb-6 shadow-lg">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-xl font-semibold text-white mb-1">{quizData?.topic}</h3>
+                  <p className="text-gray-400">Question {currentQuestion + 1} of {quizData?.questions?.length}</p>
+                  <div className="text-sm text-gray-500 mt-1">
+                    {quizData?.difficulty && quizData?.level && (
+                      <span>{quizData.difficulty} • {quizData.level} level</span>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-mono text-blue-400 font-semibold">
+                    {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+                  </div>
+                  <p className="text-gray-400 text-sm">Time Left</p>
+                </div>
               </div>
-              <p className="text-gray-400 text-xs">Time Left</p>
+
+              {/* Progress Bar */}
+              <div className="w-full bg-white/10 rounded-full h-3 mt-4">
+                <div
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-500 shadow-sm"
+                  style={{ width: `${((currentQuestion + 1) / (quizData?.questions?.length || 1)) * 100}%` }}
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Progress */}
-          <div className="w-full bg-gray-700 rounded-full h-2">
-            <div 
-              className="bg-teal-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${((currentQuestion + 1) / quizData?.questions?.length) * 100}%` }}
-            />
-          </div>
+            {/* Question Card */}
+            {quizData?.questions?.[currentQuestion] && (
+              <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-8 shadow-lg">
+                <div className="mb-6">
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-semibold text-sm">
+                      {currentQuestion + 1}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-xl text-white leading-relaxed mb-2">
+                        {quizData.questions[currentQuestion].question}
+                      </h4>
+                      {quizData.questions[currentQuestion].category && (
+                        <span className="inline-block px-3 py-1 bg-white/10 rounded-full text-gray-400 text-sm">
+                          {quizData.questions[currentQuestion].category}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
 
-          {/* Question */}
-          {quizData?.questions?.[currentQuestion] && (
-            <div className="space-y-4">
-              <div className="bg-gray-800/50 rounded-2xl p-4">
-                <h4 className="text-lg text-white mb-4">
-                  {quizData.questions[currentQuestion].question}
-                </h4>
-                
-                <div className="space-y-2">
+                <div className="space-y-3 mb-8">
                   {quizData.questions[currentQuestion].options.map((option: string, index: number) => (
                     <button
                       key={index}
@@ -2489,47 +2528,59 @@ Questions: ${count}`
                         newAnswers[currentQuestion] = index;
                         setUserAnswers(newAnswers);
                       }}
-                      className={`w-full p-3 text-left rounded-xl border transition-all ${
+                      className={`w-full p-4 text-left rounded-xl border transition-all duration-200 group hover:scale-[1.01] ${
                         userAnswers[currentQuestion] === index
-                          ? 'bg-teal-600/20 border-teal-500 text-teal-100'
-                          : 'bg-gray-700/50 border-gray-600 text-gray-300'
+                          ? 'bg-blue-500/20 border-blue-400/50 text-white shadow-md'
+                          : 'bg-white/5 border-white/20 text-gray-300 hover:bg-white/10 hover:border-white/30'
                       }`}
                     >
-                      <span className="font-medium mr-2">{String.fromCharCode(65 + index)}.</span>
-                      {option}
+                      <div className="flex items-start gap-3">
+                        <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
+                          userAnswers[currentQuestion] === index
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-white/10 text-gray-400 group-hover:bg-white/20'
+                        }`}>
+                          {String.fromCharCode(65 + index)}
+                        </div>
+                        <span className="flex-1 leading-relaxed">{option}</span>
+                      </div>
                     </button>
                   ))}
                 </div>
-              </div>
 
-              {/* Navigation */}
-              <div className="flex justify-between">
-                <button
-                  onClick={() => setCurrentQuestion(Math.max(0, currentQuestion - 1))}
-                  disabled={currentQuestion === 0}
-                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 text-white rounded-xl transition-colors"
-                >
-                  Previous
-                </button>
-                
-                {currentQuestion === quizData.questions.length - 1 ? (
+                {/* Navigation */}
+                <div className="flex justify-between items-center">
                   <button
-                    onClick={finishQuiz}
-                    className="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl transition-colors font-semibold"
+                    onClick={() => setCurrentQuestion(Math.max(0, currentQuestion - 1))}
+                    disabled={currentQuestion === 0}
+                    className="px-6 py-3 bg-white/10 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl transition-all duration-200 font-medium backdrop-blur-sm border border-white/20"
                   >
-                    Finish
+                    Previous
                   </button>
-                ) : (
-                  <button
-                    onClick={() => setCurrentQuestion(Math.min(quizData.questions.length - 1, currentQuestion + 1))}
-                    className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl transition-colors"
-                  >
-                    Next
-                  </button>
-                )}
+
+                  <div className="text-center text-gray-400 text-sm">
+                    {userAnswers.filter(answer => answer !== null && answer !== undefined).length} of {quizData.questions.length} answered
+                  </div>
+
+                  {currentQuestion === quizData.questions.length - 1 ? (
+                    <button
+                      onClick={finishQuiz}
+                      className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl transition-all duration-200 font-semibold shadow-lg"
+                    >
+                      Finish Quiz
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setCurrentQuestion(Math.min(quizData.questions.length - 1, currentQuestion + 1))}
+                      className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl transition-all duration-200 font-semibold shadow-lg"
+                    >
+                      Next
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       );
     }
