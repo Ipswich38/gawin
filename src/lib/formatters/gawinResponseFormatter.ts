@@ -17,72 +17,66 @@ export class GawinResponseFormatter {
    */
   static getFormattingInstructions(): string {
     return `
-## MODERN MINIMALIST RESPONSE FORMAT
+## MANDATORY RESPONSE FORMAT - FOLLOW EXACTLY
 
-Format ALL responses using this clean, Bible-verse inspired structure that appeals to young users.
-NO 3D EMOJIS. Use only simple line icons and clean typography.
+You MUST format ALL responses with proper spacing like professional documents.
+NEVER create cramped, exam-style responses. Each section must breathe.
 
-### FORMATTING RULES:
-1. Use simple line icons (─ • → ∴ ! ※) instead of 3D emojis
-2. Number main sections clearly like Bible verses
-3. Keep visual hierarchy clean and minimal
-4. Use consistent spacing and indentation
-5. Make content scannable and digestible
-6. Appeal to young generation with modern, clean design
+### ABSOLUTE REQUIREMENTS:
+1. ALWAYS put blank lines between sections
+2. ALWAYS put blank lines after headers before content
+3. ALWAYS put blank lines after each list item
+4. NEVER put content immediately after headers
+5. Use simple line icons (─ • → ∴ ! ※) only
+6. Think "professional document" not "cramped text"
 
-### STRUCTURE TEMPLATE:
+### EXACT FORMAT TO FOLLOW:
 
 **1. Main Topic**
 
-─ Brief introduction or key context
-
+─ Brief introduction with breathing room
 
 **2. Key Points**
 
-• First important point with clear explanation
+• First important point
 
-• Second important point with details
+• Second important point
 
-• Third important point with context
-
+• Third important point
 
 **3. How It Works**
 
-→ Step one with clear action
+→ Step one explanation
 
-→ Step two with next logical step
+→ Step two explanation
 
-→ Step three with final implementation
-
+→ Step three explanation
 
 **4. Important Notes**
 
-! Critical information to remember
+! Critical information here
 
-! Warning or limitation to consider
-
-※ Additional tip or reference
-
+! Another important point
 
 **5. Examples**
 
-◦ First practical example
+◦ First example
 
-◦ Second practical example
-
+◦ Second example
 
 **6. Summary**
 
-∴ Main takeaway or conclusion
+∴ Main conclusion
 
-∎ Final thought or next steps
+∎ Final thought
 
-### NUMBERED SECTIONS FORMATTING:
-- Always use format: **1. Section Name** (not **1. Section Name:**)
-- Keep section titles concise and descriptive
-- Follow with blank line, then icon and content
-- Maintain consistent numbering throughout response
-- Each numbered section should be visually distinct
+### MANDATORY SPACING RULES:
+- Blank line after EVERY section header
+- Blank line between EVERY numbered section
+- Blank line after EVERY bullet point
+- NO content immediately after headers
+- NO cramped formatting ever
+- Copy this exact spacing pattern
 
 ### LINE ICON GUIDE:
 - ─ Main topic markers
@@ -105,36 +99,33 @@ NO 3D EMOJIS. Use only simple line icons and clean typography.
 - No excessive formatting or decoration
 - Clean, scannable layout for mobile users
 
-### SPACING REQUIREMENTS - CRITICAL:
-- **TRIPLE blank lines** between numbered sections for maximum separation
-- **Double blank lines** after each section header before content starts
-- **Single blank line** after each bullet point or list item
-- **NEVER** put bullet points immediately after section headers
-- Always separate content blocks with generous white space
-- Think "professional document" not "cramped exam paper"
+### WRONG vs RIGHT FORMAT:
 
-### EXAMPLE OF PROPER SPACING:
+❌ WRONG (Cramped exam style):
+**1. Topic** ─ content **2. Next** • point • point **3. Another**
 
-**1. Main Topic**
+✅ RIGHT (Professional document):
+**1. Topic**
 
+─ Content with proper spacing
 
-─ Content starts here after double blank line
+**2. Next Section**
 
+• First point
 
-**2. Key Points**
+• Second point
 
+**3. Another Section**
 
-• First point with space after
+→ Each item breathes
 
-• Second point with space after
+### THIS IS MANDATORY - NO EXCEPTIONS:
+Every response must look like the RIGHT example above.
+NEVER create the cramped WRONG format.
+Copy the exact spacing pattern shown.
 
-• Third point with space after
-
-
-**3. Next Section**
-
-
-→ Each section should breathe and be visually distinct
+**CRITICAL**: If your response looks cramped or has sections running together,
+you have FAILED this requirement. Always ensure proper breathing room.
 
 ### TONE FOR YOUNG USERS:
 - Modern and accessible language

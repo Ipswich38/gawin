@@ -24,9 +24,9 @@ export default function ModernMessageRenderer({
   onCopy
 }: ModernMessageRendererProps) {
 
-  // Process the text to ensure proper paragraph spacing and numbered sections
+  // Process the text to FORCE proper paragraph spacing and numbered sections
   const processedText = useMemo(() => {
-    return text
+    let processed = text
       // Replace 3D emojis with line icons
       .replace(/🎯/g, '─')
       .replace(/✅/g, '•')
@@ -37,18 +37,31 @@ export default function ModernMessageRenderer({
       .replace(/🚀/g, '↗')
       .replace(/📝/g, '◦')
       .replace(/🎉/g, '═')
-      .replace(/📚/g, '∎')
-      // Clean up excessive formatting
-      .replace(/#{1,6}\s*\*\*(.*?)\*\*/g, '**$1**')
-      // Preserve important line breaks but normalize excessive ones
-      .replace(/\n{4,}/g, '\n\n\n')
-      // Ensure section breaks are preserved with proper spacing
-      .replace(/(\*\*\d+\.\s*[^*]+\*\*)\s*\n*/g, '$1\n\n')
-      // Clean multiple spaces but preserve intentional spacing
-      .replace(/[ \t]+/g, ' ')
-      // Remove leading/trailing whitespace but preserve structure
-      .split('\n').map(line => line.trim()).join('\n')
+      .replace(/📚/g, '∎');
+
+    // FORCE spacing after numbered sections if AI didn't follow instructions
+    processed = processed.replace(/(\*\*\d+\.\s*[^*]+\*\*)\s*([^*\n])/g, '$1\n\n$2');
+
+    // FORCE spacing between bullet points if cramped
+    processed = processed.replace(/([•→!※◦])\s*([^•→!※◦\n]+)\s*([•→!※◦])/g, '$1 $2\n\n$3');
+
+    // FORCE blank lines before numbered sections
+    processed = processed.replace(/([^\n])\s*(\*\*\d+\.\s*[^*]+\*\*)/g, '$1\n\n$2');
+
+    // Clean up excessive spacing but ensure minimum spacing
+    processed = processed.replace(/\n{4,}/g, '\n\n\n');
+
+    // Clean multiple spaces but preserve intentional spacing
+    processed = processed.replace(/[ \t]+/g, ' ');
+
+    // Final cleanup while preserving structure
+    processed = processed
+      .split('\n')
+      .map(line => line.trim())
+      .join('\n')
       .replace(/^\s+|\s+$/g, '');
+
+    return processed;
   }, [text]);
 
   // Add post-processing to style numbered sections and list items
