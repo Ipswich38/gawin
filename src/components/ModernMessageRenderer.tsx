@@ -6,7 +6,7 @@
 
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -24,7 +24,7 @@ export default function ModernMessageRenderer({
   onCopy
 }: ModernMessageRendererProps) {
 
-  // Process the text to ensure proper paragraph spacing
+  // Process the text to ensure proper paragraph spacing and numbered sections
   const processedText = useMemo(() => {
     return text
       // Replace 3D emojis with line icons
@@ -42,7 +42,7 @@ export default function ModernMessageRenderer({
       .replace(/#{1,6}\s*\*\*(.*?)\*\*/g, '**$1**')
       // Preserve important line breaks but normalize excessive ones
       .replace(/\n{4,}/g, '\n\n\n')
-      // Ensure section breaks are preserved
+      // Ensure section breaks are preserved with proper spacing
       .replace(/(\*\*\d+\.\s*[^*]+\*\*)\s*\n*/g, '$1\n\n')
       // Clean multiple spaces but preserve intentional spacing
       .replace(/[ \t]+/g, ' ')
@@ -50,6 +50,28 @@ export default function ModernMessageRenderer({
       .split('\n').map(line => line.trim()).join('\n')
       .replace(/^\s+|\s+$/g, '');
   }, [text]);
+
+  // Add post-processing to style numbered sections
+  const enhanceNumberedSections = (node: any) => {
+    if (!node) return;
+
+    // Look for strong elements that contain numbered sections
+    const strongElements = node.querySelectorAll('strong');
+    strongElements.forEach((strong: HTMLElement) => {
+      const text = strong.textContent || '';
+      // Check if it matches pattern: **1. Something** or **2. Something**
+      if (/^\*?\*?\d+\.\s/.test(text)) {
+        strong.classList.add('numbered-section');
+      }
+    });
+  };
+
+  useEffect(() => {
+    const container = document.querySelector('.modern-content');
+    if (container) {
+      enhanceNumberedSections(container);
+    }
+  }, [processedText]);
 
   const handleCopyMessage = async () => {
     try {
@@ -241,6 +263,19 @@ export default function ModernMessageRenderer({
           color: #e5e7eb;
           margin: 16px 0 8px 0;
           line-height: 1.4;
+        }
+
+        /* Numbered sections styling */
+        .modern-content strong:has-text("**") {
+          display: block;
+          margin: 32px 0 12px 0;
+          padding: 8px 0;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Override for numbered sections */
+        .modern-content {
+          counter-reset: section-counter;
         }
 
         /* Simple, clean paragraphs with proper spacing */

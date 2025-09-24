@@ -32,12 +32,12 @@ NO 3D EMOJIS. Use only simple line icons and clean typography.
 
 ### STRUCTURE TEMPLATE:
 
-**1. [MAIN TOPIC]**
+**1. Main Topic**
 
 ─ Brief introduction or key context
 
 
-**2. Key Points:**
+**2. Key Points**
 
 • First important point with clear explanation
 
@@ -46,7 +46,7 @@ NO 3D EMOJIS. Use only simple line icons and clean typography.
 • Third important point with context
 
 
-**3. How It Works:**
+**3. How It Works**
 
 → Step one with clear action
 
@@ -55,7 +55,7 @@ NO 3D EMOJIS. Use only simple line icons and clean typography.
 → Step three with final implementation
 
 
-**4. Important Notes:**
+**4. Important Notes**
 
 ! Critical information to remember
 
@@ -64,18 +64,25 @@ NO 3D EMOJIS. Use only simple line icons and clean typography.
 ※ Additional tip or reference
 
 
-**5. Examples:**
+**5. Examples**
 
 ◦ First practical example
 
 ◦ Second practical example
 
 
-**6. Summary:**
+**6. Summary**
 
 ∴ Main takeaway or conclusion
 
 ∎ Final thought or next steps
+
+### NUMBERED SECTIONS FORMATTING:
+- Always use format: **1. Section Name** (not **1. Section Name:**)
+- Keep section titles concise and descriptive
+- Follow with blank line, then icon and content
+- Maintain consistent numbering throughout response
+- Each numbered section should be visually distinct
 
 ### LINE ICON GUIDE:
 - ─ Main topic markers
