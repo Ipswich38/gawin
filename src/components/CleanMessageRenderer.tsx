@@ -487,10 +487,10 @@ export default function CleanMessageRenderer({
             font-size: 1.25rem;
             font-weight: 400;
             color: #ffffff;
-            margin: 20px 0 12px 0;
+            margin: 28px 0 16px 0;
             line-height: 1.4;
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            padding-bottom: 4px;
+            padding-bottom: 8px;
           }
         `}</style>
       </h1>
@@ -505,7 +505,7 @@ export default function CleanMessageRenderer({
             font-size: 1.125rem;
             font-weight: 400;
             color: #ffffff;
-            margin: 18px 0 10px 0;
+            margin: 24px 0 12px 0;
             line-height: 1.4;
           }
         `}</style>
@@ -521,7 +521,7 @@ export default function CleanMessageRenderer({
             font-size: 1rem;
             font-weight: 400;
             color: #ffffff;
-            margin: 16px 0 8px 0;
+            margin: 20px 0 10px 0;
             line-height: 1.4;
           }
         `}</style>
@@ -536,9 +536,11 @@ export default function CleanMessageRenderer({
             font-family: 'Avenir', -apple-system, BlinkMacSystemFont, sans-serif;
             font-weight: 400;
             font-size: 1rem;
-            margin: 0 0 16px 0;
-            line-height: 1.6;
+            margin: 0 0 20px 0;
+            line-height: 1.7;
             color: #ffffff;
+            white-space: pre-wrap;
+            word-wrap: break-word;
           }
         `}</style>
       </p>
@@ -551,8 +553,8 @@ export default function CleanMessageRenderer({
           .clean-list {
             font-family: 'Avenir', -apple-system, BlinkMacSystemFont, sans-serif;
             font-weight: 400;
-            margin: 16px 0;
-            padding-left: 24px;
+            margin: 20px 0;
+            padding-left: 28px;
             line-height: 1.7;
             color: #ffffff;
           }
@@ -567,8 +569,8 @@ export default function CleanMessageRenderer({
           .clean-ordered-list {
             font-family: 'Avenir', -apple-system, BlinkMacSystemFont, sans-serif;
             font-weight: 400;
-            margin: 16px 0;
-            padding-left: 24px;
+            margin: 20px 0;
+            padding-left: 28px;
             line-height: 1.7;
             color: #ffffff;
           }
@@ -581,12 +583,12 @@ export default function CleanMessageRenderer({
         {children}
         <style jsx>{`
           .clean-list-item {
-            margin: 8px 0;
+            margin: 10px 0;
             line-height: 1.7;
             color: #ffffff;
           }
           .clean-list-item::marker {
-            color: #14b8a6;
+            color: #ffffff;
           }
         `}</style>
       </li>
@@ -670,6 +672,9 @@ export default function CleanMessageRenderer({
         `}</style>
       </div>
     ),
+
+    // Handle line breaks properly
+    br: () => <br className="line-break" />,
   };
 
   return (
@@ -697,6 +702,9 @@ export default function CleanMessageRenderer({
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={markdownComponents}
+          remarkRehypeOptions={{
+            allowDangerousHtml: false,
+          }}
         >
           {isThinking ? content : processedContent.response}
         </ReactMarkdown>
