@@ -340,8 +340,9 @@ export async function POST(request: NextRequest) {
     // Special protection for quiz generation - bypass all filtering
     const isQuizRequest = /\b(quiz|generate|questions|mathematics|physics|chemistry|biology|computer science|engineering)\b/i.test(messageContent);
 
+    let contentFilter;
     if (!isQuizRequest) {
-      const contentFilter = contentFilterService.filterContent(messageContent);
+      contentFilter = contentFilterService.filterContent(messageContent);
 
       if (contentFilter.wasFiltered && contentFilter.filterResult.isBlocked) {
         console.log(`🛡️ Content blocked: ${contentFilter.filterResult.category} (${contentFilter.filterResult.detectedLanguage})`);
@@ -363,30 +364,30 @@ export async function POST(request: NextRequest) {
           }
         });
       }
+
+      // Handle academic context clarification (but not for quiz requests)
+      if (contentFilter.filterResult.category === 'academic_context') {
+        console.log(`📚 Academic context detected, requesting clarification`);
+
+        return NextResponse.json({
+          success: true,
+          choices: [{
+            message: {
+              role: 'assistant',
+              content: contentFilter.filtered
+            },
+            finish_reason: 'stop',
+            index: 0
+          }],
+          usage: {
+            prompt_tokens: messageContent.length,
+            completion_tokens: contentFilter.filtered.length,
+            total_tokens: messageContent.length + contentFilter.filtered.length
+          }
+        });
+      }
     } else {
       console.log('🎓 Quiz generation request detected - bypassing all content filtering');
-    }
-
-    // Handle academic context clarification (but not for quiz requests)
-    if (!isQuizRequest && contentFilter?.filterResult?.category === 'academic_context') {
-      console.log(`📚 Academic context detected, requesting clarification`);
-
-      return NextResponse.json({
-        success: true,
-        choices: [{
-          message: {
-            role: 'assistant',
-            content: contentFilter.filtered
-          },
-          finish_reason: 'stop',
-          index: 0
-        }],
-        usage: {
-          prompt_tokens: messageContent.length,
-          completion_tokens: contentFilter.filtered.length,
-          total_tokens: messageContent.length + contentFilter.filtered.length
-        }
-      });
     }
 
     // Enhanced context-aware image detection
