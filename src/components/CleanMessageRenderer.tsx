@@ -597,10 +597,11 @@ export default function CleanMessageRenderer({
           .clean-list {
             font-family: 'Avenir', -apple-system, BlinkMacSystemFont, sans-serif;
             font-weight: 400;
-            margin: 20px 0;
-            padding-left: 28px;
-            line-height: 1.7;
+            margin: 24px 0;
+            padding-left: 0;
+            line-height: 1.8;
             color: #ffffff;
+            list-style: none;
           }
         `}</style>
       </ul>
@@ -613,10 +614,12 @@ export default function CleanMessageRenderer({
           .clean-ordered-list {
             font-family: 'Avenir', -apple-system, BlinkMacSystemFont, sans-serif;
             font-weight: 400;
-            margin: 20px 0;
-            padding-left: 28px;
-            line-height: 1.7;
+            margin: 24px 0;
+            padding-left: 0;
+            line-height: 1.8;
             color: #ffffff;
+            counter-reset: item;
+            list-style: none;
           }
         `}</style>
       </ol>
@@ -627,11 +630,45 @@ export default function CleanMessageRenderer({
         {children}
         <style jsx>{`
           .clean-list-item {
-            margin: 10px 0;
-            line-height: 1.7;
+            margin: 12px 0;
+            padding-left: 30px;
+            line-height: 1.8;
             color: #ffffff;
+            position: relative;
           }
-          .clean-list-item::marker {
+
+          /* Bullet points for unordered lists */
+          ul .clean-list-item::before {
+            content: '•';
+            color: #14b8a6;
+            font-weight: 600;
+            font-size: 1.2em;
+            position: absolute;
+            left: 8px;
+            top: 0;
+          }
+
+          /* Numbers for ordered lists */
+          ol .clean-list-item {
+            counter-increment: item;
+          }
+
+          ol .clean-list-item::before {
+            content: counter(item) '.';
+            color: #14b8a6;
+            font-weight: 600;
+            position: absolute;
+            left: 0;
+            top: 0;
+            min-width: 24px;
+          }
+
+          .clean-list-item p {
+            margin: 0;
+            display: inline;
+          }
+
+          .clean-list-item > * {
             color: #ffffff;
           }
         `}</style>
@@ -721,17 +758,34 @@ export default function CleanMessageRenderer({
     br: () => <br className="line-break" />,
   };
 
-  // Preprocess content to ensure proper paragraph breaks
+  // Enhanced preprocessing to fix formatting issues
   const preprocessContent = (text: string): string => {
     return text
-      // Ensure double line breaks become paragraph breaks
+      // Remove scattered asterisks that are not part of markdown formatting
+      .replace(/\*(?![^\*]*\*)/g, '')
+      .replace(/^\*\s*/gm, '')
+
+      // Fix numbered lists - ensure proper spacing and formatting
+      .replace(/^(\d+)\.\s*/gm, '\n$1. ')
+      .replace(/\n\s*(\d+)\.\s*/g, '\n\n$1. ')
+
+      // Fix bullet points - standardize to use consistent bullets
+      .replace(/^[\*\-•]\s*/gm, '• ')
+      .replace(/\n\s*[\*\-•]\s*/g, '\n• ')
+
+      // Ensure proper paragraph breaks
       .replace(/\n\s*\n/g, '\n\n')
-      // Add paragraph breaks before numbered lists
-      .replace(/(\d+\.)/g, '\n\n$1')
-      // Add paragraph breaks before bullet points
-      .replace(/([•\-\*])/g, '\n\n$1')
-      // Clean up excessive line breaks
+
+      // Clean up excessive whitespace but preserve intentional formatting
       .replace(/\n{3,}/g, '\n\n')
+      .replace(/^\s+/gm, '')
+
+      // Fix scattered line breaks in the middle of sentences
+      .replace(/([a-z,])\n([a-z])/g, '$1 $2')
+
+      // Ensure proper spacing after colons and periods in lists
+      .replace(/(:)\s*\n/g, '$1 ')
+
       .trim();
   };
 
