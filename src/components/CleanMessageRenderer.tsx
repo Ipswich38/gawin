@@ -758,33 +758,39 @@ export default function CleanMessageRenderer({
     br: () => <br className="line-break" />,
   };
 
-  // Enhanced preprocessing to fix formatting issues
+  // Enhanced preprocessing to fix formatting issues while preserving paragraph structure
   const preprocessContent = (text: string): string => {
     return text
-      // Remove scattered asterisks that are not part of markdown formatting
+      // Step 1: Clean up scattered asterisks that are not part of markdown formatting
       .replace(/\*(?![^\*]*\*)/g, '')
       .replace(/^\*\s*/gm, '')
 
-      // Fix numbered lists - ensure proper spacing and formatting
-      .replace(/^(\d+)\.\s*/gm, '\n$1. ')
-      .replace(/\n\s*(\d+)\.\s*/g, '\n\n$1. ')
+      // Step 2: Preserve existing double line breaks first
+      .replace(/\n\s*\n/g, '§PARAGRAPH_BREAK§')
 
-      // Fix bullet points - standardize to use consistent bullets
-      .replace(/^[\*\-•]\s*/gm, '• ')
-      .replace(/\n\s*[\*\-•]\s*/g, '\n• ')
+      // Step 3: Fix numbered lists - ensure proper spacing
+      .replace(/^(\d+)\.\s*/gm, '\n\n$1. ')
+      .replace(/([.!?])\s*\n\s*(\d+)\.\s*/g, '$1\n\n$2. ')
 
-      // Ensure proper paragraph breaks
-      .replace(/\n\s*\n/g, '\n\n')
+      // Step 4: Fix bullet points - standardize bullets
+      .replace(/^[\*\-•]\s*/gm, '\n• ')
+      .replace(/([.!?])\s*\n\s*[\*\-•]\s*/g, '$1\n\n• ')
 
-      // Clean up excessive whitespace but preserve intentional formatting
+      // Step 5: Restore paragraph breaks and ensure proper spacing
+      .replace(/§PARAGRAPH_BREAK§/g, '\n\n')
+
+      // Step 6: Fix scattered line breaks ONLY in the middle of sentences (not after punctuation)
+      .replace(/([a-z,:])\s*\n\s*([a-z])/gi, '$1 $2')
+
+      // Step 7: Ensure sentences ending with punctuation start new paragraphs when appropriate
+      .replace(/([.!?])\s*\n\s*([A-Z])/g, '$1\n\n$2')
+
+      // Step 8: Clean up excessive whitespace but preserve paragraph structure
       .replace(/\n{3,}/g, '\n\n')
       .replace(/^\s+/gm, '')
 
-      // Fix scattered line breaks in the middle of sentences
-      .replace(/([a-z,])\n([a-z])/g, '$1 $2')
-
-      // Ensure proper spacing after colons and periods in lists
-      .replace(/(:)\s*\n/g, '$1 ')
+      // Step 9: Ensure proper spacing after colons in lists
+      .replace(/(:)\s*\n\s*([^\n])/g, '$1 $2')
 
       .trim();
   };
@@ -926,14 +932,17 @@ export default function CleanMessageRenderer({
           font-family: 'Avenir', -apple-system, BlinkMacSystemFont, sans-serif;
           font-weight: 400;
           font-size: 1rem;
-          line-height: 1.6;
+          line-height: 1.7;
           letter-spacing: 0.01em;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
         }
 
         .clean-message-renderer * {
           color: #ffffff !important;
-          font-family: inherit;
+          font-family: 'Avenir', -apple-system, BlinkMacSystemFont, sans-serif !important;
           font-weight: 400;
+          line-height: inherit;
         }
 
         .clean-message-renderer h1,
