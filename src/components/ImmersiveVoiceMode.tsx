@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GawinIceCube } from './GawinIceCube';
-import { elevenLabsVoiceService } from '@/lib/services/elevenLabsVoiceService';
 
 type VoiceState = 'idle' | 'listening' | 'processing' | 'speaking';
 
@@ -44,7 +43,6 @@ export default function ImmersiveVoiceMode({
   const [allSubtitles, setAllSubtitles] = useState<string[]>([]); // Store all Gawin messages
 
   const recognitionRef = useRef<any>(null);
-  const elevenLabsRef = useRef(elevenLabsVoiceService);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -146,38 +144,7 @@ export default function ImmersiveVoiceMode({
         }, 500);
       }
 
-      // Initialize ElevenLabs voice service
-      elevenLabsRef.current.setCallbacks({
-        onStart: () => {
-          console.log('🎤 ElevenLabs voice started');
-        },
-        onEnd: () => {
-          console.log('✅ ElevenLabs voice finished');
-          setState('listening');
-          startVibrationSync();
-
-          // Clear karaoke
-          if (subtitlesEnabled) {
-            setTimeout(() => {
-              setCurrentSubtitle('');
-              setKaraokeWords([]);
-              setCurrentWordIndex(0);
-            }, 2000);
-          }
-
-          // Restart speech recognition
-          setTimeout(() => {
-            if (recognitionRef.current && isOpen && isMicEnabled) {
-              recognitionRef.current.start();
-            }
-          }, 500);
-        },
-        onError: (error) => {
-          console.error('❌ ElevenLabs voice error:', error);
-          setState('listening');
-          startVibrationSync();
-        }
-      });
+      // Voice synthesis is now handled directly in handleAIResponse
     }
 
     initializeVoice();
@@ -195,8 +162,9 @@ export default function ImmersiveVoiceMode({
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
-      if (elevenLabsRef.current) {
-        elevenLabsRef.current.stop();
+      // Cancel any ongoing speech synthesis
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
       }
       stopVibrationSync();
     };
@@ -268,62 +236,76 @@ export default function ImmersiveVoiceMode({
     onVoiceInput(text);
   };
 
-  // Browser speech synthesis fallback
-  const speakWithBrowserTTS = (text: string) => {
+  // Human voice synthesis - improved voice selection
+  const speakWithHumanVoice = (text: string) => {
     if ('speechSynthesis' in window) {
       // Stop any ongoing speech
       window.speechSynthesis.cancel();
 
       const utterance = new SpeechSynthesisUtterance(text);
 
-      // Configure voice settings
-      utterance.rate = 0.9;
+      // Configure for natural human voice
+      utterance.rate = 0.85;
       utterance.pitch = 1.0;
-      utterance.volume = 1.0;
+      utterance.volume = 0.8;
       utterance.lang = 'en-US';
 
-      // Try to find a more natural voice
+      // Smart human voice selection - avoid robotic voices
       const voices = window.speechSynthesis.getVoices();
-      const preferredVoice = voices.find(voice =>
-        voice.name.toLowerCase().includes('female') ||
-        voice.name.toLowerCase().includes('samantha') ||
-        voice.name.toLowerCase().includes('karen')
-      ) || voices.find(voice => voice.lang.startsWith('en')) || voices[0];
 
-      if (preferredVoice) {
-        utterance.voice = preferredVoice;
+      // Try to find natural human-like voices (prefer neural/enhanced/premium)
+      const preferredVoices = voices.filter(voice =>
+        voice.lang.startsWith('en') &&
+        (voice.name.toLowerCase().includes('natural') ||
+         voice.name.toLowerCase().includes('enhanced') ||
+         voice.name.toLowerCase().includes('premium') ||
+         voice.name.toLowerCase().includes('neural'))
+      );
+
+      // Fallback to any English voice that's not explicitly robotic
+      const humanVoices = voices.filter(voice =>
+        voice.lang.startsWith('en') &&
+        !voice.name.toLowerCase().includes('robot') &&
+        !voice.name.toLowerCase().includes('microsoft')
+      );
+
+      // Set the best available human voice
+      if (preferredVoices.length > 0) {
+        utterance.voice = preferredVoices[0];
+      } else if (humanVoices.length > 0) {
+        utterance.voice = humanVoices[0];
       }
 
       utterance.onstart = () => {
-        console.log('🎤 Browser TTS started speaking');
+        console.log('🎤 Human voice started speaking');
         setState('speaking');
       };
 
       utterance.onend = () => {
-        console.log('✅ Browser TTS finished speaking');
+        console.log('✅ Human voice finished speaking');
         setState('listening');
         startVibrationSync();
 
-        // Clear karaoke
+        // Clear karaoke with shorter delay for lighter feel
         if (subtitlesEnabled) {
           setTimeout(() => {
             setCurrentSubtitle('');
             setKaraokeWords([]);
             setCurrentWordIndex(0);
-          }, 2000);
+          }, 1000); // Reduced from 2000ms to 1000ms
         }
 
-        // Restart speech recognition
+        // Restart speech recognition - faster transition
         setTimeout(() => {
           if (recognitionRef.current && isOpen && isMicEnabled) {
             recognitionRef.current.start();
           }
-        }, 500);
+        }, 200); // Reduced from 500ms to 200ms for lighter feel
 
       };
 
       utterance.onerror = (error) => {
-        console.error('❌ Browser TTS error:', error);
+        console.error('❌ Human voice synthesis error:', error);
         setState('listening');
         startVibrationSync();
       };
@@ -334,7 +316,7 @@ export default function ImmersiveVoiceMode({
     return false;
   };
 
-  // Handle AI response with voice synthesis and karaoke
+  // Handle AI response with human voice synthesis and karaoke
   const handleAIResponse = (response: string) => {
     setLastResponse(response);
 
@@ -349,61 +331,29 @@ export default function ImmersiveVoiceMode({
     setCurrentWordIndex(0);
     setCurrentSubtitle(response);
 
-    // Use ElevenLabs for high-quality voice synthesis
-    if (elevenLabsRef.current) {
-      setState('speaking');
+    // Use human voice synthesis directly (no more ElevenLabs)
+    setState('speaking');
 
-      // Vibration pattern for speaking
-      if ('vibrate' in navigator) {
-        const speakingPattern = [100, 50, 100, 50, 100];
-        navigator.vibrate(speakingPattern);
-      }
+    // Light vibration pattern for speaking
+    if ('vibrate' in navigator) {
+      const lightPattern = [50, 30, 50]; // Lighter vibration
+      navigator.vibrate(lightPattern);
+    }
 
-      // Start karaoke word highlighting
-      if (subtitlesEnabled && karaokeWords.length > 0) {
-        startKaraokeAnimation();
-      }
+    // Start karaoke word highlighting
+    if (subtitlesEnabled && karaokeWords.length > 0) {
+      startKaraokeAnimation();
+    }
 
-      // Detect emotion from response for better voice expression
-      const detectEmotion = (text: string): 'neutral' | 'friendly' | 'excited' | 'thoughtful' | 'empathetic' => {
-        const lowerText = text.toLowerCase();
-        if (lowerText.includes('!') && (lowerText.includes('great') || lowerText.includes('awesome'))) {
-          return 'excited';
-        }
-        if (lowerText.includes('sorry') || lowerText.includes('understand')) {
-          return 'empathetic';
-        }
-        if (lowerText.includes('think') || lowerText.includes('analyze')) {
-          return 'thoughtful';
-        }
-        if (lowerText.includes('hello') || lowerText.includes('welcome')) {
-          return 'friendly';
-        }
-        return 'neutral';
-      };
+    // Use human voice synthesis with consistent settings
+    const voiceSynthesisWorked = speakWithHumanVoice(response);
 
-      const emotion = detectEmotion(response);
-      const emotionSettings = elevenLabsRef.current.getEmotionSettings(emotion);
-
-      // Use ElevenLabs with emotion-appropriate settings
-      elevenLabsRef.current.speak(response, {
-        voiceSettings: emotionSettings,
-        outputFormat: 'mp3_44100_128', // High quality
-        optimizeStreamingLatency: 2, // Optimize for faster playback
-      }).catch((error) => {
-        console.error('❌ ElevenLabs speech failed, falling back to browser TTS:', error);
-
-        // Fallback to browser speech synthesis
-        const browserTTSWorked = speakWithBrowserTTS(response);
-
-        if (!browserTTSWorked) {
-          // If both fail, just continue listening
-          console.error('❌ All TTS methods failed');
-          setState('listening');
-          startVibrationSync();
-          setCurrentSubtitle('');
-        }
-      });
+    if (!voiceSynthesisWorked) {
+      // If voice synthesis fails, just continue listening
+      console.error('❌ Voice synthesis failed');
+      setState('listening');
+      startVibrationSync();
+      setCurrentSubtitle('');
     }
   };
 
@@ -438,17 +388,17 @@ export default function ImmersiveVoiceMode({
       }
     } else if (state === 'speaking') {
       // Stop speaking and restart listening
-      if (elevenLabsRef.current) {
-        elevenLabsRef.current.stop();
-        setState('listening');
-        startVibrationSync();
-
-        setTimeout(() => {
-          if (recognitionRef.current && isOpen) {
-            recognitionRef.current.start();
-          }
-        }, 300);
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
       }
+      setState('listening');
+      startVibrationSync();
+
+      setTimeout(() => {
+        if (recognitionRef.current && isOpen) {
+          recognitionRef.current.start();
+        }
+      }, 300);
     }
   };
 

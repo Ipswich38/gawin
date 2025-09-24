@@ -677,6 +677,20 @@ export default function CleanMessageRenderer({
     br: () => <br className="line-break" />,
   };
 
+  // Preprocess content to ensure proper paragraph breaks
+  const preprocessContent = (text: string): string => {
+    return text
+      // Ensure double line breaks become paragraph breaks
+      .replace(/\n\s*\n/g, '\n\n')
+      // Add paragraph breaks before numbered lists
+      .replace(/(\d+\.)/g, '\n\n$1')
+      // Add paragraph breaks before bullet points
+      .replace(/([•\-\*])/g, '\n\n$1')
+      // Clean up excessive line breaks
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+  };
+
   return (
     <div className={`clean-message-renderer ${className}`}>
       {/* Thinking Process - Only show if separated from response */}
@@ -691,7 +705,7 @@ export default function CleanMessageRenderer({
               remarkPlugins={[remarkGfm]}
               components={markdownComponents}
             >
-              {processedContent.thinking}
+              {preprocessContent(processedContent.thinking)}
             </ReactMarkdown>
           </div>
         </div>
@@ -706,7 +720,7 @@ export default function CleanMessageRenderer({
             allowDangerousHtml: false,
           }}
         >
-          {isThinking ? content : processedContent.response}
+          {preprocessContent(isThinking ? content : processedContent.response)}
         </ReactMarkdown>
       </div>
 
