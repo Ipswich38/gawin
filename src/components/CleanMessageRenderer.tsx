@@ -334,25 +334,61 @@ export default function CleanMessageRenderer({
       speechSynthesis.cancel();
     }
 
-    const utterance = new SpeechSynthesisUtterance(isThinking ? content : processedContent.response);
-    utterance.rate = 0.9;
-    utterance.pitch = 1;
-    utterance.volume = 0.8;
+    // Wait for voices to be loaded
+    const speakWithVoice = () => {
+      const voices = speechSynthesis.getVoices();
+      const utterance = new SpeechSynthesisUtterance(isThinking ? content : processedContent.response);
 
-    utterance.onstart = () => setSpeechState('playing');
-    utterance.onend = () => {
-      setSpeechState('idle');
-      setShowSpeechControls(false);
-    };
-    utterance.onerror = () => {
-      setSpeechState('idle');
-      setShowSpeechControls(false);
+      // Try to find a natural human-like voice (prefer English voices)
+      const preferredVoices = voices.filter(voice =>
+        voice.lang.startsWith('en') &&
+        (voice.name.toLowerCase().includes('natural') ||
+         voice.name.toLowerCase().includes('enhanced') ||
+         voice.name.toLowerCase().includes('premium') ||
+         voice.name.toLowerCase().includes('neural'))
+      );
+
+      // Fallback to any English voice that's not explicitly robotic
+      const englishVoices = voices.filter(voice =>
+        voice.lang.startsWith('en') &&
+        !voice.name.toLowerCase().includes('robot') &&
+        !voice.name.toLowerCase().includes('microsoft')
+      );
+
+      // Set the voice (prefer human-like, fallback to any English, then default)
+      if (preferredVoices.length > 0) {
+        utterance.voice = preferredVoices[0];
+      } else if (englishVoices.length > 0) {
+        utterance.voice = englishVoices[0];
+      }
+
+      // Consistent settings for natural speech
+      utterance.rate = 0.85;
+      utterance.pitch = 1.0;
+      utterance.volume = 0.8;
+
+      utterance.onstart = () => setSpeechState('playing');
+      utterance.onend = () => {
+        setSpeechState('idle');
+        setShowSpeechControls(false);
+      };
+      utterance.onerror = () => {
+        setSpeechState('idle');
+        setShowSpeechControls(false);
+      };
+
+      setCurrentUtterance(utterance);
+      speechSynthesis.speak(utterance);
+      setShowSpeechControls(true);
+      setSpeechState('playing');
     };
 
-    setCurrentUtterance(utterance);
-    speechSynthesis.speak(utterance);
-    setShowSpeechControls(true);
-    setSpeechState('playing');
+    // Ensure voices are loaded before speaking
+    if (speechSynthesis.getVoices().length === 0) {
+      speechSynthesis.addEventListener('voiceschanged', speakWithVoice, { once: true });
+    } else {
+      speakWithVoice();
+    }
   }, [content, processedContent, isThinking, currentUtterance]);
 
   const handleSpeechPause = useCallback(() => {
@@ -447,13 +483,13 @@ export default function CleanMessageRenderer({
         {children}
         <style jsx>{`
           .clean-h1 {
-            font-family: 'Fraunces', serif;
+            font-family: 'Avenir', -apple-system, BlinkMacSystemFont, sans-serif;
             font-size: 1.25rem;
-            font-weight: 600;
-            color: #14b8a6;
+            font-weight: 400;
+            color: #ffffff;
             margin: 20px 0 12px 0;
             line-height: 1.4;
-            border-bottom: 1px solid rgba(20, 184, 166, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             padding-bottom: 4px;
           }
         `}</style>
@@ -465,10 +501,10 @@ export default function CleanMessageRenderer({
         {children}
         <style jsx>{`
           .clean-h2 {
-            font-family: 'Fraunces', serif;
+            font-family: 'Avenir', -apple-system, BlinkMacSystemFont, sans-serif;
             font-size: 1.125rem;
-            font-weight: 600;
-            color: #14b8a6;
+            font-weight: 400;
+            color: #ffffff;
             margin: 18px 0 10px 0;
             line-height: 1.4;
           }
@@ -481,10 +517,10 @@ export default function CleanMessageRenderer({
         {children}
         <style jsx>{`
           .clean-h3 {
-            font-family: 'Fraunces', serif;
+            font-family: 'Avenir', -apple-system, BlinkMacSystemFont, sans-serif;
             font-size: 1rem;
-            font-weight: 600;
-            color: #14b8a6;
+            font-weight: 400;
+            color: #ffffff;
             margin: 16px 0 8px 0;
             line-height: 1.4;
           }
@@ -497,8 +533,8 @@ export default function CleanMessageRenderer({
         {children}
         <style jsx>{`
           .clean-paragraph {
-            font-family: 'Fraunces', serif;
-            font-weight: 200;
+            font-family: 'Avenir', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-weight: 400;
             font-size: 1rem;
             margin: 0 0 16px 0;
             line-height: 1.6;
@@ -513,8 +549,8 @@ export default function CleanMessageRenderer({
         {children}
         <style jsx>{`
           .clean-list {
-            font-family: 'Fraunces', serif;
-            font-weight: 200;
+            font-family: 'Avenir', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-weight: 400;
             margin: 16px 0;
             padding-left: 24px;
             line-height: 1.7;
@@ -529,8 +565,8 @@ export default function CleanMessageRenderer({
         {children}
         <style jsx>{`
           .clean-ordered-list {
-            font-family: 'Fraunces', serif;
-            font-weight: 200;
+            font-family: 'Avenir', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-weight: 400;
             margin: 16px 0;
             padding-left: 24px;
             line-height: 1.7;
@@ -581,8 +617,8 @@ export default function CleanMessageRenderer({
         {children}
         <style jsx>{`
           .clean-strong {
-            color: #14b8a6;
-            font-weight: 600;
+            color: #ffffff;
+            font-weight: 400;
           }
         `}</style>
       </strong>
@@ -593,8 +629,9 @@ export default function CleanMessageRenderer({
         {children}
         <style jsx>{`
           .clean-em {
-            color: #14b8a6;
-            font-style: italic;
+            color: #ffffff;
+            font-style: normal;
+            font-weight: 400;
           }
         `}</style>
       </em>
@@ -753,15 +790,17 @@ export default function CleanMessageRenderer({
         .clean-message-renderer {
           width: 100%;
           color: #ffffff !important;
-          font-family: 'Fraunces', serif;
-          font-weight: 200;
+          font-family: 'Avenir', -apple-system, BlinkMacSystemFont, sans-serif;
+          font-weight: 400;
           font-size: 1rem;
           line-height: 1.6;
           letter-spacing: 0.01em;
         }
 
         .clean-message-renderer * {
-          color: inherit;
+          color: #ffffff !important;
+          font-family: inherit;
+          font-weight: 400;
         }
 
         .clean-message-renderer h1,
@@ -770,15 +809,19 @@ export default function CleanMessageRenderer({
         .clean-message-renderer h4,
         .clean-message-renderer h5,
         .clean-message-renderer h6 {
-          color: #14b8a6 !important;
+          color: #ffffff !important;
+          font-weight: 400;
         }
 
         .clean-message-renderer strong {
-          color: #14b8a6 !important;
+          color: #ffffff !important;
+          font-weight: 400;
         }
 
         .clean-message-renderer em {
-          color: #14b8a6 !important;
+          color: #ffffff !important;
+          font-weight: 400;
+          font-style: normal;
         }
 
         .clean-message-renderer p,
@@ -786,6 +829,7 @@ export default function CleanMessageRenderer({
         .clean-message-renderer ul,
         .clean-message-renderer ol {
           color: #ffffff !important;
+          font-weight: 400;
         }
 
         .thinking-section {

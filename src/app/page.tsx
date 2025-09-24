@@ -95,15 +95,15 @@ export default function HomePage() {
           <div className="w-20 h-20 bg-gradient-to-br from-[#00C2A8] to-[#00A693] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-[#00C2A8]/30 backdrop-blur-sm">
             <span className="text-white text-3xl font-bold">G</span>
           </div>
-          <h1 className="text-3xl text-white mb-2 drop-shadow-lg" style={{fontFamily: 'Fraunces, serif', fontWeight: 600}}>Welcome to Gawin</h1>
-          <p className="text-gray-200 text-lg drop-shadow-md" style={{fontFamily: 'Fraunces, serif', fontWeight: 200}}>Your AI-powered learning assistant</p>
+          <h1 className="text-3xl text-white mb-2 drop-shadow-lg" style={{fontFamily: 'Avenir, -apple-system, BlinkMacSystemFont, sans-serif', fontWeight: 400}}>Welcome to Gawin</h1>
+          <p className="text-gray-200 text-lg drop-shadow-md" style={{fontFamily: 'Avenir, -apple-system, BlinkMacSystemFont, sans-serif', fontWeight: 400}}>Your AI-powered learning assistant</p>
         </div>
 
         {/* Login Card with subtle transparency to show nostalgic background */}
         <div className="bg-[#1E1E1E]/60 backdrop-blur-lg rounded-2xl p-8 shadow-2xl border border-gray-700/40">
           <div className="text-center mb-8">
-            <h2 className="text-xl text-white mb-2" style={{fontFamily: 'Fraunces, serif', fontWeight: 600}}>Sign in to continue</h2>
-            <p className="text-gray-400" style={{fontFamily: 'Fraunces, serif', fontWeight: 200}}>Simple authentication system</p>
+            <h2 className="text-xl text-white mb-2" style={{fontFamily: 'Avenir, -apple-system, BlinkMacSystemFont, sans-serif', fontWeight: 400}}>Sign in to continue</h2>
+            <p className="text-gray-400" style={{fontFamily: 'Avenir, -apple-system, BlinkMacSystemFont, sans-serif', fontWeight: 400}}>Simple authentication system</p>
           </div>
 
           {/* Error Message */}
