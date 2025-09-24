@@ -42,7 +42,9 @@ When providing information, organize it like this:
 
 ### 🔧 **How It Works:**
 1. **Step One** - First action to take
+
 2. **Step Two** - Next logical step
+
 3. **Step Three** - Final implementation
 
 ### 📊 **Additional Details:**
