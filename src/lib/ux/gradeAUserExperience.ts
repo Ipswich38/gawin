@@ -583,7 +583,6 @@ class GradeAUserExperience {
   }
 
   private setupIdleTimeOptimization(): void {}
-  private setupIntelligentPrefetching(): void {}
   private optimizeScreenReaderExperience(): void {}
   private setupHighContrastMode(): void {}
   private setupAdvancedFocusManagement(): void {}
