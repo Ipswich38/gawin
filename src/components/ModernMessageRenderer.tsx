@@ -39,6 +39,26 @@ export default function ModernMessageRenderer({
       .replace(/🎉/g, '═')
       .replace(/📚/g, '∎');
 
+    // CRITICAL: Fix cramped numbered lists - this is the main issue
+    // More aggressive approach: split on numbered items and rejoin with spacing
+    const numberedLines = processed.split(/(?=\d+\.\s)/);
+    if (numberedLines.length > 1) {
+      processed = numberedLines.map(line => line.trim()).filter(line => line.length > 0).join('\n\n');
+    }
+
+    // Fix bullet points that are cramped together using the same approach
+    const bulletLines = processed.split(/(?=•\s)/);
+    if (bulletLines.length > 1) {
+      processed = bulletLines.map(line => line.trim()).filter(line => line.length > 0).join('\n\n');
+    }
+
+    // Fix line icons that are cramped
+    processed = processed.replace(/(─\s+[^─\n]+?)\s+(─\s)/g, '$1\n\n$2');
+    processed = processed.replace(/(→\s+[^→\n]+?)\s+(→\s)/g, '$1\n\n$2');
+    processed = processed.replace(/(!\s+[^!\n]+?)\s+(!\s)/g, '$1\n\n$2');
+    processed = processed.replace(/(※\s+[^※\n]+?)\s+(※\s)/g, '$1\n\n$2');
+    processed = processed.replace(/(◦\s+[^◦\n]+?)\s+(◦\s)/g, '$1\n\n$2');
+
     // FORCE spacing after numbered sections if AI didn't follow instructions
     processed = processed.replace(/(\*\*\d+\.\s*[^*]+\*\*)\s*([^*\n])/g, '$1\n\n$2');
 
@@ -47,6 +67,9 @@ export default function ModernMessageRenderer({
 
     // FORCE blank lines before numbered sections
     processed = processed.replace(/([^\n])\s*(\*\*\d+\.\s*[^*]+\*\*)/g, '$1\n\n$2');
+
+    // FORCE spacing between sections starting with line icons
+    processed = processed.replace(/([^\n])\s*([─•→∴!※◦∎]\s)/g, '$1\n\n$2');
 
     // Clean up excessive spacing but ensure minimum spacing
     processed = processed.replace(/\n{4,}/g, '\n\n\n');
