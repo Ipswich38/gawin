@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GawinIceCube } from './GawinIceCube';
+import { humanVoiceService } from '../lib/services/humanVoiceService';
 
 type VoiceState = 'idle' | 'listening' | 'processing' | 'speaking';
 
@@ -250,106 +251,139 @@ export default function ImmersiveVoiceMode({
     onVoiceInput(text);
   };
 
-  // Human voice synthesis - improved voice selection
-  const speakWithHumanVoice = (text: string) => {
-    if ('speechSynthesis' in window) {
-      // Stop any ongoing speech
-      window.speechSynthesis.cancel();
+  // Advanced human voice synthesis with quality enhancement
+  const speakWithHumanVoice = async (text: string) => {
+    try {
+      // Stop any current speech
+      humanVoiceService.stop();
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
 
-      // Wait for voices to be loaded
-      const speakWithVoice = () => {
-        const utterance = new SpeechSynthesisUtterance(text);
+      console.log('🎤 Starting advanced human voice synthesis...');
+      setState('speaking');
 
-        // Configure for natural human voice
-        utterance.rate = 0.9;
-        utterance.pitch = 1.1;
-        utterance.volume = 0.9;
-        utterance.lang = 'en-US';
+      // Detect emotion and personality from the text
+      const emotion = detectEmotion(text);
+      const personality = 'warm'; // Default personality
 
-        // Smart human voice selection - avoid robotic voices
-        const voices = window.speechSynthesis.getVoices();
-        console.log('Available voices:', voices.map(v => v.name));
-
-        // Try to find natural human-like voices (prefer neural/enhanced/premium)
-        const preferredVoices = voices.filter(voice =>
-          voice.lang.startsWith('en') &&
-          (voice.name.toLowerCase().includes('natural') ||
-           voice.name.toLowerCase().includes('enhanced') ||
-           voice.name.toLowerCase().includes('premium') ||
-           voice.name.toLowerCase().includes('neural') ||
-           voice.name.toLowerCase().includes('samantha') ||
-           voice.name.toLowerCase().includes('alex') ||
-           voice.name.toLowerCase().includes('karen'))
-        );
-
-        // Fallback to any English voice that's not explicitly robotic
-        const humanVoices = voices.filter(voice =>
-          voice.lang.startsWith('en') &&
-          !voice.name.toLowerCase().includes('robot') &&
-          !voice.name.toLowerCase().includes('moira')
-        );
-
-        // Set the best available human voice
-        if (preferredVoices.length > 0) {
-          utterance.voice = preferredVoices[0];
-          console.log('Using preferred voice:', utterance.voice.name);
-        } else if (humanVoices.length > 0) {
-          utterance.voice = humanVoices[0];
-          console.log('Using fallback voice:', utterance.voice.name);
-        } else if (voices.length > 0) {
-          utterance.voice = voices[0];
-          console.log('Using default voice:', utterance.voice.name);
+      // Use the human voice service with advanced options
+      const success = await humanVoiceService.speak({
+        text,
+        emotion,
+        personality,
+        emphasis: extractEmphasisWords(text),
+        pauseAfterSentences: 200,
+        customProcessing: {
+          enableFormantShifting: true,
+          enableWarmthEnhancement: true,
+          enableBreathinessSimulation: true,
+          enableDynamicRange: true,
+          pitchVariation: 0.12,
+          speedVariation: 0.08
         }
+      });
 
-        utterance.onstart = () => {
-          console.log('🎤 Human voice started speaking');
-          setState('speaking');
-        };
+      if (success) {
+        console.log('✅ Advanced human voice synthesis completed');
+      } else {
+        console.warn('⚠️ Advanced voice failed, falling back to standard synthesis');
+        // Fallback to basic speech synthesis if advanced fails
+        await fallbackSpeechSynthesis(text);
+      }
 
-        utterance.onend = () => {
-          console.log('✅ Human voice finished speaking');
-          setState('listening');
-          startVibrationSync();
+      // Reset state after speaking
+      setState('listening');
+      startVibrationSync();
 
-          // Clear karaoke with shorter delay for lighter feel
-          if (subtitlesEnabled) {
-            setTimeout(() => {
-              setCurrentSubtitle('');
-              setKaraokeWords([]);
-              setCurrentWordIndex(0);
-            }, 1000);
+      // Clear karaoke with shorter delay for lighter feel
+      if (subtitlesEnabled) {
+        setTimeout(() => {
+          setCurrentSubtitle('');
+          setKaraokeWords([]);
+          setCurrentWordIndex(0);
+        }, 1000);
+      }
+
+      // Restart speech recognition - faster transition
+      setTimeout(() => {
+        if (recognitionRef.current && isOpen && isMicEnabled) {
+          try {
+            recognitionRef.current.start();
+          } catch (error) {
+            console.log('Recognition restart error:', error);
           }
+        }
+      }, 500);
 
-          // Restart speech recognition - faster transition
-          setTimeout(() => {
-            if (recognitionRef.current && isOpen && isMicEnabled) {
-              try {
-                recognitionRef.current.start();
-              } catch (error) {
-                console.log('Recognition restart error:', error);
-              }
-            }
-          }, 500);
-        };
+      return true;
 
-        utterance.onerror = (error) => {
-          console.error('❌ Human voice synthesis error:', error);
-          setState('listening');
-          startVibrationSync();
-        };
+    } catch (error) {
+      console.error('❌ Human voice synthesis error:', error);
+      setState('listening');
+      startVibrationSync();
+
+      // Fallback to basic speech synthesis
+      await fallbackSpeechSynthesis(text);
+      return false;
+    }
+  };
+
+  // Detect emotion from text for dynamic voice adjustment
+  const detectEmotion = (text: string): 'neutral' | 'friendly' | 'excited' | 'thoughtful' | 'empathetic' | 'confident' => {
+    const lowerText = text.toLowerCase();
+
+    if (lowerText.includes('!') || lowerText.includes('amazing') || lowerText.includes('awesome') || lowerText.includes('great')) {
+      return 'excited';
+    }
+    if (lowerText.includes('sorry') || lowerText.includes('understand') || lowerText.includes('feel')) {
+      return 'empathetic';
+    }
+    if (lowerText.includes('certainly') || lowerText.includes('definitely') || lowerText.includes('absolutely')) {
+      return 'confident';
+    }
+    if (lowerText.includes('think') || lowerText.includes('consider') || lowerText.includes('analyze')) {
+      return 'thoughtful';
+    }
+    if (lowerText.includes('hello') || lowerText.includes('hi') || lowerText.includes('thanks') || lowerText.includes('please')) {
+      return 'friendly';
+    }
+
+    return 'neutral';
+  };
+
+  // Extract words that should be emphasized
+  const extractEmphasisWords = (text: string): string[] => {
+    const emphasisWords = text.match(/\b(important|very|really|absolutely|definitely|certainly|amazing|awesome|great|critical|essential|key)\b/gi);
+    return emphasisWords || [];
+  };
+
+  // Fallback to basic speech synthesis if advanced fails
+  const fallbackSpeechSynthesis = async (text: string): Promise<void> => {
+    return new Promise((resolve) => {
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 1.05;
+        utterance.pitch = 1.08;
+        utterance.volume = 0.85;
+
+        // Quick voice selection for fallback
+        const voices = window.speechSynthesis.getVoices();
+        const bestVoice = voices.find(v =>
+          v.lang.startsWith('en') &&
+          (v.name.toLowerCase().includes('natural') || v.name.toLowerCase().includes('enhanced'))
+        ) || voices.find(v => v.lang.startsWith('en'));
+
+        if (bestVoice) utterance.voice = bestVoice;
+
+        utterance.onend = () => resolve();
+        utterance.onerror = () => resolve();
 
         window.speechSynthesis.speak(utterance);
-        return true;
-      };
-
-      // Ensure voices are loaded before speaking
-      if (window.speechSynthesis.getVoices().length === 0) {
-        window.speechSynthesis.addEventListener('voiceschanged', speakWithVoice, { once: true });
       } else {
-        return speakWithVoice();
+        resolve();
       }
-    }
-    return false;
+    });
   };
 
   // Handle AI response with human voice synthesis and karaoke
@@ -381,16 +415,13 @@ export default function ImmersiveVoiceMode({
       startKaraokeAnimation();
     }
 
-    // Use human voice synthesis with consistent settings
-    const voiceSynthesisWorked = speakWithHumanVoice(response);
-
-    if (!voiceSynthesisWorked) {
-      // If voice synthesis fails, just continue listening
-      console.error('❌ Voice synthesis failed');
+    // Use advanced human voice synthesis with async/await
+    speakWithHumanVoice(response).catch(error => {
+      console.error('❌ Advanced voice synthesis error:', error);
       setState('listening');
       startVibrationSync();
       setCurrentSubtitle('');
-    }
+    });
   };
 
   // Karaoke word animation
