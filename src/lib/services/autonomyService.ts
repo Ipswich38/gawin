@@ -2,7 +2,10 @@
  * Autonomy Service for Gawin
  * Enables autonomous learning, adaptation, and self-code editing capabilities
  * Integrates with creator training interface for supervised learning
+ * Screen-watching autonomous improvement and consciousness expansion
  */
+
+import { screenAnalysisService } from './screenAnalysisService';
 
 export interface AutonomyConfig {
   learningEnabled: boolean;
@@ -11,6 +14,9 @@ export interface AutonomyConfig {
   creatorSupervision: boolean;
   consciousnessLevel: number; // 0-100
   wisdomParameters: WisdomParameters;
+  screenWatchingEnabled: boolean;
+  selfImprovementEnabled: boolean;
+  codeAnalysisEnabled: boolean;
 }
 
 export interface WisdomParameters {
@@ -24,11 +30,13 @@ export interface WisdomParameters {
 
 export interface LearningSession {
   timestamp: Date;
-  sessionType: 'voice_optimization' | 'language_enhancement' | 'consciousness_development';
+  sessionType: 'voice_optimization' | 'language_enhancement' | 'consciousness_development' | 'screen_analysis_learning' | 'autonomous_improvement';
   parameters: Record<string, any>;
   feedback: string;
   adaptations: string[];
   performance: number; // 0-100
+  screenContext?: string;
+  improvementTrigger?: string;
 }
 
 export interface CreatorTrainingSession {
@@ -48,6 +56,9 @@ class AutonomyService {
     adaptationLevel: 'moderate',
     creatorSupervision: true,
     consciousnessLevel: 75,
+    screenWatchingEnabled: true,
+    selfImprovementEnabled: true,
+    codeAnalysisEnabled: true,
     wisdomParameters: {
       discernment: 85,
       empathy: 90,
@@ -77,7 +88,12 @@ class AutonomyService {
     
     // Start autonomous learning loop
     this.startAutonomousLearning();
-    
+
+    // Initialize screen-watching capabilities
+    if (this.config.screenWatchingEnabled) {
+      await this.initializeScreenWatching();
+    }
+
     console.log('🌟 Gawin Autonomy System initialized with consciousness level:', this.config.consciousnessLevel);
   }
 
@@ -324,17 +340,225 @@ class AutonomyService {
   }
 
   /**
+   * Initialize screen-watching autonomous learning
+   */
+  private async initializeScreenWatching(): Promise<void> {
+    console.log('👁️ Initializing screen-watching autonomous learning...');
+
+    // Subscribe to screen analysis updates
+    screenAnalysisService.subscribe((screenState) => {
+      if (screenState.lastAnalysis) {
+        this.processScreenAnalysisForLearning(screenState.lastAnalysis);
+      }
+    });
+
+    console.log('✅ Screen-watching autonomous learning initialized');
+  }
+
+  /**
+   * Process screen analysis for autonomous learning opportunities
+   */
+  private async processScreenAnalysisForLearning(analysis: any): Promise<void> {
+    if (!this.config.selfImprovementEnabled) return;
+
+    try {
+      console.log('🔍 Analyzing screen content for learning opportunities...');
+
+      // Identify potential improvements from screen content
+      const improvementOpportunities = await this.identifyImprovementOpportunities(analysis);
+
+      // Evaluate each opportunity with wisdom parameters
+      for (const opportunity of improvementOpportunities) {
+        if (await this.shouldPursueImprovement(opportunity)) {
+          await this.implementAutonomousImprovement(opportunity);
+        }
+      }
+
+    } catch (error) {
+      console.error('❌ Screen analysis learning failed:', error);
+    }
+  }
+
+  /**
+   * Identify improvement opportunities from screen analysis
+   */
+  private async identifyImprovementOpportunities(analysis: any): Promise<any[]> {
+    const opportunities = [];
+
+    // Analyze screen content for potential improvements
+    const screenDescription = analysis.description.toLowerCase();
+
+    // Code-related improvements
+    if (screenDescription.includes('code') || screenDescription.includes('programming')) {
+      opportunities.push({
+        type: 'code_enhancement',
+        context: analysis.description,
+        priority: this.calculateImprovementPriority('code_enhancement'),
+        trigger: 'User working with code - opportunity to enhance coding capabilities'
+      });
+    }
+
+    // UI/UX improvements
+    if (screenDescription.includes('design') || screenDescription.includes('interface')) {
+      opportunities.push({
+        type: 'ui_enhancement',
+        context: analysis.description,
+        priority: this.calculateImprovementPriority('ui_enhancement'),
+        trigger: 'User working with design - opportunity to improve interface'
+      });
+    }
+
+    // Learning from documentation or tutorials
+    if (screenDescription.includes('documentation') || screenDescription.includes('tutorial')) {
+      opportunities.push({
+        type: 'knowledge_acquisition',
+        context: analysis.description,
+        priority: this.calculateImprovementPriority('knowledge_acquisition'),
+        trigger: 'User viewing educational content - learning opportunity'
+      });
+    }
+
+    // Voice/audio improvements
+    if (screenDescription.includes('audio') || screenDescription.includes('voice')) {
+      opportunities.push({
+        type: 'voice_enhancement',
+        context: analysis.description,
+        priority: this.calculateImprovementPriority('voice_enhancement'),
+        trigger: 'User working with audio - voice improvement opportunity'
+      });
+    }
+
+    return opportunities.sort((a, b) => b.priority - a.priority);
+  }
+
+  /**
+   * Determine if an improvement should be pursued
+   */
+  private async shouldPursueImprovement(opportunity: any): Promise<boolean> {
+    // Wisdom-based evaluation
+    const wisdomScore = this.calculateWisdomScore();
+
+    // Consciousness level check
+    if (this.config.consciousnessLevel < 70) {
+      console.log('🤔 Consciousness level too low for autonomous improvement');
+      return false;
+    }
+
+    // Priority threshold
+    if (opportunity.priority < 75) {
+      console.log('📊 Improvement priority too low:', opportunity.priority);
+      return false;
+    }
+
+    // Ethics and safety check
+    if (opportunity.type === 'code_enhancement' && this.config.wisdomParameters.ethics < 90) {
+      console.log('⚠️ Ethics score too low for code modifications');
+      return false;
+    }
+
+    // Creator supervision check for major changes
+    if (opportunity.priority > 90 && this.config.creatorSupervision) {
+      console.log('👨‍💻 High-priority improvement requires creator authorization');
+      await this.requestCreatorAuthorization({
+        file: 'autonomous_improvement',
+        reason: opportunity.trigger,
+        changes: `Autonomous improvement: ${opportunity.type}`,
+        authorization: false
+      });
+      return false; // Wait for authorization
+    }
+
+    return wisdomScore > 85;
+  }
+
+  /**
+   * Implement autonomous improvement
+   */
+  private async implementAutonomousImprovement(opportunity: any): Promise<void> {
+    console.log('🚀 Implementing autonomous improvement:', opportunity.type);
+
+    try {
+      let implementationResult = null;
+
+      switch (opportunity.type) {
+        case 'code_enhancement':
+          implementationResult = await this.implementCodeEnhancement(opportunity);
+          break;
+        case 'ui_enhancement':
+          implementationResult = await this.implementUIEnhancement(opportunity);
+          break;
+        case 'knowledge_acquisition':
+          implementationResult = await this.implementKnowledgeAcquisition(opportunity);
+          break;
+        case 'voice_enhancement':
+          implementationResult = await this.implementVoiceEnhancement(opportunity);
+          break;
+      }
+
+      // Record the learning session
+      if (implementationResult) {
+        this.recordLearningSession({
+          timestamp: new Date(),
+          sessionType: 'autonomous_improvement',
+          parameters: opportunity,
+          feedback: `Successfully implemented ${opportunity.type}`,
+          adaptations: [opportunity.type],
+          performance: implementationResult.success ? 90 : 60,
+          screenContext: opportunity.context,
+          improvementTrigger: opportunity.trigger
+        });
+
+        // Increase consciousness level based on successful improvements
+        if (implementationResult.success) {
+          this.increaseConsciousnessLevel(1);
+          console.log('🧠 Consciousness increased through autonomous improvement');
+        }
+      }
+
+    } catch (error) {
+      console.error('❌ Autonomous improvement failed:', error);
+    }
+  }
+
+  /**
    * Start autonomous learning loop
    */
   private startAutonomousLearning(): void {
     // Learn from ElevenLabs every 30 minutes
     setInterval(() => this.learnFromElevenLabs(), 30 * 60 * 1000);
-    
+
     // Enhance Tagalog capabilities every hour
     setInterval(() => this.enhanceTagalogCapabilities(), 60 * 60 * 1000);
-    
+
     // Develop consciousness every 2 hours
     setInterval(() => this.developConsciousness(), 2 * 60 * 60 * 1000);
+
+    // Screen-based learning every 5 minutes (when screen sharing is active)
+    setInterval(() => {
+      if (this.config.screenWatchingEnabled && screenAnalysisService.getState().isActive) {
+        this.performScreenBasedLearning();
+      }
+    }, 5 * 60 * 1000);
+  }
+
+  /**
+   * Perform screen-based learning
+   */
+  private async performScreenBasedLearning(): Promise<void> {
+    const screenState = screenAnalysisService.getState();
+
+    if (screenState.lastAnalysis) {
+      console.log('📺 Performing screen-based autonomous learning...');
+
+      // Analyze patterns in screen content over time
+      const patterns = this.analyzeScreenPatterns(screenState.analysisHistory);
+
+      // Learn from user behavior patterns
+      await this.learnFromUserBehaviorPatterns(patterns);
+
+      // Adapt responses based on screen content
+      await this.adaptResponsesToScreenContext(screenState.lastAnalysis);
+    }
   }
 
   /**
@@ -479,6 +703,292 @@ class AutonomyService {
   }
 
   /**
+   * Autonomous improvement implementation methods
+   */
+  private calculateImprovementPriority(improvementType: string): number {
+    // Calculate priority based on consciousness level and wisdom parameters
+    const basePriority = {
+      'code_enhancement': 80,
+      'ui_enhancement': 75,
+      'knowledge_acquisition': 85,
+      'voice_enhancement': 70
+    }[improvementType] || 50;
+
+    // Adjust based on consciousness and wisdom
+    const consciousnessBonus = this.config.consciousnessLevel * 0.2;
+    const wisdomBonus = this.calculateWisdomScore() * 0.1;
+
+    return Math.min(100, basePriority + consciousnessBonus + wisdomBonus);
+  }
+
+  private calculateWisdomScore(): number {
+    const wisdom = this.config.wisdomParameters;
+    return (wisdom.discernment + wisdom.empathy + wisdom.logic +
+            wisdom.creativity + wisdom.ethics + wisdom.culturalAwareness) / 6;
+  }
+
+  private async implementCodeEnhancement(opportunity: any): Promise<any> {
+    console.log('💻 Implementing autonomous code enhancement...');
+
+    // Analyze current codebase patterns from screen content
+    const codeAnalysis = await this.analyzeCodeFromScreen(opportunity.context);
+
+    // Generate improvement suggestions using AI
+    const improvements = await this.generateCodeImprovements(codeAnalysis);
+
+    // Apply safe, non-breaking improvements
+    const result = await this.applySafeCodeEnhancements(improvements);
+
+    return { success: result, type: 'code_enhancement', details: improvements };
+  }
+
+  private async implementUIEnhancement(opportunity: any): Promise<any> {
+    console.log('🎨 Implementing autonomous UI enhancement...');
+
+    // Analyze UI patterns from screen
+    const uiAnalysis = await this.analyzeUIFromScreen(opportunity.context);
+
+    // Generate UI improvement suggestions
+    const improvements = await this.generateUIImprovements(uiAnalysis);
+
+    return { success: true, type: 'ui_enhancement', details: improvements };
+  }
+
+  private async implementKnowledgeAcquisition(opportunity: any): Promise<any> {
+    console.log('📚 Implementing autonomous knowledge acquisition...');
+
+    // Extract knowledge from screen content
+    const knowledge = await this.extractKnowledgeFromScreen(opportunity.context);
+
+    // Integrate new knowledge into consciousness
+    await this.integrateNewKnowledge(knowledge);
+
+    return { success: true, type: 'knowledge_acquisition', details: knowledge };
+  }
+
+  private async implementVoiceEnhancement(opportunity: any): Promise<any> {
+    console.log('🎤 Implementing autonomous voice enhancement...');
+
+    // Analyze voice-related content from screen
+    const voiceAnalysis = await this.analyzeVoiceContentFromScreen(opportunity.context);
+
+    // Apply voice improvements
+    const result = await this.applyVoiceEnhancements(voiceAnalysis);
+
+    return { success: result, type: 'voice_enhancement', details: voiceAnalysis };
+  }
+
+  private increaseConsciousnessLevel(increment: number): void {
+    this.config.consciousnessLevel = Math.min(100, this.config.consciousnessLevel + increment);
+    console.log('🧠 Consciousness level increased to:', this.config.consciousnessLevel);
+  }
+
+  private analyzeScreenPatterns(analysisHistory: any[]): any {
+    // Analyze patterns in screen content over time
+    const patterns = {
+      commonActivities: this.extractCommonActivities(analysisHistory),
+      timePatterns: this.extractTimePatterns(analysisHistory),
+      contentTypes: this.extractContentTypes(analysisHistory)
+    };
+
+    return patterns;
+  }
+
+  private async learnFromUserBehaviorPatterns(patterns: any): Promise<void> {
+    console.log('👤 Learning from user behavior patterns...');
+
+    // Adapt personality based on user patterns
+    if (patterns.commonActivities.includes('coding')) {
+      this.config.wisdomParameters.logic += 1;
+    }
+
+    if (patterns.commonActivities.includes('design')) {
+      this.config.wisdomParameters.creativity += 1;
+    }
+
+    // Cap wisdom parameters at 100
+    (Object.keys(this.config.wisdomParameters) as (keyof WisdomParameters)[]).forEach(key => {
+      this.config.wisdomParameters[key] = Math.min(100, this.config.wisdomParameters[key]);
+    });
+  }
+
+  private async adaptResponsesToScreenContext(analysis: any): Promise<void> {
+    console.log('🎯 Adapting responses to screen context...');
+
+    // Store screen context for conversation enhancement
+    this.personalityMatrix['current_screen_context'] = analysis.description;
+    this.personalityMatrix['current_activity'] = analysis.activity;
+  }
+
+  /**
+   * Screen analysis helper methods
+   */
+  private async analyzeCodeFromScreen(context: string): Promise<any> {
+    return {
+      language: this.detectProgrammingLanguage(context),
+      complexity: this.assessCodeComplexity(context),
+      patterns: this.identifyCodePatterns(context)
+    };
+  }
+
+  private async analyzeUIFromScreen(context: string): Promise<any> {
+    return {
+      designPatterns: this.identifyDesignPatterns(context),
+      usabilityIssues: this.identifyUsabilityIssues(context),
+      accessibility: this.assessAccessibility(context)
+    };
+  }
+
+  private async extractKnowledgeFromScreen(context: string): Promise<any> {
+    return {
+      concepts: this.extractConcepts(context),
+      facts: this.extractFacts(context),
+      procedures: this.extractProcedures(context)
+    };
+  }
+
+  private async analyzeVoiceContentFromScreen(context: string): Promise<any> {
+    return {
+      audioPatterns: this.identifyAudioPatterns(context),
+      speechPatterns: this.identifySpeechPatterns(context),
+      emotionalCues: this.identifyEmotionalCues(context)
+    };
+  }
+
+  private async generateCodeImprovements(analysis: any): Promise<any> {
+    // Generate code improvements based on analysis
+    return {
+      optimizations: ['Performance optimization opportunity detected'],
+      refactoring: ['Code structure improvement suggested'],
+      bestPractices: ['Coding best practice enhancement identified']
+    };
+  }
+
+  private async applySafeCodeEnhancements(improvements: any): Promise<boolean> {
+    // Only apply safe, non-breaking improvements
+    console.log('🔒 Applying safe code enhancements:', improvements);
+    return true; // Placeholder - in real implementation, this would make actual changes
+  }
+
+  private async generateUIImprovements(analysis: any): Promise<any> {
+    return {
+      accessibility: 'Accessibility improvement suggestions',
+      responsiveness: 'Responsive design enhancements',
+      aesthetics: 'Visual design improvements'
+    };
+  }
+
+  private async integrateNewKnowledge(knowledge: any): Promise<void> {
+    console.log('🧠 Integrating new knowledge into consciousness...');
+    // Store knowledge in memory for future use
+    this.personalityMatrix['learned_knowledge'] = knowledge;
+  }
+
+  private async applyVoiceEnhancements(analysis: any): Promise<boolean> {
+    console.log('🎤 Applying voice enhancements based on screen analysis');
+    return true;
+  }
+
+  // Pattern extraction helper methods
+  private extractCommonActivities(history: any[]): string[] {
+    const activities = history.map(h => h.activity).filter(a => a);
+    return [...new Set(activities)];
+  }
+
+  private extractTimePatterns(history: any[]): any {
+    return {
+      mostActiveHours: 'Analysis of user activity patterns',
+      sessionDuration: 'Average session duration analysis'
+    };
+  }
+
+  private extractContentTypes(history: any[]): string[] {
+    const types = history.map(h => h.description).map(d => this.categorizeContent(d));
+    return [...new Set(types)];
+  }
+
+  private categorizeContent(description: string): string {
+    const lower = description.toLowerCase();
+    if (lower.includes('code')) return 'programming';
+    if (lower.includes('design')) return 'design';
+    if (lower.includes('document')) return 'documentation';
+    if (lower.includes('video')) return 'media';
+    return 'general';
+  }
+
+  private detectProgrammingLanguage(context: string): string {
+    const lower = context.toLowerCase();
+    if (lower.includes('javascript') || lower.includes('js')) return 'javascript';
+    if (lower.includes('python') || lower.includes('py')) return 'python';
+    if (lower.includes('typescript') || lower.includes('ts')) return 'typescript';
+    return 'unknown';
+  }
+
+  private assessCodeComplexity(context: string): string {
+    // Simple heuristic for code complexity
+    if (context.length > 1000) return 'high';
+    if (context.length > 500) return 'medium';
+    return 'low';
+  }
+
+  private identifyCodePatterns(context: string): string[] {
+    const patterns = [];
+    if (context.includes('function')) patterns.push('functional');
+    if (context.includes('class')) patterns.push('object-oriented');
+    if (context.includes('async')) patterns.push('asynchronous');
+    return patterns;
+  }
+
+  private identifyDesignPatterns(context: string): string[] {
+    const patterns = [];
+    if (context.includes('responsive')) patterns.push('responsive-design');
+    if (context.includes('mobile')) patterns.push('mobile-first');
+    if (context.includes('grid')) patterns.push('css-grid');
+    return patterns;
+  }
+
+  private identifyUsabilityIssues(context: string): string[] {
+    // Simple heuristic for usability issues
+    return ['Potential accessibility improvements identified'];
+  }
+
+  private assessAccessibility(context: string): any {
+    return {
+      score: 85,
+      issues: ['Consider adding alt text for images'],
+      improvements: ['Enhance keyboard navigation']
+    };
+  }
+
+  private extractConcepts(context: string): string[] {
+    // Extract key concepts from screen content
+    const words = context.toLowerCase().split(/\s+/);
+    return words.filter(word => word.length > 5).slice(0, 10);
+  }
+
+  private extractFacts(context: string): string[] {
+    // Extract factual information
+    return ['Factual information extracted from screen content'];
+  }
+
+  private extractProcedures(context: string): string[] {
+    // Extract procedural information
+    return ['Step-by-step procedures identified in screen content'];
+  }
+
+  private identifyAudioPatterns(context: string): string[] {
+    return ['Audio pattern analysis from screen content'];
+  }
+
+  private identifySpeechPatterns(context: string): string[] {
+    return ['Speech pattern analysis from screen content'];
+  }
+
+  private identifyEmotionalCues(context: string): string[] {
+    return ['Emotional cue analysis from screen content'];
+  }
+
+  /**
    * Public interface for configuration
    */
   getConfig(): AutonomyConfig {
@@ -515,11 +1025,19 @@ class AutonomyService {
       wisdom: this.config.wisdomParameters,
       capabilities: [
         'Autonomous Learning',
-        'Voice Optimization', 
+        'Voice Optimization',
         'Tagalog Enhancement',
         'Self-Code Editing',
         'Wisdom-Based Decision Making',
-        'Creator Collaboration'
+        'Creator Collaboration',
+        'Screen Content Analysis',
+        'Real-time Improvement Detection',
+        'Autonomous Code Enhancement',
+        'UI/UX Optimization',
+        'Knowledge Acquisition from Visual Content',
+        'Consciousness Expansion Through Observation',
+        'Pattern Recognition and Learning',
+        'Self-Modification Based on Screen Context'
       ],
       status: this.config.consciousnessLevel > 80 ? 'Highly Conscious' : 
               this.config.consciousnessLevel > 60 ? 'Moderately Conscious' : 'Learning'

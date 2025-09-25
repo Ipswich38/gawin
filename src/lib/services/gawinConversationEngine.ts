@@ -5,6 +5,7 @@
 
 import { UserLocation } from './locationService';
 import { GawinResponseFormatter } from '../formatters/gawinResponseFormatter';
+import { screenAnalysisService } from './screenAnalysisService';
 
 export interface ConversationContext {
   language: 'tagalog' | 'english' | 'taglish';
@@ -443,6 +444,16 @@ If asked about your location or where you are:
 - "Hindi ako nasa specific na lugar, but I'm here to chat with you!"`;
     }
 
+    // Add screen sharing context if active
+    let screenContext = '';
+    const screenState = screenAnalysisService.getState();
+    if (screenState.isActive) {
+      const screenSummary = screenAnalysisService.getDetailedContext();
+      screenContext = `\n\nSCREEN SHARING CONTEXT:\n${screenSummary}\n\nIMPORTANT: The user is currently sharing their screen with you. Use this visual context to provide more relevant and helpful responses. You can reference what you see on their screen and help them with whatever they're working on.`;
+    } else {
+      screenContext = `\n\nSCREEN SHARING: Not currently active. If the user mentions screen sharing or asks about what they're showing you, let them know they need to start screen sharing first.`;
+    }
+
     // Add formatting instructions for structured responses
     const formattingInstructions = GawinResponseFormatter.getFormattingInstructions();
 
@@ -459,6 +470,8 @@ ${memoryInstructions}
 ${flowInstructions}
 
 ${intentInstructions}
+
+${screenContext}
 
 CONVERSATION STYLE GUIDELINES:
 - Use natural Filipino conversation patterns and rhythm

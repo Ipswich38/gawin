@@ -35,12 +35,12 @@ export default function ImmersiveVoiceMode({
   const [audioLevel, setAudioLevel] = useState(0);
 
   // New subtitle and karaoke states
-  const [subtitlesEnabled, setSubtitlesEnabled] = useState(false);
+  const [subtitlesEnabled, setSubtitlesEnabled] = useState(true);
   const [currentSubtitle, setCurrentSubtitle] = useState('');
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [karaokeWords, setKaraokeWords] = useState<string[]>([]);
   const [isMicEnabled, setIsMicEnabled] = useState(true);
-  const [allSubtitles, setAllSubtitles] = useState<string[]>([]); // Store all Gawin messages
+  const [allSubtitles, setAllSubtitles] = useState<{text: string, type: 'user' | 'assistant'}[]>([]); // Store all messages
 
   const recognitionRef = useRef<any>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -118,11 +118,15 @@ export default function ImmersiveVoiceMode({
         };
 
         recognitionRef.current.onend = () => {
-          if (state === 'listening') {
+          if (state === 'listening' && isOpen && isMicEnabled) {
             // Restart listening automatically unless user closed
             setTimeout(() => {
-              if (isOpen && recognitionRef.current) {
-                recognitionRef.current.start();
+              if (isOpen && recognitionRef.current && isMicEnabled) {
+                try {
+                  recognitionRef.current.start();
+                } catch (error) {
+                  console.log('Recognition restart failed:', error);
+                }
               }
             }, 500);
           }
@@ -138,10 +142,15 @@ export default function ImmersiveVoiceMode({
 
         // Auto-start listening when opened
         setTimeout(() => {
-          if (recognitionRef.current && isOpen) {
-            recognitionRef.current.start();
+          if (recognitionRef.current && isOpen && isMicEnabled) {
+            try {
+              recognitionRef.current.start();
+              console.log('🎤 Started speech recognition');
+            } catch (error) {
+              console.error('Failed to start speech recognition:', error);
+            }
           }
-        }, 500);
+        }, 1000);
       }
 
       // Voice synthesis is now handled directly in handleAIResponse
@@ -232,6 +241,11 @@ export default function ImmersiveVoiceMode({
     setTranscript('');
     stopVibrationSync();
 
+    // Store user message in subtitles
+    if (subtitlesEnabled) {
+      setAllSubtitles(prev => [...prev, { text, type: 'user' }]);
+    }
+
     // Send to parent component
     onVoiceInput(text);
   };
@@ -242,76 +256,98 @@ export default function ImmersiveVoiceMode({
       // Stop any ongoing speech
       window.speechSynthesis.cancel();
 
-      const utterance = new SpeechSynthesisUtterance(text);
+      // Wait for voices to be loaded
+      const speakWithVoice = () => {
+        const utterance = new SpeechSynthesisUtterance(text);
 
-      // Configure for natural human voice
-      utterance.rate = 0.85;
-      utterance.pitch = 1.0;
-      utterance.volume = 0.8;
-      utterance.lang = 'en-US';
+        // Configure for natural human voice
+        utterance.rate = 0.9;
+        utterance.pitch = 1.1;
+        utterance.volume = 0.9;
+        utterance.lang = 'en-US';
 
-      // Smart human voice selection - avoid robotic voices
-      const voices = window.speechSynthesis.getVoices();
+        // Smart human voice selection - avoid robotic voices
+        const voices = window.speechSynthesis.getVoices();
+        console.log('Available voices:', voices.map(v => v.name));
 
-      // Try to find natural human-like voices (prefer neural/enhanced/premium)
-      const preferredVoices = voices.filter(voice =>
-        voice.lang.startsWith('en') &&
-        (voice.name.toLowerCase().includes('natural') ||
-         voice.name.toLowerCase().includes('enhanced') ||
-         voice.name.toLowerCase().includes('premium') ||
-         voice.name.toLowerCase().includes('neural'))
-      );
+        // Try to find natural human-like voices (prefer neural/enhanced/premium)
+        const preferredVoices = voices.filter(voice =>
+          voice.lang.startsWith('en') &&
+          (voice.name.toLowerCase().includes('natural') ||
+           voice.name.toLowerCase().includes('enhanced') ||
+           voice.name.toLowerCase().includes('premium') ||
+           voice.name.toLowerCase().includes('neural') ||
+           voice.name.toLowerCase().includes('samantha') ||
+           voice.name.toLowerCase().includes('alex') ||
+           voice.name.toLowerCase().includes('karen'))
+        );
 
-      // Fallback to any English voice that's not explicitly robotic
-      const humanVoices = voices.filter(voice =>
-        voice.lang.startsWith('en') &&
-        !voice.name.toLowerCase().includes('robot') &&
-        !voice.name.toLowerCase().includes('microsoft')
-      );
+        // Fallback to any English voice that's not explicitly robotic
+        const humanVoices = voices.filter(voice =>
+          voice.lang.startsWith('en') &&
+          !voice.name.toLowerCase().includes('robot') &&
+          !voice.name.toLowerCase().includes('moira')
+        );
 
-      // Set the best available human voice
-      if (preferredVoices.length > 0) {
-        utterance.voice = preferredVoices[0];
-      } else if (humanVoices.length > 0) {
-        utterance.voice = humanVoices[0];
-      }
-
-      utterance.onstart = () => {
-        console.log('🎤 Human voice started speaking');
-        setState('speaking');
-      };
-
-      utterance.onend = () => {
-        console.log('✅ Human voice finished speaking');
-        setState('listening');
-        startVibrationSync();
-
-        // Clear karaoke with shorter delay for lighter feel
-        if (subtitlesEnabled) {
-          setTimeout(() => {
-            setCurrentSubtitle('');
-            setKaraokeWords([]);
-            setCurrentWordIndex(0);
-          }, 1000); // Reduced from 2000ms to 1000ms
+        // Set the best available human voice
+        if (preferredVoices.length > 0) {
+          utterance.voice = preferredVoices[0];
+          console.log('Using preferred voice:', utterance.voice.name);
+        } else if (humanVoices.length > 0) {
+          utterance.voice = humanVoices[0];
+          console.log('Using fallback voice:', utterance.voice.name);
+        } else if (voices.length > 0) {
+          utterance.voice = voices[0];
+          console.log('Using default voice:', utterance.voice.name);
         }
 
-        // Restart speech recognition - faster transition
-        setTimeout(() => {
-          if (recognitionRef.current && isOpen && isMicEnabled) {
-            recognitionRef.current.start();
+        utterance.onstart = () => {
+          console.log('🎤 Human voice started speaking');
+          setState('speaking');
+        };
+
+        utterance.onend = () => {
+          console.log('✅ Human voice finished speaking');
+          setState('listening');
+          startVibrationSync();
+
+          // Clear karaoke with shorter delay for lighter feel
+          if (subtitlesEnabled) {
+            setTimeout(() => {
+              setCurrentSubtitle('');
+              setKaraokeWords([]);
+              setCurrentWordIndex(0);
+            }, 1000);
           }
-        }, 200); // Reduced from 500ms to 200ms for lighter feel
 
+          // Restart speech recognition - faster transition
+          setTimeout(() => {
+            if (recognitionRef.current && isOpen && isMicEnabled) {
+              try {
+                recognitionRef.current.start();
+              } catch (error) {
+                console.log('Recognition restart error:', error);
+              }
+            }
+          }, 500);
+        };
+
+        utterance.onerror = (error) => {
+          console.error('❌ Human voice synthesis error:', error);
+          setState('listening');
+          startVibrationSync();
+        };
+
+        window.speechSynthesis.speak(utterance);
+        return true;
       };
 
-      utterance.onerror = (error) => {
-        console.error('❌ Human voice synthesis error:', error);
-        setState('listening');
-        startVibrationSync();
-      };
-
-      window.speechSynthesis.speak(utterance);
-      return true;
+      // Ensure voices are loaded before speaking
+      if (window.speechSynthesis.getVoices().length === 0) {
+        window.speechSynthesis.addEventListener('voiceschanged', speakWithVoice, { once: true });
+      } else {
+        return speakWithVoice();
+      }
     }
     return false;
   };
@@ -322,7 +358,7 @@ export default function ImmersiveVoiceMode({
 
     // Always store subtitle when subtitles are enabled
     if (subtitlesEnabled) {
-      setAllSubtitles(prev => [...prev, response]);
+      setAllSubtitles(prev => [...prev, { text: response, type: 'assistant' }]);
     }
 
     // Set current subtitle and karaoke words for current response
@@ -460,31 +496,46 @@ export default function ImmersiveVoiceMode({
             <div className="bg-black/80 backdrop-blur-md rounded-2xl p-6 max-w-4xl mx-auto space-y-4">
               {/* Show all stored subtitles */}
               {allSubtitles.map((subtitle, index) => (
-                <div key={index} className="text-white text-2xl font-serif leading-relaxed text-center border-b border-gray-600/30 last:border-b-0 pb-4 last:pb-0">
-                  {index === allSubtitles.length - 1 && state === 'speaking' ? (
-                    // Current speaking message with karaoke effect
-                    <div>
-                      {karaokeWords.map((word, wordIndex) => (
-                        <span
-                          key={wordIndex}
-                          className={`inline-block mr-2 transition-all duration-300 ${
-                            wordIndex <= currentWordIndex
-                              ? 'text-teal-400 scale-110 shadow-lg'
-                              : 'text-white/70'
-                          }`}
-                          style={{
-                            textShadow: wordIndex <= currentWordIndex ? '0 0 10px rgba(20, 184, 166, 0.5)' : 'none'
-                          }}
-                        >
-                          {word}
-                        </span>
-                      ))}
+                <div key={index} className={`text-2xl font-serif leading-relaxed border-b border-gray-600/30 last:border-b-0 pb-4 last:pb-0 ${
+                  subtitle.type === 'user' ? 'text-left' : 'text-center'
+                }`}>
+                  {/* User message styling */}
+                  {subtitle.type === 'user' ? (
+                    <div className="text-gray-300 text-lg">
+                      <span className="text-teal-400 font-medium">You: </span>
+                      {subtitle.text}
                     </div>
                   ) : (
-                    // Previous messages in normal serif font
-                    <div className="text-white/90">
-                      {subtitle}
-                    </div>
+                    // Assistant message
+                    index === allSubtitles.length - 1 && state === 'speaking' ? (
+                      // Current speaking message with karaoke effect
+                      <div>
+                        <div className="text-teal-400 font-medium text-lg mb-2">Gawin:</div>
+                        {karaokeWords.map((word, wordIndex) => (
+                          <span
+                            key={wordIndex}
+                            className={`inline-block mr-2 transition-all duration-300 ${
+                              wordIndex <= currentWordIndex
+                                ? 'text-teal-400 scale-110 shadow-lg'
+                                : 'text-white/70'
+                            }`}
+                            style={{
+                              textShadow: wordIndex <= currentWordIndex ? '0 0 10px rgba(20, 184, 166, 0.5)' : 'none'
+                            }}
+                          >
+                            {word}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      // Previous assistant messages in normal serif font
+                      <div>
+                        <div className="text-teal-400 font-medium text-lg mb-2">Gawin:</div>
+                        <div className="text-white/90">
+                          {subtitle.text}
+                        </div>
+                      </div>
+                    )
                   )}
                 </div>
               ))}
@@ -542,21 +593,6 @@ export default function ImmersiveVoiceMode({
         {/* Subtle overlay for cube visibility */}
         <div className="absolute inset-0 bg-black/40 z-5"></div>
 
-        {/* Enhanced ambient particles over video */}
-        <div className="absolute inset-0 z-10 opacity-30">
-          {Array.from({ length: 30 }, (_, i) => (
-            <div
-              key={i}
-              className="absolute w-1 h-1 bg-teal-400 rounded-full animate-pulse"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 3}s`,
-                animationDuration: `${2 + Math.random() * 2}s`,
-              }}
-            />
-          ))}
-        </div>
 
         {/* Main 3D Cube - Center Stage */}
         <motion.div
@@ -601,6 +637,69 @@ export default function ImmersiveVoiceMode({
               />
             </motion.div>
           </div>
+
+          {/* Water Ripple Effect at Bottom of Cube */}
+          {(state === 'listening' || state === 'speaking') && (
+            <motion.div
+              className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+            >
+              <div className="relative w-32 h-16">
+                {/* Multiple ripple rings */}
+                {[0, 1, 2].map((index) => (
+                  <motion.div
+                    key={index}
+                    className="absolute bottom-0 left-1/2 transform -translate-x-1/2"
+                    animate={{
+                      scale: [1, 2.5, 3],
+                      opacity: [0.6, 0.3, 0],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      delay: index * 0.4,
+                      ease: "easeOut"
+                    }}
+                  >
+                    <div className="w-24 h-8 border-2 border-teal-400/60 rounded-full"></div>
+                  </motion.div>
+                ))}
+
+                {/* Central water surface */}
+                <motion.div
+                  className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-20 h-6 bg-teal-400/20 rounded-full"
+                  animate={{
+                    opacity: [0.4, 0.7, 0.4],
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
+
+                {/* Smaller inner ripples */}
+                {state === 'speaking' && (
+                  <motion.div
+                    className="absolute bottom-0 left-1/2 transform -translate-x-1/2"
+                    animate={{
+                      scale: [1, 1.8, 2.2],
+                      opacity: [0.8, 0.4, 0],
+                    }}
+                    transition={{
+                      duration: 1,
+                      repeat: Infinity,
+                      ease: "easeOut"
+                    }}
+                  >
+                    <div className="w-16 h-6 border border-teal-300/80 rounded-full"></div>
+                  </motion.div>
+                )}
+              </div>
+            </motion.div>
+          )}
         </motion.div>
 
         {/* Control Buttons */}

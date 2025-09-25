@@ -23,6 +23,7 @@ import { MiniatureCube } from './MiniatureCube';
 import PremiumFeatureGate from './PremiumFeatureGate';
 import { userPermissionService } from '../lib/services/userPermissionService';
 import { tagalogSpeechAnalysisService } from '../lib/services/tagalogSpeechAnalysisService';
+import { screenAnalysisService } from '../lib/services/screenAnalysisService';
 
 // Screen Share Component
 const ScreenShareButton: React.FC = () => {
@@ -30,7 +31,14 @@ const ScreenShareButton: React.FC = () => {
   const [isSupported, setIsSupported] = useState(false);
 
   useEffect(() => {
-    setIsSupported(!!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia));
+    setIsSupported(screenAnalysisService.isSupported());
+
+    // Subscribe to screen analysis state changes
+    const unsubscribe = screenAnalysisService.subscribe((state) => {
+      setIsScreenSharing(state.isActive);
+    });
+
+    return unsubscribe;
   }, []);
 
   const handleScreenToggle = async () => {
@@ -38,28 +46,21 @@ const ScreenShareButton: React.FC = () => {
     hapticService.triggerHaptic('screenShare');
 
     if (isScreenSharing) {
-      // Stop screen sharing
-      setIsScreenSharing(false);
-      console.log('🖥️ Screen sharing stopped');
+      // Stop screen sharing with analysis
+      screenAnalysisService.stopScreenCapture();
+      console.log('🖥️ Screen sharing and analysis stopped');
       setTimeout(() => hapticService.triggerStateChange(false), 100);
     } else {
-      // Start screen sharing
+      // Start screen sharing with analysis
       try {
-        const stream = await navigator.mediaDevices.getDisplayMedia({
-          video: true,
-          audio: true
-        });
+        const success = await screenAnalysisService.startScreenCapture();
 
-        // Handle stream end
-        stream.getVideoTracks()[0].addEventListener('ended', () => {
-          setIsScreenSharing(false);
-          console.log('🖥️ Screen sharing ended by user');
-          hapticService.triggerStateChange(false);
-        });
-
-        setIsScreenSharing(true);
-        console.log('✅ Screen sharing started');
-        setTimeout(() => hapticService.triggerStateChange(true), 100);
+        if (success) {
+          console.log('✅ Screen sharing and analysis started');
+          setTimeout(() => hapticService.triggerStateChange(true), 100);
+        } else {
+          throw new Error('Failed to start screen analysis');
+        }
       } catch (error) {
         console.error('❌ Screen sharing failed:', error);
         alert('Screen sharing failed. Please check your browser permissions.');
