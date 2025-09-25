@@ -3430,7 +3430,7 @@ Level: ${level}`
 
             {/* Enhanced Input Container with Two Sections */}
             <div className="relative w-full max-w-4xl mx-auto">
-              <div className="relative bg-gray-800/30 backdrop-blur-sm rounded-3xl border border-transparent focus-within:border-transparent transition-all duration-300 shadow-lg shadow-teal-500/10 focus-within:shadow-teal-500/20">
+              <div className="relative bg-gray-800/30 backdrop-blur-sm rounded-3xl border border-transparent focus-within:border-teal-500/30 transition-all duration-300 shadow-lg shadow-teal-500/20 focus-within:shadow-teal-400/40 hover:shadow-teal-500/30 focus-within:bg-gray-800/40">
 
                 {/* Top Section: Rich Text Input Area */}
                 <div className="relative px-6 pt-5 pb-3">
