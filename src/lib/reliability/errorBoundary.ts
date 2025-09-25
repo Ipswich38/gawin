@@ -81,8 +81,8 @@ export class ProductionErrorBoundary extends Component<ErrorBoundaryProps, Error
       error,
       errorInfo,
       timestamp: Date.now(),
-      userAgent: navigator.userAgent,
-      url: window.location.href,
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'Server',
+      url: typeof window !== 'undefined' ? window.location.href : 'Server',
       sessionId: this.generateSessionId(),
       componentStack: errorInfo.componentStack || '',
       errorBoundary: this.props.boundaryName
@@ -179,7 +179,9 @@ export class ProductionErrorBoundary extends Component<ErrorBoundaryProps, Error
    * Refresh page action
    */
   private handleRefresh = (): void => {
-    window.location.reload();
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+    }
   };
 
   /**
@@ -191,7 +193,9 @@ export class ProductionErrorBoundary extends Component<ErrorBoundaryProps, Error
     const subject = encodeURIComponent('Gawin AI Error Report');
     const body = encodeURIComponent(errorReport);
 
-    window.open(`mailto:${supportEmail}?subject=${subject}&body=${body}`, '_blank');
+    if (typeof window !== 'undefined') {
+      window.open(`mailto:${supportEmail}?subject=${subject}&body=${body}`, '_blank');
+    }
   };
 
   /**
@@ -393,18 +397,20 @@ const ErrorRecoveryUI: React.FC<ErrorRecoveryUIProps> = ({
  */
 class ErrorReportingService {
   private reportQueue: ErrorDetails[] = [];
-  private isOnline = navigator.onLine;
+  private isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
 
   constructor() {
     // Monitor online status
-    window.addEventListener('online', () => {
-      this.isOnline = true;
-      this.flushReportQueue();
-    });
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', () => {
+        this.isOnline = true;
+        this.flushReportQueue();
+      });
 
-    window.addEventListener('offline', () => {
-      this.isOnline = false;
-    });
+      window.addEventListener('offline', () => {
+        this.isOnline = false;
+      });
+    }
   }
 
   /**
@@ -467,22 +473,24 @@ class ErrorReportingService {
    */
   private storeErrorLocally(errorDetails: ErrorDetails): void {
     try {
-      const storedErrors = JSON.parse(localStorage.getItem('gawin_errors') || '[]');
-      storedErrors.push({
-        ...errorDetails,
-        error: {
-          name: errorDetails.error.name,
-          message: errorDetails.error.message,
-          stack: errorDetails.error.stack
+      if (typeof localStorage !== 'undefined') {
+        const storedErrors = JSON.parse(localStorage.getItem('gawin_errors') || '[]');
+        storedErrors.push({
+          ...errorDetails,
+          error: {
+            name: errorDetails.error.name,
+            message: errorDetails.error.message,
+            stack: errorDetails.error.stack
+          }
+        });
+
+        // Keep only the last 10 errors
+        if (storedErrors.length > 10) {
+          storedErrors.splice(0, storedErrors.length - 10);
         }
-      });
 
-      // Keep only the last 10 errors
-      if (storedErrors.length > 10) {
-        storedErrors.splice(0, storedErrors.length - 10);
+        localStorage.setItem('gawin_errors', JSON.stringify(storedErrors));
       }
-
-      localStorage.setItem('gawin_errors', JSON.stringify(storedErrors));
     } catch (storageError) {
       console.warn('Failed to store error locally:', storageError);
     }
@@ -511,6 +519,8 @@ class ErrorReportingService {
  * Global Error Handler Setup
  */
 export const setupGlobalErrorHandling = (): void => {
+  if (typeof window === 'undefined') return;
+
   const errorReportingService = new ErrorReportingService();
 
   // Catch all unhandled errors
@@ -519,8 +529,8 @@ export const setupGlobalErrorHandling = (): void => {
       error: event.error || new Error(event.message),
       errorInfo: { componentStack: 'Global Error Handler' } as ErrorInfo,
       timestamp: Date.now(),
-      userAgent: navigator.userAgent,
-      url: window.location.href,
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'Server',
+      url: typeof window !== 'undefined' ? window.location.href : 'Server',
       sessionId: Math.random().toString(36).substring(2),
       componentStack: 'Global Error Handler',
       errorBoundary: 'Global'
@@ -537,8 +547,8 @@ export const setupGlobalErrorHandling = (): void => {
       error,
       errorInfo: { componentStack: 'Unhandled Promise Rejection' } as ErrorInfo,
       timestamp: Date.now(),
-      userAgent: navigator.userAgent,
-      url: window.location.href,
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'Server',
+      url: typeof window !== 'undefined' ? window.location.href : 'Server',
       sessionId: Math.random().toString(36).substring(2),
       componentStack: 'Unhandled Promise Rejection',
       errorBoundary: 'Global'
