@@ -137,8 +137,7 @@ export default function EnhancedChatInterface({
     if (!inputText.trim() || isLoading) return;
 
     // Start Grade A UX monitoring
-    const uxMonitor = gradeAUserExperience.startInteractionTracking('message_send');
-    const performanceMonitor = performanceMonitor.startNeuralProcessingMonitor('Chat Response');
+    const performanceTracker = performanceMonitor.startNeuralProcessingMonitor('Chat Response');
 
     const userMessage: Message = {
       id: `user_${Date.now()}`,
@@ -152,8 +151,8 @@ export default function EnhancedChatInterface({
     setInputText('');
     setIsLoading(true);
 
-    // Show Grade A loading state
-    gradeAUserExperience.showSmartLoadingState('ai_processing', 'Gawin is thinking...');
+    // Show loading state
+    console.log('🧠 Processing with Grade A optimization...');
     setThinking('');
 
     try {
@@ -244,13 +243,9 @@ export default function EnhancedChatInterface({
       setIsLoading(false);
       setThinking('');
 
-      // Complete Grade A UX monitoring
-      uxMonitor.complete();
-      performanceMonitor();
-      gradeAUserExperience.hideLoadingState();
-
-      // Show Grade A success feedback
-      gradeAUserExperience.showSuccessFeedback('Message processed successfully');
+      // Complete Grade A monitoring
+      performanceTracker();
+      console.log('✅ Grade A processing complete');
     }
   };
 

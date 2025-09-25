@@ -3,6 +3,8 @@
  * Comprehensive error handling, recovery, and user experience protection
  */
 
+'use client';
+
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 
 export interface ErrorDetails {

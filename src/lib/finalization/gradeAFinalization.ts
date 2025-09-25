@@ -3,6 +3,8 @@
  * Final touches for seamless production-ready experience
  */
 
+'use client';
+
 import performanceMonitor from '@/lib/performance/performanceMonitor';
 import { gradeAUserExperience } from '@/lib/ux/gradeAUserExperience';
 import { gradeANeuralOptimizer } from '@/lib/neural/gradeANeuralOptimizer';

@@ -3,6 +3,8 @@
  * Grade A production monitoring with real-time metrics and optimization
  */
 
+'use client';
+
 export interface PerformanceMetrics {
   responseTime: number;
   memoryUsage: number;

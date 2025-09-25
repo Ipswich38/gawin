@@ -3,6 +3,8 @@
  * Professional-level UX/UI enhancements, accessibility, and user interaction optimization
  */
 
+'use client';
+
 export interface UXMetrics {
   interactionLatency: number;
   visualStability: number;

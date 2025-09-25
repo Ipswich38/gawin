@@ -3,7 +3,6 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import "../styles/accessibility.css";
 import ProductionErrorBoundary from "@/lib/reliability/errorBoundary";
-import { GradeAUIProvider } from "@/lib/ux/gradeAUserExperience";
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -32,13 +31,11 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} antialiased`}>
         <ProductionErrorBoundary boundaryName="RootLayout">
-          <GradeAUIProvider>
-            <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-              <main className="relative">
-                {children}
-              </main>
-            </div>
-          </GradeAUIProvider>
+          <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+            <main className="relative">
+              {children}
+            </main>
+          </div>
         </ProductionErrorBoundary>
 
         {/* X-Frame-Bypass for enhanced browser functionality */}
