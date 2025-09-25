@@ -157,7 +157,7 @@ class GPTResearcherService {
     console.log('🧠 Enhancing GPT Researcher results with intelligent analysis...');
     
     try {
-      // Use Groq to analyze and enhance the GPT Researcher report
+      // Use Gemini to analyze and enhance the GPT Researcher report
       const enhancementPrompt = `
       As Gawin, an intelligent AI researcher, enhance this research report with deeper analysis:
 
@@ -182,9 +182,10 @@ class GPTResearcherService {
       Focus on providing value-added analysis beyond what GPT Researcher already found.
       `;
 
-      const enhancementResponse = await groqService.createChatCompletion({
+      const enhancementResponse = await groqService.chatCompletion({
         messages: [{ role: 'user', content: enhancementPrompt }],
-        action: 'analysis'
+        model: 'llama-3.3-70b-versatile', // Use Groq's flagship model
+        temperature: 0.7
       });
 
       const enhancement = JSON.parse(enhancementResponse.choices?.[0]?.message?.content || '{}');

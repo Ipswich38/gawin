@@ -555,7 +555,7 @@ Remember: You're not just answering questions, you're having a genuine conversat
   }
 
   /**
-   * Send message to Groq with Grade A Neural Optimization
+   * Send message to Gemini with Grade A Neural Optimization
    */
   async sendToGroq(userMessage: string, conversationHistory: any[] = []): Promise<EnhancedResponse> {
     // Grade A optimized conversation processing
@@ -579,11 +579,8 @@ Remember: You're not just answering questions, you're having a genuine conversat
           body: JSON.stringify({
             messages: messages,
             model: 'llama-3.3-70b-versatile',
-            temperature: 0.7, // Optimized for Grade A consistency
-            max_tokens: 1500, // Reduced for faster response
-            top_p: 0.85, // Optimized for Grade A quality
-            frequency_penalty: 0.1,
-            presence_penalty: 0.1 // Encourage new topics/expressions
+            temperature: 0.8, // Higher for more natural Filipino responses
+            max_tokens: 1500, // Groq token limit
           })
         });
 
@@ -608,9 +605,9 @@ Remember: You're not just answering questions, you're having a genuine conversat
 
     // Log Grade A performance metrics
     if (optimizedResult.gradeACompliant) {
-      console.log(`🏆 Grade A Neural Response: ${optimizedResult.metrics.responseTime.toFixed(2)}ms`);
+      console.log(`🏆 Grade A Neural Response with Groq: ${optimizedResult.metrics.responseTime.toFixed(2)}ms`);
     } else {
-      console.log(`⚡ Optimization applied: ${optimizedResult.optimizations.join(', ')}`);
+      console.log(`⚡ Groq optimization applied: ${optimizedResult.optimizations.join(', ')}`);
     }
 
     return {
@@ -619,6 +616,23 @@ Remember: You're not just answering questions, you're having a genuine conversat
       emotion: this.emotionalContext,
       confidence: confidence
     };
+  }
+
+  /**
+   * Send message using current AI provider (now Groq)
+   * Alias for sendToGroq for backward compatibility
+   */
+  async sendMessage(userMessage: string, conversationHistory: any[] = []): Promise<EnhancedResponse> {
+    return this.sendToGroq(userMessage, conversationHistory);
+  }
+
+  /**
+   * Legacy Gemini method - now redirects to Groq
+   * @deprecated Use sendToGroq or sendMessage instead
+   */
+  async sendToGemini(userMessage: string, conversationHistory: any[] = []): Promise<EnhancedResponse> {
+    console.warn('⚠️ sendToGemini is deprecated. Using Groq instead.');
+    return this.sendToGroq(userMessage, conversationHistory);
   }
 
   /**
