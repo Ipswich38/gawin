@@ -6,6 +6,7 @@
 import { UserLocation } from './locationService';
 import { GawinResponseFormatter } from '../formatters/gawinResponseFormatter';
 import { screenAnalysisService } from './screenAnalysisService';
+import { gradeANeuralOptimizer } from '../neural/gradeANeuralOptimizer';
 
 export interface ConversationContext {
   language: 'tagalog' | 'english' | 'taglish';
@@ -554,66 +555,70 @@ Remember: You're not just answering questions, you're having a genuine conversat
   }
 
   /**
-   * Send message to Groq with enhanced Filipino consciousness and location awareness
+   * Send message to Groq with Grade A Neural Optimization
    */
   async sendToGroq(userMessage: string, conversationHistory: any[] = []): Promise<EnhancedResponse> {
-    // Analyze the conversation context (now async due to location detection)
-    const context = await this.analyzeContext(userMessage, conversationHistory);
+    // Grade A optimized conversation processing
+    const optimizedResult = await gradeANeuralOptimizer.optimizeConversation(
+      userMessage,
+      { conversationHistory },
+      '',
+      async (optimizedPrompt: string) => {
+        // Prepare messages with optimized context
+        const messages = [
+          { role: "system", content: optimizedPrompt },
+          ...conversationHistory.slice(-8), // Reduced for Grade A speed
+          { role: "user", content: userMessage }
+        ];
 
-    // Update emotional context
+        const response = await fetch('/api/groq', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            messages: messages,
+            model: 'llama-3.3-70b-versatile',
+            temperature: 0.7, // Optimized for Grade A consistency
+            max_tokens: 1500, // Reduced for faster response
+            top_p: 0.85, // Optimized for Grade A quality
+            frequency_penalty: 0.1,
+            presence_penalty: 0.1 // Encourage new topics/expressions
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data.choices[0].message.content;
+      }
+    );
+
+    // Extract context from the optimization
+    const context = await this.analyzeContext(userMessage, conversationHistory);
     this.emotionalContext = context.emotion;
 
-    // Generate context-aware system prompt
-    const systemPrompt = this.generateSystemPrompt(context, conversationHistory);
+    // Calculate response confidence
+    const confidence = this.calculateResponseConfidence(context, optimizedResult.response);
 
-    // Prepare messages with enhanced context
-    const messages = [
-      { role: "system", content: systemPrompt },
-      ...conversationHistory.slice(-10), // Keep last 10 messages for context
-      { role: "user", content: userMessage }
-    ];
+    // Update conversation memory with Grade A metrics
+    this.updateMemory(userMessage, optimizedResult.response, context);
 
-    try {
-      const response = await fetch('/api/groq', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          messages: messages,
-          model: 'llama-3.3-70b-versatile',
-          temperature: 0.8, // Higher for more natural, varied responses
-          max_tokens: 2048,
-          top_p: 0.9, // For more diverse language generation
-          frequency_penalty: 0.1, // Reduce repetition
-          presence_penalty: 0.1 // Encourage new topics/expressions
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const aiResponse = data.choices[0].message.content;
-
-      // Calculate response confidence based on context match
-      const confidence = this.calculateResponseConfidence(context, aiResponse);
-
-      // Update conversation memory
-      this.updateMemory(userMessage, aiResponse, context);
-
-      return {
-        content: aiResponse,
-        context: context,
-        emotion: this.emotionalContext,
-        confidence: confidence
-      };
-
-    } catch (error) {
-      console.error('Enhanced Gawin Conversation Error:', error);
-      throw error;
+    // Log Grade A performance metrics
+    if (optimizedResult.gradeACompliant) {
+      console.log(`🏆 Grade A Neural Response: ${optimizedResult.metrics.responseTime.toFixed(2)}ms`);
+    } else {
+      console.log(`⚡ Optimization applied: ${optimizedResult.optimizations.join(', ')}`);
     }
+
+    return {
+      content: optimizedResult.response,
+      context: context,
+      emotion: this.emotionalContext,
+      confidence: confidence
+    };
   }
 
   /**

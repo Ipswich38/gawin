@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import MobileChatInterface from '@/components/MobileChatInterface';
 import { User } from '@/lib/services/databaseService';
+import GradeAAnalyticsDashboard from '@/components/GradeAAnalyticsDashboard';
 
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
@@ -79,10 +80,13 @@ export default function DashboardPage() {
 
   // Show main chat interface for authenticated users
   return (
-    <MobileChatInterface
-      user={legacyUser}
-      onLogout={handleLogout}
-      onBackToLanding={handleBackToLanding}
-    />
+    <>
+      <MobileChatInterface
+        user={legacyUser}
+        onLogout={handleLogout}
+        onBackToLanding={handleBackToLanding}
+      />
+      <GradeAAnalyticsDashboard />
+    </>
   );
 }

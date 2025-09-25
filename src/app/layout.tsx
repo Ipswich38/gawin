@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import "../styles/accessibility.css";
-// import SystemStatusIndicator from "@/components/SystemStatusIndicator";
+import ProductionErrorBoundary from "@/lib/reliability/errorBoundary";
+import { GradeAUIProvider } from "@/lib/ux/gradeAUserExperience";
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -30,12 +31,15 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} antialiased`}>
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-          {/* <SystemStatusIndicator /> */}
-          <main className="relative">
-            {children}
-          </main>
-        </div>
+        <ProductionErrorBoundary boundaryName="RootLayout">
+          <GradeAUIProvider>
+            <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+              <main className="relative">
+                {children}
+              </main>
+            </div>
+          </GradeAUIProvider>
+        </ProductionErrorBoundary>
 
         {/* X-Frame-Bypass for enhanced browser functionality */}
         <script

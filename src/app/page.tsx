@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { initializeGradeASystems } from '@/lib/initialization/gradeAInit';
 
 // Creator email for bypass
 const CREATOR_EMAIL = 'kreativloops@gmail.com';
@@ -11,6 +12,21 @@ export default function HomePage() {
   const [error, setError] = useState<string>('');
   const [showCreatorLogin, setShowCreatorLogin] = useState(false);
   const [creatorEmail, setCreatorEmail] = useState('');
+  const [gradeAStatus, setGradeAStatus] = useState<string>('Initializing Grade A systems...');
+
+  // Initialize Grade A systems on component mount
+  useEffect(() => {
+    const initSystems = async () => {
+      try {
+        const status = await initializeGradeASystems();
+        setGradeAStatus(`🏆 Grade ${status.overallGrade} System Ready (${status.initializationTime.toFixed(0)}ms)`);
+      } catch (error) {
+        setGradeAStatus('⚠️ System initialization issue');
+      }
+    };
+
+    initSystems();
+  }, []);
 
   // Simple anonymous login - just redirect to dashboard
   const handleAnonymousLogin = () => {
@@ -250,6 +266,13 @@ export default function HomePage() {
               </svg>
               <p className="text-xs text-gray-400">
                 Simple & secure access
+              </p>
+            </div>
+
+            {/* Grade A Status Indicator */}
+            <div className="mt-3 text-center">
+              <p className="text-xs text-[#00C2A8]/80 font-medium">
+                {gradeAStatus}
               </p>
             </div>
           </div>

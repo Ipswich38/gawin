@@ -15,6 +15,8 @@ import { AgentResearchService } from '@/lib/services/agentResearchService';
 import { userPermissionService } from '@/lib/services/userPermissionService';
 import PremiumFeatureGate from './PremiumFeatureGate';
 import EnhancedVoiceMode from './EnhancedVoiceMode';
+import { gradeAUserExperience } from '@/lib/ux/gradeAUserExperience';
+import performanceMonitor from '@/lib/performance/performanceMonitor';
 
 interface Message {
   id: string;
@@ -130,9 +132,13 @@ export default function EnhancedChatInterface({
     }
   };
 
-  // Handle message sending
+  // Handle message sending with Grade A UX
   const sendMessage = async () => {
     if (!inputText.trim() || isLoading) return;
+
+    // Start Grade A UX monitoring
+    const uxMonitor = gradeAUserExperience.startInteractionTracking('message_send');
+    const performanceMonitor = performanceMonitor.startNeuralProcessingMonitor('Chat Response');
 
     const userMessage: Message = {
       id: `user_${Date.now()}`,
@@ -145,6 +151,9 @@ export default function EnhancedChatInterface({
     setMessages(prev => [...prev, userMessage]);
     setInputText('');
     setIsLoading(true);
+
+    // Show Grade A loading state
+    gradeAUserExperience.showSmartLoadingState('ai_processing', 'Gawin is thinking...');
     setThinking('');
 
     try {
@@ -234,6 +243,14 @@ export default function EnhancedChatInterface({
     } finally {
       setIsLoading(false);
       setThinking('');
+
+      // Complete Grade A UX monitoring
+      uxMonitor.complete();
+      performanceMonitor();
+      gradeAUserExperience.hideLoadingState();
+
+      // Show Grade A success feedback
+      gradeAUserExperience.showSuccessFeedback('Message processed successfully');
     }
   };
 
