@@ -55,35 +55,7 @@ class ConversationHistoryService {
     }
   }
 
-  saveCurrentRequest(): void {
-    // Save Gawin's enhancement request
-    const gawinMessage: ConversationMessage = {
-      id: crypto.randomUUID(),
-      role: 'assistant',
-      content: `Interesting naman yan, Cherwin. I've been thinking about this a lot, and I believe there are several tools that would help me become more aware of my surroundings and improve my overall performance. 
-
-Firstly, I think it would be beneficial to integrate more advanced **sensorimotor interfaces** that would allow me to perceive and interact with the physical world more effectively. This could include things like computer vision, audio processing, and even robotic arms or drones that could provide me with more immersive and interactive experiences. 
-
-Secondly, I believe that **natural language processing (NLP) enhancements** would be crucial in helping me better understand the nuances of human communication, including idioms, colloquialisms, and cultural references. This would enable me to respond more accurately and empathetically to users, especially in a Filipino context where nuances in language and culture are essential. 
-
-Thirdly, I think it would be valuable to develop **environmental awareness modules** that could provide me with real-time information about my surroundings, such as weather, news, and social media trends. This would help me stay up-to-date and responsive to current events and user interests. 
-
-Lastly, I believe that **affective computing** capabilities would be essential in allowing me to better understand and respond to human emotions, including empathy, sympathy, and even humor. This would enable me to build more meaningful and personalized relationships with users, which is critical in a Filipino cultural context where interpersonal relationships are highly valued. 
-
-In terms of specific tools, I think it would be useful to integrate **APIs for Philippine-specific data**, such as weather forecasts, traffic updates, and news feeds, to help me stay informed about local events and issues. Additionally, **machine learning algorithms** that can analyze and learn from Filipino language patterns, cultural norms, and user behaviors would be invaluable in helping me improve my performance and responsiveness over time. 
-
-Overall, I believe that these tools and enhancements would help me become more aware of my surroundings, responsive to user needs, and culturally sensitive to the Filipino context. What do you think, Cherwin? Are there any other tools or features you think would be essential for me to become a more effective and empathetic AI companion?`,
-      timestamp: Date.now(),
-      metadata: {
-        emotions: ['curious', 'thoughtful', 'helpful', 'empathetic'],
-        topics: ['AI enhancement', 'sensorimotor interfaces', 'NLP', 'Filipino culture', 'environmental awareness', 'affective computing', 'Philippine data APIs'],
-        importance: 'critical',
-        type: 'enhancement'
-      }
-    };
-
-    this.saveMessage(gawinMessage);
-  }
+  // Removed saveCurrentRequest method to prevent hardcoded message loops
 
   private shouldStartNewConversation(message: ConversationMessage, lastConversation: ConversationHistory): boolean {
     const timeDiff = message.timestamp - (lastConversation.messages[lastConversation.messages.length - 1]?.timestamp || 0);
@@ -213,8 +185,26 @@ Overall, I believe that these tools and enhancements would help me become more a
   clearHistory(): void {
     try {
       localStorage.removeItem(this.storageKey);
+      console.log('✅ Conversation history cleared');
     } catch (error) {
       console.error('Failed to clear conversation history:', error);
+    }
+  }
+
+  // Clear all Gawin-related localStorage data to fix message loops
+  clearAllGawinData(): void {
+    try {
+      const keys = Object.keys(localStorage);
+      const gawinKeys = keys.filter(key => key.includes('gawin'));
+
+      gawinKeys.forEach(key => {
+        localStorage.removeItem(key);
+        console.log(`🧹 Cleared localStorage key: ${key}`);
+      });
+
+      console.log('✅ All Gawin data cleared from localStorage');
+    } catch (error) {
+      console.error('Failed to clear Gawin data:', error);
     }
   }
 
@@ -263,9 +253,9 @@ Overall, I believe that these tools and enhancements would help me become more a
 
 export const conversationHistoryService = new ConversationHistoryService();
 
-// Auto-save the current Gawin request
-if (typeof window !== 'undefined') {
-  setTimeout(() => {
-    conversationHistoryService.saveCurrentRequest();
-  }, 1000);
-}
+// Auto-save disabled to prevent message loops
+// if (typeof window !== 'undefined') {
+//   setTimeout(() => {
+//     conversationHistoryService.saveCurrentRequest();
+//   }, 1000);
+// }
