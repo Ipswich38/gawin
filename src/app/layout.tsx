@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import "../styles/accessibility.css";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 // import SystemStatusIndicator from "@/components/SystemStatusIndicator";
 
 const inter = Inter({ 
@@ -30,21 +31,23 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} antialiased`}>
-        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-          {/* <SystemStatusIndicator /> */}
-          <main className="relative">
-            {children}
-          </main>
-        </div>
-        
+        <ThemeProvider>
+          <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+            {/* <SystemStatusIndicator /> */}
+            <main className="relative">
+              {children}
+            </main>
+          </div>
+        </ThemeProvider>
+
         {/* X-Frame-Bypass for enhanced browser functionality */}
-        <script 
-          type="module" 
-          src="https://unpkg.com/x-frame-bypass" 
+        <script
+          type="module"
+          src="https://unpkg.com/x-frame-bypass"
           async
         />
-        <script 
-          src="https://unpkg.com/@ungap/custom-elements-builtin" 
+        <script
+          src="https://unpkg.com/@ungap/custom-elements-builtin"
           async
         />
       </body>

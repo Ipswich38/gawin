@@ -23,6 +23,8 @@ import { MiniatureCube } from './MiniatureCube';
 import PremiumFeatureGate from './PremiumFeatureGate';
 import { userPermissionService } from '../lib/services/userPermissionService';
 import { tagalogSpeechAnalysisService } from '../lib/services/tagalogSpeechAnalysisService';
+import { useTheme } from '@/contexts/ThemeContext';
+import { CompactThemeToggle } from './ThemeToggle';
 
 // Screen Share Component
 const ScreenShareButton: React.FC = () => {
@@ -167,6 +169,9 @@ interface MobileChatInterfaceProps {
 
 
 export default function MobileChatInterface({ user, onLogout, onBackToLanding }: MobileChatInterfaceProps) {
+  // Theme context
+  const { theme, isDark, isLight } = useTheme();
+
   // User permissions and access control
   const userPermissions = userPermissionService.getFeaturePermissions();
   const isGuest = userPermissionService.isGuestUser();
@@ -3107,8 +3112,12 @@ Level: ${level}`
 
   const renderChatContent = () => (
     <div className="flex flex-col h-full relative">
-      {/* Additional subtle transparency layer to show video silhouette */}
-      <div className="absolute inset-0 bg-black/20 z-0" />
+      {/* Additional theme-aware transparency layer to show video silhouette */}
+      <div className={`absolute inset-0 z-0 transition-all duration-300 ${
+        isLight
+          ? 'bg-white/10'
+          : 'bg-black/20'
+      }`} />
       <div 
         ref={chatContainerRef}
         className="flex-1 overflow-y-auto px-4 py-4 space-y-4 relative z-10"
@@ -3285,14 +3294,18 @@ Level: ${level}`
         loop
         muted
         playsInline
-        className="absolute inset-0 w-full h-full object-cover z-0"
+        className="video-background absolute inset-0 w-full h-full object-cover z-0"
       >
         <source src="/background/new.mp4" type="video/mp4" />
         <div className="absolute inset-0 bg-gray-900"></div>
       </video>
       
-      {/* Subtle dark overlay for readability while showing background */}
-      <div className="absolute inset-0 bg-black/50 z-10"></div>
+      {/* Theme-aware overlay for readability while showing background */}
+      <div className={`absolute inset-0 z-10 transition-all duration-300 ${
+        isLight
+          ? 'bg-white/20 backdrop-blur-[1px]'
+          : 'bg-black/50'
+      }`}></div>
       
       {/* Main App Content with transparency */}
       <div className="relative z-20 h-full flex flex-col">
@@ -3350,9 +3363,9 @@ Level: ${level}`
               rounded-xl 
               ${optimizationConfig?.compactMode ? 'text-xs' : 'text-sm'} 
               font-medium transition-all flex-shrink-0
-              ${isMenuOpen 
-                ? 'bg-teal-600 text-white shadow-lg backdrop-blur-sm' 
-                : 'bg-gray-700/30 text-gray-300 hover:bg-gray-600/40 backdrop-blur-sm'
+              ${isMenuOpen
+                ? 'theme-accent-bg text-white shadow-lg backdrop-blur-sm'
+                : 'theme-bg-primary theme-text-secondary hover:theme-bg-secondary backdrop-blur-sm'
               }
             `}
           >
@@ -3377,9 +3390,9 @@ Level: ${level}`
                   rounded-xl 
                   ${optimizationConfig?.compactMode ? 'text-xs' : 'text-sm'} 
                   font-medium transition-all flex-shrink-0
-                  ${tab.isActive 
-                    ? 'bg-teal-600 text-white shadow-lg backdrop-blur-sm' 
-                    : 'bg-gray-700/30 text-gray-300 hover:bg-gray-600/40 backdrop-blur-sm'
+                  ${tab.isActive
+                    ? 'theme-accent-bg text-white shadow-lg backdrop-blur-sm'
+                    : 'theme-bg-primary theme-text-secondary hover:theme-bg-secondary backdrop-blur-sm'
                   }
                 `}
               >
@@ -3695,17 +3708,22 @@ Level: ${level}`
               }}
             >
               <div className="p-6 space-y-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-teal-600 to-teal-700 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-lg font-bold">G</span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-teal-600 to-teal-700 rounded-lg flex items-center justify-center">
+                    <span className="text-white text-lg font-bold">G</span>
+                  </div>
+                  <div>
+                    <h1 className="text-xl theme-text-primary font-medium">Gawin AI</h1>
+                    <p className="text-sm theme-text-muted">Your Learning Assistant</p>
+                  </div>
                 </div>
-                <div>
-                  <h1 className="text-xl text-white font-medium">Gawin AI</h1>
-                  <p className="text-sm text-gray-400">Your Learning Assistant</p>
-                </div>
+
+                {/* Theme Toggle */}
+                <CompactThemeToggle className="flex-shrink-0" />
               </div>
               
-              <div className="p-4 bg-gray-800/50 rounded-2xl border border-gray-700/50">
+              <div className="p-4 theme-bg-secondary rounded-2xl theme-border border">
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-gradient-to-br from-teal-600 to-teal-700 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-medium">
@@ -3713,8 +3731,8 @@ Level: ${level}`
                     </span>
                   </div>
                   <div>
-                    <p className="text-white font-medium text-sm">{user.full_name || 'User'}</p>
-                    <p className="text-gray-400 text-xs">{user.email}</p>
+                    <p className="theme-text-primary font-medium text-sm">{user.full_name || 'User'}</p>
+                    <p className="theme-text-muted text-xs">{user.email}</p>
                   </div>
                 </div>
               </div>
