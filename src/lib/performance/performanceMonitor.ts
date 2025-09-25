@@ -47,6 +47,9 @@ class PerformanceMonitor {
   }
 
   private initializeMonitoring(): void {
+    // Skip during SSR
+    if (typeof window === 'undefined') return;
+
     // Monitor response times
     this.setupResponseTimeMonitoring();
 

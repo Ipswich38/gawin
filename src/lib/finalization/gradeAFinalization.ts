@@ -19,6 +19,12 @@ class GradeAFinalizationSystem {
   async finalize(): Promise<void> {
     if (this.isFinalized) return;
 
+    // Skip during SSR
+    if (typeof window === 'undefined') {
+      console.log('🏁 Grade A finalization deferred - SSR environment');
+      return;
+    }
+
     console.log('🏁 Finalizing Grade A Gawin AI System...');
 
     try {

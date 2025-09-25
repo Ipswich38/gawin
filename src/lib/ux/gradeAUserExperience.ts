@@ -54,13 +54,25 @@ class GradeAUserExperience {
 
   private loadingStates: Map<string, LoadingState> = new Map();
   private feedbackQueue: FeedbackType[] = [];
-  private accessibilityFeatures: AccessibilityFeatures;
+  private accessibilityFeatures: AccessibilityFeatures = {
+    highContrast: false,
+    largeText: false,
+    reducedMotion: false,
+    screenReader: false,
+    keyboardNavigation: true,
+    voiceCommands: false
+  };
   private observers: ((metrics: UXMetrics) => void)[] = [];
 
   constructor() {
-    this.accessibilityFeatures = this.detectAccessibilityNeeds();
-    this.initializeUXOptimizations();
-    console.log('🎨 Grade A User Experience System initialized');
+    // Only initialize in browser
+    if (typeof window !== 'undefined') {
+      this.accessibilityFeatures = this.detectAccessibilityNeeds();
+      this.initializeUXOptimizations();
+      console.log('🎨 Grade A User Experience System initialized');
+    } else {
+      console.log('🎨 Grade A UX System deferred - SSR environment');
+    }
   }
 
   /**

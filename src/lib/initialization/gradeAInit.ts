@@ -33,6 +33,12 @@ class GradeAInitializationSystem {
    * Initialize all Grade A systems for production readiness
    */
   async initialize(): Promise<GradeAStatus> {
+    // Skip initialization during SSR
+    if (typeof window === 'undefined') {
+      console.log('🚀 Grade A systems deferred - SSR environment detected');
+      return this.status;
+    }
+
     this.initializationStartTime = performance.now();
     console.log('🚀 Initializing Grade A Production Systems...');
 
@@ -167,6 +173,9 @@ class GradeAInitializationSystem {
    * Setup neural performance monitoring for AI operations
    */
   private setupNeuralPerformanceMonitoring(): void {
+    // Skip during SSR
+    if (typeof window === 'undefined') return;
+
     // Monitor AI conversation processing
     const originalFetch = window.fetch;
     window.fetch = async (...args) => {
