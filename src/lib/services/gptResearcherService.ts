@@ -182,9 +182,8 @@ class GPTResearcherService {
       Focus on providing value-added analysis beyond what GPT Researcher already found.
       `;
 
-      const enhancementResponse = await groqService.chatCompletion({
+      const enhancementResponse = await groqService.createChatCompletion({
         messages: [{ role: 'user', content: enhancementPrompt }],
-        model: 'llama-3.3-70b-versatile', // Use Groq's flagship model
         temperature: 0.7
       });
 
