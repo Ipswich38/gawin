@@ -246,4 +246,3 @@ export default function AIProviderSelector({
 }
 
 export { AI_PROVIDERS };
-export type { AIProvider };
