@@ -6,6 +6,7 @@ import { validationService } from '@/lib/services/validationService';
 import { responseFilterService } from '@/lib/services/responseFilterService';
 import { contentFilterService } from '@/lib/services/contentFilterService';
 import { naturalConversationService, type ConversationContext } from '@/lib/services/naturalConversationService';
+import { GawinResponseFormatter } from '@/lib/formatters/gawinResponseFormatter';
 
 /**
  * Enhanced AI Context Analyzer - Provides deep conversation understanding
@@ -529,7 +530,7 @@ export async function POST(request: NextRequest) {
       // Filter response for quality and consistency
       if (groqResult.choices?.[0]?.message?.content) {
         const filteredResponse = responseFilterService.filterResponse(groqResult.choices[0].message.content);
-        
+
         // Log filtering results for monitoring
         if (filteredResponse.wasFiltered) {
           console.log('🧹 Response filtered:', {
@@ -538,9 +539,12 @@ export async function POST(request: NextRequest) {
             filtersApplied: filteredResponse.filtersApplied
           });
         }
-        
-        // Update the response content
-        groqResult.choices[0].message.content = filteredResponse.content;
+
+        // Apply comprehensive formatting from the master guide
+        const formattedResponse = GawinResponseFormatter.formatResponse(filteredResponse.content);
+
+        // Update the response content with formatting applied
+        groqResult.choices[0].message.content = formattedResponse;
       }
       
       return NextResponse.json(groqResult);
@@ -574,7 +578,7 @@ export async function POST(request: NextRequest) {
         // Filter HuggingFace response as well
         let content = hfResult.data?.response || 'I understand your question and I\'m here to help you learn!';
         const filteredResponse = responseFilterService.filterResponse(content);
-        
+
         if (filteredResponse.wasFiltered) {
           console.log('🧹 HuggingFace response filtered:', {
             originalLength: content.length,
@@ -582,13 +586,16 @@ export async function POST(request: NextRequest) {
             filtersApplied: filteredResponse.filtersApplied
           });
         }
+
+        // Apply comprehensive formatting to HuggingFace response
+        const formattedContent = GawinResponseFormatter.formatResponse(filteredResponse.content);
         
         return NextResponse.json({
           success: true,
           choices: [{
             message: {
               role: 'assistant',
-              content: filteredResponse.content
+              content: formattedContent
             }
           }],
           model: 'HuggingFace-AI-Fallback',
@@ -615,7 +622,7 @@ export async function POST(request: NextRequest) {
         // Filter DeepSeek response as well
         if (groqDeepSeekResult.choices?.[0]?.message?.content) {
           const filteredResponse = responseFilterService.filterResponse(groqDeepSeekResult.choices[0].message.content);
-          
+
           if (filteredResponse.wasFiltered) {
             console.log('🧹 DeepSeek response filtered:', {
               originalLength: groqDeepSeekResult.choices[0].message.content.length,
@@ -623,8 +630,11 @@ export async function POST(request: NextRequest) {
               filtersApplied: filteredResponse.filtersApplied
             });
           }
-          
-          groqDeepSeekResult.choices[0].message.content = filteredResponse.content;
+
+          // Apply comprehensive formatting to DeepSeek response
+          const formattedContent = GawinResponseFormatter.formatResponse(filteredResponse.content);
+
+          groqDeepSeekResult.choices[0].message.content = formattedContent;
         }
         
         return NextResponse.json(groqDeepSeekResult);
@@ -647,20 +657,23 @@ export async function POST(request: NextRequest) {
       
       // Generate contextual educational response
       const smartResponse = await generateSmartEducationalResponse(messageContent, body.messages);
-      
+
+      // Apply comprehensive formatting to smart educational response
+      const formattedSmartResponse = GawinResponseFormatter.formatResponse(smartResponse);
+
       return NextResponse.json({
         success: true,
         choices: [{
           message: {
             role: 'assistant',
-            content: smartResponse
+            content: formattedSmartResponse
           }
         }],
         model: 'Gawin Smart Educational Assistant',
         usage: {
           prompt_tokens: messageContent.length,
-          completion_tokens: smartResponse.length,
-          total_tokens: messageContent.length + smartResponse.length
+          completion_tokens: formattedSmartResponse.length,
+          total_tokens: messageContent.length + formattedSmartResponse.length
         }
       });
     }

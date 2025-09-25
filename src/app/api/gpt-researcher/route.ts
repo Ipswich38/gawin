@@ -2,12 +2,13 @@
  * GPT Researcher API Integration Endpoint
  * Free, Open-Source GPT Researcher (Apache-2.0 License)
  * Repository: https://github.com/assafelovic/gpt-researcher
- * 
+ *
  * This endpoint provides enhanced research capabilities by integrating
  * the GPT Researcher library for production-ready research mode.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { GawinResponseFormatter } from '@/lib/formatters/gawinResponseFormatter';
 
 interface GPTResearchRequest {
   query: string;
@@ -175,54 +176,31 @@ RESEARCH REQUIREMENTS:
 - Use your knowledge to provide detailed, accurate information
 - Avoid generic template language - be specific and informative
 
-FORMATTING REQUIREMENTS (MANDATORY):
-Use this EXACT format with proper spacing:
+${GawinResponseFormatter.getFormattingInstructions()}
 
-**1. Research Overview**
+Research Report Structure for "${query}" (${reportType.replace('_', ' ')}):
 
-─ Topic: ${query}
+# Research Report: ${query}
 
-─ Research type: ${reportType.replace('_', ' ')}
+## Executive Summary
+Brief overview of key findings and insights.
 
-─ Scope: Comprehensive analysis with real data and facts
+## Introduction
+Background information and research objectives.
 
+## Methods
+Research approach and methodology.
 
-**2. Executive Summary**
+## Results
+Key findings with specific data and statistics.
 
-∴ [Write 3-4 specific bullet points about key aspects of this topic with real information]
+## Discussion
+Analysis and interpretation of results.
 
+## References
+Sources and citations used in research.
 
-**3. Key Findings**
-
-• [List 4-5 specific, factual findings about this topic with real details]
-
-
-**4. Detailed Analysis**
-
-→ Background: [Real background information with specific details]
-
-→ Current State: [Current status with actual facts, numbers, trends]
-
-→ Key Players: [Real organizations, institutions, or key figures involved]
-
-→ Recent Developments: [Actual recent developments with timeframes]
-
-
-**5. Evidence and Data**
-
-! [Real statistics or data points if available]
-
-※ [Important considerations or limitations to note]
-
-
-**6. Practical Applications**
-
-◦ [Real-world applications and examples]
-
-
-**7. Future Outlook**
-
-∎ [Realistic predictions based on current trends and data]
+Please follow the formatting guidelines above and provide comprehensive, well-structured research on this topic.
 
 CRITICAL: Provide REAL, SPECIFIC information. Do not use generic template language. Include actual facts, figures, and concrete details about ${query}.`;
 
@@ -249,7 +227,10 @@ CRITICAL: Provide REAL, SPECIFIC information. Do not use generic template langua
     const data = await response.json();
     const researchContent = data.choices[0].message.content;
 
-    return researchContent;
+    // Apply comprehensive formatting to research content
+    const formattedContent = GawinResponseFormatter.formatResponse(researchContent);
+
+    return formattedContent;
 
   } catch (error) {
     console.error('Real research generation failed:', error);
@@ -262,110 +243,76 @@ CRITICAL: Provide REAL, SPECIFIC information. Do not use generic template langua
  * Generate basic real research as fallback
  */
 async function generateBasicRealResearch(query: string, reportType: string): Promise<string> {
-  const report = `**1. Research Overview**
+  const report = `# Research Report: ${query}
 
-─ Topic: ${query}
+## Executive Summary
+This analysis examines ${query} using current knowledge and established information. Research includes factual data and real-world context where available, with findings based on credible sources and documented information.
 
-─ Research type: ${reportType.replace('_', ' ')}
+## Introduction
+This ${reportType.replace('_', ' ')} provides a comprehensive analysis of ${query}, examining key aspects and implications.
 
-─ Status: Real research analysis based on available knowledge
-
-
-**2. Executive Summary**
-
-∴ This analysis examines ${query} using current knowledge and established information
-
-∴ Research includes factual data and real-world context where available
-
-∴ Findings based on credible sources and documented information
+## Key Research Areas
+- Definition and scope of ${query}
+- Current state and recent developments
+- Key stakeholders and organizations involved
+- Practical applications and real-world impact
+- Future trends and emerging considerations
 
 
-**3. Key Research Areas**
+## Analysis Framework
+- **Literature Review:** Analysis of documented information and established knowledge
+- **Current Status:** Present-day situation and relevant statistics
+- **Key Players:** Real organizations and institutions involved
+- **Practical Impact:** Actual applications and measurable outcomes
 
-• Definition and scope of ${query}
+## Research Considerations
+Information based on established knowledge and documented sources. Specific recent data may require real-time access to specialized databases. Recommendations for accessing current research through academic databases are provided.
 
-• Current state and recent developments
+## Practical Applications
+- Real-world uses and implementation examples
+- Industry applications and case studies
+- Policy implications and regulatory considerations
 
-• Key stakeholders and organizations involved
+## Research Conclusions
+Analysis provides factual foundation for understanding ${query}. Further investigation is recommended using specialized research databases. Topic demonstrates significant relevance for continued study.`;
 
-• Practical applications and real-world impact
-
-• Future trends and emerging considerations
-
-
-**4. Analysis Framework**
-
-→ Literature Review: Analysis of documented information and established knowledge
-
-→ Current Status: Present-day situation and relevant statistics
-
-→ Key Players: Real organizations and institutions involved
-
-→ Practical Impact: Actual applications and measurable outcomes
-
-
-**5. Research Considerations**
-
-! Information based on established knowledge and documented sources
-
-※ Specific recent data may require real-time access to specialized databases
-
-※ Recommendations for accessing current research through academic databases
-
-
-**6. Practical Applications**
-
-◦ Real-world uses and implementation examples
-
-◦ Industry applications and case studies
-
-◦ Policy implications and regulatory considerations
-
-
-**7. Research Conclusions**
-
-∎ Analysis provides factual foundation for understanding ${query}
-
-∎ Further investigation recommended using specialized research databases
-
-∎ Topic demonstrates significant relevance for continued study`;
-
-  return report;
+  // Apply comprehensive formatting to fallback research
+  const formattedReport = GawinResponseFormatter.formatResponse(report);
+  return formattedReport;
 }
 
 /**
  * Generate fallback response when research fails
  */
 function generateFallbackResponse(request: GPTResearchRequest): GPTResearchResult {
-  return {
-    query: request.query,
-    report: `**Research Report: ${request.query}**
+  const basicReport = `# Research Report: ${request.query}
 
 Unfortunately, detailed research is temporarily unavailable. However, here's a structured approach to researching this topic:
 
-**1. Research Overview**
+## Research Overview
+Topic requires comprehensive multi-source analysis for thorough understanding.
 
-─ Topic requires comprehensive multi-source analysis
+## Recommended Approach
+- Check academic databases for peer-reviewed papers
+- Review government and institutional reports
+- Consult expert opinions and professional analyses
 
-**2. Recommended Approach**
+## Next Steps
+- Try the research function again later
+- Use alternative research methods if needed`;
 
-• Check academic databases for peer-reviewed papers
+  // Apply comprehensive formatting to fallback response
+  const formattedReport = GawinResponseFormatter.formatResponse(basicReport);
 
-• Review government and institutional reports
-
-• Consult expert opinions and professional analyses
-
-**3. Next Steps**
-
-→ Try the research function again later
-
-→ Use alternative research methods if needed`,
+  return {
+    query: request.query,
+    report: formattedReport,
     sources: [],
     images: [],
     metadata: {
       totalSources: 0,
       processingTime: 0,
-      reportLength: 0,
+      reportLength: formattedReport.length,
       researcher: "gpt-researcher"
     }
   };
