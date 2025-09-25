@@ -317,10 +317,10 @@ const ErrorRecoveryUI: React.FC<ErrorRecoveryUIProps> = ({
   }
 
   return React.createElement('div', {
-    className: 'min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center p-4',
-    children: React.createElement('div', {
-      className: 'bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center',
-      children: [
+    className: 'min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center p-4'
+  }, React.createElement('div', {
+    className: 'bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center'
+  }, [
         // Error Icon
         React.createElement('div', {
           className: 'w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4',
