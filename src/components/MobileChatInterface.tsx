@@ -23,8 +23,6 @@ import { MiniatureCube } from './MiniatureCube';
 import PremiumFeatureGate from './PremiumFeatureGate';
 import { userPermissionService } from '../lib/services/userPermissionService';
 import { tagalogSpeechAnalysisService } from '../lib/services/tagalogSpeechAnalysisService';
-import { useTheme } from '@/contexts/ThemeContext';
-import { CompactThemeToggle } from './ThemeToggle';
 
 // Screen Share Component
 const ScreenShareButton: React.FC = () => {
@@ -78,7 +76,7 @@ const ScreenShareButton: React.FC = () => {
         w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center
         transition-all duration-200
         ${isScreenSharing
-          ? 'bg-blue-600 text-white shadow-lg'
+          ? 'bg-teal-600 text-white shadow-lg'
           : 'bg-gray-700/50 text-gray-400 hover:bg-gray-600/60 hover:text-gray-300'
         }
         ${!isSupported ? 'opacity-50 cursor-not-allowed' : ''}
@@ -169,8 +167,6 @@ interface MobileChatInterfaceProps {
 
 
 export default function MobileChatInterface({ user, onLogout, onBackToLanding }: MobileChatInterfaceProps) {
-  // Theme context
-  const { theme, isDark, isLight } = useTheme();
 
   // User permissions and access control
   const userPermissions = userPermissionService.getFeaturePermissions();
@@ -2260,7 +2256,7 @@ Format your response according to the content type requested.`;
                     id="quiz-topic"
                     type="text"
                     placeholder="e.g., Quantum Physics, World History, Calculus, Biology, Literature..."
-                    className="w-full px-6 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 transition-all"
+                    className="w-full px-6 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400/50 transition-all"
                   />
                   <p className="text-gray-400 text-sm mt-2">Enter any academic subject from elementary to university level</p>
                 </div>
@@ -2322,7 +2318,7 @@ Format your response according to the content type requested.`;
                           defaultChecked={level.value === 'secondary'}
                           className="sr-only peer"
                         />
-                        <div className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-center text-white transition-all hover:bg-white/20 peer-checked:bg-blue-500/30 peer-checked:border-blue-400/50">
+                        <div className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-center text-white transition-all hover:bg-white/20 peer-checked:bg-teal-500/30 peer-checked:border-teal-400/50">
                           {level.label}
                         </div>
                       </label>
@@ -2652,7 +2648,7 @@ Level: ${level}`
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-mono text-blue-400 font-semibold">
+                  <div className="text-2xl font-mono text-teal-400 font-semibold">
                     {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
                   </div>
                   <p className="text-gray-400 text-sm">Time Left</p>
@@ -2700,14 +2696,14 @@ Level: ${level}`
                       }}
                       className={`w-full p-4 text-left rounded-xl border transition-all duration-200 group hover:scale-[1.01] ${
                         userAnswers[currentQuestion] === index
-                          ? 'bg-blue-500/20 border-blue-400/50 text-white shadow-md'
+                          ? 'bg-teal-500/20 border-teal-400/50 text-white shadow-md'
                           : 'bg-white/5 border-white/20 text-gray-300 hover:bg-white/10 hover:border-white/30'
                       }`}
                     >
                       <div className="flex items-start gap-3">
                         <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
                           userAnswers[currentQuestion] === index
-                            ? 'bg-blue-500 text-white'
+                            ? 'bg-teal-500 text-white'
                             : 'bg-white/10 text-gray-400 group-hover:bg-white/20'
                         }`}>
                           {String.fromCharCode(65 + index)}
@@ -2880,8 +2876,8 @@ Level: ${level}`
         <div className="bg-gray-800/50 rounded-2xl p-4 border border-gray-700/50">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center">
-                <span className="text-blue-400 text-lg">📍</span>
+              <div className="w-10 h-10 bg-teal-500/20 rounded-xl flex items-center justify-center">
+                <span className="text-teal-400 text-lg">📍</span>
               </div>
               <div>
                 <h3 className="text-white font-medium">Location Services</h3>
@@ -2903,7 +2899,7 @@ Level: ${level}`
                   className="sr-only"
                 />
                 <div className={`w-12 h-6 rounded-full transition-colors ${
-                  userLocation ? 'bg-blue-600' : 'bg-gray-600'
+                  userLocation ? 'bg-teal-600' : 'bg-gray-600'
                 }`}>
                   <div className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${
                     userLocation ? 'translate-x-6' : 'translate-x-0.5'
@@ -2941,7 +2937,7 @@ Level: ${level}`
                 <button
                   onClick={handleRefreshLocation}
                   disabled={locationStatus === 'detecting'}
-                  className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white text-sm rounded-lg transition-colors"
+                  className="flex-1 px-3 py-2 bg-teal-600 hover:bg-teal-700 disabled:bg-gray-600 text-white text-sm rounded-lg transition-colors"
                 >
                   {locationStatus === 'detecting' ? 'Refreshing...' : '🔄 Refresh'}
                 </button>
@@ -3090,14 +3086,14 @@ Level: ${level}`
         </div>
 
         {/* Privacy Notice */}
-        <div className="bg-blue-900/20 border border-blue-700/50 rounded-2xl p-4">
+        <div className="bg-teal-900/20 border border-teal-700/50 rounded-2xl p-4">
           <div className="flex items-start space-x-3">
-            <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-              <span className="text-blue-400 text-lg">🔒</span>
+            <div className="w-8 h-8 bg-teal-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <span className="text-teal-400 text-lg">🔒</span>
             </div>
             <div>
-              <h3 className="text-blue-100 font-medium mb-2">Privacy First</h3>
-              <p className="text-blue-200 text-sm leading-relaxed">
+              <h3 className="text-teal-100 font-medium mb-2">Privacy First</h3>
+              <p className="text-teal-200 text-sm leading-relaxed">
                 Your privacy is our priority. All data processing happens locally on your device when possible.
                 Location data is used only for providing relevant local context and is never shared with third parties.
                 You can disable any permission at any time.
@@ -3112,12 +3108,8 @@ Level: ${level}`
 
   const renderChatContent = () => (
     <div className="flex flex-col h-full relative">
-      {/* Additional theme-aware transparency layer to show video silhouette */}
-      <div className={`absolute inset-0 z-0 transition-all duration-300 ${
-        isLight
-          ? 'bg-white/10'
-          : 'bg-black/20'
-      }`} />
+      {/* Background transparency layer */}
+      <div className="absolute inset-0 z-0 bg-black/20" />
       <div 
         ref={chatContainerRef}
         className="flex-1 overflow-y-auto px-4 py-4 space-y-4 relative z-10"
@@ -3231,10 +3223,10 @@ Level: ${level}`
                 exit={{ opacity: 0, y: -10 }}
                 className="flex justify-end"
               >
-                <div className="max-w-[85%] px-5 py-4 bg-gradient-to-br from-blue-600/60 to-blue-700/60 rounded-3xl rounded-br-lg shadow-lg ring-1 ring-blue-400/30 min-h-[60px] flex flex-col justify-center backdrop-blur-sm border border-blue-400/20">
+                <div className="max-w-[85%] px-5 py-4 bg-gradient-to-br from-blue-600/60 to-blue-700/60 rounded-3xl rounded-br-lg shadow-lg ring-1 ring-blue-400/30 min-h-[60px] flex flex-col justify-center backdrop-blur-sm border border-teal-400/20">
                   <div className="flex items-center space-x-2 mb-2">
                     <div className="w-2 h-2 bg-blue-300 rounded-full animate-pulse"></div>
-                    <span className="text-blue-100 text-xs font-medium">Listening...</span>
+                    <span className="text-teal-100 text-xs font-medium">Listening...</span>
                   </div>
                   <div className="text-white/90 text-sm italic">
                     "{currentVoiceTranscript}"
@@ -3300,12 +3292,8 @@ Level: ${level}`
         <div className="absolute inset-0 bg-gray-900"></div>
       </video>
       
-      {/* Theme-aware overlay for readability while showing background */}
-      <div className={`absolute inset-0 z-10 transition-all duration-300 ${
-        isLight
-          ? 'bg-white/20 backdrop-blur-[1px]'
-          : 'bg-black/50'
-      }`}></div>
+      {/* Overlay for readability while showing background */}
+      <div className="absolute inset-0 z-10 bg-black/50"></div>
       
       {/* Main App Content with transparency */}
       <div className="relative z-20 h-full flex flex-col">
@@ -3364,8 +3352,8 @@ Level: ${level}`
               ${optimizationConfig?.compactMode ? 'text-xs' : 'text-sm'} 
               font-medium transition-all flex-shrink-0
               ${isMenuOpen
-                ? 'theme-accent-bg text-white shadow-lg backdrop-blur-sm'
-                : 'theme-bg-primary theme-text-secondary hover:theme-bg-secondary backdrop-blur-sm'
+                ? 'bg-teal-600 text-white shadow-lg backdrop-blur-sm'
+                : 'bg-gray-800/90 text-gray-200 hover:bg-gray-700/90 backdrop-blur-sm'
               }
             `}
           >
@@ -3391,8 +3379,8 @@ Level: ${level}`
                   ${optimizationConfig?.compactMode ? 'text-xs' : 'text-sm'} 
                   font-medium transition-all flex-shrink-0
                   ${tab.isActive
-                    ? 'theme-accent-bg text-white shadow-lg backdrop-blur-sm'
-                    : 'theme-bg-primary theme-text-secondary hover:theme-bg-secondary backdrop-blur-sm'
+                    ? 'bg-teal-600 text-white shadow-lg backdrop-blur-sm'
+                    : 'bg-gray-800/90 text-gray-200 hover:bg-gray-700/90 backdrop-blur-sm'
                   }
                 `}
               >
@@ -3714,16 +3702,15 @@ Level: ${level}`
                     <span className="text-white text-lg font-bold">G</span>
                   </div>
                   <div>
-                    <h1 className="text-xl theme-text-primary font-medium">Gawin AI</h1>
-                    <p className="text-sm theme-text-muted">Your Learning Assistant</p>
+                    <h1 className="text-xl text-white font-medium">Gawin AI</h1>
+                    <p className="text-sm text-gray-300">Your Learning Assistant</p>
                   </div>
                 </div>
 
                 {/* Theme Toggle */}
-                <CompactThemeToggle className="flex-shrink-0" />
               </div>
               
-              <div className="p-4 theme-bg-secondary rounded-2xl theme-border border">
+              <div className="p-4 bg-gray-800/90 rounded-2xl border border-gray-700">
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-gradient-to-br from-teal-600 to-teal-700 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-medium">
@@ -3731,8 +3718,8 @@ Level: ${level}`
                     </span>
                   </div>
                   <div>
-                    <p className="theme-text-primary font-medium text-sm">{user.full_name || 'User'}</p>
-                    <p className="theme-text-muted text-xs">{user.email}</p>
+                    <p className="text-white font-medium text-sm">{user.full_name || 'User'}</p>
+                    <p className="text-gray-300 text-xs">{user.email}</p>
                   </div>
                 </div>
               </div>
@@ -3769,12 +3756,12 @@ Level: ${level}`
                   }}
                   className="w-full flex items-center space-x-3 p-3 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 transition-colors"
                 >
-                  <div className="flex-shrink-0 w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                    <span className="text-blue-400 text-lg">🔒</span>
+                  <div className="flex-shrink-0 w-8 h-8 bg-teal-500/20 rounded-lg flex items-center justify-center">
+                    <span className="text-teal-400 text-lg">🔒</span>
                   </div>
                   <div className="text-left">
                     <div className="text-white font-medium">Privacy Dashboard</div>
-                    <div className="text-blue-300 text-xs">Control your data & location</div>
+                    <div className="text-teal-300 text-xs">Control your data & location</div>
                   </div>
                 </button>
               </div>
@@ -3841,7 +3828,7 @@ Level: ${level}`
                     {item.allowed || isCreator ? (
                       <button
                         onClick={() => createNewTab(item.type)}
-                        className="w-full p-3 text-left hover:bg-gray-800/50 rounded-lg transition-colors flex items-center space-x-3 text-gray-300 hover:text-white"
+                        className="w-full p-3 text-left hover:bg-teal-600/20 rounded-lg transition-colors flex items-center space-x-3 text-gray-300 hover:text-teal-200"
                       >
                         <span className="text-lg flex items-center">{item.icon}</span>
                         <span className="font-medium">{item.label}</span>
