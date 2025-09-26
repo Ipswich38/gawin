@@ -11,7 +11,7 @@ interface ResearchModeProps {
 }
 
 const ResearchMode: React.FC<ResearchModeProps> = ({ onResearchComplete }) => {
-  const [researchStyle, setResearchStyle] = useState<'classic' | 'academic'>('academic');
+  const [researchStyle, setResearchStyle] = useState<'classic' | 'academic'>('classic');
 
   if (researchStyle === 'academic') {
     return <AnswerThisStyleResearch onResearchComplete={onResearchComplete} />;
