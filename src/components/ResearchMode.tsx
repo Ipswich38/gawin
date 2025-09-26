@@ -13,10 +13,6 @@ interface ResearchModeProps {
 const ResearchMode: React.FC<ResearchModeProps> = ({ onResearchComplete }) => {
   const [researchStyle, setResearchStyle] = useState<'classic' | 'academic'>('classic');
 
-  if (researchStyle === 'academic') {
-    return <AnswerThisStyleResearch onResearchComplete={onResearchComplete} />;
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Research Style Selector */}
@@ -72,8 +68,12 @@ const ResearchMode: React.FC<ResearchModeProps> = ({ onResearchComplete }) => {
         </div>
       </div>
 
-      {/* Classic Research Interface */}
-      <IntelligentResearchInterface onResearchComplete={onResearchComplete} />
+      {/* Conditional Research Interface */}
+      {researchStyle === 'academic' ? (
+        <AnswerThisStyleResearch onResearchComplete={onResearchComplete} />
+      ) : (
+        <IntelligentResearchInterface onResearchComplete={onResearchComplete} />
+      )}
     </div>
   );
 };
