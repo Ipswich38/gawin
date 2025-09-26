@@ -151,6 +151,10 @@ class EnhancedVoiceService {
         throw new Error('ElevenLabs service not available');
       }
 
+      // Add timeout to prevent hanging
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
       const response = await fetch('/api/elevenlabs/tts', {
         method: 'POST',
         headers: {
@@ -161,7 +165,10 @@ class EnhancedVoiceService {
           voiceSettings: this.getElevenLabsVoiceSettings(emotion),
           outputFormat: 'mp3_44100_128'
         }),
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         if (response.status === 402 || response.status === 429) {
@@ -175,7 +182,18 @@ class EnhancedVoiceService {
       const audioData = await response.arrayBuffer();
       return this.playAudioBuffer(audioData);
     } catch (error) {
-      console.error('ElevenLabs synthesis failed:', error);
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          console.warn('⏱️ ElevenLabs request timed out, using fallback voice');
+          // Disable ElevenLabs temporarily
+          this.isElevenLabsEnabled = false;
+          setTimeout(() => {
+            this.isElevenLabsEnabled = true;
+          }, 30000); // Re-enable after 30 seconds
+        } else {
+          console.error('❌ ElevenLabs synthesis failed:', error.message);
+        }
+      }
       return false;
     }
   }

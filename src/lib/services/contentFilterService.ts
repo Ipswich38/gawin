@@ -46,36 +46,31 @@ class ContentFilterService {
 
   // Filipino/Tagalog profanity and curse words
   private filipinoProfanity = [
-    // Strong profanity
+    // Only Strong profanity (removing moderate terms that are too common)
     'putang ina', 'putangina', 'puta', 'gago', 'gaga',
-    'tangina', 'tanginamo', 'kingina', 'leche',
-    'peste', 'bwisit', 'hudas', 'ulol', 'bobo',
-    'tanga', 'kupal', 'hinayupak', 'hayup',
-    'pokpok', 'malandi', 'pokpok', 'saging',
+    'tangina', 'tanginamo', 'kingina',
+    'hinayupak', 'hayup', 'pokpok',
 
-    // Moderate profanity
-    'shit', 'fuck', 'damn', 'hell', 'crap',
-    'bitch', 'asshole', 'dick', 'pussy',
+    // Strong English profanity only
+    'fuck', 'bitch', 'asshole'
 
-    // Religious profanity
-    'susmariosep', 'jusko', 'diyos ko', 'santo nino'
+    // Removed common words like 'shit', 'damn', 'hell', 'crap' - too restrictive
+    // Removed religious terms - not appropriate to filter
   ];
 
-  // English sexual content (comprehensive)
+  // English sexual content (reduced to avoid over-filtering)
   private englishSexualTerms = [
-    // Anatomy
-    'penis', 'vagina', 'breast', 'nipple', 'clitoris',
-    'labia', 'scrotum', 'testicles', 'anus', 'buttocks',
-    'dick', 'cock', 'pussy', 'tits', 'ass', 'boobs',
+    // Explicit anatomy only
+    'dick', 'cock', 'pussy', 'tits',
 
-    // Acts
-    'sex', 'intercourse', 'masturbation', 'oral sex',
-    'anal sex', 'foreplay', 'orgasm', 'climax',
-    'fuck', 'screw', 'bang', 'nail', 'pound',
+    // Explicit acts only
+    'oral sex', 'anal sex', 'masturbation',
 
-    // Slang
-    'horny', 'wet', 'hard', 'cum', 'jizz', 'sperm',
-    'blow job', 'hand job', 'finger', 'lick', 'suck'
+    // Explicit slang only
+    'cum', 'jizz', 'blow job', 'hand job'
+
+    // Removed common words that have legitimate uses:
+    // 'sex', 'hard', 'finger', 'lick', 'suck', 'wet', 'ass' etc.
   ];
 
   // Academic/medical context keywords

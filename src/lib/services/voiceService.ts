@@ -34,9 +34,9 @@ class VoiceService {
     enabled: false,
     autoSpeak: true,
     voice: null,
-    rate: 1.1, // More natural conversational pacing (160-180 WPM equivalent)
-    pitch: 1.05, // Slightly higher for more youthful, less robotic sound
-    volume: 0.85, // Slightly lower for more natural speaking volume
+    rate: 0.9, // Slower rate for more natural, friendly conversation (140-160 WPM)
+    pitch: 0.95, // Lower pitch for more natural, less artificial sound
+    volume: 0.8, // Natural speaking volume
     language: 'en-US'
   };
 
