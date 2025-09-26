@@ -3618,21 +3618,19 @@ Level: ${level}`
                       </div>
                     </div>
 
-                    {/* Right Side: 3D Cube or Send Button based on input state */}
+                    {/* Right Side: Send Button or Voice Controls */}
                     <div className="relative flex items-center justify-center">
                       {!inputValue.trim() && !activeTab.isLoading ? (
-                        /* 3D Cube when not typing */
-                        <div className="relative touch-manipulation">
-                          <div className="relative bg-gradient-to-br from-teal-600/20 to-cyan-600/20 p-1 rounded-xl border border-teal-500/30">
-                            <MiniatureCube
-                              isActive={showVoiceModePopup}
-                              size={48}
-                              onClick={() => setShowVoiceModePopup(true)}
-                            />
-                          </div>
-                          {/* Glowing ring for emphasis */}
-                          <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-teal-500/20 to-cyan-500/20 blur-sm animate-pulse pointer-events-none"></div>
-                        </div>
+                        /* Voice Button when not typing */
+                        <button
+                          onClick={() => setShowVoiceModePopup(true)}
+                          className="w-12 h-12 bg-gradient-to-br from-teal-600/20 to-cyan-600/20 border border-teal-500/30 rounded-xl flex items-center justify-center hover:from-teal-600/30 hover:to-cyan-600/30 transition-all duration-200 touch-manipulation"
+                          title="Voice Mode"
+                        >
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-teal-400">
+                            <path d="M12 2c1.1 0 2 .9 2 2v6c0 1.1-.9 2-2 2s-2-.9-2-2V4c0-1.1.9-2 2-2zm5.3 4.65c.63 0 1.15.51 1.15 1.15 0 2.69-1.25 5.08-3.18 6.65C14.17 15.45 13.11 16 12 16s-2.17-.55-3.27-1.55C6.8 12.88 5.55 10.49 5.55 7.8c0-.64.52-1.15 1.15-1.15s1.15.51 1.15 1.15c0 1.83.79 3.47 2.04 4.62.39.36.84.58 1.11.58s.72-.22 1.11-.58c1.25-1.15 2.04-2.79 2.04-4.62 0-.64.52-1.15 1.15-1.15zM12 17.35c2.48 0 4.5-2.02 4.5-4.5v-.5c0-.28-.22-.5-.5-.5s-.5.22-.5.5v.5c0 1.93-1.57 3.5-3.5 3.5s-3.5-1.57-3.5-3.5v-.5c0-.28-.22-.5-.5-.5s-.5.22-.5.5v.5c0 2.48 2.02 4.5 4.5 4.5z"/>
+                          </svg>
+                        </button>
                       ) : (
                         /* Send Button when typing or loading */
                         <button
@@ -3763,6 +3761,33 @@ Level: ${level}`
                   <div className="text-left">
                     <div className="text-white font-medium">Privacy Dashboard</div>
                     <div className="text-teal-300 text-xs">Control your data & location</div>
+                  </div>
+                </button>
+              </div>
+
+              {/* AI System Controls */}
+              <div className="space-y-3">
+                <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wide">AI Controls</h3>
+                <button
+                  onClick={() => {
+                    setShowVoiceModePopup(true);
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full flex items-center space-x-3 p-3 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 transition-colors"
+                >
+                  <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-teal-600/20 to-cyan-600/20 border border-teal-500/30 rounded-lg flex items-center justify-center">
+                    <MiniatureCube
+                      isActive={showVoiceModePopup}
+                      size={32}
+                      onClick={() => {
+                        setShowVoiceModePopup(true);
+                        setIsMenuOpen(false);
+                      }}
+                    />
+                  </div>
+                  <div className="text-left">
+                    <div className="text-white font-medium">Voice Mode</div>
+                    <div className="text-teal-300 text-xs">Immersive voice interaction</div>
                   </div>
                 </button>
               </div>
