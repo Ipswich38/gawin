@@ -205,11 +205,15 @@ class AcademicResearchService {
     `;
 
     try {
-      const response = await groqService.generateResponse([
-        { role: 'user', content: searchPrompt }
-      ]);
+      const response = await groqService.createChatCompletion({
+        messages: [{ role: 'user', content: searchPrompt }]
+      });
 
-      const papersData = JSON.parse(response);
+      if (!response.success || !response.choices?.[0]?.message?.content) {
+        throw new Error('Failed to get response from AI service');
+      }
+
+      const papersData = JSON.parse(response.choices[0].message.content);
 
       return papersData.papers.map((paper: any, index: number) => ({
         id: `paper_${index + 1}`,
@@ -291,11 +295,15 @@ class AcademicResearchService {
     `;
 
     try {
-      const response = await groqService.generateResponse([
-        { role: 'user', content: reviewPrompt }
-      ]);
+      const response = await groqService.createChatCompletion({
+        messages: [{ role: 'user', content: reviewPrompt }]
+      });
 
-      const reviewData = JSON.parse(response);
+      if (!response.success || !response.choices?.[0]?.message?.content) {
+        throw new Error('Failed to get response from AI service');
+      }
+
+      const reviewData = JSON.parse(response.choices[0].message.content);
 
       // Generate citations
       const citations = this.generateCitations(papers, citationStyle);
