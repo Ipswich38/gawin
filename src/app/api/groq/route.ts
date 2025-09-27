@@ -124,7 +124,13 @@ async function generateSmartEducationalResponse(userMessage: string, conversatio
   }
   
   // Natural conversation handling with contextual awareness - only for actual greetings
-  if (/^(hello|hi|hey|good\s+(morning|afternoon|evening)|kumusta|hi\s+there|hey\s+there)[\s\W]*$/i.test(lowerMessage)) {
+  // Log for debugging
+  console.log('🔍 Debugging message:', { userMessage, lowerMessage, length: lowerMessage.length });
+
+  const isActualGreeting = /^(hello[\s\W]*|hi[\s\W]*|hey[\s\W]*|good\s+(morning|afternoon|evening)[\s\W]*|kumusta[\s\W]*)$/i.test(lowerMessage);
+  console.log('🎯 Is actual greeting:', isActualGreeting);
+
+  if (isActualGreeting) {
     const conversationContext: ConversationContext = {
       userMessage: userMessage,
       previousMessages: [], // This should be populated from actual conversation history
