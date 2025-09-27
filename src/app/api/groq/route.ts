@@ -123,8 +123,8 @@ async function generateSmartEducationalResponse(userMessage: string, conversatio
     return generateStudyHelpResponse(lowerMessage, hasConversationHistory, context);
   }
   
-  // Natural conversation handling with contextual awareness
-  if (/\b(hello|hi|hey|good|morning|afternoon|evening|kumusta)\b/i.test(lowerMessage) || lowerMessage.length < 15) {
+  // Natural conversation handling with contextual awareness - only for actual greetings
+  if (/^(hello|hi|hey|good\s+(morning|afternoon|evening)|kumusta|hi\s+there|hey\s+there)[\s\W]*$/i.test(lowerMessage)) {
     const conversationContext: ConversationContext = {
       userMessage: userMessage,
       previousMessages: [], // This should be populated from actual conversation history
