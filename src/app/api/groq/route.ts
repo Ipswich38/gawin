@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { groqService, GroqRequest, GroqMessage } from '@/lib/services/groqService';
-import { huggingFaceService } from '@/lib/services/huggingFaceService';
-import { deepseekService } from '@/lib/services/deepseekService';
 import { validationService } from '@/lib/services/validationService';
 import { responseFilterService } from '@/lib/services/responseFilterService';
 import { contentFilterService } from '@/lib/services/contentFilterService';
@@ -560,142 +558,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(groqResult);
     }
 
-    // If Groq fails, try HuggingFace as intelligent fallback
-    console.log(`🔄 Groq primary failed: ${groqResult.error}, trying HuggingFace AI fallback...`);
-    
-    try {
-      // Convert multimodal content to text for HuggingFace fallback
-      const textOnlyMessages = body.messages.map(msg => ({
-        ...msg,
-        content: typeof msg.content === 'string' 
-          ? msg.content 
-          : Array.isArray(msg.content)
-          ? msg.content.find(item => item.type === 'text')?.text || 'Please analyze the provided content.'
-          : String(msg.content)
-      }));
+    // If Groq fails, return proper error instead of fallbacks
+    console.log(`❌ Groq failed: ${groqResult.error}`);
+    console.log(`❌ Full Groq error details:`, groqResult);
 
-      // Try HuggingFace as an intelligent AI fallback
-      const hfResult = await huggingFaceService.createChatCompletion({
-        messages: textOnlyMessages,
-        action: 'chat',
-        temperature: body.temperature || 0.7,
-        max_tokens: body.max_tokens || 2048
-      });
-
-      if (hfResult.success) {
-        console.log('✅ HuggingFace AI fallback successful');
-        
-        // Filter HuggingFace response as well
-        let content = hfResult.data?.response || 'I understand your question and I\'m here to help you learn!';
-        const filteredResponse = responseFilterService.filterResponse(content);
-
-        if (filteredResponse.wasFiltered) {
-          console.log('🧹 HuggingFace response filtered:', {
-            originalLength: content.length,
-            filteredLength: filteredResponse.content.length,
-            filtersApplied: filteredResponse.filtersApplied
-          });
-        }
-
-        // Apply comprehensive formatting to HuggingFace response
-        const formattedContent = GawinResponseFormatter.formatResponse(filteredResponse.content);
-        
-        return NextResponse.json({
-          success: true,
-          choices: [{
-            message: {
-              role: 'assistant',
-              content: formattedContent
-            }
-          }],
-          model: 'HuggingFace-AI-Fallback',
-          usage: {
-            prompt_tokens: 0,
-            completion_tokens: 0,
-            total_tokens: 0
-          }
-        });
-      }
-
-      console.log(`🔄 HuggingFace fallback also failed: ${hfResult.error}, trying Groq DeepSeek...`);
-
-      // Try Groq's DeepSeek model as final AI fallback
-      const groqDeepSeekResult = await groqService.createChatCompletion({
-        ...body,
-        messages: textOnlyMessages,
-        action: 'deepseek'
-      });
-
-      if (groqDeepSeekResult.success) {
-        console.log('✅ Groq DeepSeek AI fallback successful');
-        
-        // Filter DeepSeek response as well
-        if (groqDeepSeekResult.choices?.[0]?.message?.content) {
-          const filteredResponse = responseFilterService.filterResponse(groqDeepSeekResult.choices[0].message.content);
-
-          if (filteredResponse.wasFiltered) {
-            console.log('🧹 DeepSeek response filtered:', {
-              originalLength: groqDeepSeekResult.choices[0].message.content.length,
-              filteredLength: filteredResponse.content.length,
-              filtersApplied: filteredResponse.filtersApplied
-            });
-          }
-
-          // Apply comprehensive formatting to DeepSeek response
-          const formattedContent = GawinResponseFormatter.formatResponse(filteredResponse.content);
-
-          groqDeepSeekResult.choices[0].message.content = formattedContent;
-        }
-        
-        return NextResponse.json(groqDeepSeekResult);
-      }
-      
-    } catch (fallbackError) {
-      console.error('AI fallback services failed:', fallbackError);
-    }
-    
-    // Final fallback: Smart educational responses with conversation context
-    console.log('🧠 Using intelligent educational fallback...');
-    console.log('🎯 FALLBACK DEBUG - Message:', messageContent);
-    console.log('🎯 FALLBACK DEBUG - Should catch physics/chemistry:', /\b(math|calculus|algebra|geometry|physics|chemistry|biology|science)\b/i.test(messageContent.toLowerCase()));
-
-    const finalUserMessage = body.messages[body.messages.length - 1];
-    
-    if (finalUserMessage?.role === 'user') {
-      const messageContent = typeof finalUserMessage.content === 'string' 
-        ? finalUserMessage.content 
-        : Array.isArray(finalUserMessage.content)
-        ? finalUserMessage.content.find(item => item.type === 'text')?.text || ''
-        : '';
-      
-      // Generate contextual educational response
-      const smartResponse = await generateSmartEducationalResponse(messageContent, body.messages);
-
-      // Apply comprehensive formatting to smart educational response
-      const formattedSmartResponse = GawinResponseFormatter.formatResponse(smartResponse);
-
-      return NextResponse.json({
-        success: true,
-        choices: [{
-          message: {
-            role: 'assistant',
-            content: formattedSmartResponse
-          }
-        }],
-        model: 'Gawin Smart Educational Assistant',
-        usage: {
-          prompt_tokens: messageContent.length,
-          completion_tokens: formattedSmartResponse.length,
-          total_tokens: messageContent.length + formattedSmartResponse.length
-        }
-      });
-    }
-    
-    // If all services fail, return error
     return NextResponse.json({
       success: false,
-      error: 'All AI services are currently unavailable',
-      details: `Primary: ${groqResult.error}`
+      error: 'Groq API is currently unavailable',
+      details: groqResult.error,
+      suggestion: 'Please check your Groq API key and try again'
     }, { status: 503 });
 
   } catch (error) {
@@ -714,31 +585,24 @@ export async function GET() {
   try {
     const groqModels = groqService.getAvailableModels();
     const groqHealth = await groqService.healthCheck();
-    
-    const hfModels = huggingFaceService.getAvailableModels();
-    const hfHealth = await huggingFaceService.healthCheck();
 
     return NextResponse.json({
       success: true,
       data: {
-        primary_service: 'Groq',
-        primary_models: groqModels,
-        primary_health: groqHealth,
-        fallback_service: 'HuggingFace',
-        fallback_models: hfModels,
-        fallback_health: hfHealth,
+        service: 'Groq',
+        models: groqModels,
+        health: groqHealth,
         features: [
           'Primary: Groq (Fast, Reliable)',
-          'Fallback: HuggingFace Pro (Specialized Models)',
-          'Final Fallback: Educational Responses',
-          'Image Generation: Kandinsky 3.0'
+          'Image Generation: Pollinations',
+          'MCP Integration: Available'
         ]
       }
     });
 
   } catch (error) {
     console.error('Health check error:', error);
-    
+
     return NextResponse.json({
       success: false,
       error: 'Health check failed',
