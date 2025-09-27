@@ -44,7 +44,6 @@ export class AIProviderUtils {
   ): Promise<AIResponse> {
     const endpoints: Record<string, string> = {
       groq: '/api/groq',
-      gemini: '/api/gemini',
       deepseek: '/api/deepseek',
       perplexity: '/api/perplexity'
     };
@@ -65,10 +64,6 @@ export class AIProviderUtils {
         body: JSON.stringify({
           ...request,
           // Provider-specific parameter mapping
-          ...(provider === 'gemini' && {
-            maxTokens: request.max_tokens,
-            userMessage: request.messages[request.messages.length - 1]?.content
-          }),
           ...(provider === 'groq' && {
             max_tokens: request.max_tokens || 1500
           }),
@@ -106,7 +101,6 @@ export class AIProviderUtils {
   static getDefaultModel(provider: string): string {
     const defaultModels: Record<string, string> = {
       groq: 'llama-3.3-70b-versatile',
-      gemini: 'gemini-1.5-flash',
       deepseek: 'deepseek-chat',
       perplexity: 'llama-3.1-sonar-small-128k-online'
     };
@@ -120,7 +114,6 @@ export class AIProviderUtils {
   static async checkProviderStatus(provider: string): Promise<boolean> {
     const endpoints: Record<string, string> = {
       groq: '/api/groq',
-      gemini: '/api/gemini',
       deepseek: '/api/deepseek',
       perplexity: '/api/perplexity'
     };
@@ -142,20 +135,8 @@ export class AIProviderUtils {
    * Format messages for a specific provider
    */
   static formatMessages(provider: string, messages: AIMessage[]): AIMessage[] {
-    switch (provider) {
-      case 'gemini':
-        // Gemini handles system messages differently
-        return messages.map(msg => ({
-          ...msg,
-          role: msg.role === 'system' ? 'user' as const : msg.role
-        }));
-
-      case 'groq':
-      case 'deepseek':
-      case 'perplexity':
-      default:
-        return messages;
-    }
+    // All supported providers use standard message format
+    return messages;
   }
 
   /**
@@ -164,7 +145,6 @@ export class AIProviderUtils {
   static getOptimalSettings(provider: string) {
     const settings: Record<string, { temperature: number; max_tokens: number }> = {
       groq: { temperature: 0.7, max_tokens: 1500 },
-      gemini: { temperature: 0.8, max_tokens: 2048 },
       deepseek: { temperature: 0.7, max_tokens: 1500 },
       perplexity: { temperature: 0.7, max_tokens: 1500 }
     };
@@ -177,11 +157,6 @@ export class AIProviderUtils {
    */
   static handleProviderError(provider: string, error: any): string {
     const errorMessages: Record<string, Record<string, string>> = {
-      gemini: {
-        'API key': 'Google AI API key is missing or invalid. Please check your GOOGLE_AI_API_KEY environment variable.',
-        'quota': 'Google AI quota exceeded. Please try again later.',
-        'safety': 'Content was filtered by Google AI safety settings.'
-      },
       groq: {
         'API key': 'Groq API key is missing or invalid.',
         'rate limit': 'Groq rate limit exceeded. Please try again later.'
@@ -215,7 +190,6 @@ export class AIProviderUtils {
   static getAvailableModels(provider: string): string[] {
     const models: Record<string, string[]> = {
       groq: ['llama-3.3-70b-versatile', 'llama-3.1-70b-versatile', 'llama3-groq-70b-8192-tool-use-preview'],
-      gemini: ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-1.0-pro'],
       deepseek: ['deepseek-chat', 'deepseek-coder'],
       perplexity: ['llama-3.1-sonar-small-128k-online', 'llama-3.1-sonar-large-128k-online']
     };

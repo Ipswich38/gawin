@@ -46,9 +46,9 @@ const AI_PROVIDERS: AIProvider[] = [
     endpoint: '/api/gemini',
     models: ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-1.0-pro'],
     defaultModel: 'gemini-1.5-flash',
-    description: 'Google\'s most capable AI model',
+    description: 'Google\'s most capable AI model (Disabled)',
     features: ['Excellent reasoning', 'Multimodal support', 'Large context window'],
-    isActive: true,
+    isActive: false,
     requiresApiKey: true
   },
   {

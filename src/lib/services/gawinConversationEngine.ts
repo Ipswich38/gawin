@@ -171,6 +171,17 @@ export class GawinConversationEngine {
    * Detect user intent
    */
   detectIntent(message: string): 'question' | 'request' | 'greeting' | 'casual' | 'appreciation' | 'statement' {
+    const lowerMessage = message.toLowerCase().trim();
+
+    // Check for greetings first with strict matching (must be short and mostly greeting words)
+    const greetingPattern = /^(hello|hi|hey|good\s+(morning|afternoon|evening)|kumusta|kamusta|hiya?)[\s\W]*$/i;
+    const isShortMessage = lowerMessage.length <= 20;
+    const isActualGreeting = greetingPattern.test(lowerMessage) && isShortMessage;
+
+    if (isActualGreeting) {
+      return 'greeting';
+    }
+
     const intents = {
       question: [
         'ano', 'paano', 'bakit', 'saan', 'kelan', 'sino', 'what', 'how', 'why', 'where',
@@ -178,11 +189,8 @@ export class GawinConversationEngine {
       ],
       request: [
         'please', 'paki', 'pwede', 'can you', 'gumawa', 'create', 'write', 'sulat',
-        'help', 'tulong', 'assist', 'gawin', 'do', 'make', 'pakigawa'
-      ],
-      greeting: [
-        'hi', 'hello', 'kumusta', 'kamusta', 'mabuti', 'good morning', 'good afternoon',
-        'good evening', 'magandang', 'umaga', 'hapon', 'gabi'
+        'help', 'tulong', 'assist', 'gawin', 'do', 'make', 'pakigawa', 'draw', 'code',
+        'research', 'analyze', 'explain', 'tell me', 'show me'
       ],
       casual: [
         'lang', 'naman', 'ba', 'diba', 'oo', 'yes', 'hindi', 'no', 'okay', 'ok',
@@ -194,8 +202,7 @@ export class GawinConversationEngine {
       ]
     };
 
-    const lowerMessage = message.toLowerCase();
-
+    // Check other intents (excluding greeting since we handled it above)
     for (const [intent, keywords] of Object.entries(intents)) {
       const hasKeyword = keywords.some(keyword =>
         lowerMessage.includes(keyword.toLowerCase())
@@ -555,7 +562,7 @@ Remember: You're not just answering questions, you're having a genuine conversat
   }
 
   /**
-   * Send message to Gemini with Grade A Neural Optimization
+   * Send message to Groq with Grade A Neural Optimization
    */
   async sendToGroq(userMessage: string, conversationHistory: any[] = []): Promise<EnhancedResponse> {
     // Grade A optimized conversation processing
@@ -626,14 +633,6 @@ Remember: You're not just answering questions, you're having a genuine conversat
     return this.sendToGroq(userMessage, conversationHistory);
   }
 
-  /**
-   * Legacy Gemini method - now redirects to Groq
-   * @deprecated Use sendToGroq or sendMessage instead
-   */
-  async sendToGemini(userMessage: string, conversationHistory: any[] = []): Promise<EnhancedResponse> {
-    console.warn('⚠️ sendToGemini is deprecated. Using Groq instead.');
-    return this.sendToGroq(userMessage, conversationHistory);
-  }
 
   /**
    * Calculate response confidence based on context alignment
