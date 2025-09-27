@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
         let content = '';
         if (Array.isArray(mcpResult.toolResults)) {
           content = mcpResult.toolResults
-            .map(result => result.type === 'text' ? result.text : '')
+            .map((result: any) => result.type === 'text' ? result.text : '')
             .join('\n')
             .trim();
         }
