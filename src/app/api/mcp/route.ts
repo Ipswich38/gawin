@@ -31,9 +31,6 @@ export async function POST(request: NextRequest) {
 
     console.log('🔌 MCP API Request:', messageContent.substring(0, 100) + '...');
 
-    // Initialize MCP service if not already done
-    await mcpClientService.initialize();
-
     // Content filtering (same as before)
     const contentFilter = contentFilterService.filterContent(messageContent);
     if (contentFilter.wasFiltered && contentFilter.filterResult.isBlocked) {
@@ -49,50 +46,63 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Try MCP chat completion first
-    console.log('🚀 Attempting MCP chat completion...');
-    const mcpResult = await mcpClientService.createChatCompletion(body.messages, {
-      model: 'llama-3.3-70b-versatile',
-      temperature: body.temperature || 0.7,
-      max_tokens: body.max_tokens || 1500
-    });
+    // Try MCP if available, but don't block on it
+    let mcpResult = null;
+    try {
+      console.log('🔌 Attempting MCP initialization (non-blocking)...');
+      await Promise.race([
+        mcpClientService.initialize(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('MCP timeout')), 2000))
+      ]);
 
-    if (mcpResult.success && mcpResult.toolResults) {
-      console.log('✅ MCP chat completion successful');
+      mcpResult = await Promise.race([
+        mcpClientService.createChatCompletion(body.messages, {
+          model: 'llama-3.3-70b-versatile',
+          temperature: body.temperature || 0.7,
+          max_tokens: body.max_tokens || 1500
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('MCP response timeout')), 3000))
+      ]) as any;
 
-      // Extract content from MCP response
-      let content = '';
-      if (Array.isArray(mcpResult.toolResults)) {
-        content = mcpResult.toolResults
-          .map(result => result.type === 'text' ? result.text : '')
-          .join('\n')
-          .trim();
-      }
+      if (mcpResult && mcpResult.success && mcpResult.toolResults) {
+        console.log('✅ MCP chat completion successful');
 
-      if (content) {
-        // Apply response filtering
-        const filteredResponse = responseFilterService.filterResponse(content);
+        // Extract content from MCP response
+        let content = '';
+        if (Array.isArray(mcpResult.toolResults)) {
+          content = mcpResult.toolResults
+            .map(result => result.type === 'text' ? result.text : '')
+            .join('\n')
+            .trim();
+        }
 
-        return NextResponse.json({
-          success: true,
-          choices: [{
-            message: {
-              role: 'assistant',
-              content: filteredResponse.content
+        if (content) {
+          // Apply response filtering
+          const filteredResponse = responseFilterService.filterResponse(content);
+
+          return NextResponse.json({
+            success: true,
+            choices: [{
+              message: {
+                role: 'assistant',
+                content: filteredResponse.content
+              }
+            }],
+            model: `MCP-${mcpResult.metadata?.server || 'unknown'}`,
+            usage: {
+              prompt_tokens: messageContent.length,
+              completion_tokens: filteredResponse.content.length,
+              total_tokens: messageContent.length + filteredResponse.content.length
             }
-          }],
-          model: `MCP-${mcpResult.metadata?.server || 'unknown'}`,
-          usage: {
-            prompt_tokens: messageContent.length,
-            completion_tokens: filteredResponse.content.length,
-            total_tokens: messageContent.length + filteredResponse.content.length
-          }
-        });
+          });
+        }
       }
+    } catch (mcpError) {
+      console.log('🔄 MCP not available or timed out, using direct API:', mcpError);
     }
 
-    // MCP failed, fall back to direct Groq API
-    console.log(`🔄 MCP failed: ${mcpResult.error}, falling back to Groq API...`);
+    // Primary path: Use direct Groq API (more reliable)
+    console.log('🚀 Using direct Groq API (primary method)...');
 
     const groqResult = await groqService.createChatCompletion(body);
 

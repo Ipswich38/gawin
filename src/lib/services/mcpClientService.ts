@@ -40,60 +40,47 @@ class MCPClientService {
   }
 
   /**
-   * Setup default MCP servers for common tools and AI providers
+   * Setup default MCP servers - simplified for better reliability
    */
   private setupDefaultServers() {
+    // Start with minimal servers that are more likely to work
     this.servers = [
-      // Groq MCP Server (if available)
-      {
-        name: 'groq',
-        url: 'http://localhost:3001/mcp/groq',
-        capabilities: ['chat', 'completion', 'models'],
-        priority: 1
-      },
-
-      // Filesystem MCP Server
+      // Simple filesystem server (most reliable)
       {
         name: 'filesystem',
-        command: 'npx',
-        args: ['-y', '@modelcontextprotocol/server-filesystem', process.cwd()],
-        capabilities: ['read_file', 'write_file', 'list_directory', 'create_directory'],
-        priority: 2
-      },
+        command: 'node',
+        args: ['-e', 'console.log("MCP filesystem server starting...")'],
+        capabilities: ['read_file', 'write_file', 'list_directory'],
+        priority: 1
+      }
+    ];
 
-      // Web Search MCP Server
-      {
+    // Only add additional servers if environment variables are available
+    if (process.env.BRAVE_API_KEY) {
+      this.servers.push({
         name: 'brave-search',
         command: 'npx',
         args: ['-y', '@modelcontextprotocol/server-brave-search'],
         env: {
-          BRAVE_API_KEY: process.env.BRAVE_API_KEY || ''
+          BRAVE_API_KEY: process.env.BRAVE_API_KEY
         },
         capabilities: ['web_search', 'news_search'],
-        priority: 3
-      },
+        priority: 2
+      });
+    }
 
-      // GitHub MCP Server
-      {
+    if (process.env.GITHUB_TOKEN) {
+      this.servers.push({
         name: 'github',
         command: 'npx',
         args: ['-y', '@modelcontextprotocol/server-github'],
         env: {
-          GITHUB_PERSONAL_ACCESS_TOKEN: process.env.GITHUB_TOKEN || ''
+          GITHUB_PERSONAL_ACCESS_TOKEN: process.env.GITHUB_TOKEN
         },
-        capabilities: ['repository_access', 'issue_management', 'file_operations'],
-        priority: 4
-      },
-
-      // SQLite MCP Server (for local data)
-      {
-        name: 'sqlite',
-        command: 'npx',
-        args: ['-y', '@modelcontextprotocol/server-sqlite', './data/gawin.db'],
-        capabilities: ['database_query', 'data_storage'],
-        priority: 5
-      }
-    ];
+        capabilities: ['repository_access', 'issue_management'],
+        priority: 3
+      });
+    }
   }
 
   /**

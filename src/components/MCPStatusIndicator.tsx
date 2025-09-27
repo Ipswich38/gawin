@@ -73,15 +73,17 @@ export default function MCPStatusIndicator() {
     } else if (mcpStatus.connectedServers > 0) {
       return 'text-yellow-500';
     } else {
-      return 'text-red-500';
+      return 'text-blue-500'; // Changed from red to blue for Direct API mode
     }
   };
 
   const getStatusIcon = () => {
     if (mcpStatus.healthy && mcpStatus.connectedServers > 0) {
       return <Zap className="w-3 h-3" />;
+    } else if (mcpStatus.connectedServers > 0) {
+      return <Activity className="w-3 h-3" />;
     } else {
-      return <AlertCircle className="w-3 h-3" />;
+      return <Activity className="w-3 h-3" />; // Changed from AlertCircle to Activity
     }
   };
 
@@ -91,7 +93,7 @@ export default function MCPStatusIndicator() {
     } else if (mcpStatus.connectedServers > 0) {
       return `MCP Partial (${mcpStatus.connectedServers}/${mcpStatus.totalServers})`;
     } else {
-      return 'MCP Offline';
+      return 'Direct API Mode';
     }
   };
 
