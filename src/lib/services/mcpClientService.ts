@@ -129,10 +129,28 @@ class MCPClientService {
       transport = new SSEClientTransport(new URL(server.url));
     } else if (server.command) {
       // Stdio transport for local processes
+      const envVars: Record<string, string> = {};
+
+      // Filter out undefined values from process.env
+      Object.entries(process.env).forEach(([key, value]) => {
+        if (value !== undefined) {
+          envVars[key] = value;
+        }
+      });
+
+      // Add server-specific environment variables
+      if (server.env) {
+        Object.entries(server.env).forEach(([key, value]) => {
+          if (value !== undefined) {
+            envVars[key] = value;
+          }
+        });
+      }
+
       transport = new StdioClientTransport({
         command: server.command,
         args: server.args || [],
-        env: { ...process.env, ...server.env }
+        env: envVars
       });
     } else {
       throw new Error(`Invalid server configuration for ${server.name}`);
@@ -195,7 +213,7 @@ class MCPClientService {
 
       return {
         success: true,
-        toolResults: result.content,
+        toolResults: Array.isArray(result.content) ? result.content : [result.content],
         metadata: {
           server: serverName,
           isError: result.isError
