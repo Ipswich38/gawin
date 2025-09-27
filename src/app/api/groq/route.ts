@@ -124,11 +124,11 @@ async function generateSmartEducationalResponse(userMessage: string, conversatio
   }
   
   // Natural conversation handling with contextual awareness - only for actual greetings
-  // Log for debugging
-  console.log('🔍 Debugging message:', { userMessage, lowerMessage, length: lowerMessage.length });
+  // More precise greeting detection - must be short and simple
+  const isActualGreeting = /^(hello|hi|hey|good\s+(morning|afternoon|evening)|kumusta|hiya?)[\s\W]*$/i.test(lowerMessage) &&
+                           lowerMessage.length <= 20; // Must be short like a real greeting
 
-  const isActualGreeting = /^(hello[\s\W]*|hi[\s\W]*|hey[\s\W]*|good\s+(morning|afternoon|evening)[\s\W]*|kumusta[\s\W]*)$/i.test(lowerMessage);
-  console.log('🎯 Is actual greeting:', isActualGreeting);
+  console.log('🔍 Debugging message:', { userMessage, lowerMessage, length: lowerMessage.length, isActualGreeting });
 
   if (isActualGreeting) {
     const conversationContext: ConversationContext = {
@@ -142,13 +142,16 @@ async function generateSmartEducationalResponse(userMessage: string, conversatio
     
     try {
       const naturalResponse = await naturalConversationService.generateNaturalResponse(conversationContext);
+      console.log('✅ Natural conversation response:', naturalResponse.content);
       return naturalResponse.content;
     } catch (error) {
-      console.error('Natural conversation service failed:', error);
+      console.error('❌ Natural conversation service failed:', error);
       // Intelligent fallback that avoids templated responses
-      return hasConversationHistory 
+      const fallbackResponse = hasConversationHistory
         ? `I see you're back! What's on your mind today?`
         : `What brings you here? I'm curious about what you'd like to explore.`;
+      console.log('🔄 Using fallback response:', fallbackResponse);
+      return fallbackResponse;
     }
   }
   
