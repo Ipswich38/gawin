@@ -506,9 +506,10 @@ export async function POST(request: NextRequest) {
     // Try Groq first (primary provider) - THIS IS THE DEFAULT
     console.log('🚀 Attempting Groq API request...');
     const groqResult = await groqService.createChatCompletion(body);
-    
+
     if (groqResult.success) {
       console.log('✅ Groq request successful - DIRECT RESPONSE');
+      console.log('📝 Groq response content:', groqResult.choices?.[0]?.message?.content?.substring(0, 200) + '...');
       
       // Background orchestrator learning (non-blocking)
       setTimeout(() => {
@@ -652,6 +653,9 @@ export async function POST(request: NextRequest) {
     
     // Final fallback: Smart educational responses with conversation context
     console.log('🧠 Using intelligent educational fallback...');
+    console.log('🎯 FALLBACK DEBUG - Message:', messageContent);
+    console.log('🎯 FALLBACK DEBUG - Should catch physics/chemistry:', /\b(math|calculus|algebra|geometry|physics|chemistry|biology|science)\b/i.test(messageContent.toLowerCase()));
+
     const finalUserMessage = body.messages[body.messages.length - 1];
     
     if (finalUserMessage?.role === 'user') {

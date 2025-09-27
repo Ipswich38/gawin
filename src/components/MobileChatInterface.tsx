@@ -25,6 +25,7 @@ import PremiumFeatureGate from './PremiumFeatureGate';
 import { userPermissionService } from '../lib/services/userPermissionService';
 import { tagalogSpeechAnalysisService } from '../lib/services/tagalogSpeechAnalysisService';
 import { screenAnalysisService } from '../lib/services/screenAnalysisService';
+import MCPStatusIndicator from './MCPStatusIndicator';
 
 // Screen Share Component
 const ScreenShareButton: React.FC = () => {
@@ -2001,16 +2002,46 @@ Format your response according to the content type requested.`;
       { role: 'user', content: messageText }
     ];
 
-    const response = await fetch('/api/groq', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        messages: contextualMessages,
-        model: 'llama-3.3-70b-versatile',
-        temperature: isCreator ? 0.8 : (activeTab?.type === 'creative' ? (isWritingRequest ? 0.9 : 0.8) : 0.7),
-        max_tokens: isCreator ? 3000 : (activeTab?.type === 'creative' ? (isWritingRequest ? 2000 : 1500) : 1500),
-      }),
-    });
+    // 🔌 Try MCP endpoint first, fallback to Groq if needed
+    let response;
+    let usedMCP = false;
+
+    try {
+      // First attempt: MCP-enhanced endpoint
+      response = await fetch('/api/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: contextualMessages,
+          model: 'llama-3.3-70b-versatile',
+          temperature: isCreator ? 0.8 : (activeTab?.type === 'creative' ? (isWritingRequest ? 0.9 : 0.8) : 0.7),
+          max_tokens: isCreator ? 3000 : (activeTab?.type === 'creative' ? (isWritingRequest ? 2000 : 1500) : 1500),
+        }),
+      });
+
+      if (response.ok) {
+        usedMCP = true;
+        console.log('✅ Using MCP endpoint for AI response');
+      } else {
+        throw new Error('MCP endpoint failed');
+      }
+    } catch (mcpError) {
+      console.log('🔄 MCP failed, falling back to direct Groq API:', mcpError);
+
+      // Fallback: Direct Groq endpoint
+      response = await fetch('/api/groq', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: contextualMessages,
+          model: 'llama-3.3-70b-versatile',
+          temperature: isCreator ? 0.8 : (activeTab?.type === 'creative' ? (isWritingRequest ? 0.9 : 0.8) : 0.7),
+          max_tokens: isCreator ? 3000 : (activeTab?.type === 'creative' ? (isWritingRequest ? 2000 : 1500) : 1500),
+        }),
+      });
+
+      console.log('✅ Using direct Groq API fallback');
+    }
 
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
@@ -3117,6 +3148,11 @@ Level: ${level}`
                 Hi! I'm Gawin.
               </h2>
               <p className="text-gray-300">What would you like to learn today?</p>
+
+              {/* MCP Status Indicator */}
+              <div className="mt-4 flex justify-center">
+                <MCPStatusIndicator />
+              </div>
             </div>
           </div>
         ) : (
