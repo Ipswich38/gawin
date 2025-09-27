@@ -11,17 +11,24 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import MessageSpeechControls from './MessageSpeechControls';
 
 interface ModernMessageRendererProps {
   text: string;
   showActions?: boolean;
   onCopy?: () => void;
+  showSpeechControls?: boolean;
+  speechLanguage?: 'english' | 'filipino' | 'taglish';
+  isAIMessage?: boolean;
 }
 
 export default function ModernMessageRenderer({
   text,
   showActions = true,
-  onCopy
+  onCopy,
+  showSpeechControls = false,
+  speechLanguage = 'english',
+  isAIMessage = false
 }: ModernMessageRendererProps) {
 
   // Process the text to FORCE proper paragraph spacing and numbered sections
@@ -243,20 +250,32 @@ export default function ModernMessageRenderer({
         </ReactMarkdown>
       </div>
 
-      {/* Minimal Action Buttons */}
-      {showActions && (
+      {/* Action Buttons */}
+      {(showActions || (showSpeechControls && isAIMessage)) && (
         <div className="modern-actions">
-          <button
-            onClick={handleCopyMessage}
-            className="modern-action-btn"
-            title="Copy message"
-            aria-label="Copy message"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-            </svg>
-          </button>
+          {/* Speech Controls for AI messages */}
+          {showSpeechControls && isAIMessage && (
+            <MessageSpeechControls
+              text={text}
+              language={speechLanguage}
+              className="mr-3"
+            />
+          )}
+
+          {/* Copy Button */}
+          {showActions && (
+            <button
+              onClick={handleCopyMessage}
+              className="modern-action-btn"
+              title="Copy message"
+              aria-label="Copy message"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+            </button>
+          )}
         </div>
       )}
 

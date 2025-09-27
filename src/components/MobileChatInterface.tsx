@@ -2164,16 +2164,7 @@ Format your response according to the content type requested.`;
           : tab
       ));
 
-      // 🎙️ AUTO-SPEAK GAWIN'S RESPONSE
-      if (voiceService.isVoiceEnabled()) {
-        const languageForSpeech = languageDetection.primary === 'tagalog' || languageDetection.primary === 'filipino' 
-          ? 'filipino' 
-          : languageDetection.mixedLanguage 
-            ? 'taglish' 
-            : 'english';
-        
-        await voiceService.autoSpeak(content, languageForSpeech);
-      }
+      // Speech control is now manual via speech controls in the UI
     } else {
       throw new Error(result.error || 'Failed to get AI response');
     }
@@ -3151,6 +3142,9 @@ Level: ${level}`
                       <ModernMessageRenderer
                         text={message.content}
                         showActions={true}
+                        showSpeechControls={true}
+                        isAIMessage={true}
+                        speechLanguage='english'
                         onCopy={() => {
                           navigator.clipboard.writeText(message.content);
                           console.log('Copied message:', message.id);
