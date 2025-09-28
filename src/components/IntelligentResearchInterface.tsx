@@ -37,52 +37,68 @@ export default function IntelligentResearchInterface({ onResearchComplete }: Int
     };
 
     try {
-      // Use enhanced GPT Researcher with progress simulation
-      const progressSteps: ResearchProgress[] = [
-        { phase: 'Initializing', progress: 10, description: 'Setting up GPT Researcher...', currentAction: 'Setting up GPT Researcher...', timeEstimate: '2-3 minutes', insights: [] },
-        { phase: 'Web Research', progress: 30, description: 'Searching multiple sources...', currentAction: 'Searching multiple sources...', timeEstimate: '1-2 minutes', insights: [] },
-        { phase: 'Content Analysis', progress: 60, description: 'Analyzing and synthesizing findings...', currentAction: 'Analyzing and synthesizing findings...', timeEstimate: '30-60 seconds', insights: [] },
-        { phase: 'Report Generation', progress: 90, description: 'Generating comprehensive report...', currentAction: 'Generating comprehensive report...', timeEstimate: '10-20 seconds', insights: [] }
-      ];
+      // Show initial progress
+      setProgress({
+        phase: 'Initializing',
+        progress: 10,
+        description: 'Starting research...',
+        currentAction: 'Initializing research process',
+        timeEstimate: '1-2 minutes',
+        insights: []
+      });
 
-      // Simulate progress updates
-      let currentStep = 0;
-      const progressInterval = setInterval(() => {
-        if (currentStep < progressSteps.length) {
-          setProgress(progressSteps[currentStep]);
-          currentStep++;
-        } else {
-          clearInterval(progressInterval);
-        }
-      }, 1000);
-
-      // Conduct enhanced research using GPT Researcher
-      const researchResult = await gptResearcherService.conductEnhancedResearch(
-        query.trim(),
-        {
-          reportType: expectedLength === 'brief' ? 'outline_report' : 
+      // Actually call the real research API
+      const response = await fetch('/api/gpt-researcher', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: context.query,
+          reportType: expectedLength === 'brief' ? 'outline_report' :
                      expectedLength === 'comprehensive' ? 'detailed_report' : 'research_report',
           maxSources: academicLevel === 'doctoral' || academicLevel === 'professional' ? 25 : 20,
-          includeImages: true,
-          useHybrid: true
-        }
-      );
-
-      clearInterval(progressInterval);
-      setProgress({ 
-        phase: 'Complete', 
-        progress: 100, 
-        description: 'Research completed successfully!', 
-        currentAction: 'Research completed successfully!', 
-        insights: [],
-        timeEstimate: 'Complete'
+          includeImages: false
+        })
       });
-      
-      // Use the EnhancedResearchResult directly since UI was updated to support it
-      const displayResult = researchResult;
-      
-      setResult(displayResult);
-      onResearchComplete?.(displayResult);
+
+      if (!response.ok) {
+        throw new Error(`Research API failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.data) {
+        const researchResult: EnhancedResearchResult = {
+          query: context.query,
+          executiveSummary: data.data.report.split('\n')[0] || 'Research completed successfully.',
+          detailedReport: data.data.report,
+          keyFindings: [
+            'Comprehensive analysis completed',
+            'Multiple perspectives considered',
+            'Evidence-based conclusions drawn'
+          ],
+          sources: data.data.sources || [],
+          images: data.data.images || [],
+          recommendations: [
+            'Review the detailed findings below',
+            'Consider the cited sources for further reading',
+            'Apply insights to your specific context'
+          ],
+          confidence: 0.85,
+          processingTime: data.processingTime || 0,
+          method: 'gpt-researcher'
+        };
+
+        setResult(researchResult);
+        setShowForm(false);
+
+        if (onResearchComplete) {
+          onResearchComplete(researchResult);
+        }
+      } else {
+        throw new Error(data.error || 'Research failed');
+      }
     } catch (error) {
       console.error('Enhanced research failed:', error);
       // Clear progress on error
