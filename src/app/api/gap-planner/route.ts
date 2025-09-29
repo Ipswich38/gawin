@@ -34,54 +34,41 @@ export async function POST(request: NextRequest) {
       }, { status: 500 });
     }
 
-    console.log('🚀 Starting GAP planning process for:', objective);
+    console.log('🚀 Starting GAP comprehensive analysis for:', objective);
 
-    // GAP planning prompt
-    const planningPrompt = `You are a professional strategic planner and project manager. Your task is to create a comprehensive, actionable plan for the following objective.
+    // GAP comprehensive execution prompt
+    const gapPrompt = `You are GAP (Gawin Agent Planner), an advanced strategic AI that delivers comprehensive, actionable results using a structured methodology. Instead of creating plans, you execute the planning process and deliver complete solutions.
 
-Objective: "${objective}"
+Request: "${objective}"
 
-Please create a detailed strategic plan following this methodology:
+Execute the following GAP methodology and provide comprehensive results:
 
-1. **Analysis** - Break down the objective into key components
-2. **Strategy** - Determine the best approach and methodology
-3. **Planning** - Create specific, actionable steps with realistic timelines
-4. **Dependencies** - Identify relationships between steps
-5. **Execution** - Provide clear implementation guidance
+**GAP METHODOLOGY:**
+1. **ANALYSIS** - Deeply analyze the request and break it into components
+2. **STRATEGY** - Determine the optimal approach and methodology
+3. **EXECUTION** - Deliver comprehensive, detailed content that fully addresses the request
 
+**EXECUTION INSTRUCTIONS:**
+- Provide thorough, detailed content that completely fulfills the request
+- Include specific examples, actionable steps, and practical guidance
+- Structure your response with clear sections and subsections
+- Make it comprehensive enough that someone could immediately use your response
+- Focus on delivering value, not just planning to deliver value
+- Be specific, detailed, and actionable in every section
+
+**RESPONSE FORMAT:**
 Respond in this exact JSON format:
 {
-  "title": "Clear, concise plan title (max 50 chars)",
-  "priority": "low|medium|high|critical",
-  "timeline": "Estimated total completion time",
-  "steps": [
-    {
-      "id": "step_1",
-      "title": "Step title",
-      "description": "Detailed description of what needs to be done",
-      "status": "pending",
-      "estimatedTime": "2 hours",
-      "dependencies": []
-    },
-    {
-      "id": "step_2",
-      "title": "Step title",
-      "description": "Detailed description of what needs to be done",
-      "status": "pending",
-      "estimatedTime": "1 day",
-      "dependencies": ["step_1"]
-    }
-  ]
+  "title": "Descriptive title of what you've delivered",
+  "methodology": "Brief description of your approach",
+  "content": "Comprehensive, detailed response that fully addresses the request with proper formatting, examples, and actionable guidance",
+  "keyPoints": ["Key point 1", "Key point 2", "Key point 3"],
+  "actionItems": ["Immediate action 1", "Immediate action 2", "Immediate action 3"],
+  "timeline": "Time to implement/use this content",
+  "priority": "low|medium|high|critical"
 }
 
-Important guidelines:
-- Create 3-8 logical, sequential steps
-- Be specific and actionable in descriptions
-- Provide realistic time estimates
-- Include dependencies where steps must be completed in order
-- Consider resources, tools, and skills needed
-- Focus on practical implementation
-- Assign appropriate priority (critical=urgent, high=important, medium=standard, low=when convenient)
+**CRITICAL:** Deliver complete, comprehensive content in the "content" field that fully satisfies the request. Don't create plans - execute and deliver results immediately.
 
 Respond ONLY with valid JSON, no additional text.`;
 
@@ -101,7 +88,7 @@ Respond ONLY with valid JSON, no additional text.`;
           },
           {
             role: 'user',
-            content: planningPrompt
+            content: gapPrompt
           }
         ],
         temperature: 0.3, // Lower temperature for focused, strategic planning
@@ -126,53 +113,42 @@ Respond ONLY with valid JSON, no additional text.`;
     console.log('📄 Plan content generated');
 
     // Parse the JSON response
-    let planData;
+    let gapResult;
     try {
-      planData = JSON.parse(content);
+      gapResult = JSON.parse(content);
     } catch (parseError) {
       console.error('❌ JSON parsing error:', parseError);
-      // Fallback to a structured plan if JSON parsing fails
-      planData = {
-        title: "Strategic Plan",
-        priority: "medium",
-        timeline: "Estimated 1-2 weeks",
-        steps: [
-          {
-            id: "step_1",
-            title: "Initial Analysis",
-            description: "Analyze the objective and gather requirements",
-            status: "pending",
-            estimatedTime: "2-4 hours",
-            dependencies: []
-          },
-          {
-            id: "step_2",
-            title: "Planning & Strategy",
-            description: "Develop detailed strategy and approach",
-            status: "pending",
-            estimatedTime: "1-2 days",
-            dependencies: ["step_1"]
-          },
-          {
-            id: "step_3",
-            title: "Implementation",
-            description: "Execute the planned approach",
-            status: "pending",
-            estimatedTime: "1-2 weeks",
-            dependencies: ["step_2"]
-          }
-        ]
+      // Fallback comprehensive response if JSON parsing fails
+      gapResult = {
+        title: "Comprehensive Analysis",
+        methodology: "Structured analytical approach with detailed research and strategic recommendations",
+        content: `I've analyzed your request: "${objective}"\n\nWhile I encountered a technical issue processing the detailed response, I can provide the following immediate guidance:\n\n1. **Immediate Analysis**: Breaking down your request into key components and identifying primary objectives.\n\n2. **Strategic Approach**: Developing a systematic methodology to address your specific needs with actionable steps.\n\n3. **Implementation Guidance**: Providing practical recommendations you can implement immediately.\n\nFor a complete comprehensive analysis, please try your request again. GAP Mode is designed to deliver thorough, actionable content rather than just planning steps.`,
+        keyPoints: [
+          "Request analyzed for key components and objectives",
+          "Strategic approach identified for systematic implementation",
+          "Ready to provide detailed, actionable guidance"
+        ],
+        actionItems: [
+          "Resubmit request for complete comprehensive analysis",
+          "Review specific areas where detailed guidance is needed",
+          "Implement any immediate recommendations provided"
+        ],
+        timeline: "Immediate implementation possible",
+        priority: "medium"
       };
     }
 
-    console.log('🏆 GAP planning completed successfully');
+    console.log('🏆 GAP comprehensive analysis completed successfully');
 
     return NextResponse.json({
       success: true,
-      title: planData.title,
-      priority: planData.priority,
-      timeline: planData.timeline,
-      steps: planData.steps
+      title: gapResult.title,
+      methodology: gapResult.methodology,
+      content: gapResult.content,
+      keyPoints: gapResult.keyPoints,
+      actionItems: gapResult.actionItems,
+      timeline: gapResult.timeline,
+      priority: gapResult.priority
     });
 
   } catch (error) {

@@ -5,33 +5,25 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { autonomousAgent } from '@/lib/agent/AutonomousAgentCore';
 import type { Goal, ProactiveSuggestion } from '@/lib/agent/AutonomousAgentCore';
 
-interface PlanStep {
+interface GAPResult {
   id: string;
   title: string;
-  description: string;
-  status: 'pending' | 'in_progress' | 'completed';
-  estimatedTime: string;
-  dependencies?: string[];
-}
-
-interface AgentPlan {
-  id: string;
-  title: string;
-  description: string;
   objective: string;
-  steps: PlanStep[];
+  methodology: string;
+  content: string;
+  keyPoints: string[];
+  actionItems: string[];
   timeline: string;
   priority: 'low' | 'medium' | 'high' | 'critical';
   status: 'draft' | 'active' | 'completed' | 'paused';
   createdAt: Date;
-  progress: number;
 }
 
 export default function GAPMode() {
-  const [plans, setPlans] = useState<AgentPlan[]>([]);
+  const [results, setResults] = useState<GAPResult[]>([]);
   const [inputValue, setInputValue] = useState('');
-  const [isPlanning, setIsPlanning] = useState(false);
-  const [currentPlan, setCurrentPlan] = useState<AgentPlan | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [currentAnalysis, setCurrentAnalysis] = useState<GAPResult | null>(null);
   const [activeGoals, setActiveGoals] = useState<Goal[]>([]);
   const [suggestions, setSuggestions] = useState<ProactiveSuggestion[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -43,7 +35,7 @@ export default function GAPMode() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [plans, currentPlan]);
+  }, [results, currentAnalysis]);
 
   useEffect(() => {
     loadAgentData();
@@ -81,33 +73,52 @@ export default function GAPMode() {
     adjustTextareaHeight();
   }, [inputValue]);
 
-  const generatePlan = async () => {
-    if (!inputValue.trim() || isPlanning) return;
+  const convertToGoal = async (result: GAPResult) => {
+    console.log('🎯 Converting GAP result to autonomous goal:', result.title);
+
+    try {
+      await autonomousAgent.setGoal('default_user', `Execute: ${result.objective}`, result.priority);
+
+      const updatedResults = results.map(r =>
+        r.id === result.id ? { ...r, status: 'active' as const } : r
+      );
+      setResults(updatedResults);
+
+      loadAgentData();
+      console.log('✅ GAP result converted to autonomous goal successfully');
+    } catch (error) {
+      console.error('❌ Failed to convert GAP result to goal:', error);
+    }
+  };
+
+  const executeGAP = async () => {
+    if (!inputValue.trim() || isProcessing) return;
 
     const objective = inputValue.trim();
     setInputValue('');
-    setIsPlanning(true);
+    setIsProcessing(true);
 
     // Reset textarea height
     if (textareaRef.current) {
       textareaRef.current.style.height = '48px';
     }
 
-    // Create new plan entry
-    const newPlan: AgentPlan = {
+    // Create new analysis entry
+    const newAnalysis: GAPResult = {
       id: Date.now().toString(),
-      title: objective.substring(0, 50) + (objective.length > 50 ? '...' : ''),
-      description: objective,
+      title: 'Comprehensive Analysis in Progress',
       objective,
-      steps: [],
-      timeline: 'Analyzing...',
+      methodology: 'GAP Strategic Analysis',
+      content: 'Processing your request using GAP methodology...',
+      keyPoints: [],
+      actionItems: [],
+      timeline: 'Processing...',
       priority: 'medium',
       status: 'draft',
-      createdAt: new Date(),
-      progress: 0
+      createdAt: new Date()
     };
 
-    setCurrentPlan(newPlan);
+    setCurrentAnalysis(newAnalysis);
 
     try {
       const response = await fetch('/api/gap-planner', {
@@ -127,82 +138,45 @@ export default function GAPMode() {
       const data = await response.json();
 
       if (data.success) {
-        const completedPlan: AgentPlan = {
-          ...newPlan,
+        const completedAnalysis: GAPResult = {
+          ...newAnalysis,
           title: data.title,
-          steps: data.steps,
+          methodology: data.methodology,
+          content: data.content,
+          keyPoints: data.keyPoints,
+          actionItems: data.actionItems,
           timeline: data.timeline,
           priority: data.priority,
           status: 'draft'
         };
 
-        setCurrentPlan(null);
-        setPlans(prev => [...prev, completedPlan]);
+        setCurrentAnalysis(null);
+        setResults(prev => [...prev, completedAnalysis]);
       } else {
-        throw new Error(data.error || 'Planning failed');
+        throw new Error(data.error || 'GAP analysis failed');
       }
     } catch (error) {
-      console.error('GAP Planning error:', error);
-      const errorPlan: AgentPlan = {
-        ...newPlan,
-        title: 'Planning Error',
-        steps: [{
-          id: 'error',
-          title: 'Planning Failed',
-          description: 'An error occurred while generating the plan',
-          status: 'pending',
-          estimatedTime: 'Unknown'
-        }],
-        timeline: 'Error occurred',
-        status: 'draft'
+      console.error('GAP Analysis error:', error);
+      const errorAnalysis: GAPResult = {
+        ...newAnalysis,
+        title: 'Analysis Error',
+        content: 'An error occurred while conducting the GAP analysis. Please try again.',
+        keyPoints: ['Technical error encountered'],
+        actionItems: ['Retry the analysis request'],
+        timeline: 'Error occurred'
       };
 
-      setCurrentPlan(null);
-      setPlans(prev => [...prev, errorPlan]);
+      setCurrentAnalysis(null);
+      setResults(prev => [...prev, errorAnalysis]);
     } finally {
-      setIsPlanning(false);
+      setIsProcessing(false);
     }
-  };
-
-  const activatePlan = async (plan: AgentPlan) => {
-    console.log('🚀 Activating plan:', plan.title);
-
-    // Convert plan to autonomous goal
-    try {
-      await autonomousAgent.setGoal('default_user', plan.objective, plan.priority);
-
-      // Update plan status
-      const updatedPlans = plans.map(p =>
-        p.id === plan.id ? { ...p, status: 'active' as const } : p
-      );
-      setPlans(updatedPlans);
-
-      loadAgentData(); // Refresh agent data
-
-      console.log('✅ Plan activated and converted to autonomous goal');
-    } catch (error) {
-      console.error('❌ Failed to activate plan:', error);
-    }
-  };
-
-  const pausePlan = (planId: string) => {
-    const updatedPlans = plans.map(p =>
-      p.id === planId ? { ...p, status: 'paused' as const } : p
-    );
-    setPlans(updatedPlans);
-  };
-
-  const resumePlan = (planId: string) => {
-    const updatedPlans = plans.map(p =>
-      p.id === planId ? { ...p, status: 'active' as const } : p
-    );
-    setPlans(updatedPlans);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      generatePlan();
+      executeGAP();
     }
   };
 
@@ -236,18 +210,24 @@ export default function GAPMode() {
           </div>
           <div>
             <h2 className="text-white font-semibold">GAP Mode</h2>
-            <p className="text-xs text-gray-400">Gawin Agent Planner</p>
+            <p className="text-xs text-gray-400">Gawin Agent Planner - Comprehensive Analysis</p>
           </div>
         </div>
-        <div className="text-gray-400 text-sm">
-          AI-powered strategic planning
+        <div className="flex items-center gap-3 text-gray-400 text-sm">
+          {activeGoals.length > 0 && (
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span>{activeGoals.length} goal(s) active</span>
+            </div>
+          )}
+          <span>Strategic & comprehensive</span>
         </div>
       </div>
 
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
         <AnimatePresence>
-          {plans.length === 0 && !currentPlan ? (
+          {results.length === 0 && !currentAnalysis ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -258,8 +238,8 @@ export default function GAPMode() {
                 Welcome to GAP Mode!
               </h3>
               <p className="text-gray-400 text-sm max-w-md mx-auto">
-                Gawin Agent Planner creates comprehensive, step-by-step plans for any objective.
-                Simply describe what you want to accomplish, and I'll break it down into actionable steps.
+                Gawin Agent Planner delivers comprehensive, actionable analysis using strategic methodology.
+                Describe what you need accomplished, and I'll provide thorough, immediately usable results.
               </p>
             </motion.div>
           ) : (
@@ -282,112 +262,116 @@ export default function GAPMode() {
                   )}
                   {suggestions.length > 0 && (
                     <p className="text-gray-300 text-sm">
-                      {suggestions.length} proactive suggestion(s) available
+                      {suggestions.length} strategic insight(s) available
                     </p>
                   )}
                 </motion.div>
               )}
 
-              {/* Completed Plans */}
-              {plans.map((plan) => (
+              {/* Completed Analysis Results */}
+              {results.map((result) => (
                 <motion.div
-                  key={plan.id}
+                  key={result.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="bg-gray-800 rounded-xl p-6 border border-gray-700"
                 >
-                  {/* Plan Header */}
+                  {/* Result Header */}
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
-                      <h3 className="text-white font-medium text-lg mb-2">{plan.title}</h3>
-                      <p className="text-gray-400 text-sm">{plan.description}</p>
+                      <h3 className="text-white font-medium text-lg mb-2">{result.title}</h3>
+                      <p className="text-gray-400 text-sm mb-3">{result.objective}</p>
 
-                      <div className="flex items-center gap-3 mt-3">
-                        <span className={`text-xs px-3 py-1 rounded-full border ${getPriorityColor(plan.priority)}`}>
-                          {plan.priority}
+                      <div className="flex items-center gap-3">
+                        <span className={`text-xs px-3 py-1 rounded-full border ${getPriorityColor(result.priority)}`}>
+                          {result.priority}
                         </span>
-                        <span className={`text-xs px-3 py-1 rounded-full ${getStatusColor(plan.status)}`}>
-                          {plan.status}
+                        <span className={`text-xs px-3 py-1 rounded-full ${getStatusColor(result.status)}`}>
+                          {result.status}
                         </span>
                         <span className="text-xs text-gray-500">
-                          {plan.timeline}
+                          {result.timeline}
                         </span>
                       </div>
                     </div>
 
-                    {/* Plan Actions */}
+                    {/* Action Buttons */}
                     <div className="flex flex-col gap-2 ml-4">
-                      {plan.status === 'draft' && (
-                        <button
-                          onClick={() => activatePlan(plan)}
-                          className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-sm rounded-lg transition-colors"
-                        >
-                          🚀 Activate
-                        </button>
-                      )}
-                      {plan.status === 'active' && (
-                        <button
-                          onClick={() => pausePlan(plan.id)}
-                          className="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 text-white text-sm rounded-lg transition-colors"
-                        >
-                          ⏸️ Pause
-                        </button>
-                      )}
-                      {plan.status === 'paused' && (
-                        <button
-                          onClick={() => resumePlan(plan.id)}
-                          className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm rounded-lg transition-colors"
-                        >
-                          ▶️ Resume
-                        </button>
-                      )}
+                      <button
+                        onClick={() => convertToGoal(result)}
+                        className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm rounded-lg transition-colors"
+                        title="Convert to autonomous goal"
+                      >
+                        🤖 Activate
+                      </button>
                     </div>
                   </div>
 
-                  {/* Plan Steps */}
-                  {plan.steps.length > 0 && (
-                    <div className="space-y-3">
-                      <h4 className="text-gray-300 font-medium text-sm">📋 Implementation Steps</h4>
-                      {plan.steps.map((step, index) => (
-                        <div key={step.id} className="flex gap-3 bg-gray-700/30 p-3 rounded-lg">
-                          <div className="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-medium">
-                            {index + 1}
-                          </div>
-                          <div className="flex-1">
-                            <h5 className="text-white text-sm font-medium">{step.title}</h5>
-                            <p className="text-gray-400 text-xs mt-1">{step.description}</p>
-                            <div className="flex items-center gap-2 mt-2">
-                              <span className={`text-xs px-2 py-1 rounded-full ${
-                                step.status === 'completed'
-                                  ? 'bg-green-900/50 text-green-300'
-                                  : step.status === 'in_progress'
-                                  ? 'bg-blue-900/50 text-blue-300'
-                                  : 'bg-gray-700 text-gray-300'
-                              }`}>
-                                {step.status.replace('_', ' ')}
-                              </span>
-                              <span className="text-gray-500 text-xs">
-                                Est. {step.estimatedTime}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
+                  {/* Methodology */}
+                  {result.methodology && (
+                    <div className="mb-4">
+                      <h4 className="text-gray-300 font-medium mb-2">🔍 Methodology</h4>
+                      <p className="text-gray-400 text-sm">{result.methodology}</p>
                     </div>
                   )}
+
+                  {/* Main Content */}
+                  <div className="mb-4">
+                    <h4 className="text-gray-300 font-medium mb-3">📋 Comprehensive Analysis</h4>
+                    <div className="bg-gray-700/30 p-4 rounded-lg">
+                      <pre className="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed font-sans">
+                        {result.content}
+                      </pre>
+                    </div>
+                  </div>
+
+                  {/* Key Points */}
+                  {result.keyPoints.length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="text-gray-300 font-medium mb-2">🎯 Key Points</h4>
+                      <ul className="space-y-1">
+                        {result.keyPoints.map((point, index) => (
+                          <li key={index} className="text-gray-300 text-sm flex items-start gap-2">
+                            <span className="text-purple-400 mt-1">•</span>
+                            <span>{point}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Action Items */}
+                  {result.actionItems.length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="text-gray-300 font-medium mb-2">⚡ Action Items</h4>
+                      <ul className="space-y-1">
+                        {result.actionItems.map((action, index) => (
+                          <li key={index} className="text-gray-300 text-sm flex items-start gap-2">
+                            <span className="text-green-400 mt-1">→</span>
+                            <span>{action}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Timestamp */}
+                  <div className="text-xs text-gray-500 mt-4 pt-4 border-t border-gray-700">
+                    Analysis completed at {result.createdAt.toLocaleTimeString()}
+                  </div>
                 </motion.div>
               ))}
 
-              {/* Current Plan in Progress */}
-              {currentPlan && (
+              {/* Current Analysis in Progress */}
+              {currentAnalysis && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="bg-gray-800 rounded-xl p-6 border border-purple-500/30"
                 >
                   <div className="mb-4">
-                    <h3 className="text-white font-medium text-lg mb-2">Plan Generation in Progress</h3>
-                    <p className="text-purple-300 bg-purple-900/20 p-3 rounded-lg">{currentPlan.objective}</p>
+                    <h3 className="text-white font-medium text-lg mb-2">GAP Analysis in Progress</h3>
+                    <p className="text-purple-300 bg-purple-900/20 p-3 rounded-lg">{currentAnalysis.objective}</p>
                   </div>
 
                   <div className="flex items-center gap-3 text-purple-400">
@@ -396,7 +380,7 @@ export default function GAPMode() {
                       <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
                       <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
                     </div>
-                    <span className="text-sm">Analyzing and creating strategic plan...</span>
+                    <span className="text-sm">Conducting comprehensive strategic analysis...</span>
                   </div>
                 </motion.div>
               )}
@@ -407,7 +391,7 @@ export default function GAPMode() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Planning Input Area */}
+      {/* GAP Input Area */}
       <div className="p-4 border-t border-gray-700">
         <div className="flex items-end gap-3 bg-gray-800 rounded-full border border-purple-500/30 p-4 transition-all duration-200 hover:border-purple-500/50 focus-within:border-purple-500/70">
           <textarea
@@ -415,7 +399,7 @@ export default function GAPMode() {
             value={inputValue}
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
-            placeholder="Describe your objective and I'll create a comprehensive plan..."
+            placeholder="Describe what you need comprehensive analysis for. I'll deliver complete, actionable results..."
             className="flex-1 bg-transparent text-white placeholder-gray-400 resize-none outline-none border-none min-h-[48px] leading-6 focus:outline-none focus:ring-0 focus:border-none"
             style={{
               height: '48px',
@@ -423,13 +407,13 @@ export default function GAPMode() {
               outline: 'none',
               boxShadow: 'none'
             }}
-            disabled={isPlanning}
+            disabled={isProcessing}
           />
           <button
-            onClick={generatePlan}
-            disabled={isPlanning || !inputValue.trim()}
+            onClick={executeGAP}
+            disabled={isProcessing || !inputValue.trim()}
             className={`p-3 rounded-full transition-all duration-200 flex-shrink-0 ${
-              inputValue.trim() && !isPlanning
+              inputValue.trim() && !isProcessing
                 ? 'bg-purple-600 text-white hover:bg-purple-500 shadow-lg shadow-purple-500/25'
                 : 'bg-gray-700 text-gray-500 cursor-not-allowed'
             }`}
