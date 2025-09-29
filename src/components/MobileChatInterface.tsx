@@ -27,6 +27,7 @@ import { tagalogSpeechAnalysisService } from '../lib/services/tagalogSpeechAnaly
 import { screenAnalysisService } from '../lib/services/screenAnalysisService';
 import MCPStatusIndicator from './MCPStatusIndicator';
 import CleanChat from './CleanChat';
+import CleanResearch from './CleanResearch';
 
 // Screen Share Component
 const ScreenShareButton: React.FC = () => {
@@ -2220,7 +2221,7 @@ Format your response according to the content type requested.`;
       case 'quiz':
         return renderQuizContent();
       case 'research':
-        return <ResearchMode />;
+        return <CleanResearch />;
       case 'creative':
         return renderCreativeContent();
       case 'permissions':
