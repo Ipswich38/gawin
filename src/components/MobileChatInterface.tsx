@@ -28,6 +28,8 @@ import { screenAnalysisService } from '../lib/services/screenAnalysisService';
 import MCPStatusIndicator from './MCPStatusIndicator';
 import CleanChat from './CleanChat';
 import CleanResearch from './CleanResearch';
+import AutonomousAgentPanel from './AutonomousAgentPanel';
+import GAPMode from './GAPMode';
 
 // Screen Share Component
 const ScreenShareButton: React.FC = () => {
@@ -131,7 +133,7 @@ import { useIntelligentTranslation } from '../hooks/useTranslation';
 // 🎨 UI ENHANCEMENTS
 import {
   ChatIcon, QuizIcon, CreativeIcon, SearchIcon as ResearchIcon,
-  SendIcon, MenuIcon, CloseIcon, LoadingIcon, PermissionsIcon, VoiceModeIcon
+  SendIcon, MenuIcon, CloseIcon, LoadingIcon, PermissionsIcon, VoiceModeIcon, CreativeIcon as GAPIcon
 } from './ui/LineIcons';
 import { Eye, Mic } from 'lucide-react';
 import { deviceDetection, DeviceInfo, OptimizationConfig } from '../utils/deviceDetection';
@@ -155,7 +157,7 @@ interface Message {
 
 interface Tab {
   id: string;
-  type: 'general' | 'quiz' | 'creative' | 'research' | 'permissions';
+  type: 'general' | 'quiz' | 'creative' | 'research' | 'permissions' | 'gap';
   title: string;
   icon: React.ComponentType<{ size?: number; className?: string }>;
   isActive: boolean;
@@ -217,7 +219,8 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
     quiz: { title: 'Quiz', icon: QuizIcon },
     creative: { title: 'Create', icon: CreativeIcon },
     research: { title: 'Research', icon: ResearchIcon },
-    permissions: { title: 'Permissions', icon: PermissionsIcon }
+    permissions: { title: 'Permissions', icon: PermissionsIcon },
+    gap: { title: 'GAP Mode', icon: GAPIcon }
   };
 
 
@@ -266,6 +269,9 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   // 🎤 Voice Input states
   const [currentVoiceTranscript, setCurrentVoiceTranscript] = useState('');
   const [isGawinSpeaking, setIsGawinSpeaking] = useState(false);
+
+  // 🤖 Autonomous Agent states
+  const [isAgentPanelVisible, setIsAgentPanelVisible] = useState(false);
 
   // 🎙️ Voice Mode states
   const [showVoiceModePopup, setShowVoiceModePopup] = useState(false);
@@ -2222,6 +2228,8 @@ Format your response according to the content type requested.`;
         return renderQuizContent();
       case 'research':
         return <CleanResearch />;
+      case 'gap':
+        return <GAPMode />;
       case 'creative':
         return renderCreativeContent();
       case 'permissions':
@@ -3849,6 +3857,7 @@ Level: ${level}`
                   { type: 'quiz' as const, icon: <QuizIcon size={16} />, label: 'Quiz Generator', allowed: userPermissions.quizGenerator },
                   { type: 'creative' as const, icon: <CreativeIcon size={16} />, label: 'Creative Studio', allowed: userPermissions.creativeStudio },
                   { type: 'research' as const, icon: <ResearchIcon size={16} />, label: 'Research Mode', allowed: userPermissions.researchMode },
+                  { type: 'gap' as const, icon: '🎯', label: 'GAP Mode', allowed: true },
                   { type: 'permissions' as const, icon: <PermissionsIcon size={16} />, label: 'Permissions', allowed: userPermissions.permissionsTab },
                 ].filter(item => item.allowed || isCreator).map((item) => (
                   <div key={item.type} className="relative">
@@ -3929,6 +3938,12 @@ Level: ${level}`
         aiResponse={lastAIResponse}
       />
 
+      {/* 🤖 Autonomous Agent Panel */}
+      <AutonomousAgentPanel
+        userId="default_user"
+        isVisible={isAgentPanelVisible}
+        onToggle={() => setIsAgentPanelVisible(!isAgentPanelVisible)}
+      />
 
       </div>
     </div>
