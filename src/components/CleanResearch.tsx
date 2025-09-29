@@ -29,11 +29,40 @@ interface ResearchResult {
   isComplete: boolean;
 }
 
+interface ComprehensiveDocument {
+  id: string;
+  query: string;
+  title: string;
+  executiveSummary: string;
+  introduction: string;
+  methodology: string;
+  findings: {
+    section: string;
+    content: string;
+  }[];
+  analysis: string;
+  synthesis: string;
+  conclusion: string;
+  recommendations: string[];
+  sources: {
+    title: string;
+    url: string;
+    type: string;
+    description: string;
+  }[];
+  wordCount: number;
+  estimatedReadingTime: string;
+  timestamp: string;
+}
+
 export default function CleanResearch() {
   const [research, setResearch] = useState<ResearchResult[]>([]);
+  const [documents, setDocuments] = useState<ComprehensiveDocument[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isResearching, setIsResearching] = useState(false);
   const [currentResearch, setCurrentResearch] = useState<ResearchResult | null>(null);
+  const [currentDocument, setCurrentDocument] = useState<ComprehensiveDocument | null>(null);
+  const [researchMode, setResearchMode] = useState<'quick' | 'comprehensive'>('comprehensive');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -43,7 +72,7 @@ export default function CleanResearch() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [research, currentResearch]);
+  }, [research, documents, currentResearch, currentDocument]);
 
 
 
@@ -152,6 +181,14 @@ Research completed at ${item.timestamp}`;
       textareaRef.current.style.height = '48px';
     }
 
+    if (researchMode === 'comprehensive') {
+      await startComprehensiveResearch(query);
+    } else {
+      await startQuickResearch(query);
+    }
+  };
+
+  const startQuickResearch = async (query: string) => {
     // Create new research entry
     const newResearch: ResearchResult = {
       id: Date.now().toString(),
@@ -172,9 +209,7 @@ Research completed at ${item.timestamp}`;
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          query: query
-        }),
+        body: JSON.stringify({ query }),
       });
 
       if (!response.ok) {
@@ -222,6 +257,186 @@ Research completed at ${item.timestamp}`;
     }
   };
 
+  const startComprehensiveResearch = async (query: string) => {
+    // Create new document entry
+    const newDocument: ComprehensiveDocument = {
+      id: Date.now().toString(),
+      query,
+      title: '',
+      executiveSummary: '',
+      introduction: '',
+      methodology: '',
+      findings: [],
+      analysis: '',
+      synthesis: '',
+      conclusion: '',
+      recommendations: [],
+      sources: [],
+      wordCount: 0,
+      estimatedReadingTime: '',
+      timestamp: new Date().toLocaleTimeString()
+    };
+
+    setCurrentDocument(newDocument);
+
+    try {
+      const response = await fetch('/api/comprehensive-research', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.document) {
+        const completedDocument: ComprehensiveDocument = {
+          ...newDocument,
+          ...data.document,
+          timestamp: new Date().toLocaleTimeString()
+        };
+
+        setCurrentDocument(null);
+        setDocuments(prev => [...prev, completedDocument]);
+      } else {
+        throw new Error(data.error || 'Document generation failed');
+      }
+    } catch (error) {
+      console.error('Comprehensive research error:', error);
+      const errorDocument: ComprehensiveDocument = {
+        ...newDocument,
+        title: `Research Document: ${query}`,
+        executiveSummary: 'An error occurred while generating the comprehensive research document. Please try again.',
+        introduction: 'Technical issues prevented the completion of this research document.',
+        methodology: 'Document generation encountered technical difficulties.',
+        findings: [{
+          section: 'Error Notice',
+          content: 'The research document could not be completed due to technical issues. Please retry your request.'
+        }],
+        analysis: 'Unable to complete analysis due to technical error.',
+        synthesis: 'Document synthesis could not be completed.',
+        conclusion: 'Research document generation was unsuccessful.',
+        recommendations: ['Retry the research request', 'Check system status'],
+        sources: [],
+        wordCount: 0,
+        estimatedReadingTime: '0 minutes'
+      };
+
+      setCurrentDocument(null);
+      setDocuments(prev => [...prev, errorDocument]);
+    } finally {
+      setIsResearching(false);
+    }
+  };
+
+  // Copy comprehensive document to clipboard
+  const copyDocumentToClipboard = async (doc: ComprehensiveDocument) => {
+    const formattedText = `${doc.title}
+
+EXECUTIVE SUMMARY
+${doc.executiveSummary}
+
+INTRODUCTION
+${doc.introduction}
+
+METHODOLOGY
+${doc.methodology}
+
+FINDINGS
+${doc.findings.map((finding, index) =>
+  `${index + 1}. ${finding.section}
+${finding.content}`
+).join('\n\n')}
+
+ANALYSIS
+${doc.analysis}
+
+SYNTHESIS
+${doc.synthesis}
+
+CONCLUSION
+${doc.conclusion}
+
+RECOMMENDATIONS
+${doc.recommendations.map((rec, index) => `${index + 1}. ${rec}`).join('\n')}
+
+SOURCES
+${doc.sources.map((source, index) =>
+  `${index + 1}. ${source.title} (${source.type})
+   ${source.url}
+   ${source.description}`
+).join('\n\n')}
+
+Word Count: ${doc.wordCount}
+Estimated Reading Time: ${doc.estimatedReadingTime}
+Research completed at ${doc.timestamp}`;
+
+    try {
+      await navigator.clipboard.writeText(formattedText);
+      console.log('Research document copied to clipboard');
+    } catch (err) {
+      console.error('Failed to copy document:', err);
+    }
+  };
+
+  // Download comprehensive document
+  const downloadDocument = (doc: ComprehensiveDocument) => {
+    const formattedText = `${doc.title}
+
+EXECUTIVE SUMMARY
+${doc.executiveSummary}
+
+INTRODUCTION
+${doc.introduction}
+
+METHODOLOGY
+${doc.methodology}
+
+FINDINGS
+${doc.findings.map((finding, index) =>
+  `${index + 1}. ${finding.section}
+${finding.content}`
+).join('\n\n')}
+
+ANALYSIS
+${doc.analysis}
+
+SYNTHESIS
+${doc.synthesis}
+
+CONCLUSION
+${doc.conclusion}
+
+RECOMMENDATIONS
+${doc.recommendations.map((rec, index) => `${index + 1}. ${rec}`).join('\n')}
+
+SOURCES
+${doc.sources.map((source, index) =>
+  `${index + 1}. ${source.title} (${source.type})
+   ${source.url}
+   ${source.description}`
+).join('\n\n')}
+
+Word Count: ${doc.wordCount}
+Estimated Reading Time: ${doc.estimatedReadingTime}
+Research completed at ${doc.timestamp}`;
+
+    const blob = new Blob([formattedText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `research-document-${doc.id}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -242,15 +457,41 @@ Research completed at ${item.timestamp}`;
             <p className="text-xs text-gray-400">Quality research & autonomous insights</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 text-gray-400 text-sm">
-          <span>AI-powered research</span>
+
+        {/* Research Mode Toggle */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center bg-gray-800 rounded-lg p-1 border border-gray-600">
+            <button
+              onClick={() => setResearchMode('quick')}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
+                researchMode === 'quick'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-700'
+              }`}
+            >
+              Quick Research
+            </button>
+            <button
+              onClick={() => setResearchMode('comprehensive')}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
+                researchMode === 'comprehensive'
+                  ? 'bg-purple-600 text-white shadow-sm'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-700'
+              }`}
+            >
+              Comprehensive Document
+            </button>
+          </div>
+          <div className="text-gray-400 text-sm">
+            <span>AI-powered research</span>
+          </div>
         </div>
       </div>
 
       {/* Research Results Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
         <AnimatePresence>
-          {research.length === 0 && !currentResearch ? (
+          {research.length === 0 && documents.length === 0 && !currentResearch && !currentDocument ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -260,15 +501,190 @@ Research completed at ${item.timestamp}`;
               <h3 className="text-white text-lg font-medium mb-2">
                 Welcome to Research Mode!
               </h3>
-              <p className="text-gray-400 text-sm max-w-md mx-auto">
-                I'll conduct thorough, unbiased research using credible sources and logical reasoning.
-                Quality takes time - each research follows a systematic methodology.
-              </p>
+              <div className="text-gray-400 text-sm max-w-lg mx-auto space-y-3">
+                <p>
+                  Choose your research type to get started:
+                </p>
+                <div className="grid md:grid-cols-2 gap-4 mt-4">
+                  <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
+                    <div className="text-blue-400 font-medium mb-2">Quick Research</div>
+                    <p className="text-xs text-gray-400">
+                      Fast, structured research with step-by-step methodology and key findings.
+                    </p>
+                  </div>
+                  <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
+                    <div className="text-purple-400 font-medium mb-2">Comprehensive Document</div>
+                    <p className="text-xs text-gray-400">
+                      In-depth research documents with executive summaries, detailed analysis, and recommendations.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </motion.div>
           ) : (
             <>
+              {/* Comprehensive Documents */}
+              {documents.map((doc) => (
+                <motion.div
+                  key={doc.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-gray-800 rounded-xl p-6 border border-gray-700 relative"
+                >
+                  {/* Copy/Download Actions */}
+                  <div className="absolute top-4 right-4 flex gap-2">
+                    <button
+                      onClick={() => copyDocumentToClipboard(doc)}
+                      className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors group"
+                      title="Copy research document"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-gray-400 group-hover:text-white">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => downloadDocument(doc)}
+                      className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors group"
+                      title="Download research document"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-gray-400 group-hover:text-white">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7,10 12,15 17,10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                      </svg>
+                    </button>
+                  </div>
 
-              {/* Completed Research */}
+                  {/* Document Badge */}
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="bg-purple-600 text-white px-2 py-1 rounded-full text-xs font-medium">
+                      Comprehensive Document
+                    </span>
+                    <span className="text-gray-400 text-xs">
+                      {doc.wordCount} words • {doc.estimatedReadingTime}
+                    </span>
+                  </div>
+
+                  {/* Document Title */}
+                  <div className="mb-4 pr-20">
+                    <h3 className="text-white font-semibold text-xl mb-2">{doc.title}</h3>
+                    <p className="text-purple-300 bg-purple-900/20 p-3 rounded-lg text-sm">{doc.query}</p>
+                  </div>
+
+                  {/* Executive Summary */}
+                  {doc.executiveSummary && (
+                    <div className="mb-4">
+                      <h4 className="text-gray-300 font-medium mb-2 flex items-center gap-2">
+                        📋 Executive Summary
+                      </h4>
+                      <p className="text-gray-300 text-sm leading-relaxed bg-gray-700/30 p-3 rounded-lg">{doc.executiveSummary}</p>
+                    </div>
+                  )}
+
+                  {/* Introduction */}
+                  {doc.introduction && (
+                    <div className="mb-4">
+                      <h4 className="text-gray-300 font-medium mb-2">📖 Introduction</h4>
+                      <p className="text-gray-400 text-sm leading-relaxed">{doc.introduction}</p>
+                    </div>
+                  )}
+
+                  {/* Methodology */}
+                  {doc.methodology && (
+                    <div className="mb-4">
+                      <h4 className="text-gray-300 font-medium mb-2">🔍 Methodology</h4>
+                      <p className="text-gray-400 text-sm leading-relaxed">{doc.methodology}</p>
+                    </div>
+                  )}
+
+                  {/* Findings */}
+                  {doc.findings.length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="text-gray-300 font-medium mb-3">🔬 Key Findings</h4>
+                      <div className="space-y-4">
+                        {doc.findings.map((finding, index) => (
+                          <div key={index} className="bg-gray-700/30 p-4 rounded-lg">
+                            <h5 className="text-white text-sm font-medium mb-2">{finding.section}</h5>
+                            <p className="text-gray-300 text-sm leading-relaxed">{finding.content}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Analysis */}
+                  {doc.analysis && (
+                    <div className="mb-4">
+                      <h4 className="text-gray-300 font-medium mb-2">📊 Analysis</h4>
+                      <p className="text-gray-300 text-sm leading-relaxed">{doc.analysis}</p>
+                    </div>
+                  )}
+
+                  {/* Synthesis */}
+                  {doc.synthesis && (
+                    <div className="mb-4">
+                      <h4 className="text-gray-300 font-medium mb-2">🔗 Synthesis</h4>
+                      <p className="text-gray-300 text-sm leading-relaxed">{doc.synthesis}</p>
+                    </div>
+                  )}
+
+                  {/* Conclusion */}
+                  {doc.conclusion && (
+                    <div className="mb-4">
+                      <h4 className="text-gray-300 font-medium mb-2">📝 Conclusion</h4>
+                      <p className="text-white text-sm leading-relaxed bg-blue-900/20 p-3 rounded-lg">{doc.conclusion}</p>
+                    </div>
+                  )}
+
+                  {/* Recommendations */}
+                  {doc.recommendations.length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="text-gray-300 font-medium mb-2">💡 Recommendations</h4>
+                      <ul className="space-y-2">
+                        {doc.recommendations.map((rec, index) => (
+                          <li key={index} className="text-gray-300 text-sm flex items-start gap-2">
+                            <span className="text-green-400 font-medium">{index + 1}.</span>
+                            <span>{rec}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Sources */}
+                  {doc.sources.length > 0 && (
+                    <div className="mb-2">
+                      <h4 className="text-gray-300 font-medium mb-2">🔗 Sources</h4>
+                      <div className="space-y-3">
+                        {doc.sources.map((source, index) => (
+                          <div key={index} className="bg-gray-700/20 p-3 rounded-lg">
+                            <a
+                              href={source.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-400 hover:text-blue-300 text-sm font-medium underline hover:no-underline transition-colors block"
+                            >
+                              {index + 1}. {source.title}
+                            </a>
+                            <p className="text-gray-500 text-xs mt-1">{source.type}</p>
+                            {source.description && (
+                              <p className="text-gray-400 text-xs mt-1">{source.description}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Timestamp */}
+                  <div className="text-xs text-gray-500 mt-4 pt-2 border-t border-gray-700">
+                    Research completed at {doc.timestamp}
+                  </div>
+                </motion.div>
+              ))}
+
+              {/* Quick Research Results */}
               {research.map((item) => (
                 <motion.div
                   key={item.id}
@@ -299,6 +715,13 @@ Research completed at ${item.timestamp}`;
                         <line x1="12" y1="15" x2="12" y2="3"></line>
                       </svg>
                     </button>
+                  </div>
+
+                  {/* Research Badge */}
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="bg-blue-600 text-white px-2 py-1 rounded-full text-xs font-medium">
+                      Quick Research
+                    </span>
                   </div>
 
                   {/* Research Query */}
@@ -388,6 +811,13 @@ Research completed at ${item.timestamp}`;
                   animate={{ opacity: 1, y: 0 }}
                   className="bg-gray-800 rounded-xl p-6 border border-blue-500/30"
                 >
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="bg-blue-600 text-white px-2 py-1 rounded-full text-xs font-medium">
+                      Quick Research
+                    </span>
+                    <span className="text-blue-400 text-xs">In Progress</span>
+                  </div>
+
                   <div className="mb-4">
                     <h3 className="text-white font-medium text-lg mb-2">Research in Progress</h3>
                     <p className="text-blue-300 bg-blue-900/20 p-3 rounded-lg">{currentResearch.query}</p>
@@ -400,6 +830,36 @@ Research completed at ${item.timestamp}`;
                       <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
                     </div>
                     <span className="text-sm">Conducting thorough research...</span>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Current Document in Progress */}
+              {currentDocument && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-gray-800 rounded-xl p-6 border border-purple-500/30"
+                >
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="bg-purple-600 text-white px-2 py-1 rounded-full text-xs font-medium">
+                      Comprehensive Document
+                    </span>
+                    <span className="text-purple-400 text-xs">In Progress</span>
+                  </div>
+
+                  <div className="mb-4">
+                    <h3 className="text-white font-medium text-lg mb-2">Document Generation in Progress</h3>
+                    <p className="text-purple-300 bg-purple-900/20 p-3 rounded-lg">{currentDocument.query}</p>
+                  </div>
+
+                  <div className="flex items-center gap-3 text-purple-400">
+                    <div className="flex gap-1">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" />
+                      <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                      <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                    </div>
+                    <span className="text-sm">Generating comprehensive research document...</span>
                   </div>
                 </motion.div>
               )}
@@ -418,7 +878,11 @@ Research completed at ${item.timestamp}`;
             value={inputValue}
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
-            placeholder="Enter your research question..."
+            placeholder={
+              researchMode === 'comprehensive'
+                ? "Enter your research topic for a comprehensive document..."
+                : "Enter your research question for quick analysis..."
+            }
             className="flex-1 bg-transparent text-white placeholder-gray-400 resize-none outline-none border-none min-h-[48px] leading-6 focus:outline-none focus:ring-0 focus:border-none"
             style={{
               height: '48px',
@@ -433,7 +897,9 @@ Research completed at ${item.timestamp}`;
             disabled={isResearching || !inputValue.trim()}
             className={`p-3 rounded-full transition-all duration-200 flex-shrink-0 ${
               inputValue.trim() && !isResearching
-                ? 'bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-500/25'
+                ? researchMode === 'comprehensive'
+                  ? 'bg-purple-600 text-white hover:bg-purple-500 shadow-lg shadow-purple-500/25'
+                  : 'bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-500/25'
                 : 'bg-gray-700 text-gray-500 cursor-not-allowed'
             }`}
           >
