@@ -203,8 +203,13 @@ export default function CleanChat() {
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
             placeholder="Type your message here..."
-            className="flex-1 bg-transparent text-white placeholder-gray-400 resize-none outline-none border-none min-h-[48px] leading-6"
-            style={{ height: '48px' }}
+            className="flex-1 bg-transparent text-white placeholder-gray-400 resize-none outline-none border-none min-h-[48px] leading-6 focus:outline-none focus:ring-0 focus:border-none"
+            style={{
+              height: '48px',
+              border: 'none',
+              outline: 'none',
+              boxShadow: 'none'
+            }}
             disabled={isLoading}
           />
           <button
