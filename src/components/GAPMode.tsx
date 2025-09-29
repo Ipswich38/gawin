@@ -2,8 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { autonomousAgent } from '@/lib/agent/AutonomousAgentCore';
-import type { Goal, ProactiveSuggestion } from '@/lib/agent/AutonomousAgentCore';
 
 interface GAPResult {
   id: string;
@@ -24,8 +22,6 @@ export default function GAPMode() {
   const [inputValue, setInputValue] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentAnalysis, setCurrentAnalysis] = useState<GAPResult | null>(null);
-  const [activeGoals, setActiveGoals] = useState<Goal[]>([]);
-  const [suggestions, setSuggestions] = useState<ProactiveSuggestion[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -37,20 +33,6 @@ export default function GAPMode() {
     scrollToBottom();
   }, [results, currentAnalysis]);
 
-  useEffect(() => {
-    loadAgentData();
-    // Refresh data periodically
-    const interval = setInterval(loadAgentData, 10000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const loadAgentData = () => {
-    const goals = autonomousAgent.getActiveGoals('default_user');
-    const agentSuggestions = autonomousAgent.getProactiveSuggestions('default_user');
-
-    setActiveGoals(goals);
-    setSuggestions(agentSuggestions);
-  };
 
   // Auto-resize textarea function
   const adjustTextareaHeight = () => {
@@ -73,23 +55,6 @@ export default function GAPMode() {
     adjustTextareaHeight();
   }, [inputValue]);
 
-  const convertToGoal = async (result: GAPResult) => {
-    console.log('🎯 Converting GAP result to autonomous goal:', result.title);
-
-    try {
-      await autonomousAgent.setGoal('default_user', `Execute: ${result.objective}`, result.priority);
-
-      const updatedResults = results.map(r =>
-        r.id === result.id ? { ...r, status: 'active' as const } : r
-      );
-      setResults(updatedResults);
-
-      loadAgentData();
-      console.log('✅ GAP result converted to autonomous goal successfully');
-    } catch (error) {
-      console.error('❌ Failed to convert GAP result to goal:', error);
-    }
-  };
 
   const executeGAP = async () => {
     if (!inputValue.trim() || isProcessing) return;
@@ -214,12 +179,6 @@ export default function GAPMode() {
           </div>
         </div>
         <div className="flex items-center gap-3 text-gray-400 text-sm">
-          {activeGoals.length > 0 && (
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span>{activeGoals.length} goal(s) active</span>
-            </div>
-          )}
           <span>Strategic & comprehensive</span>
         </div>
       </div>
@@ -244,29 +203,6 @@ export default function GAPMode() {
             </motion.div>
           ) : (
             <>
-              {/* Agent Integration Status */}
-              {(activeGoals.length > 0 || suggestions.length > 0) && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-green-900/20 rounded-xl p-4 border border-green-500/30"
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-green-400">🤖</span>
-                    <h4 className="text-green-400 font-medium">Agent Integration Active</h4>
-                  </div>
-                  {activeGoals.length > 0 && (
-                    <p className="text-gray-300 text-sm">
-                      {activeGoals.length} autonomous goal(s) running in background
-                    </p>
-                  )}
-                  {suggestions.length > 0 && (
-                    <p className="text-gray-300 text-sm">
-                      {suggestions.length} strategic insight(s) available
-                    </p>
-                  )}
-                </motion.div>
-              )}
 
               {/* Completed Analysis Results */}
               {results.map((result) => (
@@ -295,16 +231,6 @@ export default function GAPMode() {
                       </div>
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex flex-col gap-2 ml-4">
-                      <button
-                        onClick={() => convertToGoal(result)}
-                        className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm rounded-lg transition-colors"
-                        title="Convert to autonomous goal"
-                      >
-                        🤖 Activate
-                      </button>
-                    </div>
                   </div>
 
                   {/* Methodology */}

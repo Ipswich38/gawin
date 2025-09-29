@@ -29,7 +29,6 @@ import MCPStatusIndicator from './MCPStatusIndicator';
 import CleanChat from './CleanChat';
 import CleanResearch from './CleanResearch';
 import CleanCreative from './CleanCreative';
-import AutonomousAgentPanel from './AutonomousAgentPanel';
 import GAPMode from './GAPMode';
 
 // Screen Share Component
@@ -271,8 +270,6 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   const [currentVoiceTranscript, setCurrentVoiceTranscript] = useState('');
   const [isGawinSpeaking, setIsGawinSpeaking] = useState(false);
 
-  // 🤖 Autonomous Agent states
-  const [isAgentPanelVisible, setIsAgentPanelVisible] = useState(false);
 
   // 🎙️ Voice Mode states
   const [showVoiceModePopup, setShowVoiceModePopup] = useState(false);
@@ -3939,12 +3936,6 @@ Level: ${level}`
         aiResponse={lastAIResponse}
       />
 
-      {/* 🤖 Autonomous Agent Panel */}
-      <AutonomousAgentPanel
-        userId="default_user"
-        isVisible={isAgentPanelVisible}
-        onToggle={() => setIsAgentPanelVisible(!isAgentPanelVisible)}
-      />
 
       </div>
     </div>

@@ -2,8 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { autonomousAgent } from '@/lib/agent/AutonomousAgentCore';
-import type { Goal, ProactiveSuggestion } from '@/lib/agent/AutonomousAgentCore';
 
 interface ResearchStep {
   id: string;
@@ -36,8 +34,6 @@ export default function CleanResearch() {
   const [inputValue, setInputValue] = useState('');
   const [isResearching, setIsResearching] = useState(false);
   const [currentResearch, setCurrentResearch] = useState<ResearchResult | null>(null);
-  const [activeGoals, setActiveGoals] = useState<Goal[]>([]);
-  const [suggestions, setSuggestions] = useState<ProactiveSuggestion[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -49,20 +45,7 @@ export default function CleanResearch() {
     scrollToBottom();
   }, [research, currentResearch]);
 
-  useEffect(() => {
-    loadAgentData();
-    // Refresh data periodically
-    const interval = setInterval(loadAgentData, 10000);
-    return () => clearInterval(interval);
-  }, []);
 
-  const loadAgentData = () => {
-    const goals = autonomousAgent.getActiveGoals('default_user');
-    const agentSuggestions = autonomousAgent.getProactiveSuggestions('default_user');
-
-    setActiveGoals(goals);
-    setSuggestions(agentSuggestions);
-  };
 
   // Auto-resize textarea function
   const adjustTextareaHeight = () => {
@@ -120,18 +103,6 @@ Research completed at ${item.timestamp}`;
     }
   };
 
-  // Convert research to autonomous goal
-  const convertToGoal = async (item: ResearchResult) => {
-    console.log('🔬 Converting research to autonomous goal:', item.query);
-
-    try {
-      await autonomousAgent.setGoal('default_user', `Continue research: ${item.query}`, 'medium');
-      loadAgentData(); // Refresh agent data
-      console.log('✅ Research converted to autonomous goal successfully');
-    } catch (error) {
-      console.error('❌ Failed to convert research to goal:', error);
-    }
-  };
 
   // Download research result as a text file
   const downloadResearch = (item: ResearchResult) => {
@@ -272,12 +243,6 @@ Research completed at ${item.timestamp}`;
           </div>
         </div>
         <div className="flex items-center gap-3 text-gray-400 text-sm">
-          {activeGoals.length > 0 && (
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span>{activeGoals.length} goal(s) active</span>
-            </div>
-          )}
           <span>AI-powered research</span>
         </div>
       </div>
@@ -302,29 +267,6 @@ Research completed at ${item.timestamp}`;
             </motion.div>
           ) : (
             <>
-              {/* Agent Integration Status */}
-              {(activeGoals.length > 0 || suggestions.length > 0) && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-green-900/20 rounded-xl p-4 border border-green-500/30"
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-green-400">🤖</span>
-                    <h4 className="text-green-400 font-medium">Agent Integration Active</h4>
-                  </div>
-                  {activeGoals.length > 0 && (
-                    <p className="text-gray-300 text-sm">
-                      {activeGoals.length} autonomous research goal(s) running in background
-                    </p>
-                  )}
-                  {suggestions.length > 0 && (
-                    <p className="text-gray-300 text-sm">
-                      {suggestions.length} research insight(s) available for deeper investigation
-                    </p>
-                  )}
-                </motion.div>
-              )}
 
               {/* Completed Research */}
               {research.map((item) => (
@@ -334,15 +276,8 @@ Research completed at ${item.timestamp}`;
                   animate={{ opacity: 1, y: 0 }}
                   className="bg-gray-800 rounded-xl p-6 border border-gray-700 relative"
                 >
-                  {/* Copy/Download/Agent Actions */}
+                  {/* Copy/Download Actions */}
                   <div className="absolute top-4 right-4 flex gap-2">
-                    <button
-                      onClick={() => convertToGoal(item)}
-                      className="p-2 rounded-lg bg-purple-600 hover:bg-purple-500 transition-colors group"
-                      title="Convert to autonomous goal"
-                    >
-                      <span className="text-white text-sm">🤖</span>
-                    </button>
                     <button
                       onClick={() => copyToClipboard(item)}
                       className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors group"
@@ -483,7 +418,7 @@ Research completed at ${item.timestamp}`;
             value={inputValue}
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
-            placeholder="Enter your research question. I can also convert findings to autonomous goals..."
+            placeholder="Enter your research question..."
             className="flex-1 bg-transparent text-white placeholder-gray-400 resize-none outline-none border-none min-h-[48px] leading-6 focus:outline-none focus:ring-0 focus:border-none"
             style={{
               height: '48px',

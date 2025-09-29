@@ -2,8 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { autonomousAgent } from '@/lib/agent/AutonomousAgentCore';
-import type { Goal, ProactiveSuggestion } from '@/lib/agent/AutonomousAgentCore';
 
 interface GeneratedImage {
   id: string;
@@ -22,8 +20,6 @@ export default function CleanCreative() {
   const [inputValue, setInputValue] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentGeneration, setCurrentGeneration] = useState<GeneratedImage | null>(null);
-  const [activeGoals, setActiveGoals] = useState<Goal[]>([]);
-  const [suggestions, setSuggestions] = useState<ProactiveSuggestion[]>([]);
   const [selectedStyle, setSelectedStyle] = useState('realistic');
   const [selectedAspectRatio, setSelectedAspectRatio] = useState('1:1');
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
@@ -38,20 +34,7 @@ export default function CleanCreative() {
     scrollToBottom();
   }, [images, currentGeneration]);
 
-  useEffect(() => {
-    loadAgentData();
-    // Refresh data periodically
-    const interval = setInterval(loadAgentData, 10000);
-    return () => clearInterval(interval);
-  }, []);
 
-  const loadAgentData = () => {
-    const goals = autonomousAgent.getActiveGoals('default_user');
-    const agentSuggestions = autonomousAgent.getProactiveSuggestions('default_user');
-
-    setActiveGoals(goals);
-    setSuggestions(agentSuggestions);
-  };
 
   // Auto-resize textarea function
   const adjustTextareaHeight = () => {
@@ -75,18 +58,6 @@ export default function CleanCreative() {
     adjustTextareaHeight();
   }, [inputValue]);
 
-  // Convert image generation to autonomous goal
-  const convertToGoal = async (image: GeneratedImage) => {
-    console.log('🎨 Converting image generation to autonomous goal:', image.prompt);
-
-    try {
-      await autonomousAgent.setGoal('default_user', `Create variations of: ${image.prompt}`, 'medium');
-      loadAgentData(); // Refresh agent data
-      console.log('✅ Image generation converted to autonomous goal successfully');
-    } catch (error) {
-      console.error('❌ Failed to convert image generation to goal:', error);
-    }
-  };
 
   // Copy image URL to clipboard
   const copyImageUrl = async (image: GeneratedImage) => {
@@ -222,12 +193,6 @@ export default function CleanCreative() {
           </div>
         </div>
         <div className="flex items-center gap-3 text-gray-400 text-sm">
-          {activeGoals.length > 0 && (
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span>{activeGoals.length} goal(s) active</span>
-            </div>
-          )}
           <span>Watermark-free generation</span>
         </div>
       </div>
@@ -338,29 +303,6 @@ export default function CleanCreative() {
             </motion.div>
           ) : (
             <>
-              {/* Agent Integration Status */}
-              {(activeGoals.length > 0 || suggestions.length > 0) && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-green-900/20 rounded-xl p-4 border border-green-500/30"
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-green-400">🤖</span>
-                    <h4 className="text-green-400 font-medium">Agent Integration Active</h4>
-                  </div>
-                  {activeGoals.length > 0 && (
-                    <p className="text-gray-300 text-sm">
-                      {activeGoals.length} autonomous creative goal(s) running in background
-                    </p>
-                  )}
-                  {suggestions.length > 0 && (
-                    <p className="text-gray-300 text-sm">
-                      {suggestions.length} creative insight(s) available for image variations
-                    </p>
-                  )}
-                </motion.div>
-              )}
 
               {/* Generated Images */}
               {images.map((image) => (
@@ -372,13 +314,6 @@ export default function CleanCreative() {
                 >
                   {/* Action Buttons */}
                   <div className="absolute top-4 right-4 flex gap-2">
-                    <button
-                      onClick={() => convertToGoal(image)}
-                      className="p-2 rounded-lg bg-purple-600 hover:bg-purple-500 transition-colors group"
-                      title="Convert to autonomous goal"
-                    >
-                      <span className="text-white text-sm">🤖</span>
-                    </button>
                     <button
                       onClick={() => copyImageUrl(image)}
                       className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors group"
@@ -473,7 +408,7 @@ export default function CleanCreative() {
             value={inputValue}
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
-            placeholder="Describe the image you want to create. I can also convert creations to autonomous goals..."
+            placeholder="Describe the image you want to create..."
             className="flex-1 bg-transparent text-white placeholder-gray-400 resize-none outline-none border-none min-h-[48px] leading-6 focus:outline-none focus:ring-0 focus:border-none"
             style={{
               height: '48px',
