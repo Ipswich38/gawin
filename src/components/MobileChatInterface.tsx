@@ -3450,7 +3450,7 @@ Level: ${level}`
       </div>
 
       {/* Enhanced Two-Section Chat Input - Fully Transparent */}
-      {activeTab && ['general', 'creative'].includes(activeTab.type) && (
+      {activeTab && ['creative'].includes(activeTab.type) && (
           <div className="px-3 sm:px-4 py-1 sm:py-2 bg-transparent backdrop-blur-none border-t border-transparent"
                style={{ paddingBottom: `calc(0.5rem + env(safe-area-inset-bottom))` }}>
 
