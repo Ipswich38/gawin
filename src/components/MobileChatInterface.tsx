@@ -2853,10 +2853,6 @@ Level: ${level}`
         </div>
       </div>
 
-      {/* Chat Content */}
-      <div className="flex-1 overflow-hidden">
-        {renderChatContent()}
-      </div>
     </div>
   );
 
@@ -3795,25 +3791,6 @@ Level: ${level}`
                 </button>
               </div>
 
-              {/* Grade A Analytics Dashboard */}
-              <div className="space-y-3">
-                <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wide">Analytics</h3>
-                <button
-                  onClick={() => {
-                    setShowGradeAAnalytics(true);
-                    setIsMenuOpen(false);
-                  }}
-                  className="w-full flex items-center space-x-3 p-3 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 transition-colors"
-                >
-                  <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-lg flex items-center justify-center">
-                    <span className="text-green-400 text-lg">📊</span>
-                  </div>
-                  <div className="text-left">
-                    <div className="text-white font-medium">Grade A Analytics</div>
-                    <div className="text-green-300 text-xs">Performance insights & metrics</div>
-                  </div>
-                </button>
-              </div>
 
               {/* Acknowledgments */}
               <div className="space-y-3">
