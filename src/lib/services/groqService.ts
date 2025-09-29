@@ -496,42 +496,45 @@ Apply the formatting rules above for the user's content type and provide your te
     }
 
     // Enhance system prompt with cultural and environmental awareness
-    try {
-      const userMessage = messages.find(msg => msg.role === 'user');
-      if (userMessage && typeof userMessage.content === 'string') {
-        // Get enhanced context from Gawin Enhancement Service
-        const enhancedContext = await gawinEnhancementService.generateEnhancedContext(
-          userMessage.content,
-          undefined, // userLocation - could be extracted from user profile
-          messages.slice(-5).map(m => ({ role: m.role, content: typeof m.content === 'string' ? m.content : '' }))
-        );
+    // TEMPORARILY DISABLED - this was causing greeting loops
+    if (false) {
+      try {
+        const userMessage = messages.find(msg => msg.role === 'user');
+        if (userMessage && typeof userMessage.content === 'string') {
+          // Get enhanced context from Gawin Enhancement Service
+          const enhancedContext = await gawinEnhancementService.generateEnhancedContext(
+            userMessage.content,
+            undefined, // userLocation - could be extracted from user profile
+            messages.slice(-5).map(m => ({ role: m.role, content: typeof m.content === 'string' ? m.content : '' }))
+          );
 
-        // Enhance the system prompt with context
-        // Map task types to enhancement service compatible types
-        const enhancementTaskType: 'general' | 'coding' | 'analysis' | 'writing' = 
-          taskType === 'coding' ? 'coding' :
-          taskType === 'analysis' ? 'analysis' :
-          taskType === 'writing' ? 'writing' : 'general';
-          
-        const enhancedPromptContext = gawinEnhancementService.enhanceSystemPrompt(
-          baseSystemPrompt,
-          enhancedContext,
-          enhancementTaskType
-        );
+          // Enhance the system prompt with context
+          // Map task types to enhancement service compatible types
+          const enhancementTaskType: 'general' | 'coding' | 'analysis' | 'writing' =
+            taskType === 'coding' ? 'coding' :
+            taskType === 'analysis' ? 'analysis' :
+            taskType === 'writing' ? 'writing' : 'general';
 
-        console.log('🌟 Enhanced AI capabilities activated:', {
-          environmental_awareness: true,
-          cultural_adaptation: enhancedContext.linguistic.language,
-          emotion_recognition: enhancedContext.emotional.analysis.primary,
-          contextual_insights: enhancedContext.recommendations.length
-        });
+          const enhancedPromptContext = gawinEnhancementService.enhanceSystemPrompt(
+            baseSystemPrompt,
+            enhancedContext,
+            enhancementTaskType
+          );
 
-        if (enhancedPromptContext.enhanced_prompt) {
-          return [{ role: 'system', content: enhancedPromptContext.enhanced_prompt }, ...messages];
+          console.log('🌟 Enhanced AI capabilities activated:', {
+            environmental_awareness: true,
+            cultural_adaptation: enhancedContext.linguistic.language,
+            emotion_recognition: enhancedContext.emotional.analysis.primary,
+            contextual_insights: enhancedContext.recommendations.length
+          });
+
+          if (enhancedPromptContext.enhanced_prompt) {
+            return [{ role: 'system', content: enhancedPromptContext.enhanced_prompt }, ...messages];
+          }
         }
+      } catch (error) {
+        console.warn('🔧 Enhancement service failed, using base prompt:', error);
       }
-    } catch (error) {
-      console.warn('🔧 Enhancement service failed, using base prompt:', error);
     }
 
     // Fallback to base system prompt if enhancement fails
@@ -575,13 +578,13 @@ Apply the formatting rules above for the user's content type and provide your te
       const taskType = this.determineTaskType(request);
       const modelConfig = MODEL_CONFIG[taskType];
       
-      console.log(`🚀 Using Groq ${taskType} model: ${modelConfig.model}`);
+      console.log(`🚀 Using Groq ${taskType} model: ${modelConfig.model} [Enhancement Disabled]`);
 
       // Add system prompts for specialized tasks
       let messagesWithSystem = await this.addSystemPrompts(validatedMessages, taskType);
       
       // Enhance with behavior context if available and user has consented
-      if (false) { // Temporarily disabled due to Turbopack compilation issues
+      if (false) { // Temporarily disabled - this was causing greeting loops
         try {
           const userMessage = validatedMessages.find(msg => msg.role === 'user');
           if (userMessage && typeof userMessage?.content === 'string') {

@@ -122,13 +122,19 @@ async function generateSmartEducationalResponse(userMessage: string, conversatio
   }
   
   // Natural conversation handling with contextual awareness - only for actual greetings
-  // More precise greeting detection - must be short and simple
-  const isActualGreeting = /^(hello|hi|hey|good\s+(morning|afternoon|evening)|kumusta|hiya?)[\s\W]*$/i.test(lowerMessage) &&
-                           lowerMessage.length <= 20; // Must be short like a real greeting
+  // Much stricter greeting detection - must be ONLY greeting words
+  const isActualGreeting = /^(hello|hi|hey|good\s+(morning|afternoon|evening)|kumusta|hiya?|sup)[\s!.]*$/i.test(lowerMessage) &&
+                           lowerMessage.length <= 15 && // Even stricter length limit
+                           !lowerMessage.includes('how') &&
+                           !lowerMessage.includes('help') &&
+                           !lowerMessage.includes('can') &&
+                           !lowerMessage.includes('what') &&
+                           !lowerMessage.includes('you'); // Must not contain question/help words
 
   console.log('🔍 Debugging message:', { userMessage, lowerMessage, length: lowerMessage.length, isActualGreeting });
 
   if (isActualGreeting) {
+    console.log('🎯 Detected simple greeting, will use natural conversation service');
     const conversationContext: ConversationContext = {
       userMessage: userMessage,
       previousMessages: [], // This should be populated from actual conversation history
@@ -137,19 +143,16 @@ async function generateSmartEducationalResponse(userMessage: string, conversatio
       knowledgeLevel: context.userKnowledgeLevel,
       timestamp: new Date()
     };
-    
+
     try {
       const naturalResponse = await naturalConversationService.generateNaturalResponse(conversationContext);
       console.log('✅ Natural conversation response:', naturalResponse.content);
       return naturalResponse.content;
     } catch (error) {
-      console.error('❌ Natural conversation service failed:', error);
-      // Intelligent fallback that avoids templated responses
-      const fallbackResponse = hasConversationHistory
-        ? `I see you're back! What's on your mind today?`
-        : `What brings you here? I'm curious about what you'd like to explore.`;
-      console.log('🔄 Using fallback response:', fallbackResponse);
-      return fallbackResponse;
+      console.error('❌ Natural conversation service failed for greeting:', error);
+      // If greeting service fails, fall back to main Groq API instead of templates
+      console.log('🔄 Greeting service failed, passing to main Groq API instead');
+      // Don't return here - let it fall through to the main Groq API call
     }
   }
   

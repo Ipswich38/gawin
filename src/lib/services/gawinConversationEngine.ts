@@ -174,9 +174,15 @@ export class GawinConversationEngine {
     const lowerMessage = message.toLowerCase().trim();
 
     // Check for greetings first with strict matching (must be short and mostly greeting words)
-    const greetingPattern = /^(hello|hi|hey|good\s+(morning|afternoon|evening)|kumusta|kamusta|hiya?)[\s\W]*$/i;
-    const isShortMessage = lowerMessage.length <= 20;
-    const isActualGreeting = greetingPattern.test(lowerMessage) && isShortMessage;
+    const greetingPattern = /^(hello|hi|hey|good\s+(morning|afternoon|evening)|kumusta|kamusta|hiya?|sup)[\s!.]*$/i;
+    const isShortMessage = lowerMessage.length <= 15;
+    const isActualGreeting = greetingPattern.test(lowerMessage) &&
+                            isShortMessage &&
+                            !lowerMessage.includes('how') &&
+                            !lowerMessage.includes('help') &&
+                            !lowerMessage.includes('can') &&
+                            !lowerMessage.includes('what') &&
+                            !lowerMessage.includes('you');
 
     if (isActualGreeting) {
       return 'greeting';
