@@ -26,6 +26,7 @@ import { userPermissionService } from '../lib/services/userPermissionService';
 import { tagalogSpeechAnalysisService } from '../lib/services/tagalogSpeechAnalysisService';
 import { screenAnalysisService } from '../lib/services/screenAnalysisService';
 import MCPStatusIndicator from './MCPStatusIndicator';
+import CleanChat from './CleanChat';
 
 // Screen Share Component
 const ScreenShareButton: React.FC = () => {
@@ -2224,6 +2225,8 @@ Format your response according to the content type requested.`;
         return renderCreativeContent();
       case 'permissions':
         return renderPermissionsContent();
+      case 'general':
+        return <CleanChat />;
       default:
         return renderChatContent();
     }
