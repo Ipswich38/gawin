@@ -15,6 +15,7 @@ export default function CleanChat() {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -23,6 +24,29 @@ export default function CleanChat() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Auto-resize textarea function
+  const adjustTextareaHeight = () => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      const scrollHeight = textarea.scrollHeight;
+      // Minimum height for 2 lines, maximum height for 6 lines (approximate)
+      const minHeight = 48; // ~2 lines
+      const maxHeight = 144; // ~6 lines
+      textarea.style.height = `${Math.min(Math.max(scrollHeight, minHeight), maxHeight)}px`;
+    }
+  };
+
+  // Handle input change with auto-resize
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInputValue(e.target.value);
+    adjustTextareaHeight();
+  };
+
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [inputValue]);
 
   const sendMessage = async () => {
     if (!inputValue.trim() || isLoading) return;
@@ -37,6 +61,11 @@ export default function CleanChat() {
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
     setIsLoading(true);
+
+    // Reset textarea height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = '48px';
+    }
 
     try {
       const response = await fetch('/api/clean-chat', {
@@ -167,26 +196,27 @@ export default function CleanChat() {
 
       {/* Input Area */}
       <div className="p-4 border-t border-gray-700">
-        <div className="flex items-end gap-3 bg-gray-800 rounded-xl p-3">
+        <div className="flex items-end gap-3 bg-gray-800 rounded-full border border-teal-500/30 p-4 transition-all duration-200 hover:border-teal-500/50 focus-within:border-teal-500/70">
           <textarea
+            ref={textareaRef}
             value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+            onChange={handleInputChange}
             onKeyPress={handleKeyPress}
             placeholder="Type your message here..."
-            className="flex-1 bg-transparent text-white placeholder-gray-400 resize-none outline-none max-h-32"
-            rows={1}
+            className="flex-1 bg-transparent text-white placeholder-gray-400 resize-none outline-none border-none min-h-[48px] leading-6"
+            style={{ height: '48px' }}
             disabled={isLoading}
           />
           <button
             onClick={sendMessage}
             disabled={isLoading || !inputValue.trim()}
-            className={`p-2 rounded-lg transition-all duration-200 ${
+            className={`p-3 rounded-full transition-all duration-200 flex-shrink-0 ${
               inputValue.trim() && !isLoading
-                ? 'bg-teal-600 text-white hover:bg-teal-500'
+                ? 'bg-teal-600 text-white hover:bg-teal-500 shadow-lg shadow-teal-500/25'
                 : 'bg-gray-700 text-gray-500 cursor-not-allowed'
             }`}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
               <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
             </svg>
           </button>
