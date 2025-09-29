@@ -28,6 +28,7 @@ import { screenAnalysisService } from '../lib/services/screenAnalysisService';
 import MCPStatusIndicator from './MCPStatusIndicator';
 import CleanChat from './CleanChat';
 import CleanResearch from './CleanResearch';
+import CleanCreative from './CleanCreative';
 import AutonomousAgentPanel from './AutonomousAgentPanel';
 import GAPMode from './GAPMode';
 
@@ -2231,7 +2232,7 @@ Format your response according to the content type requested.`;
       case 'gap':
         return <GAPMode />;
       case 'creative':
-        return renderCreativeContent();
+        return <CleanCreative />;
       case 'permissions':
         return renderPermissionsContent();
       case 'general':
@@ -3459,7 +3460,7 @@ Level: ${level}`
       </div>
 
       {/* Enhanced Two-Section Chat Input - Fully Transparent */}
-      {activeTab && ['creative'].includes(activeTab.type) && (
+      {activeTab && [].includes(activeTab.type) && (
           <div className="px-3 sm:px-4 py-1 sm:py-2 bg-transparent backdrop-blur-none border-t border-transparent"
                style={{ paddingBottom: `calc(0.5rem + env(safe-area-inset-bottom))` }}>
 
