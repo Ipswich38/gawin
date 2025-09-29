@@ -91,9 +91,16 @@ Respond in this exact JSON format:
   ],
   "conclusion": "Comprehensive conclusion based on the research conducted",
   "sources": [
-    "Type of credible source that would be consulted for this research",
-    "Another type of credible source",
-    "Additional relevant source types"
+    {
+      "title": "Name of credible source",
+      "url": "https://example.edu/source1",
+      "type": "Academic journal/University/Government agency/etc"
+    },
+    {
+      "title": "Another credible source name",
+      "url": "https://example.org/source2",
+      "type": "Research institution/Professional organization/etc"
+    }
   ]
 }
 
@@ -104,6 +111,9 @@ Important guidelines:
 - Quality is more important than speed
 - Include diverse perspectives when relevant
 - Be specific and detailed in your findings
+- For sources, provide actual credible websites, academic institutions, government agencies, or professional organizations that would legitimately have information on this topic
+- Use real URLs from established domains (.edu, .gov, .org, major institutions)
+- Each source should be a specific, credible resource someone could actually visit to verify the information
 
 Respond ONLY with valid JSON, no additional text.`;
 
@@ -177,7 +187,11 @@ Respond ONLY with valid JSON, no additional text.`;
       methodology: researchData.methodology,
       steps: researchData.steps,
       conclusion: researchData.conclusion,
-      sources: researchData.sources || ["Academic databases", "Professional publications", "Credible research institutions"]
+      sources: researchData.sources || [
+        { title: "Academic databases", url: "https://scholar.google.com", type: "Academic search engine" },
+        { title: "Professional publications", url: "https://www.jstor.org", type: "Academic journal database" },
+        { title: "Government research", url: "https://www.usa.gov", type: "Government information portal" }
+      ]
     });
 
   } catch (error) {

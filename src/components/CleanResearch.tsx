@@ -12,13 +12,19 @@ interface ResearchStep {
   sources?: string[];
 }
 
+interface Source {
+  title: string;
+  url: string;
+  type: string;
+}
+
 interface ResearchResult {
   id: string;
   query: string;
   methodology: string;
   steps: ResearchStep[];
   conclusion: string;
-  sources: string[];
+  sources: Source[];
   timestamp: string;
   isComplete: boolean;
 }
@@ -60,6 +66,76 @@ export default function CleanResearch() {
   useEffect(() => {
     adjustTextareaHeight();
   }, [inputValue]);
+
+  // Copy research result to clipboard with WYSIWYG formatting
+  const copyToClipboard = async (item: ResearchResult) => {
+    const formattedText = `RESEARCH REPORT
+${item.query}
+
+METHODOLOGY
+${item.methodology}
+
+RESEARCH PROCESS
+${item.steps.map((step, index) =>
+  `${index + 1}. ${step.step}: ${step.description}
+   ${step.result}`
+).join('\n\n')}
+
+CONCLUSION
+${item.conclusion}
+
+SOURCES
+${item.sources.map((source, index) =>
+  `${index + 1}. ${source.title} (${source.type})
+   ${source.url}`
+).join('\n')}
+
+Research completed at ${item.timestamp}`;
+
+    try {
+      await navigator.clipboard.writeText(formattedText);
+      // You could add a toast notification here
+      console.log('Research copied to clipboard');
+    } catch (err) {
+      console.error('Failed to copy research:', err);
+    }
+  };
+
+  // Download research result as a text file
+  const downloadResearch = (item: ResearchResult) => {
+    const formattedText = `RESEARCH REPORT
+${item.query}
+
+METHODOLOGY
+${item.methodology}
+
+RESEARCH PROCESS
+${item.steps.map((step, index) =>
+  `${index + 1}. ${step.step}: ${step.description}
+   ${step.result}`
+).join('\n\n')}
+
+CONCLUSION
+${item.conclusion}
+
+SOURCES
+${item.sources.map((source, index) =>
+  `${index + 1}. ${source.title} (${source.type})
+   ${source.url}`
+).join('\n')}
+
+Research completed at ${item.timestamp}`;
+
+    const blob = new Blob([formattedText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `research-${item.id}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   const startResearch = async () => {
     if (!inputValue.trim() || isResearching) return;
@@ -191,10 +267,35 @@ export default function CleanResearch() {
                   key={item.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-gray-800 rounded-xl p-6 border border-gray-700"
+                  className="bg-gray-800 rounded-xl p-6 border border-gray-700 relative"
                 >
+                  {/* Copy/Download Actions */}
+                  <div className="absolute top-4 right-4 flex gap-2">
+                    <button
+                      onClick={() => copyToClipboard(item)}
+                      className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors group"
+                      title="Copy research result"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-gray-400 group-hover:text-white">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => downloadResearch(item)}
+                      className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors group"
+                      title="Download research result"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-gray-400 group-hover:text-white">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7,10 12,15 17,10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                      </svg>
+                    </button>
+                  </div>
+
                   {/* Research Query */}
-                  <div className="mb-4">
+                  <div className="mb-4 pr-20">
                     <h3 className="text-white font-medium text-lg mb-2">Research Query</h3>
                     <p className="text-blue-300 bg-blue-900/20 p-3 rounded-lg">{item.query}</p>
                   </div>
@@ -242,9 +343,25 @@ export default function CleanResearch() {
                   {item.sources.length > 0 && (
                     <div className="mb-2">
                       <h4 className="text-gray-300 font-medium mb-2">🔗 Sources</h4>
-                      <div className="space-y-1">
+                      <div className="space-y-2">
                         {item.sources.map((source, index) => (
-                          <p key={index} className="text-blue-400 text-sm">• {source}</p>
+                          <div key={index} className="text-sm">
+                            {typeof source === 'string' ? (
+                              <p className="text-blue-400">• {source}</p>
+                            ) : (
+                              <div className="flex flex-col gap-1">
+                                <a
+                                  href={source.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-400 hover:text-blue-300 underline hover:no-underline transition-colors"
+                                >
+                                  • {source.title}
+                                </a>
+                                <p className="text-gray-500 text-xs ml-2">{source.type}</p>
+                              </div>
+                            )}
+                          </div>
                         ))}
                       </div>
                     </div>

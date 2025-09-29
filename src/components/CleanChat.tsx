@@ -48,6 +48,33 @@ export default function CleanChat() {
     adjustTextareaHeight();
   }, [inputValue]);
 
+  // Copy message to clipboard with WYSIWYG formatting
+  const copyMessage = async (message: Message) => {
+    const formattedText = `${message.isAI ? 'Gawin' : 'You'}: ${message.text}\n\nSent at ${message.timestamp}`;
+
+    try {
+      await navigator.clipboard.writeText(formattedText);
+      console.log('Message copied to clipboard');
+    } catch (err) {
+      console.error('Failed to copy message:', err);
+    }
+  };
+
+  // Download message as a text file
+  const downloadMessage = (message: Message) => {
+    const formattedText = `${message.isAI ? 'Gawin' : 'You'}: ${message.text}\n\nSent at ${message.timestamp}`;
+
+    const blob = new Blob([formattedText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `message-${message.id}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const sendMessage = async () => {
     if (!inputValue.trim() || isLoading) return;
 
@@ -150,16 +177,43 @@ export default function CleanChat() {
                 key={message.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`flex ${message.isAI ? 'justify-start' : 'justify-end'}`}
+                className={`flex ${message.isAI ? 'justify-start' : 'justify-end'} group`}
               >
                 <div
-                  className={`max-w-[80%] p-3 rounded-lg ${
+                  className={`max-w-[80%] p-3 rounded-lg relative ${
                     message.isAI
                       ? 'bg-gray-800 text-white border border-gray-700'
                       : 'bg-teal-600 text-white'
                   }`}
                 >
-                  <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                  {/* Copy/Download buttons - only show on AI messages and hover */}
+                  {message.isAI && (
+                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-1">
+                      <button
+                        onClick={() => copyMessage(message)}
+                        className="p-1 rounded bg-gray-700 hover:bg-gray-600 transition-colors"
+                        title="Copy message"
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-gray-300">
+                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => downloadMessage(message)}
+                        className="p-1 rounded bg-gray-700 hover:bg-gray-600 transition-colors"
+                        title="Download message"
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-gray-300">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                          <polyline points="7,10 12,15 17,10"></polyline>
+                          <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+
+                  <div className={`text-sm leading-relaxed whitespace-pre-wrap ${message.isAI ? 'pr-16' : ''}`}>
                     {message.text}
                   </div>
                   <div className="text-xs opacity-60 mt-1">
