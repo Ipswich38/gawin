@@ -115,7 +115,9 @@ Respond ONLY with valid JSON, no additional text.`;
     // Parse the JSON response
     let gapResult;
     try {
-      gapResult = JSON.parse(content);
+      // Clean the content to handle control characters
+      const cleanedContent = content.replace(/[\x00-\x1F\x7F]/g, ' ').trim();
+      gapResult = JSON.parse(cleanedContent);
     } catch (parseError) {
       console.error('❌ JSON parsing error:', parseError);
       // Fallback comprehensive response if JSON parsing fails
