@@ -3436,7 +3436,7 @@ Level: ${level}`
             <span>Menu</span>
           </button>
 
-          {tabs.map((tab) => {
+          {!isMenuOpen && tabs.map((tab) => {
             const TabIcon = tabConfig[tab.type as keyof typeof tabConfig]?.icon;
             return (
               <button
@@ -3467,9 +3467,9 @@ Level: ${level}`
                       closeTab(tab.id);
                     }}
                     className={`
-                      ml-1 opacity-70 hover:opacity-100 hover:bg-white/20 
-                      rounded-full 
-                      ${optimizationConfig?.compactMode ? 'w-3 h-3' : 'w-4 h-4'} 
+                      ml-1 opacity-70 hover:opacity-100 hover:bg-white/20
+                      rounded-full
+                      ${optimizationConfig?.compactMode ? 'w-3 h-3' : 'w-4 h-4'}
                       flex items-center justify-center transition-all
                     `}
                   >
@@ -3780,183 +3780,137 @@ Level: ${level}`
                 <div className="absolute inset-0 bg-gray-900"></div>
               </video>
 
-              {/* Sidebar Content - With enhanced text shadow for readability */}
-              <div className="relative z-20">
-              <div className="p-6 space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-teal-600 to-teal-700 rounded-lg flex items-center justify-center">
-                    <span className="text-white text-lg font-bold">G</span>
+              {/* Clean 3-Section Sidebar */}
+              <div className="relative z-20 h-full flex flex-col">
+
+                {/* Section 1: App Name + Main Tabs */}
+                <div className="p-4 space-y-3">
+                  {/* Simple App Name */}
+                  <div className="text-center">
+                    <h1 className="text-lg text-white font-medium" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>Gawin</h1>
                   </div>
-                  <div>
-                    <h1 className="text-xl text-white font-medium" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>Gawin AI</h1>
-                    <p className="text-sm text-gray-300" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>Your Learning Assistant</p>
+
+                  {/* Main Tabs with Simple Icons */}
+                  <div className="space-y-1">
+                    <button
+                      onClick={() => createNewTab('general')}
+                      className="w-full p-2 text-left hover:bg-teal-600/20 rounded-lg transition-colors flex items-center space-x-2 text-gray-300 hover:text-white text-sm"
+                      style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
+                    >
+                      <span className="text-sm">💬</span>
+                      <span>New Chat</span>
+                    </button>
+
+                    <button
+                      onClick={() => createNewTab('creative')}
+                      className="w-full p-2 text-left hover:bg-teal-600/20 rounded-lg transition-colors flex items-center space-x-2 text-gray-300 hover:text-white text-sm"
+                      style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
+                    >
+                      <span className="text-sm">🎨</span>
+                      <span>Creative Studio</span>
+                    </button>
+
+                    <button
+                      onClick={() => createNewTab('research')}
+                      className="w-full p-2 text-left hover:bg-teal-600/20 rounded-lg transition-colors flex items-center space-x-2 text-gray-300 hover:text-white text-sm"
+                      style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
+                    >
+                      <span className="text-sm">🔍</span>
+                      <span>Research Mode</span>
+                    </button>
+
+                    <button
+                      onClick={() => createNewTab('quiz')}
+                      className="w-full p-2 text-left hover:bg-teal-600/20 rounded-lg transition-colors flex items-center space-x-2 text-gray-300 hover:text-white text-sm"
+                      style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
+                    >
+                      <span className="text-sm">❓</span>
+                      <span>Quiz Generator</span>
+                    </button>
                   </div>
                 </div>
 
-                {/* Theme Toggle */}
-              </div>
-              
-              {/* User Info or Guest Mode Box */}
-              <div className="p-4 rounded-2xl">
-                {isCreator ? (
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-teal-600 to-teal-700 rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm font-medium">
-                        {user.full_name?.[0] || user.email[0].toUpperCase()}
-                      </span>
+                {/* Section 2: Chat History (Placeholder for now) */}
+                <div className="flex-1 px-4 py-2 border-t border-gray-700/50">
+                  <div className="text-xs text-gray-400 mb-2" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>Chat History</div>
+                  {tabs.length > 0 && (
+                    <div className="space-y-1">
+                      {tabs.map((tab) => (
+                        <button
+                          key={tab.id}
+                          onClick={() => switchToTab(tab.id)}
+                          className={`w-full p-2 text-left rounded-lg transition-colors flex items-center justify-between text-xs ${
+                            tab.isActive
+                              ? 'bg-teal-600/30 text-white'
+                              : 'text-gray-400 hover:text-white hover:bg-teal-600/10'
+                          }`}
+                          style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
+                        >
+                          <span className="truncate">{tab.title}</span>
+                          {tabs.length > 1 && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                closeTab(tab.id);
+                              }}
+                              className="ml-1 opacity-70 hover:opacity-100 text-xs"
+                            >
+                              ×
+                            </button>
+                          )}
+                        </button>
+                      ))}
                     </div>
-                    <div>
-                      <p className="text-white font-medium text-sm">{user.full_name || 'User'}</p>
-                      <p className="text-gray-300 text-xs">{user.email}</p>
-                      <span className="text-teal-400 text-xs">👑 Creator</span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-3">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center">
-                        <span className="text-blue-400 text-lg">👤</span>
-                      </div>
-                      <div>
-                        <p className="text-white font-medium text-sm">Guest Mode</p>
-                        <p className="text-blue-300 text-xs">Continue as guest or sign in</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              {/* Creator Dashboard Access */}
-              {isCreator && (
-                <div className="space-y-3">
-                  <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wide">Creator Access</h3>
-                  <button
-                    onClick={() => {
-                      setShowCreatorDashboard(true);
-                      setIsMenuOpen(false);
-                    }}
-                    className="w-full p-4 bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-500/30 rounded-xl hover:from-purple-600/30 hover:to-pink-600/30 transition-all duration-200 flex items-center space-x-3"
-                  >
-                    <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-                      <span className="text-white text-xl">🎯</span>
-                    </div>
-                    <div className="text-left">
-                      <div className="text-white font-medium">Creator Dashboard</div>
-                      <div className="text-purple-300 text-xs">Full control center</div>
-                    </div>
-                  </button>
+                  )}
                 </div>
-              )}
 
-                      <div className="text-white font-medium text-sm">Background Video</div>
-                      <div className="text-purple-300 text-xs">Video by Chandresh Uike</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* User Status & Limitations */}
-              {isGuest && (
-                <div className="bg-gradient-to-r from-amber-900/20 to-orange-900/20 border border-amber-500/30 rounded-xl p-4 mb-4">
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div className="w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm font-bold">G</span>
-                    </div>
-                    <div>
-                      <h3 className="text-amber-200 font-semibold">Guest Mode</h3>
-                      <p className="text-amber-300 text-xs">Limited features for security</p>
-                    </div>
-                  </div>
-                  <div className="space-y-2 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-amber-300">Messages today:</span>
-                      <span className="text-amber-200">{guestChatCount}/{dailyLimit}</span>
-                    </div>
-                    <div className="w-full bg-amber-900/30 rounded-full h-2">
-                      <div
-                        className="bg-amber-500 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${Math.min((guestChatCount / dailyLimit) * 100, 100)}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => window.location.href = '/'}
-                    className="w-full mt-3 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium rounded-lg transition-colors"
-                  >
-                    Create Account for Full Access
-                  </button>
-                </div>
-              )}
-
-              <div className="space-y-2">
-                {[
-                  { type: 'general' as const, icon: '💬', label: 'New Chat', allowed: userPermissions.basicChat },
-                  { type: 'research' as const, icon: <ResearchIcon size={16} />, label: 'Research Mode', allowed: userPermissions.researchMode },
-                  { type: 'creative' as const, icon: <CreativeIcon size={16} />, label: 'Creative Studio', allowed: userPermissions.creativeStudio },
-                  { type: 'quiz' as const, icon: <QuizIcon size={16} />, label: 'Quiz Generator', allowed: userPermissions.quizGenerator },
-                ].filter(item => item.allowed || isCreator).map((item) => (
-                  <div key={item.type} className="relative">
-                    {item.allowed || isCreator ? (
-                      <button
-                        onClick={() => createNewTab(item.type)}
-                        className="w-full p-3 text-left hover:bg-teal-600/20 rounded-lg transition-colors flex items-center space-x-3 text-gray-300 hover:text-teal-200"
-                        style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
-                      >
-                        <span className="text-lg flex items-center">{item.icon}</span>
-                        <span className="font-medium">{item.label}</span>
-                      </button>
+                {/* Section 3: Login Status/Profile + Settings */}
+                <div className="p-4 space-y-2 border-t border-gray-700/50">
+                  {/* User Status */}
+                  <div className="flex items-center space-x-2 text-sm">
+                    {isCreator ? (
+                      <>
+                        <div className="w-6 h-6 bg-teal-600 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs">{user.full_name?.[0] || user.email[0].toUpperCase()}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white text-xs truncate" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>{user.full_name || 'Creator'}</p>
+                          <p className="text-teal-400 text-xs" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>Creator</p>
+                        </div>
+                      </>
                     ) : (
-                      <div className="w-full p-3 text-left rounded-lg flex items-center justify-between text-gray-500 cursor-not-allowed opacity-50">
-                        <div className="flex items-center space-x-3">
-                          <span className="text-lg flex items-center">{item.icon}</span>
-                          <div>
-                            <span className="font-medium">{item.label}</span>
-                            <div className="text-xs text-amber-400">Premium Feature</div>
-                          </div>
+                      <>
+                        <div className="w-6 h-6 bg-blue-500/20 rounded-full flex items-center justify-center">
+                          <span className="text-blue-400 text-xs">👤</span>
                         </div>
-                        <div className="w-6 h-6 bg-amber-500 rounded-full text-xs text-white flex items-center justify-center">
-                          <span>P</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white text-xs" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>Guest Mode</p>
+                          <p className="text-blue-300 text-xs" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>Limited access</p>
                         </div>
-                      </div>
+                      </>
                     )}
                   </div>
-                ))}
-              </div>
 
-              {/* Vital Tab - Hidden section with Legal content */}
-              <div className="pt-6 border-t border-gray-700 space-y-2">
-                <button
-                  onClick={() => createNewTab('permissions')}
-                  className="w-full p-3 text-left text-gray-300 hover:text-white hover:bg-teal-600/20 rounded-lg transition-colors flex items-center space-x-3"
-                  style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
-                >
-                  <span>⚙️</span>
-                  <span>Vital</span>
-                </button>
-
-                {/* Profile Tab - Only show for Creator */}
-                {isCreator && (
+                  {/* Settings */}
                   <button
-                    onClick={() => createNewTab('profile')}
-                    className="w-full p-3 text-left text-gray-300 hover:text-white hover:bg-teal-600/20 rounded-lg transition-colors flex items-center space-x-3"
+                    onClick={() => createNewTab('permissions')}
+                    className="w-full p-2 text-left hover:bg-teal-600/20 rounded-lg transition-colors flex items-center space-x-2 text-gray-400 hover:text-white text-xs"
                     style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
                   >
-                    <span>👤</span>
-                    <span>Profile</span>
+                    <span>⚙️</span>
+                    <span>Settings</span>
                   </button>
-                )}
 
-                <button
-                  onClick={onLogout}
-                  className="w-full p-3 text-left text-gray-300 hover:text-white hover:bg-teal-600/20 rounded-lg transition-colors flex items-center space-x-2"
-                  style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
-                >
-                  <span>⊗</span>
-                  <span>Sign Out</span>
-                </button>
-              </div>
-              </div>
+                  {/* Sign Out */}
+                  <button
+                    onClick={onLogout}
+                    className="w-full p-2 text-left hover:bg-red-600/20 rounded-lg transition-colors flex items-center space-x-2 text-gray-400 hover:text-red-300 text-xs"
+                    style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
+                  >
+                    <span>↩️</span>
+                    <span>Sign Out</span>
+                  </button>
+                </div>
               </div>
             </motion.div>
           </>
