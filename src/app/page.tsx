@@ -112,7 +112,7 @@ export default function HomePage() {
             <span className="text-white text-3xl font-bold">G</span>
           </div>
           <h1 className="text-3xl text-white mb-2 drop-shadow-lg" style={{fontFamily: 'Avenir, -apple-system, BlinkMacSystemFont, sans-serif', fontWeight: 400}}>Welcome to Gawin</h1>
-          <p className="text-gray-200 text-lg drop-shadow-md" style={{fontFamily: 'Avenir, -apple-system, BlinkMacSystemFont, sans-serif', fontWeight: 400}}>Your AI-powered learning assistant</p>
+          <p className="text-gray-200 text-lg drop-shadow-md" style={{fontFamily: 'Avenir, -apple-system, BlinkMacSystemFont, sans-serif', fontWeight: 400}}>Your learning assistant</p>
         </div>
 
         {/* Login Card with subtle transparency to show nostalgic background */}

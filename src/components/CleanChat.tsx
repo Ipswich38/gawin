@@ -148,9 +148,6 @@ export default function CleanChat() {
         <div className="flex items-center gap-3">
           <h2 className="text-white font-semibold">Chat</h2>
         </div>
-        <div className="text-gray-400 text-sm">
-          AI-powered conversation
-        </div>
       </div>
 
       {/* Messages Area */}

@@ -454,37 +454,31 @@ Research completed at ${doc.timestamp}`;
           </div>
           <div>
             <h2 className="text-white font-semibold">Research Mode</h2>
-            <p className="text-xs text-gray-400">Quality research & autonomous insights</p>
           </div>
         </div>
 
         {/* Research Mode Toggle */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center bg-gray-800 rounded-lg p-1 border border-gray-600">
-            <button
-              onClick={() => setResearchMode('quick')}
-              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
-                researchMode === 'quick'
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-700'
-              }`}
-            >
-              Quick Research
-            </button>
-            <button
-              onClick={() => setResearchMode('comprehensive')}
-              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
-                researchMode === 'comprehensive'
-                  ? 'bg-purple-600 text-white shadow-sm'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-700'
-              }`}
-            >
-              Comprehensive Document
-            </button>
-          </div>
-          <div className="text-gray-400 text-sm">
-            <span>AI-powered research</span>
-          </div>
+        <div className="flex items-center bg-gray-800 rounded-lg p-1 border border-gray-600">
+          <button
+            onClick={() => setResearchMode('quick')}
+            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
+              researchMode === 'quick'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-gray-400 hover:text-white hover:bg-gray-700'
+            }`}
+          >
+            Quick
+          </button>
+          <button
+            onClick={() => setResearchMode('comprehensive')}
+            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
+              researchMode === 'comprehensive'
+                ? 'bg-purple-600 text-white shadow-sm'
+                : 'text-gray-400 hover:text-white hover:bg-gray-700'
+            }`}
+          >
+            Comprehensive
+          </button>
         </div>
       </div>
 
@@ -495,31 +489,15 @@ Research completed at ${doc.timestamp}`;
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-center py-8"
+              className="text-center py-12"
             >
-              <div className="text-4xl mb-4">🔬</div>
-              <h3 className="text-white text-lg font-medium mb-2">
-                Welcome to Research Mode!
+              <div className="text-6xl mb-6">🔬</div>
+              <h3 className="text-white text-xl font-medium mb-4">
+                Research Mode
               </h3>
-              <div className="text-gray-400 text-sm max-w-lg mx-auto space-y-3">
-                <p>
-                  Choose your research type to get started:
-                </p>
-                <div className="grid md:grid-cols-2 gap-4 mt-4">
-                  <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
-                    <div className="text-blue-400 font-medium mb-2">Quick Research</div>
-                    <p className="text-xs text-gray-400">
-                      Fast, structured research with step-by-step methodology and key findings.
-                    </p>
-                  </div>
-                  <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
-                    <div className="text-purple-400 font-medium mb-2">Comprehensive Document</div>
-                    <p className="text-xs text-gray-400">
-                      In-depth research documents with executive summaries, detailed analysis, and recommendations.
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <p className="text-gray-400 text-sm">
+                Enter your research question to get started
+              </p>
             </motion.div>
           ) : (
             <>
@@ -880,8 +858,8 @@ Research completed at ${doc.timestamp}`;
             onKeyPress={handleKeyPress}
             placeholder={
               researchMode === 'comprehensive'
-                ? "Enter your research topic for a comprehensive document..."
-                : "Enter your research question for quick analysis..."
+                ? "Research topic for comprehensive document..."
+                : "Research question for quick analysis..."
             }
             className="flex-1 bg-transparent text-white placeholder-gray-400 resize-none outline-none border-none min-h-[48px] leading-6 focus:outline-none focus:ring-0 focus:border-none"
             style={{

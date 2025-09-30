@@ -148,7 +148,7 @@ export default function GoogleOnlyLogin({ onSuccess, onError }: GoogleOnlyLoginP
             <span className="text-white text-3xl font-bold">G</span>
           </div>
           <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">Welcome to Gawin</h1>
-          <p className="text-gray-200 text-lg drop-shadow-md">Your AI-powered learning assistant</p>
+          <p className="text-gray-200 text-lg drop-shadow-md">Your learning assistant</p>
         </div>
 
         {/* Login Card with subtle transparency to show nostalgic background */}

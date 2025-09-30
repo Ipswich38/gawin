@@ -2839,7 +2839,7 @@ Level: ${level}`
       {/* Header */}
       <div className="p-4 text-center">
         <h2 className="text-xl font-semibold text-white flex items-center gap-2"><CreativeIcon size={20} />Creative Studio</h2>
-        <p className="text-gray-400 text-sm mt-1">AI-powered creativity tools</p>
+        <p className="text-gray-400 text-sm mt-1">Image generation and creative tools</p>
       </div>
 
       {/* Feature Cards */}

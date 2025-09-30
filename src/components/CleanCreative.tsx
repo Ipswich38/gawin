@@ -189,7 +189,6 @@ export default function CleanCreative() {
           </div>
           <div>
             <h2 className="text-white font-semibold">Creative Mode</h2>
-            <p className="text-xs text-gray-400">AI-powered image generation</p>
           </div>
         </div>
         <div className="flex items-center gap-3 text-gray-400 text-sm">
