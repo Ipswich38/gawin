@@ -3740,7 +3740,7 @@ Level: ${level}`
                 {/* Theme Toggle */}
               </div>
               
-              <div className="p-4 bg-gray-800/90 rounded-2xl border border-gray-700">
+              <div className="p-4 rounded-2xl">
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-gradient-to-br from-teal-600 to-teal-700 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-medium">
@@ -3784,7 +3784,7 @@ Level: ${level}`
                     setShowPrivacyDashboard(true);
                     setIsMenuOpen(false);
                   }}
-                  className="w-full flex items-center space-x-3 p-3 rounded-xl  hover:bg-gray-700/50 transition-colors"
+                  className="w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-teal-600/20 transition-colors"
                 >
                   <div className="flex-shrink-0 w-8 h-8 bg-teal-500/20 rounded-lg flex items-center justify-center">
                     <span className="text-teal-400 text-lg">🔒</span>
@@ -3921,16 +3921,6 @@ Level: ${level}`
               )}
 
               <div className="pt-6 border-t border-gray-700 space-y-2">
-                {isCreator && (
-                  <button
-                    onClick={onBackToLanding}
-                    className="w-full p-3 text-left text-gray-300 hover:text-white hover:bg-teal-600/20 rounded-lg transition-colors flex items-center space-x-2"
-                    style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
-                  >
-                    <span>←</span>
-                    <span>Back to Landing</span>
-                  </button>
-                )}
                 <button
                   onClick={onLogout}
                   className="w-full p-3 text-left text-gray-300 hover:text-white hover:bg-teal-600/20 rounded-lg transition-colors flex items-center space-x-2"
