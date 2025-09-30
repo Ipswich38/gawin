@@ -18,7 +18,6 @@ import { UniversalDocumentFormatter } from '@/lib/formatters/universalDocumentFo
 import { GawinConversationEngine, type ConversationContext, type EnhancedResponse } from '@/lib/services/gawinConversationEngine';
 import { LocationService, type UserLocation } from '@/lib/services/locationService';
 import LocationStatusBar from './LocationStatusBar';
-import PrivacyDashboard from './PrivacyDashboard';
 import ImmersiveVoiceMode from './ImmersiveVoiceMode';
 import { MiniatureCube } from './MiniatureCube';
 import PremiumFeatureGate from './PremiumFeatureGate';
@@ -156,7 +155,7 @@ interface Message {
 
 interface Tab {
   id: string;
-  type: 'general' | 'quiz' | 'creative' | 'research' | 'permissions';
+  type: 'general' | 'quiz' | 'creative' | 'research' | 'permissions' | 'profile';
   title: string;
   icon: React.ComponentType<{ size?: number; className?: string }>;
   isActive: boolean;
@@ -256,7 +255,6 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   const [gawinEngine] = useState(() => new GawinConversationEngine(locationService));
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [locationStatus, setLocationStatus] = useState<'detecting' | 'loaded' | 'manual' | 'failed' | 'denied'>('detecting');
-  const [showPrivacyDashboard, setShowPrivacyDashboard] = useState(false);
 
   // 👁️🧠 GAWIN'S ENHANCED SENSES
   const [gawinVisionAnalysis, setGawinVisionAnalysis] = useState<VisualAnalysis | null>(null);
@@ -2228,6 +2226,8 @@ Format your response according to the content type requested.`;
         return <CleanCreative />;
       case 'permissions':
         return renderPermissionsContent();
+      case 'profile':
+        return renderProfileContent();
       case 'general':
         return <CleanChat />;
       default:
@@ -3145,6 +3145,52 @@ Level: ${level}`
     </div>
   );
 
+  const renderProfileContent = () => (
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="p-4 text-center">
+        <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+          <span>👤</span>Profile
+        </h2>
+        <p className="text-gray-400 text-sm mt-1">Your account information and preferences</p>
+      </div>
+
+      {/* Profile Content */}
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+        {/* User Info */}
+        <div className="rounded-2xl p-4 border border-gray-700/50" style={{backgroundColor: "rgba(27, 30, 30, 0.5)"}}>
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-teal-600 to-teal-700 rounded-full flex items-center justify-center">
+              <span className="text-white text-xl font-bold">
+                {user.full_name?.[0] || user.email[0].toUpperCase()}
+              </span>
+            </div>
+            <div>
+              <h3 className="text-white font-medium text-lg">{user.full_name || 'User'}</h3>
+              <p className="text-gray-400">{user.email}</p>
+              {isCreator && <span className="text-teal-400 text-sm">👑 Creator</span>}
+            </div>
+          </div>
+        </div>
+
+        {/* Account Stats */}
+        <div className="rounded-2xl p-4 border border-gray-700/50" style={{backgroundColor: "rgba(27, 30, 30, 0.5)"}}>
+          <h3 className="text-white font-medium mb-3">Account Information</h3>
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span className="text-gray-400">Account Type</span>
+              <span className="text-white">{isCreator ? 'Creator' : 'Standard'}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-400">Credits Remaining</span>
+              <span className="text-teal-400">{user.credits_remaining || 'Unlimited'}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderChatContent = () => (
     <div className="flex flex-col h-full relative">
       {/* Background transparency layer */}
@@ -3316,34 +3362,6 @@ Level: ${level}`
     );
   }
 
-  // Show Privacy Dashboard if open
-  if (showPrivacyDashboard) {
-    return (
-      <div className="h-screen overflow-auto" style={{backgroundColor: '#1b1e1e'}}>
-        <div className="max-w-4xl mx-auto p-4">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-white">Privacy Dashboard</h2>
-            <button
-              onClick={() => setShowPrivacyDashboard(false)}
-              className="text-gray-400 hover:text-white text-2xl"
-            >
-              ✕
-            </button>
-          </div>
-          <PrivacyDashboard
-            locationService={locationService}
-            userLocation={userLocation}
-            onLocationChange={() => {
-              // Refresh location state when changed
-              const currentLocation = locationService.getCurrentLocation();
-              setUserLocation(currentLocation);
-              setLocationStatus(currentLocation ? 'loaded' : 'failed');
-            }}
-          />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="h-screen relative overflow-hidden flex flex-col" style={{backgroundColor: '#1b1e1e'}}>
@@ -3779,18 +3797,34 @@ Level: ${level}`
                 {/* Theme Toggle */}
               </div>
               
+              {/* User Info or Guest Mode Box */}
               <div className="p-4 rounded-2xl">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-teal-600 to-teal-700 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-medium">
-                      {user.full_name?.[0] || user.email[0].toUpperCase()}
-                    </span>
+                {isCreator ? (
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-teal-600 to-teal-700 rounded-full flex items-center justify-center">
+                      <span className="text-white text-sm font-medium">
+                        {user.full_name?.[0] || user.email[0].toUpperCase()}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-white font-medium text-sm">{user.full_name || 'User'}</p>
+                      <p className="text-gray-300 text-xs">{user.email}</p>
+                      <span className="text-teal-400 text-xs">👑 Creator</span>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-white font-medium text-sm">{user.full_name || 'User'}</p>
-                    <p className="text-gray-300 text-xs">{user.email}</p>
+                ) : (
+                  <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center">
+                        <span className="text-blue-400 text-lg">👤</span>
+                      </div>
+                      <div>
+                        <p className="text-white font-medium text-sm">Guest Mode</p>
+                        <p className="text-blue-300 text-xs">Continue as guest or sign in</p>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
               
               {/* Creator Dashboard Access */}
@@ -3815,36 +3849,6 @@ Level: ${level}`
                 </div>
               )}
 
-              {/* Privacy Dashboard */}
-              <div className="space-y-3">
-                <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wide">Privacy</h3>
-                <button
-                  onClick={() => {
-                    setShowPrivacyDashboard(true);
-                    setIsMenuOpen(false);
-                  }}
-                  className="w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-teal-600/20 transition-colors"
-                >
-                  <div className="flex-shrink-0 w-8 h-8 bg-teal-500/20 rounded-lg flex items-center justify-center">
-                    <span className="text-teal-400 text-lg">🔒</span>
-                  </div>
-                  <div className="text-left">
-                    <div className="text-white font-medium">Privacy Dashboard</div>
-                    <div className="text-teal-300 text-xs">Control your data & location</div>
-                  </div>
-                </button>
-              </div>
-
-
-              {/* Acknowledgments */}
-              <div className="space-y-3">
-                <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wide">Acknowledgments</h3>
-                <div className="rounded-xl p-3" style={{backgroundColor: "rgba(27, 30, 30, 0.5)"}}>
-                  <div className="flex items-center space-x-3">
-                    <div className="flex-shrink-0 w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                      <span className="text-purple-400 text-lg">🎥</span>
-                    </div>
-                    <div className="text-left">
                       <div className="text-white font-medium text-sm">Background Video</div>
                       <div className="text-purple-300 text-xs">Video by Chandresh Uike</div>
                     </div>
@@ -3931,15 +3935,17 @@ Level: ${level}`
                   <span>Vital</span>
                 </button>
 
-                {/* Profile Tab */}
-                <button
-                  onClick={() => createNewTab('general')}
-                  className="w-full p-3 text-left text-gray-300 hover:text-white hover:bg-teal-600/20 rounded-lg transition-colors flex items-center space-x-3"
-                  style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
-                >
-                  <span>👤</span>
-                  <span>Profile</span>
-                </button>
+                {/* Profile Tab - Only show for Creator */}
+                {isCreator && (
+                  <button
+                    onClick={() => createNewTab('profile')}
+                    className="w-full p-3 text-left text-gray-300 hover:text-white hover:bg-teal-600/20 rounded-lg transition-colors flex items-center space-x-3"
+                    style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
+                  >
+                    <span>👤</span>
+                    <span>Profile</span>
+                  </button>
+                )}
 
                 <button
                   onClick={onLogout}
