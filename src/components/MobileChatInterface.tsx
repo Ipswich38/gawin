@@ -3710,22 +3710,20 @@ Level: ${level}`
                 msOverflowStyle: 'none'
               }}
             >
-              {/* Background Video for Sidebar */}
+              {/* Background Video for Sidebar - Full visibility for futuristic effect */}
               <video
                 autoPlay
                 loop
                 muted
                 playsInline
                 className="absolute inset-0 w-full h-full object-cover z-0"
+                style={{ minHeight: '100vh' }}
               >
                 <source src="/background/new.mp4" type="video/mp4" />
                 <div className="absolute inset-0 bg-gray-900"></div>
               </video>
 
-              {/* Overlay for readability */}
-              <div className="absolute inset-0 bg-black/50 z-10"></div>
-
-              {/* Sidebar Content */}
+              {/* Sidebar Content - With enhanced text shadow for readability */}
               <div className="relative z-20">
               <div className="p-6 space-y-6">
               <div className="flex items-center justify-between">
@@ -3734,8 +3732,8 @@ Level: ${level}`
                     <span className="text-white text-lg font-bold">G</span>
                   </div>
                   <div>
-                    <h1 className="text-xl text-white font-medium">Gawin AI</h1>
-                    <p className="text-sm text-gray-300">Your Learning Assistant</p>
+                    <h1 className="text-xl text-white font-medium" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>Gawin AI</h1>
+                    <p className="text-sm text-gray-300" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>Your Learning Assistant</p>
                   </div>
                 </div>
 
@@ -3849,7 +3847,7 @@ Level: ${level}`
               )}
 
               <div className="space-y-2">
-                <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wide">New Tab</h3>
+                <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wide" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>New Tab</h3>
                 {[
                   { type: 'general' as const, icon: '💬', label: 'General Chat', allowed: userPermissions.basicChat },
                   { type: 'quiz' as const, icon: <QuizIcon size={16} />, label: 'Quiz Generator', allowed: userPermissions.quizGenerator },
@@ -3862,6 +3860,7 @@ Level: ${level}`
                       <button
                         onClick={() => createNewTab(item.type)}
                         className="w-full p-3 text-left hover:bg-teal-600/20 rounded-lg transition-colors flex items-center space-x-3 text-gray-300 hover:text-teal-200"
+                        style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
                       >
                         <span className="text-lg flex items-center">{item.icon}</span>
                         <span className="font-medium">{item.label}</span>
