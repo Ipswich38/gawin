@@ -31,7 +31,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} antialiased`}>
         <ProductionErrorBoundary boundaryName="RootLayout">
-          <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+          <div className="min-h-screen" style={{backgroundColor: '#1b1e1e'}}>
             <main className="relative">
               {children}
             </main>

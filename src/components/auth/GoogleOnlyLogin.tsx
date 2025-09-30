@@ -123,7 +123,7 @@ export default function GoogleOnlyLogin({ onSuccess, onError }: GoogleOnlyLoginP
   };
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden">
+    <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden" style={{backgroundColor: '#1b1e1e'}}>
       {/* Background Video */}
       <video
         autoPlay
@@ -135,7 +135,7 @@ export default function GoogleOnlyLogin({ onSuccess, onError }: GoogleOnlyLoginP
       >
         <source src="/background/new.mp4" type="video/mp4" />
         {/* Fallback for browsers that don't support video */}
-        <div className="absolute inset-0 bg-[#121212]"></div>
+        <div className="absolute inset-0" style={{backgroundColor: '#1b1e1e'}}></div>
       </video>
       
       {/* Subtle dark overlay for readability while showing nostalgic background */}
