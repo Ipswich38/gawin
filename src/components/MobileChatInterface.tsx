@@ -3307,24 +3307,9 @@ Level: ${level}`
   }
 
   return (
-    <div className="h-screen relative overflow-hidden flex flex-col">
-      {/* Background Video */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="video-background absolute inset-0 w-full h-full object-cover z-0"
-      >
-        <source src="/background/new.mp4" type="video/mp4" />
-        <div className="absolute inset-0" style={{backgroundColor: '#1b1e1e'}}></div>
-      </video>
-      
-      {/* Overlay for readability while showing background */}
-      <div className="absolute inset-0 z-10 bg-black/50"></div>
-      
-      {/* Main App Content with transparency */}
-      <div className="relative z-20 h-full flex flex-col">
+    <div className="h-screen relative overflow-hidden flex flex-col" style={{backgroundColor: '#1b1e1e'}}>
+      {/* Main App Content */}
+      <div className="relative h-full flex flex-col">
 
         {/* 🌍 Location Status Bar - Hidden for cleaner UI */}
         {/* <LocationStatusBar

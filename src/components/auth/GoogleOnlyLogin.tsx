@@ -134,7 +134,7 @@ export default function GoogleOnlyLogin({ onSuccess, onError }: GoogleOnlyLoginP
           <p className="text-gray-200 text-lg drop-shadow-md">Your learning assistant</p>
         </div>
 
-        {/* Login Card with subtle transparency to show nostalgic background */}
+        {/* Login Card */}
         <div className="bg-[#1E1E1E]/60 backdrop-blur-lg rounded-2xl p-8 shadow-2xl border border-gray-700/40">
           <div className="text-center mb-8">
             <h2 className="text-xl font-semibold text-white mb-2">Sign in to continue</h2>

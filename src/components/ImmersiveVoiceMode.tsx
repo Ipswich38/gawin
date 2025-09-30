@@ -609,20 +609,8 @@ export default function ImmersiveVoiceMode({
             </div>
           </motion.div>
         )}
-        {/* Background Video - Same as main app */}
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover z-0"
-        >
-          <source src="/background/new.mp4" type="video/mp4" />
-          <div className="absolute inset-0 bg-gray-900"></div>
-        </video>
-
-        {/* Subtle overlay for cube visibility */}
-        <div className="absolute inset-0 bg-black/40 z-5"></div>
+        {/* Solid background */}
+        <div className="absolute inset-0" style={{backgroundColor: '#1b1e1e'}}></div>
 
 
         {/* Main 3D Cube - Center Stage */}
