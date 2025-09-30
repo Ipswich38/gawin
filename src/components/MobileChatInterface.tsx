@@ -3358,17 +3358,18 @@ Level: ${level}`
             <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className={`
-              flex items-center space-x-2 
-              ${optimizationConfig?.compactMode ? 'px-2 py-1' : 'px-3 py-1.5'} 
+              flex items-center space-x-2
+              ${optimizationConfig?.compactMode ? 'px-2 py-1' : 'px-3 py-1.5'}
               ${optimizationConfig?.tabHeight || 'h-10'}
-              rounded-xl 
-              ${optimizationConfig?.compactMode ? 'text-xs' : 'text-sm'} 
+              rounded-xl
+              ${optimizationConfig?.compactMode ? 'text-xs' : 'text-sm'}
               font-medium transition-all flex-shrink-0
               ${isMenuOpen
                 ? 'bg-teal-600 text-white shadow-lg backdrop-blur-sm'
-                : 'bg-gray-800/90 text-gray-200 hover:bg-gray-700/90 backdrop-blur-sm'
+                : 'text-gray-200 hover:bg-gray-700/90 backdrop-blur-sm'
               }
             `}
+            style={isMenuOpen ? {} : {backgroundColor: '#1b1e1e'}}
           >
             {isMenuOpen ? (
               <CloseIcon size={optimizationConfig?.compactMode ? 14 : 16} className="flex-shrink-0" />
@@ -3385,17 +3386,18 @@ Level: ${level}`
                 key={tab.id}
                 onClick={() => switchToTab(tab.id)}
                 className={`
-                  flex items-center space-x-2 
-                  ${optimizationConfig?.compactMode ? 'px-2 py-1' : 'px-3 py-1.5'} 
+                  flex items-center space-x-2
+                  ${optimizationConfig?.compactMode ? 'px-2 py-1' : 'px-3 py-1.5'}
                   ${optimizationConfig?.tabHeight || 'h-10'}
-                  rounded-xl 
-                  ${optimizationConfig?.compactMode ? 'text-xs' : 'text-sm'} 
+                  rounded-xl
+                  ${optimizationConfig?.compactMode ? 'text-xs' : 'text-sm'}
                   font-medium transition-all flex-shrink-0
                   ${tab.isActive
                     ? 'bg-teal-600 text-white shadow-lg backdrop-blur-sm'
-                    : 'bg-gray-800/90 text-gray-200 hover:bg-gray-700/90 backdrop-blur-sm'
+                    : 'text-gray-200 hover:bg-gray-700/90 backdrop-blur-sm'
                   }
                 `}
+                style={tab.isActive ? {} : {backgroundColor: '#1b1e1e'}}
               >
                 {TabIcon && (
                   <TabIcon size={optimizationConfig?.compactMode ? 14 : 16} className="flex-shrink-0" />
@@ -3702,12 +3704,29 @@ Level: ${level}`
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'tween' }}
-              className="fixed left-0 top-0 h-full w-80 bg-gray-900/95 backdrop-blur-sm border-r border-gray-600/50 z-50 overflow-y-auto scrollbar-none"
+              className="fixed left-0 top-0 h-full w-80 border-r border-gray-600/50 z-50 overflow-y-auto scrollbar-none relative"
               style={{
                 scrollbarWidth: 'none',
                 msOverflowStyle: 'none'
               }}
             >
+              {/* Background Video for Sidebar */}
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="absolute inset-0 w-full h-full object-cover z-0"
+              >
+                <source src="/background/new.mp4" type="video/mp4" />
+                <div className="absolute inset-0 bg-gray-900"></div>
+              </video>
+
+              {/* Overlay for readability */}
+              <div className="absolute inset-0 bg-black/50 z-10"></div>
+
+              {/* Sidebar Content */}
+              <div className="relative z-20">
               <div className="p-6 space-y-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
@@ -3880,6 +3899,7 @@ Level: ${level}`
                   <span>⊗</span>
                   <span>Sign Out</span>
                 </button>
+              </div>
               </div>
               </div>
             </motion.div>
