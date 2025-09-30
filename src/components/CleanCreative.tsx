@@ -309,7 +309,8 @@ export default function CleanCreative() {
                   key={image.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-gray-800 rounded-xl p-6 border border-gray-700 relative"
+                  className="rounded-xl p-6 border border-gray-700 relative"
+                  style={{backgroundColor: '#1b1e1e'}}
                 >
                   {/* Action Buttons */}
                   <div className="absolute top-4 right-4 flex gap-2">
@@ -375,7 +376,8 @@ export default function CleanCreative() {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-gray-800 rounded-xl p-6 border border-pink-500/30"
+                  className="rounded-xl p-6 border border-pink-500/30"
+                  style={{backgroundColor: '#1b1e1e'}}
                 >
                   <div className="mb-4">
                     <h3 className="text-white font-medium text-lg mb-2">Image Generation in Progress</h3>
@@ -401,7 +403,7 @@ export default function CleanCreative() {
 
       {/* Image Generation Input Area */}
       <div className="p-4 border-t border-gray-700">
-        <div className="flex items-end gap-3 bg-gray-800 rounded-full border border-pink-500/30 p-4 transition-all duration-200 hover:border-pink-500/50 focus-within:border-pink-500/70">
+        <div className="flex items-end gap-3 rounded-full border border-pink-500/30 p-4 transition-all duration-200 hover:border-pink-500/50 focus-within:border-pink-500/70" style={{backgroundColor: '#1b1e1e'}}>
           <textarea
             ref={textareaRef}
             value={inputValue}

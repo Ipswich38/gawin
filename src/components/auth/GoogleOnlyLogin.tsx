@@ -123,25 +123,8 @@ export default function GoogleOnlyLogin({ onSuccess, onError }: GoogleOnlyLoginP
   };
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden" style={{backgroundColor: '#1b1e1e'}}>
-      {/* Background Video */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="absolute inset-0 w-full h-full object-cover z-0"
-        poster="/background/loginbg-poster.jpg" // Optional: add a poster image as fallback
-      >
-        <source src="/background/new.mp4" type="video/mp4" />
-        {/* Fallback for browsers that don't support video */}
-        <div className="absolute inset-0" style={{backgroundColor: '#1b1e1e'}}></div>
-      </video>
-      
-      {/* Subtle dark overlay for readability while showing nostalgic background */}
-      <div className="absolute inset-0 bg-black/30 z-10"></div>
-      
-      <div className="w-full max-w-md relative z-20">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{backgroundColor: '#1b1e1e'}}>
+      <div className="w-full max-w-md">
         {/* App Logo and Title */}
         <div className="text-center mb-12">
           <div className="w-20 h-20 bg-gradient-to-br from-[#00C2A8] to-[#00A693] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-[#00C2A8]/30 backdrop-blur-sm">

@@ -179,9 +179,10 @@ export default function CleanChat() {
                 <div
                   className={`max-w-[80%] p-3 rounded-lg relative ${
                     message.isAI
-                      ? 'bg-gray-800 text-white border border-gray-700'
+                      ? 'text-white border border-gray-700'
                       : 'bg-teal-600 text-white'
                   }`}
+                  style={message.isAI ? {backgroundColor: '#1b1e1e'} : {}}
                 >
                   {/* Copy/Download buttons - only show on AI messages and hover */}
                   {message.isAI && (
@@ -229,7 +230,7 @@ export default function CleanChat() {
             animate={{ opacity: 1, y: 0 }}
             className="flex justify-start"
           >
-            <div className="bg-gray-800 border border-gray-700 p-3 rounded-lg">
+            <div className="border border-gray-700 p-3 rounded-lg" style={{backgroundColor: '#1b1e1e'}}>
               <div className="flex items-center gap-2">
                 <div className="flex gap-1">
                   <div className="w-2 h-2 bg-teal-500 rounded-full animate-bounce" />
@@ -247,7 +248,7 @@ export default function CleanChat() {
 
       {/* Input Area */}
       <div className="p-4 border-t border-gray-700">
-        <div className="flex items-end gap-3 bg-gray-800 rounded-full border border-teal-500/30 p-4 transition-all duration-200 hover:border-teal-500/50 focus-within:border-teal-500/70">
+        <div className="flex items-end gap-3 rounded-full border border-teal-500/30 p-4 transition-all duration-200 hover:border-teal-500/50 focus-within:border-teal-500/70" style={{backgroundColor: '#1b1e1e'}}>
           <textarea
             ref={textareaRef}
             value={inputValue}

@@ -458,7 +458,7 @@ Research completed at ${doc.timestamp}`;
         </div>
 
         {/* Research Mode Toggle */}
-        <div className="flex items-center bg-gray-800 rounded-lg p-1 border border-gray-600">
+        <div className="flex items-center rounded-lg p-1 border border-gray-600" style={{backgroundColor: '#1b1e1e'}}>
           <button
             onClick={() => setResearchMode('quick')}
             className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
@@ -507,7 +507,8 @@ Research completed at ${doc.timestamp}`;
                   key={doc.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-gray-800 rounded-xl p-6 border border-gray-700 relative"
+                  className="rounded-xl p-6 border border-gray-700 relative"
+                  style={{backgroundColor: '#1b1e1e'}}
                 >
                   {/* Copy/Download Actions */}
                   <div className="absolute top-4 right-4 flex gap-2">
@@ -668,7 +669,8 @@ Research completed at ${doc.timestamp}`;
                   key={item.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-gray-800 rounded-xl p-6 border border-gray-700 relative"
+                  className="rounded-xl p-6 border border-gray-700 relative"
+                  style={{backgroundColor: '#1b1e1e'}}
                 >
                   {/* Copy/Download Actions */}
                   <div className="absolute top-4 right-4 flex gap-2">
@@ -787,7 +789,8 @@ Research completed at ${doc.timestamp}`;
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-gray-800 rounded-xl p-6 border border-blue-500/30"
+                  className="rounded-xl p-6 border border-blue-500/30"
+                  style={{backgroundColor: '#1b1e1e'}}
                 >
                   <div className="flex items-center gap-2 mb-4">
                     <span className="bg-blue-600 text-white px-2 py-1 rounded-full text-xs font-medium">
@@ -817,7 +820,8 @@ Research completed at ${doc.timestamp}`;
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-gray-800 rounded-xl p-6 border border-purple-500/30"
+                  className="rounded-xl p-6 border border-purple-500/30"
+                  style={{backgroundColor: '#1b1e1e'}}
                 >
                   <div className="flex items-center gap-2 mb-4">
                     <span className="bg-purple-600 text-white px-2 py-1 rounded-full text-xs font-medium">
@@ -850,7 +854,7 @@ Research completed at ${doc.timestamp}`;
 
       {/* Research Input Area */}
       <div className="p-4 border-t border-gray-700">
-        <div className="flex items-end gap-3 bg-gray-800 rounded-full border border-blue-500/30 p-4 transition-all duration-200 hover:border-blue-500/50 focus-within:border-blue-500/70">
+        <div className="flex items-end gap-3 rounded-full border border-blue-500/30 p-4 transition-all duration-200 hover:border-blue-500/50 focus-within:border-blue-500/70" style={{backgroundColor: '#1b1e1e'}}>
           <textarea
             ref={textareaRef}
             value={inputValue}

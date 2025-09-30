@@ -2761,7 +2761,7 @@ Level: ${level}`
           {/* Results */}
           <div className="text-center space-y-4 flex-shrink-0">
             <h2 className="text-2xl font-semibold text-white flex items-center gap-2"><QuizIcon size={22} />Quiz Complete!</h2>
-            <div className="bg-gray-800/50 rounded-2xl p-4">
+            <div className="rounded-2xl p-4" style={{backgroundColor: 'rgba(27, 30, 30, 0.5)'}}>
               <div className="text-3xl font-bold text-teal-400 mb-2">
                 {quizResults?.score}/{quizResults?.total}
               </div>
@@ -2776,7 +2776,7 @@ Level: ${level}`
             <h3 className="text-lg font-semibold text-white sticky top-0 bg-gray-900/95 py-2 flex items-center gap-2">📝 Review</h3>
             <div className="space-y-3 pb-4">
             {quizResults?.results?.filter((r: any) => !r.isCorrect).map((result: any, idx: number) => (
-              <div key={idx} className="bg-gray-800/50 rounded-2xl p-4 space-y-3">
+              <div key={idx} className="rounded-2xl p-4 space-y-3" style={{backgroundColor: 'rgba(27, 30, 30, 0.5)'}}>
                 <div className="border-l-4 border-red-500 pl-3">
                   <h4 className="text-white font-medium text-sm">{result.question}</h4>
                   <div className="space-y-1 text-xs mt-2">
@@ -2845,11 +2845,11 @@ Level: ${level}`
       {/* Feature Cards */}
       <div className="px-4 pb-4">
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-gray-800/50 rounded-xl p-3 text-center">
+          <div className="rounded-xl p-3 text-center" style={{backgroundColor: "rgba(27, 30, 30, 0.5)"}}>
             <div className="text-2xl mb-1">🖼️</div>
             <div className="text-white text-sm font-medium">Image Generation</div>
           </div>
-          <div className="bg-gray-800/50 rounded-xl p-3 text-center">
+          <div className="rounded-xl p-3 text-center" style={{backgroundColor: "rgba(27, 30, 30, 0.5)"}}>
             <div className="text-2xl mb-1">✍️</div>
             <div className="text-white text-sm font-medium">Creative Writing</div>
           </div>
@@ -2873,7 +2873,7 @@ Level: ${level}`
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
 
         {/* Location Settings */}
-        <div className="bg-gray-800/50 rounded-2xl p-4 border border-gray-700/50">
+        <div className="rounded-2xl p-4 border border-gray-700/50" style={{backgroundColor: "rgba(27, 30, 30, 0.5)"}}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-teal-500/20 rounded-xl flex items-center justify-center">
@@ -2966,7 +2966,7 @@ Level: ${level}`
         </div>
 
         {/* Camera & Vision */}
-        <div className="bg-gray-800/50 rounded-2xl p-4 border border-gray-700/50">
+        <div className="rounded-2xl p-4 border border-gray-700/50" style={{backgroundColor: "rgba(27, 30, 30, 0.5)"}}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-green-500/20 rounded-xl flex items-center justify-center">
@@ -3002,7 +3002,7 @@ Level: ${level}`
         </div>
 
         {/* Microphone & Speech */}
-        <div className="bg-gray-800/50 rounded-2xl p-4 border border-gray-700/50">
+        <div className="rounded-2xl p-4 border border-gray-700/50" style={{backgroundColor: "rgba(27, 30, 30, 0.5)"}}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center">
@@ -3030,7 +3030,7 @@ Level: ${level}`
         </div>
 
         {/* Voice Output */}
-        <div className="bg-gray-800/50 rounded-2xl p-4 border border-gray-700/50">
+        <div className="rounded-2xl p-4 border border-gray-700/50" style={{backgroundColor: "rgba(27, 30, 30, 0.5)"}}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-yellow-500/20 rounded-xl flex items-center justify-center">
@@ -3058,7 +3058,7 @@ Level: ${level}`
         </div>
 
         {/* Data Storage */}
-        <div className="bg-gray-800/50 rounded-2xl p-4 border border-gray-700/50">
+        <div className="rounded-2xl p-4 border border-gray-700/50" style={{backgroundColor: "rgba(27, 30, 30, 0.5)"}}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-orange-500/20 rounded-xl flex items-center justify-center">
@@ -3782,7 +3782,7 @@ Level: ${level}`
                     setShowPrivacyDashboard(true);
                     setIsMenuOpen(false);
                   }}
-                  className="w-full flex items-center space-x-3 p-3 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 transition-colors"
+                  className="w-full flex items-center space-x-3 p-3 rounded-xl  hover:bg-gray-700/50 transition-colors"
                 >
                   <div className="flex-shrink-0 w-8 h-8 bg-teal-500/20 rounded-lg flex items-center justify-center">
                     <span className="text-teal-400 text-lg">🔒</span>
@@ -3798,7 +3798,7 @@ Level: ${level}`
               {/* Acknowledgments */}
               <div className="space-y-3">
                 <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wide">Acknowledgments</h3>
-                <div className="bg-gray-800/50 rounded-xl p-3">
+                <div className="rounded-xl p-3" style={{backgroundColor: "rgba(27, 30, 30, 0.5)"}}>
                   <div className="flex items-center space-x-3">
                     <div className="flex-shrink-0 w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
                       <span className="text-purple-400 text-lg">🎥</span>
@@ -3883,14 +3883,14 @@ Level: ${level}`
               <div className="pt-6 border-t border-gray-700 space-y-2">
                 <button
                   onClick={onBackToLanding}
-                  className="w-full p-3 text-left text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors flex items-center space-x-2"
+                  className="w-full p-3 text-left text-gray-300 hover:text-white hover: rounded-lg transition-colors flex items-center space-x-2"
                 >
                   <span>←</span>
                   <span>Back to Landing</span>
                 </button>
                 <button
                   onClick={onLogout}
-                  className="w-full p-3 text-left text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors flex items-center space-x-2"
+                  className="w-full p-3 text-left text-gray-300 hover:text-white hover: rounded-lg transition-colors flex items-center space-x-2"
                 >
                   <span>⊗</span>
                   <span>Sign Out</span>
