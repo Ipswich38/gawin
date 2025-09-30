@@ -3847,14 +3847,26 @@ Level: ${level}`
               )}
 
               <div className="space-y-2">
-                <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wide" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>New Tab</h3>
-                {[
-                  { type: 'general' as const, icon: '💬', label: 'General Chat', allowed: userPermissions.basicChat },
-                  { type: 'quiz' as const, icon: <QuizIcon size={16} />, label: 'Quiz Generator', allowed: userPermissions.quizGenerator },
-                  { type: 'creative' as const, icon: <CreativeIcon size={16} />, label: 'Creative Studio', allowed: userPermissions.creativeStudio },
-                  { type: 'research' as const, icon: <ResearchIcon size={16} />, label: 'Research Mode', allowed: userPermissions.researchMode },
-                  { type: 'permissions' as const, icon: <PermissionsIcon size={16} />, label: 'Permissions', allowed: userPermissions.permissionsTab },
-                ].filter(item => item.allowed || isCreator).map((item) => (
+                <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wide" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
+                  {isCreator ? 'New Tab' : 'Available Options'}
+                </h3>
+                {(() => {
+                  // Define all available options
+                  const allOptions = [
+                    { type: 'general' as const, icon: '💬', label: isCreator ? 'General Chat' : 'Profile & Chat', allowed: userPermissions.basicChat, guestAllowed: true },
+                    { type: 'quiz' as const, icon: <QuizIcon size={16} />, label: 'Quiz Generator', allowed: userPermissions.quizGenerator, guestAllowed: false },
+                    { type: 'creative' as const, icon: <CreativeIcon size={16} />, label: 'Creative Studio', allowed: userPermissions.creativeStudio, guestAllowed: false },
+                    { type: 'research' as const, icon: <ResearchIcon size={16} />, label: 'Research Mode', allowed: userPermissions.researchMode, guestAllowed: false },
+                    { type: 'permissions' as const, icon: <PermissionsIcon size={16} />, label: 'Settings', allowed: userPermissions.permissionsTab, guestAllowed: true },
+                  ];
+
+                  // Filter options based on user type
+                  const filteredOptions = isCreator
+                    ? allOptions.filter(item => item.allowed || isCreator) // Creator sees all allowed options
+                    : allOptions.filter(item => item.guestAllowed && (item.allowed || isCreator)); // Guest sees only basic options
+
+                  return filteredOptions;
+                })().map((item) => (
                   <div key={item.type} className="relative">
                     {item.allowed || isCreator ? (
                       <button
@@ -3882,18 +3894,47 @@ Level: ${level}`
                   </div>
                 ))}
               </div>
-              
+
+              {/* Legal Section - Show for all users but especially for Guests */}
+              {!isCreator && (
+                <div className="pt-6 border-t border-gray-700 space-y-2">
+                  <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wide" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
+                    Legal
+                  </h3>
+                  <button
+                    onClick={() => window.open('/terms', '_blank')}
+                    className="w-full p-3 text-left text-gray-300 hover:text-white hover:bg-teal-600/20 rounded-lg transition-colors flex items-center space-x-3"
+                    style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
+                  >
+                    <span>📄</span>
+                    <span>Terms & Conditions</span>
+                  </button>
+                  <button
+                    onClick={() => window.open('/privacy', '_blank')}
+                    className="w-full p-3 text-left text-gray-300 hover:text-white hover:bg-teal-600/20 rounded-lg transition-colors flex items-center space-x-3"
+                    style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
+                  >
+                    <span>🔒</span>
+                    <span>Data Privacy</span>
+                  </button>
+                </div>
+              )}
+
               <div className="pt-6 border-t border-gray-700 space-y-2">
-                <button
-                  onClick={onBackToLanding}
-                  className="w-full p-3 text-left text-gray-300 hover:text-white hover: rounded-lg transition-colors flex items-center space-x-2"
-                >
-                  <span>←</span>
-                  <span>Back to Landing</span>
-                </button>
+                {isCreator && (
+                  <button
+                    onClick={onBackToLanding}
+                    className="w-full p-3 text-left text-gray-300 hover:text-white hover:bg-teal-600/20 rounded-lg transition-colors flex items-center space-x-2"
+                    style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
+                  >
+                    <span>←</span>
+                    <span>Back to Landing</span>
+                  </button>
+                )}
                 <button
                   onClick={onLogout}
-                  className="w-full p-3 text-left text-gray-300 hover:text-white hover: rounded-lg transition-colors flex items-center space-x-2"
+                  className="w-full p-3 text-left text-gray-300 hover:text-white hover:bg-teal-600/20 rounded-lg transition-colors flex items-center space-x-2"
+                  style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
                 >
                   <span>⊗</span>
                   <span>Sign Out</span>
