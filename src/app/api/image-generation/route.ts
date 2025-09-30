@@ -101,29 +101,21 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Fallback: Use placeholder service for demo (you can replace with actual API)
-    console.log('🎨 Using fallback image generation');
+    // Fallback: Use Pollinations AI (free AI image generation service)
+    console.log('🎨 Using Pollinations AI as fallback');
 
-    // Generate a placeholder image URL with Picsum (photography) or a pattern
-    const placeholderServices = {
-      realistic: `https://picsum.photos/${dimensions.width}/${dimensions.height}?random=${Date.now()}`,
-      artistic: `https://source.unsplash.com/${dimensions.width}x${dimensions.height}/?art,abstract&${Date.now()}`,
-      anime: `https://source.unsplash.com/${dimensions.width}x${dimensions.height}/?anime,illustration&${Date.now()}`,
-      cartoon: `https://source.unsplash.com/${dimensions.width}x${dimensions.height}/?cartoon,colorful&${Date.now()}`,
-      abstract: `https://source.unsplash.com/${dimensions.width}x${dimensions.height}/?abstract,pattern&${Date.now()}`,
-      cyberpunk: `https://source.unsplash.com/${dimensions.width}x${dimensions.height}/?neon,cyberpunk,city&${Date.now()}`
-    };
+    // Use Pollinations AI - free AI image generation that actually uses prompts
+    const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=${dimensions.width}&height=${dimensions.height}&nologo=true&enhance=true`;
 
-    const fallbackUrl = placeholderServices[style as keyof typeof placeholderServices] || placeholderServices.realistic;
-
+    console.log('✅ Pollinations AI image generated successfully');
     return NextResponse.json({
       success: true,
-      imageUrl: fallbackUrl,
-      model: 'Fallback Service (Demo)',
+      imageUrl: pollinationsUrl,
+      model: 'Pollinations AI (Free)',
       style: style,
       aspectRatio: aspectRatio,
       watermarkFree: true,
-      note: 'Demo mode - add TOGETHER_API_KEY for AI generation'
+      note: 'Generated using Pollinations AI - add TOGETHER_API_KEY for FLUX model'
     });
 
   } catch (error) {
