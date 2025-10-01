@@ -200,6 +200,36 @@ p {
     display: none;
   }
 
+  /* Invisible but functional scrollbar for better UX */
+  .scrollbar-invisible {
+    /* Firefox - thin transparent scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  .scrollbar-invisible::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-invisible::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-invisible::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    transition: background 0.2s ease;
+  }
+
+  .scrollbar-invisible::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .scrollbar-invisible::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
   /* Spaces Icon Animation */
   .spaces-icon-animation {
     position: relative;

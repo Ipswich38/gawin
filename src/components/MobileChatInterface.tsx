@@ -132,7 +132,8 @@ import { useIntelligentTranslation } from '../hooks/useTranslation';
 import {
   ChatIcon, QuizIcon, CreativeIcon, SearchIcon as ResearchIcon,
   SendIcon, MenuIcon, CloseIcon, LoadingIcon, PermissionsIcon, VoiceModeIcon,
-  HistoryIcon, UserIcon, SettingsIcon, LogoutIcon, SearchIcon
+  HistoryIcon, UserIcon, SettingsIcon, LogoutIcon, SearchIcon, PlusIcon,
+  ChevronLeftIcon, ChevronRightIcon
 } from './ui/LineIcons';
 import { Eye, Mic } from 'lucide-react';
 import { deviceDetection, DeviceInfo, OptimizationConfig } from '../utils/deviceDetection';
@@ -193,6 +194,7 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   ]);
   const [activeTabId, setActiveTabId] = useState('general-1');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showNewTabDropdown, setShowNewTabDropdown] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [inputHtml, setInputHtml] = useState('');
   const inputRef = useRef<HTMLDivElement>(null);
@@ -369,6 +371,23 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
       window.removeEventListener('resize', checkMobile);
     };
   }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showNewTabDropdown) {
+        setShowNewTabDropdown(false);
+      }
+    };
+
+    if (showNewTabDropdown) {
+      document.addEventListener('click', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [showNewTabDropdown]);
 
   // 🧬 Initialize consciousness recognition on component mount
   useEffect(() => {
@@ -3412,30 +3431,79 @@ Level: ${level}`
         `}>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2 overflow-x-auto flex-1">
-            {/* Fixed Sidebar Toggle Tab */}
-            <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className={`
-              flex items-center space-x-2
-              ${optimizationConfig?.compactMode ? 'px-2 py-1' : 'px-3 py-1.5'}
-              ${optimizationConfig?.tabHeight || 'h-10'}
-              rounded-xl
-              ${optimizationConfig?.compactMode ? 'text-xs' : 'text-sm'}
-              font-medium transition-all flex-shrink-0
-              ${isMenuOpen
-                ? 'bg-teal-600 text-white shadow-lg backdrop-blur-sm'
-                : 'text-gray-200 hover:bg-gray-700/90 backdrop-blur-sm'
-              }
-            `}
-            style={isMenuOpen ? {} : {backgroundColor: '#1b1e1e'}}
-          >
-            {isMenuOpen ? (
-              <CloseIcon size={optimizationConfig?.compactMode ? 14 : 16} className="flex-shrink-0" />
-            ) : (
-              <MenuIcon size={optimizationConfig?.compactMode ? 14 : 16} className="flex-shrink-0" />
-            )}
-            <span>Menu</span>
-          </button>
+            {/* New Tab Creation Button */}
+            <div className="relative">
+              <button
+                onClick={() => setShowNewTabDropdown(!showNewTabDropdown)}
+                className={`
+                  flex items-center space-x-2
+                  ${optimizationConfig?.compactMode ? 'px-2 py-1' : 'px-3 py-1.5'}
+                  ${optimizationConfig?.tabHeight || 'h-10'}
+                  rounded-xl
+                  ${optimizationConfig?.compactMode ? 'text-xs' : 'text-sm'}
+                  font-medium transition-all flex-shrink-0
+                  ${showNewTabDropdown
+                    ? 'bg-teal-600 text-white shadow-lg backdrop-blur-sm'
+                    : 'text-gray-200 hover:bg-gray-700/90 backdrop-blur-sm'
+                  }
+                `}
+                style={showNewTabDropdown ? {} : {backgroundColor: '#1b1e1e'}}
+              >
+                <PlusIcon size={optimizationConfig?.compactMode ? 14 : 16} className="flex-shrink-0" />
+                <span>New</span>
+              </button>
+
+              {/* Subtle Dropdown for Tab Types */}
+              {showNewTabDropdown && (
+                <div className="absolute top-full left-0 mt-1 w-48 bg-gray-800/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-600/50 z-50">
+                  <div className="p-2 space-y-1">
+                    <button
+                      onClick={() => {
+                        createNewTab('general');
+                        setShowNewTabDropdown(false);
+                      }}
+                      className="w-full p-2 text-left hover:bg-teal-600/20 rounded-md transition-colors flex items-center space-x-2 text-gray-300 hover:text-white text-sm"
+                    >
+                      <ChatIcon size={14} className="text-gray-400" />
+                      <span>New Chat</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        createNewTab('creative');
+                        setShowNewTabDropdown(false);
+                      }}
+                      className="w-full p-2 text-left hover:bg-teal-600/20 rounded-md transition-colors flex items-center space-x-2 text-gray-300 hover:text-white text-sm"
+                    >
+                      <CreativeIcon size={14} className="text-gray-400" />
+                      <span>Creative Studio</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        createNewTab('research');
+                        setShowNewTabDropdown(false);
+                      }}
+                      className="w-full p-2 text-left hover:bg-teal-600/20 rounded-md transition-colors flex items-center space-x-2 text-gray-300 hover:text-white text-sm"
+                    >
+                      <SearchIcon size={14} className="text-gray-400" />
+                      <span>Research Mode</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        createNewTab('quiz');
+                        setShowNewTabDropdown(false);
+                      }}
+                      className="w-full p-2 text-left hover:bg-teal-600/20 rounded-md transition-colors flex items-center space-x-2 text-gray-300 hover:text-white text-sm"
+                    >
+                      <QuizIcon size={14} className="text-gray-400" />
+                      <span>Quiz Generator</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
 
 {/* Tabs moved to sidebar - this area is now cleaner */}
           </div>
@@ -3903,12 +3971,40 @@ Level: ${level}`
                     <span>Sign Out</span>
                   </button>
                 </div>
+
+                {/* Subtle Arrow Toggle - Positioned at right edge */}
+                <button
+                  onClick={() => setIsMenuOpen(false)}
+                  className="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2
+                             w-6 h-12 bg-gray-800/80 hover:bg-gray-700/80
+                             border border-gray-600/50 rounded-r-lg
+                             flex items-center justify-center
+                             transition-all duration-200 hover:w-7
+                             backdrop-blur-sm shadow-lg"
+                  style={{ zIndex: 60 }}
+                >
+                  <ChevronLeftIcon size={14} className="text-gray-300 hover:text-white" />
+                </button>
               </div>
             </motion.div>
           </>
         )}
       </AnimatePresence>
 
+      {/* Subtle Arrow Toggle - Show sidebar when hidden */}
+      {!isMenuOpen && (
+        <button
+          onClick={() => setIsMenuOpen(true)}
+          className="fixed left-0 top-1/2 transform -translate-y-1/2
+                     w-6 h-12 bg-gray-800/80 hover:bg-gray-700/80
+                     border border-gray-600/50 rounded-r-lg
+                     flex items-center justify-center
+                     transition-all duration-200 hover:w-7
+                     backdrop-blur-sm shadow-lg z-50"
+        >
+          <ChevronRightIcon size={14} className="text-gray-300 hover:text-white" />
+        </button>
+      )}
 
       {/* Removed redundant code editor - now handled inline in MessageRenderer */}
 

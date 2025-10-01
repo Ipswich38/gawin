@@ -213,3 +213,15 @@ export const HistoryIcon: React.FC<IconProps> = ({ size = 20, className = "", st
     <polyline points="12,6 12,12 16,14"/>
   </svg>
 );
+
+export const ChevronLeftIcon: React.FC<IconProps> = ({ size = 20, className = "", strokeWidth = 1.5 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <polyline points="15,18 9,12 15,6"/>
+  </svg>
+);
+
+export const ChevronRightIcon: React.FC<IconProps> = ({ size = 20, className = "", strokeWidth = 1.5 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <polyline points="9,18 15,12 9,6"/>
+  </svg>
+);
