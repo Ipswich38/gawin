@@ -16,51 +16,7 @@ export default function GoogleOnlyLogin({ onSuccess, onError }: GoogleOnlyLoginP
   const { signInWithGoogle, signInAnonymously } = useGoogleAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
-  const [showCreatorLogin, setShowCreatorLogin] = useState(false);
-  const [creatorEmail, setCreatorEmail] = useState('');
 
-  // Creator bypass login
-  const handleCreatorLogin = async () => {
-    try {
-      setLoading(true);
-      setError('');
-      
-      if (creatorEmail !== CREATOR_EMAIL) {
-        setError('Unauthorized: Creator access only');
-        return;
-      }
-
-      // Sign in anonymously first, then update metadata
-      const result = await signInAnonymously();
-      
-      if (result.success) {
-        // Update user metadata to mark as creator
-        const client = supabaseAuth.getClient();
-        await client.auth.updateUser({
-          data: {
-            is_creator: true,
-            email: CREATOR_EMAIL,
-            full_name: 'Kreativ Loops (Creator)',
-            role: 'creator'
-          }
-        });
-
-        console.log('🎯 Creator logged in successfully');
-        onSuccess?.();
-      } else {
-        setError(result.error || 'Creator authentication failed');
-        onError?.(result.error || 'Creator authentication failed');
-      }
-      
-    } catch (err) {
-      console.error('Creator login error:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Creator authentication failed';
-      setError(errorMessage);
-      onError?.(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Anonymous login
   const handleAnonymousLogin = async () => {
@@ -92,26 +48,43 @@ export default function GoogleOnlyLogin({ onSuccess, onError }: GoogleOnlyLoginP
     try {
       setLoading(true);
       setError('');
-      
+
       const result = await signInWithGoogle();
-      
+
       if (result.success) {
+        // Check if the signed-in user is the creator
+        const client = supabaseAuth.getClient();
+        const { data: { user } } = await client.auth.getUser();
+
+        if (user?.email === CREATOR_EMAIL) {
+          // Update user metadata to mark as creator
+          await client.auth.updateUser({
+            data: {
+              is_creator: true,
+              email: CREATOR_EMAIL,
+              full_name: 'Kreativ Loops (Creator)',
+              role: 'creator'
+            }
+          });
+          console.log('🎯 Creator logged in via Google successfully');
+        }
+
         console.log('🚀 Google OAuth initiated successfully');
         onSuccess?.();
       } else {
         console.error('Google OAuth failed:', result.error);
-        
+
         // If Google OAuth is not configured, fall back to anonymous
         if (result.error?.includes('OAuth') || result.error?.includes('Google') || result.error?.includes('provider')) {
           console.log('🔄 Google OAuth not available, falling back to anonymous login');
           await handleAnonymousLogin();
           return;
         }
-        
+
         setError(result.error || 'Authentication failed. Please try again.');
         onError?.(result.error || 'Authentication failed. Please try again.');
       }
-      
+
     } catch (err) {
       console.error('Unexpected error during Google sign-in:', err);
       // Fall back to anonymous login on any error
@@ -138,7 +111,6 @@ export default function GoogleOnlyLogin({ onSuccess, onError }: GoogleOnlyLoginP
         <div className="bg-[#1E1E1E]/60 backdrop-blur-lg rounded-2xl p-8 shadow-2xl border border-gray-700/40">
           <div className="text-center mb-8">
             <h2 className="text-xl font-semibold text-white mb-2">Sign in to continue</h2>
-            <p className="text-gray-400">Secure authentication with Google</p>
           </div>
 
           {/* Error Message */}
@@ -157,55 +129,7 @@ export default function GoogleOnlyLogin({ onSuccess, onError }: GoogleOnlyLoginP
             </div>
           )}
 
-          {/* Creator Login Section */}
-          {showCreatorLogin ? (
-            <div className="mb-6 space-y-4">
-              <div>
-                <label htmlFor="creator-email" className="block text-sm font-medium text-gray-300 mb-2">
-                  Creator Email
-                </label>
-                <input
-                  id="creator-email"
-                  type="email"
-                  value={creatorEmail}
-                  onChange={(e) => setCreatorEmail(e.target.value)}
-                  className="w-full px-4 py-3 bg-[#2A2A2A] border border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00C2A8] focus:border-[#00C2A8] transition-all duration-200 text-white placeholder-gray-400"
-                  placeholder="Enter creator email"
-                  disabled={loading}
-                />
-              </div>
-              <button
-                onClick={handleCreatorLogin}
-                disabled={loading || !creatorEmail}
-                className="w-full py-3 px-6 bg-gradient-to-r from-[#00C2A8] to-[#00A693] hover:from-[#00A693] to-[#008A7A] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl hover:shadow-[#00C2A8]/20 focus:outline-none focus:ring-2 focus:ring-[#00C2A8] focus:ring-offset-2 focus:ring-offset-[#1E1E1E]"
-                aria-label="Creator Login"
-              >
-                {loading ? (
-                  <>
-                    <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span>Authenticating...</span>
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>Creator Login</span>
-                  </>
-                )}
-              </button>
-              <button
-                onClick={() => setShowCreatorLogin(false)}
-                className="w-full text-sm text-gray-400 hover:text-gray-300 transition-colors"
-              >
-                ← Back to regular login
-              </button>
-            </div>
-          ) : (
-            <>
+          {/* Login Options */}
               {/* Google Sign-in Button */}
               <button
                 onClick={handleGoogleSignIn}
@@ -269,29 +193,6 @@ export default function GoogleOnlyLogin({ onSuccess, onError }: GoogleOnlyLoginP
                 )}
               </button>
 
-              {/* Creator Access Link */}
-              <div className="text-center">
-                <button
-                  onClick={() => setShowCreatorLogin(true)}
-                  className="text-xs text-gray-500 hover:text-[#00C2A8] transition-colors duration-200 underline"
-                >
-                  Creator Access
-                </button>
-              </div>
-            </>
-          )}
-
-          {/* Security Notice */}
-          <div className="mt-6 pt-6 border-t border-gray-700">
-            <div className="flex items-center space-x-2 text-center justify-center">
-              <svg className="w-4 h-4 text-[#00C2A8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-              <p className="text-xs text-gray-400">
-                Secured authentication system
-              </p>
-            </div>
-          </div>
         </div>
 
         {/* Footer */}
