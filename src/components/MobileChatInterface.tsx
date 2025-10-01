@@ -3869,10 +3869,8 @@ Level: ${level}`
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'tween' }}
-              className="fixed left-0 w-80 border-r border-gray-600/50 z-30 overflow-y-auto scrollbar-none relative"
+              className="fixed left-0 top-0 w-80 h-screen border-r border-gray-600/50 z-50 overflow-y-auto scrollbar-none relative"
               style={{
-                top: '60px', // Start below header
-                height: 'calc(100vh - 60px)', // Full height minus header
                 scrollbarWidth: 'none',
                 msOverflowStyle: 'none'
               }}
