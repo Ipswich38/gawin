@@ -3861,7 +3861,7 @@ Level: ${level}`
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 z-40"
+              className="fixed inset-0 bg-black/50 z-[9998]"
               onClick={() => setIsMenuOpen(false)}
             />
             <motion.div
@@ -3869,7 +3869,7 @@ Level: ${level}`
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'tween' }}
-              className="fixed left-0 top-0 w-80 h-screen border-r border-gray-600/50 z-50 overflow-y-auto scrollbar-none relative"
+              className="fixed left-0 top-0 w-80 h-screen border-r border-gray-600/50 z-[9999] overflow-y-auto scrollbar-none relative"
               style={{
                 scrollbarWidth: 'none',
                 msOverflowStyle: 'none'
