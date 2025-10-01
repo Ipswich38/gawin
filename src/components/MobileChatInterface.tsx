@@ -3405,7 +3405,7 @@ Level: ${level}`
         /> */}
 
         {/* 🎤 Tagalog Speech Analysis Status */}
-        {speechLearningProgress && speechLearningProgress.totalNuances > 0 && (
+        {speechLearningProgress && speechLearningProgress.totalNuances > 0 && !isMenuOpen && (
           <div className="px-4 py-2 bg-gradient-to-r from-teal-600/20 to-teal-700/20">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
@@ -3436,6 +3436,7 @@ Level: ${level}`
           bg-transparent backdrop-blur-none px-3 sm:px-4
           ${optimizationConfig?.compactMode ? 'py-1.5' : 'py-2'}
           relative z-10
+          ${isMenuOpen ? 'hidden' : ''}
         `}>
         <div className="flex items-center justify-between">
           {/* Tab Area with Sidebar Toggle */}
