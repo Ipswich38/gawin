@@ -183,7 +183,7 @@ export default function CleanCreative() {
     <div className="flex flex-col h-full relative" style={{backgroundColor: '#1b1e1e'}}>
 
       {/* Minimized Controls */}
-      <div className="px-4 py-2 border-b border-gray-700">
+      <div className="px-4 py-2">
         <div className="flex items-center justify-between">
           {/* Current Settings Display */}
           <div className="flex items-center gap-3 text-sm">
@@ -346,7 +346,7 @@ export default function CleanCreative() {
                   ) : null}
 
                   {/* Image Details */}
-                  <div className="flex items-center justify-between text-xs text-gray-500 mt-4 pt-4 border-t border-gray-700">
+                  <div className="flex items-center justify-between text-xs text-gray-500 mt-4 pt-4">
                     <div className="flex items-center gap-4">
                       <span>Style: {image.style}</span>
                       <span>Ratio: {image.aspectRatio}</span>
@@ -388,7 +388,7 @@ export default function CleanCreative() {
       </div>
 
       {/* Image Generation Input Area */}
-      <div className="p-4 border-t border-gray-700">
+      <div className="p-4">
         <div className="flex items-end gap-3 rounded-full border border-pink-500/30 p-4 transition-all duration-200 hover:border-pink-500/50 focus-within:border-pink-500/70" style={{backgroundColor: '#1b1e1e'}}>
           <textarea
             ref={textareaRef}

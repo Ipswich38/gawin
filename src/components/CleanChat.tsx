@@ -241,7 +241,7 @@ export default function CleanChat() {
       </div>
 
       {/* Input Area */}
-      <div className="p-4 border-t border-gray-700">
+      <div className="p-4">
         <div className="flex items-end gap-3 rounded-full border border-teal-500/30 p-4 transition-all duration-200 hover:border-teal-500/50 focus-within:border-teal-500/70" style={{backgroundColor: '#1b1e1e'}}>
           <textarea
             ref={textareaRef}

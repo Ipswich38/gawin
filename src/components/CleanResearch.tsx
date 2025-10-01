@@ -622,7 +622,7 @@ Research completed at ${doc.timestamp}`;
                   )}
 
                   {/* Timestamp */}
-                  <div className="text-xs text-gray-500 mt-4 pt-2 border-t border-gray-700">
+                  <div className="text-xs text-gray-500 mt-4 pt-2">
                     Research completed at {doc.timestamp}
                   </div>
                 </motion.div>
@@ -743,7 +743,7 @@ Research completed at ${doc.timestamp}`;
                   )}
 
                   {/* Timestamp */}
-                  <div className="text-xs text-gray-500 mt-4 pt-2 border-t border-gray-700">
+                  <div className="text-xs text-gray-500 mt-4 pt-2">
                     Research completed at {item.timestamp}
                   </div>
                 </motion.div>
@@ -818,7 +818,7 @@ Research completed at ${doc.timestamp}`;
       </div>
 
       {/* Research Input Area */}
-      <div className="p-4 border-t border-gray-700">
+      <div className="p-4">
         {/* Quick/Comprehensive Toggle - Top of Input */}
         <div className="flex justify-center mb-3">
           <div className="flex items-center bg-gray-800/80 backdrop-blur-sm rounded-full px-3 py-1.5 border border-gray-600/30 shadow-lg">
