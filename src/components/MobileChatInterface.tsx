@@ -197,6 +197,7 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
   const [activeTabId, setActiveTabId] = useState('general-1');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showNewTabDropdown, setShowNewTabDropdown] = useState(false);
+  const [isComprehensiveMode, setIsComprehensiveMode] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [inputHtml, setInputHtml] = useState('');
   const inputRef = useRef<HTMLDivElement>(null);
@@ -3549,7 +3550,7 @@ Level: ${level}`
                       className="w-full p-2 text-left hover:bg-teal-600/20 rounded-md transition-colors flex items-center space-x-2 text-gray-300 hover:text-white text-sm"
                     >
                       <ChatIcon size={14} className="text-gray-400" />
-                      <span>New Chat</span>
+                      <span>General</span>
                     </button>
 
                     <button
@@ -3560,7 +3561,7 @@ Level: ${level}`
                       className="w-full p-2 text-left hover:bg-teal-600/20 rounded-md transition-colors flex items-center space-x-2 text-gray-300 hover:text-white text-sm"
                     >
                       <CreativeIcon size={14} className="text-gray-400" />
-                      <span>Creative Studio</span>
+                      <span>Creative</span>
                     </button>
 
                     <button
@@ -3571,7 +3572,7 @@ Level: ${level}`
                       className="w-full p-2 text-left hover:bg-teal-600/20 rounded-md transition-colors flex items-center space-x-2 text-gray-300 hover:text-white text-sm"
                     >
                       <SearchIcon size={14} className="text-gray-400" />
-                      <span>Research Mode</span>
+                      <span>Research</span>
                     </button>
 
                     <button
@@ -3601,7 +3602,31 @@ Level: ${level}`
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden relative">
+        {/* Quick/Comprehensive Toggle - Top Left Float */}
+        <div className="absolute top-4 left-4 z-20">
+          <div className="flex items-center bg-gray-800/80 backdrop-blur-sm rounded-full px-3 py-1.5 border border-gray-600/30 shadow-lg">
+            <span className={`text-xs font-medium transition-colors ${!isComprehensiveMode ? 'text-white' : 'text-gray-400'}`}>
+              Quick
+            </span>
+            <button
+              onClick={() => setIsComprehensiveMode(!isComprehensiveMode)}
+              className={`mx-2 w-8 h-4 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-400/50 ${
+                isComprehensiveMode
+                  ? 'bg-teal-500'
+                  : 'bg-gray-600'
+              }`}
+            >
+              <div className={`w-3 h-3 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                isComprehensiveMode ? 'translate-x-4' : 'translate-x-0.5'
+              }`} />
+            </button>
+            <span className={`text-xs font-medium transition-colors ${isComprehensiveMode ? 'text-white' : 'text-gray-400'}`}>
+              Comprehensive
+            </span>
+          </div>
+        </div>
+
         {renderTabContent()}
       </div>
 
@@ -3920,7 +3945,7 @@ Level: ${level}`
                       className="w-full p-1.5 text-left hover:bg-teal-600/15 transition-colors flex items-center space-x-2 text-gray-300 hover:text-white text-xs"
                     >
                       <ChatIcon size={14} className="text-gray-400" />
-                      <span>New Chat</span>
+                      <span>General</span>
                     </button>
 
                     <button
@@ -3928,7 +3953,7 @@ Level: ${level}`
                       className="w-full p-1.5 text-left hover:bg-teal-600/15 transition-colors flex items-center space-x-2 text-gray-300 hover:text-white text-xs"
                     >
                       <CreativeIcon size={14} className="text-gray-400" />
-                      <span>Creative Studio</span>
+                      <span>Creative</span>
                     </button>
 
                     <button
@@ -3936,7 +3961,7 @@ Level: ${level}`
                       className="w-full p-1.5 text-left hover:bg-teal-600/15 transition-colors flex items-center space-x-2 text-gray-300 hover:text-white text-xs"
                     >
                       <SearchIcon size={14} className="text-gray-400" />
-                      <span>Research Mode</span>
+                      <span>Research</span>
                     </button>
 
                     <button
