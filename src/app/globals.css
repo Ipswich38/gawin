@@ -230,6 +230,47 @@ p {
     background: transparent;
   }
 
+  /* Notebook Bookmark Tabs Styling */
+  .bookmark-tab {
+    position: relative;
+    background: linear-gradient(to bottom, #374151, #1f2937);
+    transition: all 0.2s ease;
+  }
+
+  .bookmark-tab.active {
+    background: linear-gradient(to bottom, #0d9488, #0f766e);
+    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+  }
+
+  .bookmark-tab:hover:not(.active) {
+    background: linear-gradient(to bottom, #4b5563, #374151);
+  }
+
+  .bookmark-tab::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(to right, transparent, rgba(13, 148, 136, 0.5), transparent);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .bookmark-tab.active::after {
+    opacity: 1;
+  }
+
+  /* Notebook page-like overlapping effect */
+  .notebook-tabs {
+    position: relative;
+  }
+
+  .notebook-tabs .bookmark-tab:not(:first-child) {
+    margin-left: -8px;
+  }
+
   /* Spaces Icon Animation */
   .spaces-icon-animation {
     position: relative;

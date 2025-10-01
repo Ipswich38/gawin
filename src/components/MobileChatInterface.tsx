@@ -3430,32 +3430,84 @@ Level: ${level}`
           ${optimizationConfig?.compactMode ? 'py-1.5' : 'py-2'}
         `}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2 overflow-x-auto flex-1">
-            {/* New Tab Creation Button */}
+          <div className="flex items-center overflow-x-auto flex-1 notebook-tabs">
+            {/* Notebook-Style Bookmark Tabs */}
+            {tabs.map((tab, index) => {
+              const TabIcon = tabConfig[tab.type as keyof typeof tabConfig]?.icon;
+              return (
+                <div key={tab.id} className="relative">
+                  <button
+                    onClick={() => switchToTab(tab.id)}
+                    className={`
+                      bookmark-tab ${tab.isActive ? 'active' : ''}
+                      relative flex items-center space-x-2 px-4 py-2.5
+                      ${optimizationConfig?.compactMode ? 'text-xs' : 'text-sm'}
+                      font-medium transition-all flex-shrink-0
+                      text-white
+                      rounded-t-lg border-t border-l border-r border-gray-600/50
+                      ${tab.isActive ? 'z-20' : `z-${10 - index}`}
+                    `}
+                    style={{
+                      minWidth: '120px',
+                      maxWidth: '180px',
+                      borderBottom: tab.isActive ? '2px solid transparent' : '1px solid rgba(75, 85, 99, 0.5)',
+                      marginBottom: tab.isActive ? '0' : '2px'
+                    }}
+                  >
+                    {TabIcon && (
+                      <TabIcon size={optimizationConfig?.compactMode ? 12 : 14} className="flex-shrink-0" />
+                    )}
+                    <span className="truncate flex-1">{tab.title}</span>
+
+                    {/* Close button */}
+                    {tabs.length > 1 && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          closeTab(tab.id);
+                        }}
+                        className="ml-1 opacity-60 hover:opacity-100 rounded-full w-4 h-4 flex items-center justify-center transition-all hover:bg-white/20"
+                      >
+                        <CloseIcon size={optimizationConfig?.compactMode ? 8 : 10} />
+                      </button>
+                    )}
+                  </button>
+
+                  {/* Notebook page depth effect */}
+                  {!tab.isActive && (
+                    <div className="absolute inset-0 bg-black/10 rounded-t-lg pointer-events-none"></div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Right Side Controls */}
+          <div className="flex items-center space-x-2 flex-shrink-0">
+            {/* New Tab Creation Button - Moved to Right */}
             <div className="relative">
               <button
                 onClick={() => setShowNewTabDropdown(!showNewTabDropdown)}
                 className={`
-                  flex items-center space-x-2
-                  ${optimizationConfig?.compactMode ? 'px-2 py-1' : 'px-3 py-1.5'}
-                  ${optimizationConfig?.tabHeight || 'h-10'}
-                  rounded-xl
+                  flex items-center justify-center
+                  ${optimizationConfig?.compactMode ? 'w-8 h-8' : 'w-10 h-10'}
+                  rounded-full
                   ${optimizationConfig?.compactMode ? 'text-xs' : 'text-sm'}
                   font-medium transition-all flex-shrink-0
                   ${showNewTabDropdown
                     ? 'bg-teal-600 text-white shadow-lg backdrop-blur-sm'
-                    : 'text-gray-200 hover:bg-gray-700/90 backdrop-blur-sm'
+                    : 'text-gray-200 hover:bg-gray-700/90 backdrop-blur-sm border border-gray-600/50'
                   }
                 `}
                 style={showNewTabDropdown ? {} : {backgroundColor: '#1b1e1e'}}
+                title="Create New Tab"
               >
                 <PlusIcon size={optimizationConfig?.compactMode ? 14 : 16} className="flex-shrink-0" />
-                <span>New</span>
               </button>
 
-              {/* Subtle Dropdown for Tab Types */}
+              {/* Dropdown positioned to the left since button is on right */}
               {showNewTabDropdown && (
-                <div className="absolute top-full left-0 mt-1 w-48 bg-gray-800/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-600/50 z-50">
+                <div className="absolute top-full right-0 mt-1 w-48 bg-gray-800/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-600/50 z-50">
                   <div className="p-2 space-y-1">
                     <button
                       onClick={() => {
@@ -3505,15 +3557,13 @@ Level: ${level}`
               )}
             </div>
 
-{/* Tabs moved to sidebar - this area is now cleaner */}
-          </div>
-
-          {/* Gawin Vision POV - Top Right Position */}
-          <div className="flex-shrink-0 ml-2 relative">
-            <GawinVisionPOV
-              isVisible={isVisionPOVVisible}
-              onToggle={() => setIsVisionPOVVisible(!isVisionPOVVisible)}
-            />
+            {/* Gawin Vision POV */}
+            <div className="relative">
+              <GawinVisionPOV
+                isVisible={isVisionPOVVisible}
+                onToggle={() => setIsVisionPOVVisible(!isVisionPOVVisible)}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -3810,12 +3860,26 @@ Level: ${level}`
               {/* Clean 3-Section Sidebar */}
               <div className="relative z-20 h-full flex flex-col">
 
-                {/* Section 1: App Name + Main Navigation */}
+                {/* Sidebar Header with Hide Button */}
+                <div className="flex items-center justify-between p-3 border-b border-gray-700/30">
+                  {/* Gawin Name */}
+                  <h1 className="text-sm text-white font-light tracking-wide" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>Gawin</h1>
+
+                  {/* Hide Sidebar Button - Top Right */}
+                  <button
+                    onClick={() => setIsMenuOpen(false)}
+                    className="w-6 h-6 rounded-md bg-gray-800/50 hover:bg-gray-700/50
+                               border border-gray-600/30 hover:border-gray-500/50
+                               flex items-center justify-center
+                               transition-all duration-200"
+                    title="Hide Sidebar"
+                  >
+                    <ChevronLeftIcon size={12} className="text-gray-400 hover:text-white" />
+                  </button>
+                </div>
+
+                {/* Section 1: Main Navigation */}
                 <div className="p-3 space-y-2">
-                  {/* Gawin Name - Smaller */}
-                  <div className="text-center mb-3">
-                    <h1 className="text-sm text-white font-light tracking-wide" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>Gawin</h1>
-                  </div>
 
                   {/* Main Navigation - Compact with Line Icons */}
                   <div className="space-y-1">
@@ -3972,19 +4036,6 @@ Level: ${level}`
                   </button>
                 </div>
 
-                {/* Subtle Arrow Toggle - Positioned at right edge */}
-                <button
-                  onClick={() => setIsMenuOpen(false)}
-                  className="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2
-                             w-6 h-12 bg-gray-800/80 hover:bg-gray-700/80
-                             border border-gray-600/50 rounded-r-lg
-                             flex items-center justify-center
-                             transition-all duration-200 hover:w-7
-                             backdrop-blur-sm shadow-lg"
-                  style={{ zIndex: 60 }}
-                >
-                  <ChevronLeftIcon size={14} className="text-gray-300 hover:text-white" />
-                </button>
               </div>
             </motion.div>
           </>
