@@ -143,12 +143,6 @@ export default function CleanChat() {
 
   return (
     <div className="flex flex-col h-full relative" style={{backgroundColor: '#1b1e1e'}}>
-      {/* Chat Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-700">
-        <div className="flex items-center gap-3">
-          <h2 className="text-white font-semibold">Chat</h2>
-        </div>
-      </div>
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">

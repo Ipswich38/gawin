@@ -446,17 +446,6 @@ Research completed at ${doc.timestamp}`;
 
   return (
     <div className="flex flex-col h-full relative" style={{backgroundColor: '#1b1e1e'}}>
-      {/* Research Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-700">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-            <span className="text-white text-sm">🔬</span>
-          </div>
-          <div>
-            <h2 className="text-white font-semibold">Research Mode</h2>
-          </div>
-        </div>
-      </div>
 
       {/* Research Results Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
