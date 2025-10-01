@@ -456,30 +456,6 @@ Research completed at ${doc.timestamp}`;
             <h2 className="text-white font-semibold">Research Mode</h2>
           </div>
         </div>
-
-        {/* Research Mode Toggle */}
-        <div className="flex items-center rounded-lg p-1 border border-gray-600" style={{backgroundColor: '#1b1e1e'}}>
-          <button
-            onClick={() => setResearchMode('quick')}
-            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
-              researchMode === 'quick'
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'text-gray-400 hover:text-white hover:bg-gray-700'
-            }`}
-          >
-            Quick
-          </button>
-          <button
-            onClick={() => setResearchMode('comprehensive')}
-            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
-              researchMode === 'comprehensive'
-                ? 'bg-purple-600 text-white shadow-sm'
-                : 'text-gray-400 hover:text-white hover:bg-gray-700'
-            }`}
-          >
-            Comprehensive
-          </button>
-        </div>
       </div>
 
       {/* Research Results Area */}
@@ -854,6 +830,30 @@ Research completed at ${doc.timestamp}`;
 
       {/* Research Input Area */}
       <div className="p-4 border-t border-gray-700">
+        {/* Quick/Comprehensive Toggle - Top of Input */}
+        <div className="flex justify-center mb-3">
+          <div className="flex items-center bg-gray-800/80 backdrop-blur-sm rounded-full px-3 py-1.5 border border-gray-600/30 shadow-lg">
+            <span className={`text-xs font-medium transition-colors ${researchMode === 'quick' ? 'text-white' : 'text-gray-400'}`}>
+              Quick
+            </span>
+            <button
+              onClick={() => setResearchMode(researchMode === 'quick' ? 'comprehensive' : 'quick')}
+              className={`mx-2 w-8 h-4 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-400/50 ${
+                researchMode === 'comprehensive'
+                  ? 'bg-teal-500'
+                  : 'bg-gray-600'
+              }`}
+            >
+              <div className={`w-3 h-3 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                researchMode === 'comprehensive' ? 'translate-x-4' : 'translate-x-0.5'
+              }`} />
+            </button>
+            <span className={`text-xs font-medium transition-colors ${researchMode === 'comprehensive' ? 'text-white' : 'text-gray-400'}`}>
+              Comprehensive
+            </span>
+          </div>
+        </div>
+
         <div className="flex items-end gap-3 rounded-full border border-blue-500/30 p-4 transition-all duration-200 hover:border-blue-500/50 focus-within:border-blue-500/70" style={{backgroundColor: '#1b1e1e'}}>
           <textarea
             ref={textareaRef}

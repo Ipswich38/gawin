@@ -3602,31 +3602,7 @@ Level: ${level}`
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden relative">
-        {/* Quick/Comprehensive Toggle - Top Left Float */}
-        <div className="absolute top-4 left-4 z-20">
-          <div className="flex items-center bg-gray-800/80 backdrop-blur-sm rounded-full px-3 py-1.5 border border-gray-600/30 shadow-lg">
-            <span className={`text-xs font-medium transition-colors ${!isComprehensiveMode ? 'text-white' : 'text-gray-400'}`}>
-              Quick
-            </span>
-            <button
-              onClick={() => setIsComprehensiveMode(!isComprehensiveMode)}
-              className={`mx-2 w-8 h-4 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-400/50 ${
-                isComprehensiveMode
-                  ? 'bg-teal-500'
-                  : 'bg-gray-600'
-              }`}
-            >
-              <div className={`w-3 h-3 rounded-full bg-white shadow-sm transition-transform duration-200 ${
-                isComprehensiveMode ? 'translate-x-4' : 'translate-x-0.5'
-              }`} />
-            </button>
-            <span className={`text-xs font-medium transition-colors ${isComprehensiveMode ? 'text-white' : 'text-gray-400'}`}>
-              Comprehensive
-            </span>
-          </div>
-        </div>
-
+      <div className="flex-1 flex flex-col overflow-hidden">
         {renderTabContent()}
       </div>
 
