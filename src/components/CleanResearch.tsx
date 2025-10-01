@@ -819,31 +819,33 @@ Research completed at ${doc.timestamp}`;
 
       {/* Research Input Area */}
       <div className="p-4">
-        {/* Quick/Comprehensive Toggle - Top of Input */}
-        <div className="flex justify-center mb-3">
-          <div className="flex items-center bg-gray-800/80 backdrop-blur-sm rounded-full px-3 py-1.5 border border-gray-600/30 shadow-lg">
-            <span className={`text-xs font-medium transition-colors ${researchMode === 'quick' ? 'text-white' : 'text-gray-400'}`}>
-              Quick
-            </span>
-            <button
-              onClick={() => setResearchMode(researchMode === 'quick' ? 'comprehensive' : 'quick')}
-              className={`mx-2 w-8 h-4 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-400/50 ${
-                researchMode === 'comprehensive'
-                  ? 'bg-teal-500'
-                  : 'bg-gray-600'
-              }`}
-            >
-              <div className={`w-3 h-3 rounded-full bg-white shadow-sm transition-transform duration-200 ${
-                researchMode === 'comprehensive' ? 'translate-x-4' : 'translate-x-0.5'
-              }`} />
-            </button>
-            <span className={`text-xs font-medium transition-colors ${researchMode === 'comprehensive' ? 'text-white' : 'text-gray-400'}`}>
-              Comprehensive
-            </span>
+        {/* Research Input with Toggle */}
+        <div className="relative">
+          {/* Quick/Comprehensive Toggle - Top Left of Capsule */}
+          <div className="absolute -top-6 left-2 z-10">
+            <div className="flex items-center bg-gray-800/80 backdrop-blur-sm rounded-full px-2 py-0.5 border border-gray-600/30 shadow-lg">
+              <span className={`text-xs font-medium transition-colors ${researchMode === 'quick' ? 'text-white' : 'text-gray-400'}`}>
+                Quick
+              </span>
+              <button
+                onClick={() => setResearchMode(researchMode === 'quick' ? 'comprehensive' : 'quick')}
+                className={`mx-1.5 w-6 h-3 rounded-full transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-teal-400/50 ${
+                  researchMode === 'comprehensive'
+                    ? 'bg-teal-500'
+                    : 'bg-gray-600'
+                }`}
+              >
+                <div className={`w-2.5 h-2.5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                  researchMode === 'comprehensive' ? 'translate-x-3' : 'translate-x-0.5'
+                }`} />
+              </button>
+              <span className={`text-xs font-medium transition-colors ${researchMode === 'comprehensive' ? 'text-white' : 'text-gray-400'}`}>
+                Comprehensive
+              </span>
+            </div>
           </div>
-        </div>
 
-        <div className="flex items-end gap-3 rounded-full border border-blue-500/30 p-4 transition-all duration-200 hover:border-blue-500/50 focus-within:border-blue-500/70" style={{backgroundColor: '#1b1e1e'}}>
+          <div className="flex items-end gap-3 rounded-full border border-blue-500/30 p-4 transition-all duration-200 hover:border-blue-500/50 focus-within:border-blue-500/70" style={{backgroundColor: '#1b1e1e'}}>
           <textarea
             ref={textareaRef}
             value={inputValue}
@@ -878,6 +880,7 @@ Research completed at ${doc.timestamp}`;
               <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
             </svg>
           </button>
+          </div>
         </div>
       </div>
     </div>

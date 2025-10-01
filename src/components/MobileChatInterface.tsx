@@ -3434,8 +3434,8 @@ Level: ${level}`
 
         {/* Mobile Tabs - Fully Transparent */}
         <div className={`
-          bg-transparent backdrop-blur-none px-3 sm:px-4
-          ${optimizationConfig?.compactMode ? 'py-1.5' : 'py-2'}
+          bg-transparent backdrop-blur-none px-2 sm:px-4
+          ${optimizationConfig?.compactMode ? 'py-1' : 'py-1.5'}
           relative z-10
           ${isMenuOpen ? 'hidden' : ''}
         `}>
@@ -3469,7 +3469,7 @@ Level: ${level}`
                   <button
                     onClick={() => switchToTab(tab.id)}
                     className={`
-                      relative flex items-center space-x-1.5 px-3 py-1.5
+                      relative flex items-center space-x-1 px-2 py-1
                       ${optimizationConfig?.compactMode ? 'text-xs' : 'text-xs'}
                       font-normal transition-all flex-shrink-0
                       ${tab.isActive
