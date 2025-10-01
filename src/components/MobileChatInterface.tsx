@@ -28,7 +28,6 @@ import MCPStatusIndicator from './MCPStatusIndicator';
 import CleanChat from './CleanChat';
 import CleanResearch from './CleanResearch';
 import CleanCreative from './CleanCreative';
-import { ChatIcon, CreativeIcon, SearchIcon, QuizIcon, HistoryIcon, UserIcon, SettingsIcon, LogoutIcon, CloseIcon } from './ui/LineIcons';
 
 // Screen Share Component
 const ScreenShareButton: React.FC = () => {
@@ -132,7 +131,8 @@ import { useIntelligentTranslation } from '../hooks/useTranslation';
 // 🎨 UI ENHANCEMENTS
 import {
   ChatIcon, QuizIcon, CreativeIcon, SearchIcon as ResearchIcon,
-  SendIcon, MenuIcon, CloseIcon, LoadingIcon, PermissionsIcon, VoiceModeIcon
+  SendIcon, MenuIcon, CloseIcon, LoadingIcon, PermissionsIcon, VoiceModeIcon,
+  HistoryIcon, UserIcon, SettingsIcon, LogoutIcon, SearchIcon
 } from './ui/LineIcons';
 import { Eye, Mic } from 'lucide-react';
 import { deviceDetection, DeviceInfo, OptimizationConfig } from '../utils/deviceDetection';
