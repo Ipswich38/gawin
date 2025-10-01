@@ -36,18 +36,27 @@ export async function POST(request: NextRequest) {
 
     console.log('🚀 Starting research process for:', query);
 
-    // Research methodology prompt
-    const researchPrompt = `You are a professional researcher conducting thorough, unbiased research. Your task is to research the following query and provide a comprehensive analysis.
+    // Enhanced research methodology prompt for substantial quick research
+    const researchPrompt = `You are a senior research analyst conducting high-quality, in-depth research. Your task is to provide a substantial and comprehensive research analysis that goes far beyond basic information gathering.
 
 Research Query: "${query}"
 
-Please conduct research following this methodology:
+RESEARCH METHODOLOGY - Conduct thorough analysis using this enhanced framework:
 
-1. **Topic Analysis** - Break down the query into key components and research angles
-2. **Information Gathering** - Identify what types of information are needed
-3. **Source Evaluation** - Consider credible, legitimate sources for this topic
-4. **Analysis & Synthesis** - Analyze findings and synthesize information
-5. **Conclusion & Insights** - Draw evidence-based conclusions
+1. **Strategic Topic Analysis** - Deep breakdown of query components, context, and multi-dimensional research angles
+2. **Comprehensive Information Architecture** - Systematic identification of all relevant data types, sources, and analytical frameworks needed
+3. **Advanced Source Evaluation & Synthesis** - Critical assessment of authoritative sources with cross-referencing and validation
+4. **Multi-Perspective Analysis** - Examine from multiple viewpoints, stakeholder perspectives, and disciplinary approaches
+5. **Evidence-Based Synthesis & Strategic Insights** - Integrate findings into actionable intelligence with future implications
+
+QUALITY STANDARDS FOR QUICK RESEARCH:
+- Each step should contain 150-300 words of substantial analysis
+- Provide specific details, examples, data points, and evidence
+- Include multiple perspectives and comparative analysis
+- Reference current trends, developments, and future implications
+- Maintain academic rigor while being accessible
+- Connect findings to broader contexts and implications
+- Make it comprehensive enough to inform decision-making
 
 Respond in this exact JSON format:
 {
@@ -136,9 +145,11 @@ Respond ONLY with valid JSON, no additional text.`;
             content: researchPrompt
           }
         ],
-        temperature: 0.3, // Lower temperature for more focused, factual responses
-        max_tokens: 4000,
-        top_p: 0.9
+        temperature: 0.4, // Balanced for detailed analysis with insights
+        max_tokens: 6000, // Increased for substantial quick research
+        top_p: 0.92,
+        frequency_penalty: 0.1,
+        presence_penalty: 0.1
       }),
     });
 

@@ -69,13 +69,17 @@ Create a comprehensive research document following this structure:
 7. **Conclusion** - Summary of key insights and implications
 8. **Recommendations** - Actionable recommendations based on findings
 
-**QUALITY REQUIREMENTS:**
-- Professional, academic-level writing
-- Each section should be substantial (100-300 words minimum)
-- Include specific details, examples, and evidence
-- Maintain objectivity and cite reasoning
-- Structure content logically with clear transitions
-- Make it comprehensive enough for professional submission
+**ENHANCED QUALITY REQUIREMENTS:**
+- Graduate/PhD-level research depth and sophistication
+- Each section should be substantial (200-500 words minimum)
+- Include specific details, statistical data, case studies, and evidence
+- Provide multiple perspectives and comprehensive analysis
+- Reference latest developments and current trends
+- Include international comparisons where relevant
+- Maintain objectivity while demonstrating deep expertise
+- Structure content with clear logical flow and smooth transitions
+- Make it comprehensive enough for university-level submission or professional presentation
+- Integrate interdisciplinary insights and connections
 
 Respond in this exact JSON format:
 {
@@ -160,9 +164,11 @@ Respond ONLY with valid JSON, no additional text.`;
             content: documentPrompt
           }
         ],
-        temperature: 0.3, // Lower temperature for more focused, professional content
-        max_tokens: 6000, // Increased for comprehensive documents
-        top_p: 0.9
+        temperature: 0.4, // Balanced for detailed yet creative analysis
+        max_tokens: 8000, // Maximum for truly comprehensive documents
+        top_p: 0.92,
+        frequency_penalty: 0.1,
+        presence_penalty: 0.1
       }),
     });
 

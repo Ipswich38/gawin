@@ -30,17 +30,25 @@ export async function POST(request: NextRequest) {
 
     console.log('🚀 Starting image generation with', togetherApiKey ? 'Together AI FLUX' : 'alternative service');
 
-    // Style-enhanced prompt
+    // Enhanced style prompts with professional quality indicators
     const stylePrompts: Record<string, string> = {
-      realistic: 'photorealistic, high quality, detailed',
-      artistic: 'artistic, creative, masterpiece, beautiful composition',
-      anime: 'anime style, manga, colorful, detailed animation art',
-      cartoon: 'cartoon style, vibrant colors, playful, illustration',
-      abstract: 'abstract art, modern, creative, artistic expression',
-      cyberpunk: 'cyberpunk style, neon lights, futuristic, sci-fi aesthetic'
+      realistic: 'photorealistic, ultra-high quality, sharp focus, professional photography, 8K resolution, perfect lighting, detailed textures',
+      artistic: 'artistic masterpiece, museum quality, fine art, beautiful composition, professional artwork, intricate details, perfect color harmony',
+      anime: 'high-quality anime art, studio-grade animation, detailed character design, vibrant colors, professional manga style, crisp lineart',
+      cartoon: 'professional cartoon illustration, vibrant colors, clean vector art, Disney-quality animation style, polished design',
+      abstract: 'modern abstract art, contemporary style, museum-worthy, sophisticated color palette, artistic expression, avant-garde',
+      cyberpunk: 'cyberpunk aesthetic, neon-lit futuristic cityscape, high-tech sci-fi, dramatic lighting, cinematic quality, dystopian atmosphere',
+      portrait: 'professional portrait photography, studio lighting, sharp focus, detailed facial features, high-end fashion photography style',
+      landscape: 'breathtaking landscape photography, golden hour lighting, ultra-wide vista, National Geographic quality, pristine nature',
+      minimalist: 'clean minimalist design, sophisticated simplicity, elegant composition, modern aesthetic, premium quality',
+      vintage: 'vintage aesthetic, classic photography style, retro charm, film grain texture, nostalgic atmosphere, timeless appeal'
     };
 
-    const enhancedPrompt = `${prompt}, ${stylePrompts[style] || stylePrompts.realistic}, high quality, detailed, masterpiece`;
+    // Advanced prompt engineering for better results
+    const qualityEnhancers = 'masterpiece, best quality, ultra-detailed, professional grade, award-winning';
+    const technicalSpecs = '8K resolution, perfect composition, optimal lighting';
+
+    const enhancedPrompt = `${prompt}, ${stylePrompts[style] || stylePrompts.realistic}, ${qualityEnhancers}, ${technicalSpecs}`;
 
     // Aspect ratio dimensions for FLUX
     const aspectRatioDimensions: Record<string, { width: number; height: number }> = {
@@ -67,9 +75,11 @@ export async function POST(request: NextRequest) {
             prompt: enhancedPrompt,
             width: dimensions.width,
             height: dimensions.height,
-            steps: 4, // FLUX.1-schnell is optimized for 4 steps
+            steps: 6, // Increased steps for better quality
             n: 1,
-            response_format: 'url'
+            response_format: 'url',
+            seed: Math.floor(Math.random() * 1000000), // Random seed for variety
+            guidance_scale: 7.5 // Optimal guidance for FLUX
           }),
         });
 

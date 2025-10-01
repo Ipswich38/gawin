@@ -166,47 +166,27 @@ const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onMinimize }) => {
   const generateQuiz = async () => {
     setIsGenerating(true);
     try {
-      const response = await fetch('/api/groq', {
+      // Use the new advanced quiz API with Singapore/world-class standards
+      const response = await fetch('/api/advanced-quiz', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: [
-            {
-              role: 'user',
-              content: `Generate ${selectedQuestions} multiple-choice questions about ${selectedTopic} for a quiz. 
-              
-              Requirements:
-              - Mix of Easy (40%), Medium (40%), and Hard (20%) difficulty levels
-              - Each question should have 4 options (A, B, C, D)
-              - Include detailed explanations for correct answers
-              - Format as JSON array with this structure:
-              {
-                "questions": [
-                  {
-                    "question": "question text",
-                    "options": ["A. option1", "B. option2", "C. option3", "D. option4"],
-                    "correctAnswer": 0,
-                    "explanation": "detailed explanation",
-                    "difficulty": "Easy|Medium|Hard",
-                    "topic": "${selectedTopic}"
-                  }
-                ]
-              }
-              
-              Return only the JSON, no additional text.`
-            }
-          ],
-          action: 'analysis'
+          topic: selectedTopic,
+          questionCount: selectedQuestions,
+          timeLimit: timeLimit,
+          educationalLevel: 'secondary', // Default to secondary level
+          adaptiveDifficulty: true,
+          focusAreas: [] // Could be expanded based on user preferences
         }),
       });
 
       const data = await response.json();
-      
-      if (data.success && data.data?.response) {
+
+      if (data.success && data.quiz) {
         try {
-          const jsonResponse = JSON.parse(data.data.response);
-          const generatedQuestions = jsonResponse.questions.map((q: any, index: number) => ({
-            id: `q_${index}`,
+          const quizData = data.quiz;
+          const generatedQuestions = quizData.questions.map((q: any, index: number) => ({
+            id: q.id || `q_${index}`,
             question: q.question,
             options: q.options,
             correctAnswer: q.correctAnswer,
