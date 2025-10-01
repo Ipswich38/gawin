@@ -3428,10 +3428,14 @@ Level: ${level}`
         <div className={`
           bg-transparent backdrop-blur-none border-b border-transparent px-3 sm:px-4
           ${optimizationConfig?.compactMode ? 'py-1.5' : 'py-2'}
+          relative z-10
         `}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center overflow-x-auto flex-1 notebook-tabs">
-            {/* Notebook-Style Bookmark Tabs */}
+          {/* Subtle Tabs - Hidden when sidebar is open */}
+          <div className={`
+            flex items-center overflow-x-auto flex-1 transition-all duration-300
+            ${isMenuOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}
+          `}>
             {tabs.map((tab, index) => {
               const TabIcon = tabConfig[tab.type as keyof typeof tabConfig]?.icon;
               return (
@@ -3439,43 +3443,45 @@ Level: ${level}`
                   <button
                     onClick={() => switchToTab(tab.id)}
                     className={`
-                      bookmark-tab ${tab.isActive ? 'active' : ''}
-                      relative flex items-center space-x-2 px-4 py-2.5
-                      ${optimizationConfig?.compactMode ? 'text-xs' : 'text-sm'}
-                      font-medium transition-all flex-shrink-0
-                      text-white
-                      rounded-t-lg border-t border-l border-r border-gray-600/50
-                      ${tab.isActive ? 'z-20' : `z-${10 - index}`}
+                      relative flex items-center space-x-1.5 px-3 py-1.5
+                      ${optimizationConfig?.compactMode ? 'text-xs' : 'text-xs'}
+                      font-normal transition-all flex-shrink-0
+                      ${tab.isActive
+                        ? 'text-white bg-gray-700/60'
+                        : 'text-gray-400 hover:text-gray-200 bg-gray-800/40 hover:bg-gray-700/40'
+                      }
+                      rounded-t-md border-t border-l border-r border-gray-600/30
+                      ${tab.isActive ? 'z-10' : `z-${5 - index}`}
                     `}
                     style={{
-                      minWidth: '120px',
-                      maxWidth: '180px',
-                      borderBottom: tab.isActive ? '2px solid transparent' : '1px solid rgba(75, 85, 99, 0.5)',
-                      marginBottom: tab.isActive ? '0' : '2px'
+                      minWidth: '80px',
+                      maxWidth: '120px',
+                      borderBottom: tab.isActive ? '1px solid transparent' : '1px solid rgba(75, 85, 99, 0.3)',
+                      marginBottom: tab.isActive ? '0' : '1px'
                     }}
                   >
                     {TabIcon && (
-                      <TabIcon size={optimizationConfig?.compactMode ? 12 : 14} className="flex-shrink-0" />
+                      <TabIcon size={10} className="flex-shrink-0 opacity-70" />
                     )}
-                    <span className="truncate flex-1">{tab.title}</span>
+                    <span className="truncate flex-1 text-xs">{tab.title}</span>
 
-                    {/* Close button */}
+                    {/* Subtle close button */}
                     {tabs.length > 1 && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           closeTab(tab.id);
                         }}
-                        className="ml-1 opacity-60 hover:opacity-100 rounded-full w-4 h-4 flex items-center justify-center transition-all hover:bg-white/20"
+                        className="ml-1 opacity-40 hover:opacity-80 rounded-full w-3 h-3 flex items-center justify-center transition-all hover:bg-white/10"
                       >
-                        <CloseIcon size={optimizationConfig?.compactMode ? 8 : 10} />
+                        <CloseIcon size={8} />
                       </button>
                     )}
                   </button>
 
-                  {/* Notebook page depth effect */}
-                  {!tab.isActive && (
-                    <div className="absolute inset-0 bg-black/10 rounded-t-lg pointer-events-none"></div>
+                  {/* Subtle active indicator */}
+                  {tab.isActive && (
+                    <div className="absolute bottom-0 left-1 right-1 h-0.5 bg-teal-500/60 rounded-full"></div>
                   )}
                 </div>
               );
@@ -3838,8 +3844,10 @@ Level: ${level}`
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'tween' }}
-              className="fixed left-0 top-0 h-full w-80 border-r border-gray-600/50 z-50 overflow-y-auto scrollbar-none relative"
+              className="fixed left-0 w-80 border-r border-gray-600/50 z-30 overflow-y-auto scrollbar-none relative"
               style={{
+                top: '60px', // Start below header
+                height: 'calc(100vh - 60px)', // Full height minus header
                 scrollbarWidth: 'none',
                 msOverflowStyle: 'none'
               }}
@@ -4046,14 +4054,17 @@ Level: ${level}`
       {!isMenuOpen && (
         <button
           onClick={() => setIsMenuOpen(true)}
-          className="fixed left-0 top-1/2 transform -translate-y-1/2
-                     w-6 h-12 bg-gray-800/80 hover:bg-gray-700/80
+          className="fixed left-0 bg-gray-800/80 hover:bg-gray-700/80
                      border border-gray-600/50 rounded-r-lg
                      flex items-center justify-center
-                     transition-all duration-200 hover:w-7
-                     backdrop-blur-sm shadow-lg z-50"
+                     transition-all duration-200
+                     backdrop-blur-sm shadow-lg z-20
+                     w-5 h-10"
+          style={{
+            top: 'calc(50vh - 20px)' // Center vertically in the available space below header
+          }}
         >
-          <ChevronRightIcon size={14} className="text-gray-300 hover:text-white" />
+          <ChevronRightIcon size={12} className="text-gray-300 hover:text-white" />
         </button>
       )}
 
