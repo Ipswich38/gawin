@@ -92,7 +92,7 @@ const ScreenShareButton: React.FC = () => {
         <path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/>
       </svg>
       {isScreenSharing && (
-        <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse shadow-lg"></div>
+        <div className="absolute -top-1 -right-1 w-3 h-3 bg-teal-400 rounded-full animate-pulse shadow-lg"></div>
       )}
     </button>
   );
@@ -130,7 +130,9 @@ import { useIntelligentTranslation } from '../hooks/useTranslation';
 
 // 🎨 UI ENHANCEMENTS
 import {
-  ChatIcon, QuizIcon, CreativeIcon, SearchIcon as ResearchIcon,
+  ChatIcon, QuizIcon, CreativeIcon, SearchIcon as ResearchIcon, InfoIcon,
+  LocationIcon, CameraIcon, MicrophoneIcon, SpeakerIcon, StorageIcon,
+  SecurityIcon, DocumentIcon, ChecklistIcon, RobotIcon, ImageIcon, WriteIcon,
   SendIcon, MenuIcon, CloseIcon, LoadingIcon, PermissionsIcon, VoiceModeIcon,
   HistoryIcon, UserIcon, SettingsIcon, LogoutIcon, SearchIcon, PlusIcon,
   ChevronLeftIcon, ChevronRightIcon
@@ -2264,11 +2266,12 @@ Format your response according to the content type requested.`;
             <div className="bg-white/5 backdrop-blur-md rounded-3xl border border-white/10 p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-hide">
               {/* Header */}
               <div className="text-center mb-8">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-white/20">
-                  <QuizIcon size={24} className="text-white" />
+                <div className="w-16 h-16 bg-gradient-to-br from-teal-500/20 to-teal-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-white/20">
+                  <QuizIcon size={24} className="text-teal-400" />
                 </div>
-                <h2 className="text-2xl font-semibold text-white mb-2">Academic Quiz Generator</h2>
-                <p className="text-gray-300">Create comprehensive quizzes for any academic topic worldwide</p>
+                <div className="flex items-center justify-center gap-2">
+                  <InfoIcon size={16} className="text-teal-400 cursor-pointer" title="Create comprehensive quizzes for any academic topic worldwide" />
+                </div>
               </div>
 
               {/* Quiz Setup Form */}
@@ -2290,7 +2293,7 @@ Format your response according to the content type requested.`;
                   {/* Question Count */}
                   <div>
                     <label className="text-white font-medium block mb-3">Questions</label>
-                    <select id="quiz-count" className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-400/50 transition-all">
+                    <select id="quiz-count" className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-teal-400/50 transition-all">
                       <option value="5" className="bg-gray-800">5 Questions</option>
                       <option value="10" className="bg-gray-800">10 Questions</option>
                       <option value="15" className="bg-gray-800">15 Questions</option>
@@ -2302,7 +2305,7 @@ Format your response according to the content type requested.`;
                   {/* Time Limit */}
                   <div>
                     <label className="text-white font-medium block mb-3">Time Limit</label>
-                    <select id="quiz-time" className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-400/50 transition-all">
+                    <select id="quiz-time" className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-teal-400/50 transition-all">
                       <option value="10" className="bg-gray-800">10 minutes</option>
                       <option value="15" className="bg-gray-800">15 minutes</option>
                       <option value="20" className="bg-gray-800">20 minutes</option>
@@ -2315,7 +2318,7 @@ Format your response according to the content type requested.`;
                   {/* Difficulty Level */}
                   <div>
                     <label className="text-white font-medium block mb-3">Difficulty</label>
-                    <select id="quiz-difficulty" className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-400/50 transition-all">
+                    <select id="quiz-difficulty" className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-teal-400/50 transition-all">
                       <option value="beginner" className="bg-gray-800">Beginner</option>
                       <option value="intermediate" className="bg-gray-800">Intermediate</option>
                       <option value="advanced" className="bg-gray-800">Advanced</option>
@@ -2639,7 +2642,7 @@ Level: ${level}`
                       }
                     }
                   }}
-                  className="w-full py-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                  className="w-full py-4 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white font-semibold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
                   Generate Quiz
                 </button>
@@ -2682,7 +2685,7 @@ Level: ${level}`
               {/* Progress Bar */}
               <div className="w-full bg-white/10 rounded-full h-3 mt-4">
                 <div
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-500 shadow-sm"
+                  className="bg-gradient-to-r from-teal-500 to-teal-600 h-3 rounded-full transition-all duration-500 shadow-sm"
                   style={{ width: `${((currentQuestion + 1) / (quizData?.questions?.length || 1)) * 100}%` }}
                 />
               </div>
@@ -2693,7 +2696,7 @@ Level: ${level}`
               <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-8 shadow-lg">
                 <div className="mb-6">
                   <div className="flex items-start gap-4 mb-4">
-                    <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-semibold text-sm">
+                    <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-teal-500 to-teal-600 rounded-lg flex items-center justify-center text-white font-semibold text-sm">
                       {currentQuestion + 1}
                     </div>
                     <div className="flex-1">
@@ -2755,14 +2758,14 @@ Level: ${level}`
                   {currentQuestion === quizData.questions.length - 1 ? (
                     <button
                       onClick={finishQuiz}
-                      className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl transition-all duration-200 font-semibold shadow-lg"
+                      className="px-6 py-3 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white rounded-xl transition-all duration-200 font-semibold shadow-lg"
                     >
                       Finish Quiz
                     </button>
                   ) : (
                     <button
                       onClick={() => setCurrentQuestion(Math.min(quizData.questions.length - 1, currentQuestion + 1))}
-                      className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl transition-all duration-200 font-semibold shadow-lg"
+                      className="px-6 py-3 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white rounded-xl transition-all duration-200 font-semibold shadow-lg"
                     >
                       Next
                     </button>
@@ -2797,13 +2800,13 @@ Level: ${level}`
             <div className="space-y-3 pb-4">
             {quizResults?.results?.filter((r: any) => !r.isCorrect).map((result: any, idx: number) => (
               <div key={idx} className="rounded-2xl p-4 space-y-3" style={{backgroundColor: 'rgba(27, 30, 30, 0.5)'}}>
-                <div className="border-l-4 border-red-500 pl-3">
+                <div className="border-l-4 border-teal-500 pl-3">
                   <h4 className="text-white font-medium text-sm">{result.question}</h4>
                   <div className="space-y-1 text-xs mt-2">
-                    <div className="text-red-400">
+                    <div className="text-teal-400">
                       Your: {result.userAnswer !== null ? `${String.fromCharCode(65 + result.userAnswer)}. ${result.options[result.userAnswer]}` : 'No answer'}
                     </div>
-                    <div className="text-green-400">
+                    <div className="text-teal-300">
                       Correct: {String.fromCharCode(65 + result.correctAnswer)}. {result.options[result.correctAnswer]}
                     </div>
                   </div>
@@ -2811,7 +2814,7 @@ Level: ${level}`
                 
                 <div className="bg-teal-900/20 border border-teal-700/50 rounded-xl p-3">
                   <div className="flex items-center space-x-2 mb-2">
-                    <span className="text-teal-400 text-sm">🤖</span>
+                    <RobotIcon size={16} className="text-teal-400" />
                     <span className="text-teal-100 font-medium text-sm">Gawin AI Explanation</span>
                   </div>
                   <p className="text-gray-300 text-xs">{result.explanation}</p>
@@ -2858,19 +2861,24 @@ Level: ${level}`
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="p-4 text-center">
-        <h2 className="text-xl font-semibold text-white flex items-center gap-2"><CreativeIcon size={20} />Creative Studio</h2>
-        <p className="text-gray-400 text-sm mt-1">Image generation and creative tools</p>
+        <div className="flex items-center justify-center gap-2">
+          <InfoIcon size={16} className="text-teal-400 cursor-pointer" title="Image generation and creative tools" />
+        </div>
       </div>
 
       {/* Feature Cards */}
       <div className="px-4 pb-4">
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-xl p-3 text-center" style={{backgroundColor: "rgba(27, 30, 30, 0.5)"}}>
-            <div className="text-2xl mb-1">🖼️</div>
+            <div className="flex justify-center mb-1">
+              <ImageIcon size={24} className="text-teal-400" />
+            </div>
             <div className="text-white text-sm font-medium">Image Generation</div>
           </div>
           <div className="rounded-xl p-3 text-center" style={{backgroundColor: "rgba(27, 30, 30, 0.5)"}}>
-            <div className="text-2xl mb-1">✍️</div>
+            <div className="flex justify-center mb-1">
+              <WriteIcon size={24} className="text-teal-400" />
+            </div>
             <div className="text-white text-sm font-medium">Creative Writing</div>
           </div>
         </div>
@@ -2897,7 +2905,7 @@ Level: ${level}`
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-teal-500/20 rounded-xl flex items-center justify-center">
-                <span className="text-teal-400 text-lg">📍</span>
+                <LocationIcon size={18} className="text-teal-400" />
               </div>
               <div>
                 <h3 className="text-white font-medium">Location Services</h3>
@@ -2976,7 +2984,7 @@ Level: ${level}`
                 </button>
                 <button
                   onClick={handleClearLocation}
-                  className="flex-1 px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"
+                  className="flex-1 px-3 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm rounded-lg transition-colors"
                 >
                   🗑️ Clear
                 </button>
@@ -2989,8 +2997,8 @@ Level: ${level}`
         <div className="rounded-2xl p-4 border border-gray-700/50" style={{backgroundColor: "rgba(27, 30, 30, 0.5)"}}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-green-500/20 rounded-xl flex items-center justify-center">
-                <span className="text-green-400 text-lg">📷</span>
+              <div className="w-10 h-10 bg-teal-500/20 rounded-xl flex items-center justify-center">
+                <CameraIcon size={18} className="text-teal-400" />
               </div>
               <div>
                 <h3 className="text-white font-medium">Camera & Vision</h3>
@@ -3008,7 +3016,7 @@ Level: ${level}`
                 className="sr-only"
               />
               <div className={`w-12 h-6 rounded-full transition-colors ${
-                visionContext.cameraActive ? 'bg-green-600' : 'bg-gray-600'
+                visionContext.cameraActive ? 'bg-teal-600' : 'bg-gray-600'
               }`}>
                 <div className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${
                   visionContext.cameraActive ? 'translate-x-6' : 'translate-x-0.5'
@@ -3025,8 +3033,8 @@ Level: ${level}`
         <div className="rounded-2xl p-4 border border-gray-700/50" style={{backgroundColor: "rgba(27, 30, 30, 0.5)"}}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center">
-                <span className="text-purple-400 text-lg">🎤</span>
+              <div className="w-10 h-10 bg-teal-500/20 rounded-xl flex items-center justify-center">
+                <MicrophoneIcon size={18} className="text-teal-400" />
               </div>
               <div>
                 <h3 className="text-white font-medium">Microphone & Speech</h3>
@@ -3053,8 +3061,8 @@ Level: ${level}`
         <div className="rounded-2xl p-4 border border-gray-700/50" style={{backgroundColor: "rgba(27, 30, 30, 0.5)"}}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-yellow-500/20 rounded-xl flex items-center justify-center">
-                <span className="text-yellow-400 text-lg">🔊</span>
+              <div className="w-10 h-10 bg-teal-500/20 rounded-xl flex items-center justify-center">
+                <SpeakerIcon size={18} className="text-teal-400" />
               </div>
               <div>
                 <h3 className="text-white font-medium">Voice Output</h3>
@@ -3081,8 +3089,8 @@ Level: ${level}`
         <div className="rounded-2xl p-4 border border-gray-700/50" style={{backgroundColor: "rgba(27, 30, 30, 0.5)"}}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-orange-500/20 rounded-xl flex items-center justify-center">
-                <span className="text-orange-400 text-lg">💾</span>
+              <div className="w-10 h-10 bg-teal-500/20 rounded-xl flex items-center justify-center">
+                <StorageIcon size={18} className="text-teal-400" />
               </div>
               <div>
                 <h3 className="text-white font-medium">Local Data Storage</h3>
@@ -3095,7 +3103,7 @@ Level: ${level}`
                 defaultChecked={true}
                 className="sr-only"
               />
-              <div className="w-12 h-6 rounded-full bg-orange-600">
+              <div className="w-12 h-6 rounded-full bg-teal-600">
                 <div className="w-5 h-5 rounded-full bg-white shadow-md transform transition-transform translate-x-6 mt-0.5" />
               </div>
             </div>
@@ -3109,7 +3117,7 @@ Level: ${level}`
         <div className="bg-teal-900/20 border border-teal-700/50 rounded-2xl p-4">
           <div className="flex items-start space-x-3">
             <div className="w-8 h-8 bg-teal-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-              <span className="text-teal-400 text-lg">🔒</span>
+              <SecurityIcon size={18} className="text-teal-400" />
             </div>
             <div>
               <h3 className="text-teal-100 font-medium mb-2">Privacy First</h3>
@@ -3125,8 +3133,8 @@ Level: ${level}`
         {/* Legal Section */}
         <div className="rounded-2xl p-4 border border-gray-700/50" style={{backgroundColor: "rgba(27, 30, 30, 0.5)"}}>
           <div className="flex items-center mb-4">
-            <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center mr-3">
-              <span className="text-blue-400 text-lg">📄</span>
+            <div className="w-10 h-10 bg-teal-500/20 rounded-xl flex items-center justify-center mr-3">
+              <DocumentIcon size={18} className="text-teal-400" />
             </div>
             <div>
               <h3 className="text-white font-medium">Legal & Acknowledgements</h3>
@@ -3139,7 +3147,7 @@ Level: ${level}`
               onClick={() => window.open('/terms', '_blank')}
               className="w-full p-3 text-left text-gray-300 hover:text-white hover:bg-teal-600/20 rounded-lg transition-colors flex items-center space-x-3"
             >
-              <span>📋</span>
+              <ChecklistIcon size={16} className="text-gray-400" />
               <span>Terms & Conditions</span>
             </button>
 
@@ -3147,7 +3155,7 @@ Level: ${level}`
               onClick={() => window.open('/privacy', '_blank')}
               className="w-full p-3 text-left text-gray-300 hover:text-white hover:bg-teal-600/20 rounded-lg transition-colors flex items-center space-x-3"
             >
-              <span>🔒</span>
+              <SecurityIcon size={16} className="text-gray-400" />
               <span>Privacy Policy</span>
             </button>
 
@@ -3169,10 +3177,9 @@ Level: ${level}`
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="p-4 text-center">
-        <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-          <span>👤</span>Profile
-        </h2>
-        <p className="text-gray-400 text-sm mt-1">Your account information and preferences</p>
+        <div className="flex items-center justify-center gap-2">
+          <InfoIcon size={16} className="text-teal-400 cursor-pointer" title="Your account information and preferences" />
+        </div>
       </div>
 
       {/* Profile Content */}
@@ -3336,9 +3343,9 @@ Level: ${level}`
                 exit={{ opacity: 0, y: -10 }}
                 className="flex justify-end"
               >
-                <div className="max-w-[85%] px-5 py-4 bg-gradient-to-br from-blue-600/60 to-blue-700/60 rounded-3xl rounded-br-lg shadow-lg ring-1 ring-blue-400/30 min-h-[60px] flex flex-col justify-center backdrop-blur-sm border border-teal-400/20">
+                <div className="max-w-[85%] px-5 py-4 bg-gradient-to-br from-teal-600/60 to-teal-700/60 rounded-3xl rounded-br-lg shadow-lg ring-1 ring-teal-400/30 min-h-[60px] flex flex-col justify-center backdrop-blur-sm border border-teal-400/20">
                   <div className="flex items-center space-x-2 mb-2">
-                    <div className="w-2 h-2 bg-blue-300 rounded-full animate-pulse"></div>
+                    <div className="w-2 h-2 bg-teal-300 rounded-full animate-pulse"></div>
                     <span className="text-teal-100 text-xs font-medium">Listening...</span>
                   </div>
                   <div className="text-white/90 text-sm italic">
@@ -3399,14 +3406,14 @@ Level: ${level}`
 
         {/* 🎤 Tagalog Speech Analysis Status */}
         {speechLearningProgress && speechLearningProgress.totalNuances > 0 && (
-          <div className="px-4 py-2 bg-gradient-to-r from-green-600/20 to-blue-600/20 border-b border-green-500/30">
+          <div className="px-4 py-2 bg-gradient-to-r from-teal-600/20 to-teal-700/20">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <span className="text-green-400">🇵🇭</span>
+                <span className="text-teal-400">🇵🇭</span>
                 <span className="text-white text-sm">
                   Tagalog Learning: {speechLearningProgress.totalNuances} nuances
                 </span>
-                <span className="text-green-300 text-xs">
+                <span className="text-teal-300 text-xs">
                   {speechLearningProgress.culturalAdaptation}%
                 </span>
               </div>
@@ -3414,8 +3421,8 @@ Level: ${level}`
                 onClick={toggleTagalogListening}
                 className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                   isTagalogListening
-                    ? 'bg-red-500/20 text-red-300 border border-red-500/30'
-                    : 'bg-green-500/20 text-green-300 border border-green-500/30'
+                    ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30'
+                    : 'bg-teal-500/20 text-teal-300 border border-teal-500/30'
                 }`}
               >
                 {isTagalogListening ? '🛑 Stop' : '🎤 Listen'}
@@ -3426,16 +3433,33 @@ Level: ${level}`
 
         {/* Mobile Tabs - Fully Transparent */}
         <div className={`
-          bg-transparent backdrop-blur-none border-b border-transparent px-3 sm:px-4
+          bg-transparent backdrop-blur-none px-3 sm:px-4
           ${optimizationConfig?.compactMode ? 'py-1.5' : 'py-2'}
           relative z-10
         `}>
         <div className="flex items-center justify-between">
-          {/* Subtle Tabs - Hidden when sidebar is open */}
-          <div className={`
-            flex items-center overflow-x-auto flex-1 transition-all duration-300
-            ${isMenuOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}
-          `}>
+          {/* Tab Area with Sidebar Toggle */}
+          <div className="flex items-center overflow-x-auto flex-1">
+            {/* Sidebar Toggle Arrow - When sidebar is closed */}
+            {!isMenuOpen && (
+              <button
+                onClick={() => setIsMenuOpen(true)}
+                className="flex items-center justify-center w-6 h-6 mr-2
+                           bg-gray-800/60 hover:bg-gray-700/60
+                           border border-gray-600/30 rounded
+                           transition-all duration-200
+                           text-gray-400 hover:text-white"
+                title="Show Sidebar"
+              >
+                <ChevronRightIcon size={10} />
+              </button>
+            )}
+
+            {/* Subtle Tabs - Hidden when sidebar is open */}
+            <div className={`
+              flex items-center overflow-x-auto transition-all duration-300
+              ${isMenuOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}
+            `}>
             {tabs.map((tab, index) => {
               const TabIcon = tabConfig[tab.type as keyof typeof tabConfig]?.icon;
               return (
@@ -3450,7 +3474,7 @@ Level: ${level}`
                         ? 'text-white bg-gray-700/60'
                         : 'text-gray-400 hover:text-gray-200 bg-gray-800/40 hover:bg-gray-700/40'
                       }
-                      rounded-t-md border-t border-l border-r border-gray-600/30
+                      rounded-t-md
                       ${tab.isActive ? 'z-10' : `z-${5 - index}`}
                     `}
                     style={{
@@ -3486,6 +3510,7 @@ Level: ${level}`
                 </div>
               );
             })}
+            </div>
           </div>
 
           {/* Right Side Controls */}
@@ -3581,7 +3606,7 @@ Level: ${level}`
 
       {/* Enhanced Two-Section Chat Input - Fully Transparent */}
       {activeTab && [].includes(activeTab.type) && (
-          <div className="px-3 sm:px-4 py-1 sm:py-2 bg-transparent backdrop-blur-none border-t border-transparent"
+          <div className="px-3 sm:px-4 py-1 sm:py-2 bg-transparent backdrop-blur-none"
                style={{ paddingBottom: `calc(0.5rem + env(safe-area-inset-bottom))` }}>
 
             {/* Enhanced Input Container with Two Sections */}
@@ -3730,7 +3755,7 @@ Level: ${level}`
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
-                            <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-500 rounded-full"></div>
+                            <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-teal-500 rounded-full"></div>
                           </button>
                         )}
 
@@ -3777,7 +3802,7 @@ Level: ${level}`
                       {!inputValue.trim() && !activeTab.isLoading ? (
                         /* 3D Cube when not typing */
                         <div className="relative touch-manipulation">
-                          <div className="relative bg-gradient-to-br from-teal-600/20 to-cyan-600/20 p-1 rounded-xl border border-teal-500/30">
+                          <div className="relative bg-gradient-to-br from-teal-600/20 to-teal-700/20 p-1 rounded-xl border border-teal-500/30">
                             <MiniatureCube
                               isActive={showVoiceModePopup}
                               size={48}
@@ -3785,7 +3810,7 @@ Level: ${level}`
                             />
                           </div>
                           {/* Glowing ring for emphasis */}
-                          <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-teal-500/20 to-cyan-500/20 blur-sm animate-pulse pointer-events-none"></div>
+                          <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-teal-500/20 to-teal-600/20 blur-sm animate-pulse pointer-events-none"></div>
                         </div>
                       ) : (
                         /* Send Button when typing or loading */
@@ -3869,7 +3894,7 @@ Level: ${level}`
               <div className="relative z-20 h-full flex flex-col">
 
                 {/* Sidebar Header with Hide Button */}
-                <div className="flex items-center justify-between p-3 border-b border-gray-700/30">
+                <div className="flex items-center justify-between p-3">
                   {/* Gawin Name */}
                   <h1 className="text-sm text-white font-light tracking-wide" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>Gawin</h1>
 
@@ -3927,7 +3952,7 @@ Level: ${level}`
 
                 {/* Active Tabs Section - Shown when sidebar is open */}
                 {tabs.length > 0 && (
-                  <div className="px-3 py-2 border-t border-gray-700/30 border-b border-gray-700/30">
+                  <div className="px-3 py-2">
                     <div className="flex items-center space-x-1 mb-2">
                       <span className="text-xs text-gray-500">Active Tabs</span>
                     </div>
@@ -3967,7 +3992,7 @@ Level: ${level}`
                 )}
 
                 {/* Section 2: Chat History */}
-                <div className="flex-1 px-3 py-2 border-t border-gray-700/30">
+                <div className="flex-1 px-3 py-2">
                   <div className="flex items-center space-x-1 mb-2">
                     <HistoryIcon size={12} className="text-gray-500" />
                     <span className="text-xs text-gray-500">Chat History</span>
@@ -4003,7 +4028,7 @@ Level: ${level}`
                 </div>
 
                 {/* Section 3: User Status + Settings */}
-                <div className="p-3 space-y-1 border-t border-gray-700/30">
+                <div className="p-3 space-y-1">
                   {/* User Status - Compact */}
                   <div className="flex items-center space-x-2 text-xs mb-2">
                     {isCreator ? (
@@ -4016,10 +4041,10 @@ Level: ${level}`
                       </>
                     ) : (
                       <>
-                        <UserIcon size={14} className="text-blue-400" />
+                        <UserIcon size={14} className="text-teal-400" />
                         <div className="flex-1 min-w-0">
                           <p className="text-white text-xs">Guest</p>
-                          <p className="text-blue-300 text-xs opacity-75">Limited</p>
+                          <p className="text-teal-300 text-xs opacity-75">Limited</p>
                         </div>
                       </>
                     )}
@@ -4037,7 +4062,7 @@ Level: ${level}`
                   {/* Sign Out */}
                   <button
                     onClick={onLogout}
-                    className="w-full p-1.5 text-left hover:bg-red-600/15 transition-colors flex items-center space-x-2 text-gray-400 hover:text-red-300 text-xs"
+                    className="w-full p-1.5 text-left hover:bg-teal-600/15 transition-colors flex items-center space-x-2 text-gray-400 hover:text-teal-300 text-xs"
                   >
                     <LogoutIcon size={14} className="text-gray-400" />
                     <span>Sign Out</span>
@@ -4050,23 +4075,6 @@ Level: ${level}`
         )}
       </AnimatePresence>
 
-      {/* Subtle Arrow Toggle - Show sidebar when hidden */}
-      {!isMenuOpen && (
-        <button
-          onClick={() => setIsMenuOpen(true)}
-          className="fixed left-0 bg-gray-800/80 hover:bg-gray-700/80
-                     border border-gray-600/50 rounded-r-lg
-                     flex items-center justify-center
-                     transition-all duration-200
-                     backdrop-blur-sm shadow-lg z-20
-                     w-5 h-10"
-          style={{
-            top: 'calc(50vh - 20px)' // Center vertically in the available space below header
-          }}
-        >
-          <ChevronRightIcon size={12} className="text-gray-300 hover:text-white" />
-        </button>
-      )}
 
       {/* Removed redundant code editor - now handled inline in MessageRenderer */}
 
