@@ -28,6 +28,7 @@ import MCPStatusIndicator from './MCPStatusIndicator';
 import CleanChat from './CleanChat';
 import CleanResearch from './CleanResearch';
 import CleanCreative from './CleanCreative';
+import { ChatIcon, CreativeIcon, SearchIcon, QuizIcon, HistoryIcon, UserIcon, SettingsIcon, LogoutIcon, CloseIcon } from './ui/LineIcons';
 
 // Screen Share Component
 const ScreenShareButton: React.FC = () => {
@@ -3436,49 +3437,7 @@ Level: ${level}`
             <span>Menu</span>
           </button>
 
-          {!isMenuOpen && tabs.map((tab) => {
-            const TabIcon = tabConfig[tab.type as keyof typeof tabConfig]?.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => switchToTab(tab.id)}
-                className={`
-                  flex items-center space-x-2
-                  ${optimizationConfig?.compactMode ? 'px-2 py-1' : 'px-3 py-1.5'}
-                  ${optimizationConfig?.tabHeight || 'h-10'}
-                  rounded-xl
-                  ${optimizationConfig?.compactMode ? 'text-xs' : 'text-sm'}
-                  font-medium transition-all flex-shrink-0
-                  ${tab.isActive
-                    ? 'bg-teal-600 text-white shadow-lg backdrop-blur-sm'
-                    : 'text-gray-200 hover:bg-gray-700/90 backdrop-blur-sm'
-                  }
-                `}
-                style={tab.isActive ? {} : {backgroundColor: '#1b1e1e'}}
-              >
-                {TabIcon && (
-                  <TabIcon size={optimizationConfig?.compactMode ? 14 : 16} className="flex-shrink-0" />
-                )}
-                <span>{tab.title}</span>
-                {tabs.length > 1 && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      closeTab(tab.id);
-                    }}
-                    className={`
-                      ml-1 opacity-70 hover:opacity-100 hover:bg-white/20
-                      rounded-full
-                      ${optimizationConfig?.compactMode ? 'w-3 h-3' : 'w-4 h-4'}
-                      flex items-center justify-center transition-all
-                    `}
-                  >
-                    <CloseIcon size={optimizationConfig?.compactMode ? 10 : 12} />
-                  </button>
-                )}
-              </button>
-            );
-          })}
+{/* Tabs moved to sidebar - this area is now cleaner */}
           </div>
 
           {/* Gawin Vision POV - Top Right Position */}
@@ -3783,68 +3742,107 @@ Level: ${level}`
               {/* Clean 3-Section Sidebar */}
               <div className="relative z-20 h-full flex flex-col">
 
-                {/* Section 1: App Name + Main Tabs */}
-                <div className="p-4 space-y-3">
-                  {/* Simple App Name */}
-                  <div className="text-center">
-                    <h1 className="text-lg text-white font-medium" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>Gawin</h1>
+                {/* Section 1: App Name + Main Navigation */}
+                <div className="p-3 space-y-2">
+                  {/* Gawin Name - Smaller */}
+                  <div className="text-center mb-3">
+                    <h1 className="text-sm text-white font-light tracking-wide" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>Gawin</h1>
                   </div>
 
-                  {/* Main Tabs with Simple Icons */}
+                  {/* Main Navigation - Compact with Line Icons */}
                   <div className="space-y-1">
                     <button
                       onClick={() => createNewTab('general')}
-                      className="w-full p-2 text-left hover:bg-teal-600/20 rounded-lg transition-colors flex items-center space-x-2 text-gray-300 hover:text-white text-sm"
-                      style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
+                      className="w-full p-1.5 text-left hover:bg-teal-600/15 transition-colors flex items-center space-x-2 text-gray-300 hover:text-white text-xs"
                     >
-                      <span className="text-sm">💬</span>
+                      <ChatIcon size={14} className="text-gray-400" />
                       <span>New Chat</span>
                     </button>
 
                     <button
                       onClick={() => createNewTab('creative')}
-                      className="w-full p-2 text-left hover:bg-teal-600/20 rounded-lg transition-colors flex items-center space-x-2 text-gray-300 hover:text-white text-sm"
-                      style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
+                      className="w-full p-1.5 text-left hover:bg-teal-600/15 transition-colors flex items-center space-x-2 text-gray-300 hover:text-white text-xs"
                     >
-                      <span className="text-sm">🎨</span>
+                      <CreativeIcon size={14} className="text-gray-400" />
                       <span>Creative Studio</span>
                     </button>
 
                     <button
                       onClick={() => createNewTab('research')}
-                      className="w-full p-2 text-left hover:bg-teal-600/20 rounded-lg transition-colors flex items-center space-x-2 text-gray-300 hover:text-white text-sm"
-                      style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
+                      className="w-full p-1.5 text-left hover:bg-teal-600/15 transition-colors flex items-center space-x-2 text-gray-300 hover:text-white text-xs"
                     >
-                      <span className="text-sm">🔍</span>
+                      <SearchIcon size={14} className="text-gray-400" />
                       <span>Research Mode</span>
                     </button>
 
                     <button
                       onClick={() => createNewTab('quiz')}
-                      className="w-full p-2 text-left hover:bg-teal-600/20 rounded-lg transition-colors flex items-center space-x-2 text-gray-300 hover:text-white text-sm"
-                      style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
+                      className="w-full p-1.5 text-left hover:bg-teal-600/15 transition-colors flex items-center space-x-2 text-gray-300 hover:text-white text-xs"
                     >
-                      <span className="text-sm">❓</span>
+                      <QuizIcon size={14} className="text-gray-400" />
                       <span>Quiz Generator</span>
                     </button>
                   </div>
                 </div>
 
-                {/* Section 2: Chat History (Placeholder for now) */}
-                <div className="flex-1 px-4 py-2 border-t border-gray-700/50">
-                  <div className="text-xs text-gray-400 mb-2" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>Chat History</div>
+                {/* Active Tabs Section - Shown when sidebar is open */}
+                {tabs.length > 0 && (
+                  <div className="px-3 py-2 border-t border-gray-700/30 border-b border-gray-700/30">
+                    <div className="flex items-center space-x-1 mb-2">
+                      <span className="text-xs text-gray-500">Active Tabs</span>
+                    </div>
+                    <div className="space-y-0.5">
+                      {tabs.map((tab) => {
+                        const TabIcon = tabConfig[tab.type as keyof typeof tabConfig]?.icon;
+                        return (
+                          <button
+                            key={tab.id}
+                            onClick={() => switchToTab(tab.id)}
+                            className={`w-full p-1.5 text-left transition-colors flex items-center justify-between text-xs ${
+                              tab.isActive
+                                ? 'bg-teal-600/20 text-white'
+                                : 'text-gray-400 hover:text-white hover:bg-teal-600/10'
+                            }`}
+                          >
+                            <div className="flex items-center space-x-2 flex-1 min-w-0">
+                              {TabIcon && <TabIcon size={12} className="flex-shrink-0" />}
+                              <span className="truncate">{tab.title}</span>
+                            </div>
+                            {tabs.length > 1 && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  closeTab(tab.id);
+                                }}
+                                className="ml-1 opacity-50 hover:opacity-100 text-xs"
+                              >
+                                <CloseIcon size={10} />
+                              </button>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Section 2: Chat History */}
+                <div className="flex-1 px-3 py-2 border-t border-gray-700/30">
+                  <div className="flex items-center space-x-1 mb-2">
+                    <HistoryIcon size={12} className="text-gray-500" />
+                    <span className="text-xs text-gray-500">Chat History</span>
+                  </div>
                   {tabs.length > 0 && (
-                    <div className="space-y-1">
+                    <div className="space-y-0.5">
                       {tabs.map((tab) => (
                         <button
                           key={tab.id}
                           onClick={() => switchToTab(tab.id)}
-                          className={`w-full p-2 text-left rounded-lg transition-colors flex items-center justify-between text-xs ${
+                          className={`w-full p-1.5 text-left transition-colors flex items-center justify-between text-xs ${
                             tab.isActive
-                              ? 'bg-teal-600/30 text-white'
+                              ? 'bg-teal-600/20 text-white'
                               : 'text-gray-400 hover:text-white hover:bg-teal-600/10'
                           }`}
-                          style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
                         >
                           <span className="truncate">{tab.title}</span>
                           {tabs.length > 1 && (
@@ -3853,9 +3851,9 @@ Level: ${level}`
                                 e.stopPropagation();
                                 closeTab(tab.id);
                               }}
-                              className="ml-1 opacity-70 hover:opacity-100 text-xs"
+                              className="ml-1 opacity-50 hover:opacity-100 text-xs"
                             >
-                              ×
+                              <CloseIcon size={10} />
                             </button>
                           )}
                         </button>
@@ -3864,28 +3862,24 @@ Level: ${level}`
                   )}
                 </div>
 
-                {/* Section 3: Login Status/Profile + Settings */}
-                <div className="p-4 space-y-2 border-t border-gray-700/50">
-                  {/* User Status */}
-                  <div className="flex items-center space-x-2 text-sm">
+                {/* Section 3: User Status + Settings */}
+                <div className="p-3 space-y-1 border-t border-gray-700/30">
+                  {/* User Status - Compact */}
+                  <div className="flex items-center space-x-2 text-xs mb-2">
                     {isCreator ? (
                       <>
-                        <div className="w-6 h-6 bg-teal-600 rounded-full flex items-center justify-center">
-                          <span className="text-white text-xs">{user.full_name?.[0] || user.email[0].toUpperCase()}</span>
-                        </div>
+                        <UserIcon size={14} className="text-teal-400" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-white text-xs truncate" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>{user.full_name || 'Creator'}</p>
-                          <p className="text-teal-400 text-xs" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>Creator</p>
+                          <p className="text-white text-xs truncate">{user.full_name || 'Creator'}</p>
+                          <p className="text-teal-400 text-xs opacity-75">Creator</p>
                         </div>
                       </>
                     ) : (
                       <>
-                        <div className="w-6 h-6 bg-blue-500/20 rounded-full flex items-center justify-center">
-                          <span className="text-blue-400 text-xs">👤</span>
-                        </div>
+                        <UserIcon size={14} className="text-blue-400" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-white text-xs" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>Guest Mode</p>
-                          <p className="text-blue-300 text-xs" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>Limited access</p>
+                          <p className="text-white text-xs">Guest</p>
+                          <p className="text-blue-300 text-xs opacity-75">Limited</p>
                         </div>
                       </>
                     )}
@@ -3894,20 +3888,18 @@ Level: ${level}`
                   {/* Settings */}
                   <button
                     onClick={() => createNewTab('permissions')}
-                    className="w-full p-2 text-left hover:bg-teal-600/20 rounded-lg transition-colors flex items-center space-x-2 text-gray-400 hover:text-white text-xs"
-                    style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
+                    className="w-full p-1.5 text-left hover:bg-teal-600/15 transition-colors flex items-center space-x-2 text-gray-400 hover:text-white text-xs"
                   >
-                    <span>⚙️</span>
+                    <SettingsIcon size={14} className="text-gray-400" />
                     <span>Settings</span>
                   </button>
 
                   {/* Sign Out */}
                   <button
                     onClick={onLogout}
-                    className="w-full p-2 text-left hover:bg-red-600/20 rounded-lg transition-colors flex items-center space-x-2 text-gray-400 hover:text-red-300 text-xs"
-                    style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
+                    className="w-full p-1.5 text-left hover:bg-red-600/15 transition-colors flex items-center space-x-2 text-gray-400 hover:text-red-300 text-xs"
                   >
-                    <span>↩️</span>
+                    <LogoutIcon size={14} className="text-gray-400" />
                     <span>Sign Out</span>
                   </button>
                 </div>
