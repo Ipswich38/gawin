@@ -821,27 +821,38 @@ Research completed at ${doc.timestamp}`;
       <div className="p-4">
         {/* Research Input with Toggle */}
         <div className="relative">
-          {/* Quick/Comprehensive Toggle - Top Left of Capsule */}
-          <div className="absolute -top-6 left-2 z-10">
-            <div className="flex items-center bg-gray-800/80 backdrop-blur-sm rounded-full px-2 py-0.5 border border-gray-600/30 shadow-lg">
-              <span className={`text-xs font-medium transition-colors ${researchMode === 'quick' ? 'text-white' : 'text-gray-400'}`}>
-                Quick
-              </span>
+          {/* Quick/Comprehensive Switch - Top Left of Capsule */}
+          <div className="absolute -top-5 left-2 z-10">
+            <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-full border border-gray-600/30 shadow-lg overflow-hidden">
               <button
                 onClick={() => setResearchMode(researchMode === 'quick' ? 'comprehensive' : 'quick')}
-                className={`mx-1.5 w-6 h-3 rounded-full transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-teal-400/50 ${
-                  researchMode === 'comprehensive'
-                    ? 'bg-teal-500'
-                    : 'bg-gray-600'
-                }`}
+                className="relative flex focus:outline-none focus:ring-1 focus:ring-teal-400/50"
               >
-                <div className={`w-2.5 h-2.5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
-                  researchMode === 'comprehensive' ? 'translate-x-3' : 'translate-x-0.5'
+                {/* Background highlight */}
+                <div className={`absolute top-0 h-full bg-teal-500/20 rounded-full transition-all duration-200 ${
+                  researchMode === 'comprehensive'
+                    ? 'left-12 w-20'
+                    : 'left-0 w-12'
                 }`} />
+
+                {/* Quick option */}
+                <div className={`relative px-2 py-1 text-xs font-medium transition-colors ${
+                  researchMode === 'quick'
+                    ? 'text-white'
+                    : 'text-gray-400'
+                }`}>
+                  Quick
+                </div>
+
+                {/* Comprehensive option */}
+                <div className={`relative px-2 py-1 text-xs font-medium transition-colors ${
+                  researchMode === 'comprehensive'
+                    ? 'text-white'
+                    : 'text-gray-400'
+                }`}>
+                  Comprehensive
+                </div>
               </button>
-              <span className={`text-xs font-medium transition-colors ${researchMode === 'comprehensive' ? 'text-white' : 'text-gray-400'}`}>
-                Comprehensive
-              </span>
             </div>
           </div>
 
