@@ -3473,7 +3473,7 @@ Level: ${level}`
                       ${optimizationConfig?.compactMode ? 'text-xs' : 'text-xs'}
                       font-normal transition-all flex-shrink-0
                       ${tab.isActive
-                        ? 'text-white bg-gray-700/60'
+                        ? 'text-white bg-teal-600/80'
                         : 'text-gray-400 hover:text-gray-200 bg-gray-800/40 hover:bg-gray-700/40'
                       }
                       rounded-t-md
