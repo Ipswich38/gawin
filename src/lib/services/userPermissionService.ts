@@ -14,11 +14,9 @@ export interface FeaturePermissions {
   textGeneration: boolean;
 
   // Premium Features (Restricted for Guests)
-  voiceMode: boolean;
   researchMode: boolean;
   quizGenerator: boolean;
   creativeStudio: boolean;
-  visionControl: boolean;
   browserAutomation: boolean;
   memorySystem: boolean;
   consciousnessSystem: boolean;
@@ -26,6 +24,8 @@ export interface FeaturePermissions {
   unlimitedChats: boolean;
 
   // Advanced Features (Creator Only)
+  voiceMode: boolean; // 🎙️ Creator only - secret development
+  visionControl: boolean; // 👁️ Creator only - secret development
   permissionsTab: boolean;
   adminDashboard: boolean;
   trainingMode: boolean;
@@ -125,16 +125,16 @@ class UserPermissionService {
       return {
         basicChat: true,
         textGeneration: true,
-        voiceMode: false, // ❌ Premium feature
         researchMode: false, // ❌ Premium feature
         quizGenerator: false, // ❌ Premium feature
         creativeStudio: false, // ❌ Premium feature
-        visionControl: false, // ❌ Premium feature
         browserAutomation: false, // ❌ Premium feature
         memorySystem: false, // ❌ Premium feature
         consciousnessSystem: false, // ❌ Premium feature
         personalizedResponses: false, // ❌ Premium feature
         unlimitedChats: false,
+        voiceMode: false, // ❌ Creator only feature (hidden)
+        visionControl: false, // ❌ Creator only feature (hidden)
         permissionsTab: false, // ❌ Creator only
         adminDashboard: false, // ❌ Creator only
         trainingMode: false, // ❌ Creator only
@@ -146,15 +146,15 @@ class UserPermissionService {
     }
 
     if (hasPremium) {
-      // Premium users get most features
+      // Premium users get most features (except voice and vision - creator only)
       return {
         basicChat: true,
         textGeneration: true,
-        voiceMode: true,
+        voiceMode: false, // ❌ Creator only feature
         researchMode: true,
         quizGenerator: true,
         creativeStudio: true,
-        visionControl: true,
+        visionControl: false, // ❌ Creator only feature
         browserAutomation: true,
         memorySystem: true,
         consciousnessSystem: true,
@@ -174,16 +174,16 @@ class UserPermissionService {
     return {
       basicChat: true,
       textGeneration: true,
-      voiceMode: false,
       researchMode: false,
       quizGenerator: true, // Allow basic quiz generation
       creativeStudio: false,
-      visionControl: false,
       browserAutomation: false,
       memorySystem: false,
       consciousnessSystem: false,
       personalizedResponses: false,
       unlimitedChats: false,
+      voiceMode: false, // ❌ Creator only feature (hidden)
+      visionControl: false, // ❌ Creator only feature (hidden)
       permissionsTab: false,
       adminDashboard: false,
       trainingMode: false,
