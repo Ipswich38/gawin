@@ -448,7 +448,41 @@ Research completed at ${doc.timestamp}`;
     <div className="flex flex-col h-full relative" style={{backgroundColor: '#1b1e1e'}}>
 
       {/* Research Results Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+      <div className="flex-1 overflow-y-auto p-4 space-y-6 relative">
+        {/* Quick/Comprehensive Switch - Top of Chat Space */}
+        <div className="absolute top-2 left-2 z-10">
+          <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-full border border-gray-600/30 shadow-lg overflow-hidden">
+            <button
+              onClick={() => setResearchMode(researchMode === 'quick' ? 'comprehensive' : 'quick')}
+              className="relative flex focus:outline-none focus:ring-1 focus:ring-teal-400/50"
+            >
+              {/* Background highlight */}
+              <div className={`absolute top-0 h-full bg-teal-500/20 rounded-full transition-all duration-200 ${
+                researchMode === 'comprehensive'
+                  ? 'left-12 w-24'
+                  : 'left-0 w-12'
+              }`} />
+
+              {/* Quick option */}
+              <div className={`relative px-2 py-1 text-xs font-medium transition-colors ${
+                researchMode === 'quick'
+                  ? 'text-white'
+                  : 'text-gray-400'
+              }`}>
+                Quick
+              </div>
+
+              {/* Comprehensive option */}
+              <div className={`relative px-2 py-1 text-xs font-medium transition-colors ${
+                researchMode === 'comprehensive'
+                  ? 'text-white'
+                  : 'text-gray-400'
+              }`}>
+                Comprehensive
+              </div>
+            </button>
+          </div>
+        </div>
         <AnimatePresence>
           {research.length === 0 && documents.length === 0 && !currentResearch && !currentDocument ? (
             <motion.div
@@ -819,44 +853,8 @@ Research completed at ${doc.timestamp}`;
 
       {/* Research Input Area */}
       <div className="p-4">
-        {/* Research Input with Toggle */}
-        <div className="relative">
-          {/* Quick/Comprehensive Switch - Top Left of Capsule */}
-          <div className="absolute -top-5 left-2 z-10">
-            <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-full border border-gray-600/30 shadow-lg overflow-hidden">
-              <button
-                onClick={() => setResearchMode(researchMode === 'quick' ? 'comprehensive' : 'quick')}
-                className="relative flex focus:outline-none focus:ring-1 focus:ring-teal-400/50"
-              >
-                {/* Background highlight */}
-                <div className={`absolute top-0 h-full bg-teal-500/20 rounded-full transition-all duration-200 ${
-                  researchMode === 'comprehensive'
-                    ? 'left-12 w-20'
-                    : 'left-0 w-12'
-                }`} />
-
-                {/* Quick option */}
-                <div className={`relative px-2 py-1 text-xs font-medium transition-colors ${
-                  researchMode === 'quick'
-                    ? 'text-white'
-                    : 'text-gray-400'
-                }`}>
-                  Quick
-                </div>
-
-                {/* Comprehensive option */}
-                <div className={`relative px-2 py-1 text-xs font-medium transition-colors ${
-                  researchMode === 'comprehensive'
-                    ? 'text-white'
-                    : 'text-gray-400'
-                }`}>
-                  Comprehensive
-                </div>
-              </button>
-            </div>
-          </div>
-
-          <div className="flex items-end gap-3 rounded-full border border-blue-500/30 p-4 transition-all duration-200 hover:border-blue-500/50 focus-within:border-blue-500/70" style={{backgroundColor: '#1b1e1e'}}>
+        {/* Research Input */}
+        <div className="flex items-end gap-3 rounded-full border border-blue-500/30 p-4 transition-all duration-200 hover:border-blue-500/50 focus-within:border-blue-500/70" style={{backgroundColor: '#1b1e1e'}}>
           <textarea
             ref={textareaRef}
             value={inputValue}
@@ -891,7 +889,6 @@ Research completed at ${doc.timestamp}`;
               <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
             </svg>
           </button>
-          </div>
         </div>
       </div>
     </div>
