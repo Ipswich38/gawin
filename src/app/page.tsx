@@ -136,7 +136,7 @@ export default function HomePage() {
         className="absolute inset-0 w-full h-full object-cover z-0"
         style={{ filter: 'brightness(0.3)' }}
       >
-        <source src="/background/loginbg.mp4" type="video/mp4" />
+        <source src="/background/new.mp4" type="video/mp4" />
       </video>
 
       {/* Dark overlay for better text readability */}
