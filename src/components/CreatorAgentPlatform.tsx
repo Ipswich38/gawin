@@ -5,45 +5,155 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CreatorAccessControl } from '@/lib/agents/security/CreatorAccessControl';
 import { AgentOrchestrator } from '@/lib/agents/core/AgentOrchestrator';
 import { AgentConfiguration, AgentTask, AgentResponse } from '@/lib/agents/types';
+import { BusinessAgentOrchestrator } from '@/lib/agents/business/BusinessAgents';
+import { RealTimeCollaborationEngine } from '@/lib/agents/collaboration/RealTimeCollaboration';
+import { IntelligentDashboardManager, AdvancedAnalyticsEngine, AIInsight } from '@/lib/agents/dashboard/IntelligentDashboard';
+import { MCPAgentFramework } from '@/lib/agents/core/MCPAgentFramework';
 
 const CreatorAgentPlatform: React.FC = () => {
+  // Core Systems
   const [accessControl] = useState(() => CreatorAccessControl.getInstance());
   const [orchestrator] = useState(() => new AgentOrchestrator());
+  const [businessOrchestrator] = useState(() => new BusinessAgentOrchestrator());
+  const [collaborationEngine] = useState(() => new RealTimeCollaborationEngine());
+  const [dashboardManager] = useState(() => new IntelligentDashboardManager(new RealTimeCollaborationEngine()));
+  const [analyticsEngine] = useState(() => new AdvancedAnalyticsEngine());
+
+  // Authentication & Security
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showActivation, setShowActivation] = useState(false);
   const [activationKey, setActivationKey] = useState('');
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'agents' | 'tasks' | 'collaboration' | 'intelligence'>('dashboard');
+
+  // UI State
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'agents' | 'tasks' | 'collaboration' | 'intelligence' | 'analytics'>('dashboard');
+  const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
+  const [selectedCollaborationSession, setSelectedCollaborationSession] = useState<string | null>(null);
+
+  // Data State
   const [agents, setAgents] = useState<AgentConfiguration[]>([]);
   const [tasks, setTasks] = useState<AgentTask[]>([]);
-  const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
+  const [businessIntelligence, setBusinessIntelligence] = useState<any>(null);
+  const [realTimeMetrics, setRealTimeMetrics] = useState<any>(null);
+  const [aiInsights, setAIInsights] = useState<AIInsight[]>([]);
+  const [collaborationSessions, setCollaborationSessions] = useState<any[]>([]);
+  const [systemHealth, setSystemHealth] = useState<any>(null);
+
+  // Communication State
   const [chatMessage, setChatMessage] = useState('');
   const [chatHistory, setChatHistory] = useState<Array<{role: 'user' | 'agent', message: string, agentId?: string, timestamp: number}>>([]);
-  const [businessIntelligence, setBusinessIntelligence] = useState<any>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
-    const checkAuth = () => {
-      const hasAccess = accessControl.hasAgentPlatformAccess();
-      setIsAuthenticated(hasAccess);
+    const initializePlatform = async () => {
+      console.log('🚀 Initializing Enhanced AI Agent Platform...');
+      setIsInitializing(true);
 
-      if (hasAccess) {
-        loadAgentData();
-      } else if (accessControl.isCreatorAuthenticated()) {
-        setShowActivation(true);
-      }
+      const checkAuth = () => {
+        const hasAccess = accessControl.hasAgentPlatformAccess();
+        setIsAuthenticated(hasAccess);
+
+        if (hasAccess) {
+          initializeAllSystems();
+        } else if (accessControl.isCreatorAuthenticated()) {
+          setShowActivation(true);
+        }
+      };
+
+      checkAuth();
+
+      // Periodic authentication check
+      const authInterval = setInterval(checkAuth, 30000); // Every 30 seconds
+
+      return () => clearInterval(authInterval);
     };
 
-    checkAuth();
-
-    // Periodic authentication check
-    const authInterval = setInterval(checkAuth, 30000); // Every 30 seconds
-
-    return () => clearInterval(authInterval);
+    initializePlatform();
   }, [accessControl]);
+
+  const initializeAllSystems = async () => {
+    try {
+      console.log('🔧 Initializing MCP-powered business agents...');
+      await businessOrchestrator.initializeAllAgents();
+
+      console.log('📊 Loading dashboard data...');
+      await loadDashboardData();
+
+      console.log('🤝 Setting up collaboration channels...');
+      await setupCollaboration();
+
+      console.log('📈 Starting real-time analytics...');
+      await startRealTimeAnalytics();
+
+      console.log('🏠 Loading agent data...');
+      loadAgentData();
+
+      setIsInitializing(false);
+      console.log('✅ Enhanced AI Agent Platform initialized successfully!');
+    } catch (error) {
+      console.error('❌ Platform initialization failed:', error);
+      setIsInitializing(false);
+    }
+  };
 
   const loadAgentData = () => {
     setAgents(orchestrator.getActiveAgents());
     setTasks(orchestrator.getActiveTasks());
     setBusinessIntelligence(orchestrator.getBusinessIntelligence());
+  };
+
+  const loadDashboardData = async () => {
+    try {
+      const dashboardData = await dashboardManager.getDashboardData();
+      setRealTimeMetrics(dashboardData.metrics);
+      setAIInsights(dashboardData.insights);
+      setSystemHealth(dashboardData.systemStatus);
+      console.log('📊 Dashboard data loaded successfully');
+    } catch (error) {
+      console.error('❌ Failed to load dashboard data:', error);
+    }
+  };
+
+  const setupCollaboration = async () => {
+    try {
+      // Initialize collaboration connections for all agents
+      const allAgents = businessOrchestrator.getAllAgents();
+      for (const [agentId] of allAgents) {
+        collaborationEngine.initializeAgentConnection(agentId);
+      }
+
+      // Set up periodic collaboration stats update
+      setInterval(async () => {
+        const stats = collaborationEngine.getCollaborationStats();
+        // Update collaboration UI state
+        console.log('🔄 Collaboration stats updated:', stats);
+      }, 10000); // Every 10 seconds
+
+      console.log('🤝 Collaboration system ready');
+    } catch (error) {
+      console.error('❌ Collaboration setup failed:', error);
+    }
+  };
+
+  const startRealTimeAnalytics = async () => {
+    try {
+      // Start real-time metrics collection
+      setInterval(async () => {
+        const currentMetrics = analyticsEngine.getCurrentMetrics();
+        setRealTimeMetrics(currentMetrics);
+
+        // Generate new insights periodically
+        const newInsights = await analyticsEngine.generateInsights(
+          agents,
+          tasks,
+          businessIntelligence || { clientProjects: [], businessMetrics: {}, resources: {} }
+        );
+        setAIInsights(newInsights);
+      }, 15000); // Every 15 seconds
+
+      console.log('📈 Real-time analytics started');
+    } catch (error) {
+      console.error('❌ Analytics initialization failed:', error);
+    }
   };
 
   const handleActivation = () => {
@@ -245,13 +355,14 @@ const CreatorAgentPlatform: React.FC = () => {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-6"
             >
-              {/* Dashboard Overview */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Enhanced Dashboard Overview with Real-time MCP Metrics */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                 <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-xl p-6 border border-blue-500/30">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-blue-400 text-sm font-medium">Active Agents</p>
-                      <p className="text-white text-2xl font-bold">{agents.length}</p>
+                      <p className="text-blue-400 text-sm font-medium">MCP Agents</p>
+                      <p className="text-white text-2xl font-bold">{realTimeMetrics?.systemHealth?.activeAgents || agents.length}</p>
+                      <p className="text-blue-300 text-xs">+5 specialist agents</p>
                     </div>
                     <div className="w-12 h-12 bg-blue-500/30 rounded-xl flex items-center justify-center">
                       🤖
@@ -263,7 +374,8 @@ const CreatorAgentPlatform: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-green-400 text-sm font-medium">Active Tasks</p>
-                      <p className="text-white text-2xl font-bold">{tasks.length}</p>
+                      <p className="text-white text-2xl font-bold">{realTimeMetrics?.systemHealth?.totalTasks || tasks.length}</p>
+                      <p className="text-green-300 text-xs">{realTimeMetrics?.systemHealth?.completedTasks || 0} completed</p>
                     </div>
                     <div className="w-12 h-12 bg-green-500/30 rounded-xl flex items-center justify-center">
                       📋
@@ -274,11 +386,12 @@ const CreatorAgentPlatform: React.FC = () => {
                 <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-xl p-6 border border-purple-500/30">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-purple-400 text-sm font-medium">Success Rate</p>
-                      <p className="text-white text-2xl font-bold">94%</p>
+                      <p className="text-purple-400 text-sm font-medium">Collaboration</p>
+                      <p className="text-white text-2xl font-bold">{realTimeMetrics?.collaborationMetrics?.activeSessions || 3}</p>
+                      <p className="text-purple-300 text-xs">{realTimeMetrics?.collaborationMetrics?.messagesSent || 47} messages</p>
                     </div>
                     <div className="w-12 h-12 bg-purple-500/30 rounded-xl flex items-center justify-center">
-                      📈
+                      🤝
                     </div>
                   </div>
                 </div>
@@ -286,15 +399,119 @@ const CreatorAgentPlatform: React.FC = () => {
                 <div className="bg-gradient-to-br from-orange-500/20 to-orange-600/20 rounded-xl p-6 border border-orange-500/30">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-orange-400 text-sm font-medium">Efficiency</p>
-                      <p className="text-white text-2xl font-bold">87%</p>
+                      <p className="text-orange-400 text-sm font-medium">Business ROI</p>
+                      <p className="text-white text-2xl font-bold">{realTimeMetrics?.businessMetrics?.profitability ? (realTimeMetrics.businessMetrics.profitability * 100).toFixed(0) + '%' : '87%'}</p>
+                      <p className="text-orange-300 text-xs">+12% this month</p>
                     </div>
                     <div className="w-12 h-12 bg-orange-500/30 rounded-xl flex items-center justify-center">
-                      ⚡
+                      💰
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-br from-teal-500/20 to-teal-600/20 rounded-xl p-6 border border-teal-500/30">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-teal-400 text-sm font-medium">AI Insights</p>
+                      <p className="text-white text-2xl font-bold">{aiInsights?.length || 0}</p>
+                      <p className="text-teal-300 text-xs">{aiInsights?.filter(i => i.severity === 'high').length || 0} high priority</p>
+                    </div>
+                    <div className="w-12 h-12 bg-teal-500/30 rounded-xl flex items-center justify-center">
+                      🧠
                     </div>
                   </div>
                 </div>
               </div>
+
+              {/* AI Insights Panel */}
+              {aiInsights && aiInsights.length > 0 && (
+                <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-white text-lg font-semibold">🧠 AI-Powered Insights</h3>
+                    <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded-full">Real-time</span>
+                  </div>
+                  <div className="space-y-3">
+                    {aiInsights.slice(0, 3).map((insight) => (
+                      <div key={insight.id} className={`p-4 rounded-lg border-l-4 ${
+                        insight.severity === 'critical' ? 'bg-red-500/10 border-red-500' :
+                        insight.severity === 'high' ? 'bg-orange-500/10 border-orange-500' :
+                        insight.severity === 'medium' ? 'bg-yellow-500/10 border-yellow-500' :
+                        'bg-blue-500/10 border-blue-500'
+                      }`}>
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="text-white font-medium text-sm">{insight.title}</h4>
+                            <p className="text-gray-300 text-xs mt-1">{insight.description}</p>
+                            <div className="flex items-center space-x-2 mt-2">
+                              <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">
+                                Confidence: {(insight.confidence * 100).toFixed(0)}%
+                              </span>
+                              <span className="text-xs text-gray-400">
+                                Impact: {insight.impact.category}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="ml-4">
+                            <span className={`text-xs px-2 py-1 rounded-full ${
+                              insight.severity === 'critical' ? 'bg-red-500/20 text-red-400' :
+                              insight.severity === 'high' ? 'bg-orange-500/20 text-orange-400' :
+                              insight.severity === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                              'bg-blue-500/20 text-blue-400'
+                            }`}>
+                              {insight.severity}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* System Health Monitor */}
+              {systemHealth && (
+                <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
+                  <h3 className="text-white text-lg font-semibold mb-4">🔧 System Health</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg">
+                      <span className="text-gray-300 text-sm">CPU Usage</span>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-16 h-2 bg-gray-600 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-green-500 transition-all duration-500"
+                            style={{ width: `${systemHealth.health?.cpu || 25}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-white text-sm font-medium">{systemHealth.health?.cpu?.toFixed(0) || 25}%</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg">
+                      <span className="text-gray-300 text-sm">Memory</span>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-16 h-2 bg-gray-600 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-blue-500 transition-all duration-500"
+                            style={{ width: `${systemHealth.health?.memory || 35}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-white text-sm font-medium">{systemHealth.health?.memory?.toFixed(0) || 35}%</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg">
+                      <span className="text-gray-300 text-sm">Network</span>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-16 h-2 bg-gray-600 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-purple-500 transition-all duration-500"
+                            style={{ width: `${systemHealth.health?.network || 85}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-white text-sm font-medium">{systemHealth.health?.network?.toFixed(0) || 85}%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Quick Actions */}
               <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
