@@ -224,7 +224,8 @@ export default function MobileChatInterface({ user, onLogout, onBackToLanding }:
     quiz: { title: 'Quiz', icon: QuizIcon },
     creative: { title: 'Create', icon: CreativeIcon },
     research: { title: 'Research', icon: ResearchIcon },
-    permissions: { title: 'Permissions', icon: PermissionsIcon }
+    permissions: { title: 'Permissions', icon: PermissionsIcon },
+    profile: { title: 'Profile', icon: UserIcon }
   };
 
 
@@ -4116,6 +4117,16 @@ Level: ${level}`
                       </>
                     )}
                   </div>
+
+                  {/* Profile */}
+                  <button
+                    onClick={() => createNewTab('profile')}
+                    className="w-full p-1.5 text-left hover:bg-teal-600/15 transition-colors flex items-center space-x-2 text-gray-400 hover:text-white text-xs"
+                  >
+                    <UserIcon size={14} className="text-gray-400" />
+                    <span>Profile</span>
+                    {isCreator && <span className="text-xs text-teal-400">👑</span>}
+                  </button>
 
                   {/* Settings */}
                   <button
