@@ -1,14 +1,30 @@
 import { AgentConfiguration, AgentTask, AgentResponse, BusinessContext, AgentCollaboration } from '../types';
+import { DynamicConversationEngine, ConversationContext } from '../conversation/DynamicConversationEngine';
+import { MCPToolRegistry } from '../mcp/MCPToolRegistry';
+import { RealTimeToolDiscovery } from '../mcp/RealTimeToolDiscovery';
+import { AdvancedAgentMemory } from '../memory/AdvancedAgentMemory';
+import { DynamicConversationFlow } from '../flow/DynamicConversationFlow';
 
 export class AgentOrchestrator {
   private agents: Map<string, AgentConfiguration> = new Map();
   private activeTasks: Map<string, AgentTask> = new Map();
   private collaborations: Map<string, AgentCollaboration> = new Map();
   private businessContext: BusinessContext;
+  private conversationEngine: DynamicConversationEngine;
+  private toolRegistry: MCPToolRegistry;
+  private toolDiscovery: RealTimeToolDiscovery;
+  private agentMemories: Map<string, AdvancedAgentMemory> = new Map();
+  private conversationFlows: Map<string, DynamicConversationFlow> = new Map();
+  private conversationHistories: Map<string, any[]> = new Map();
 
   constructor() {
     this.businessContext = this.initializeBusinessContext();
+    this.conversationEngine = new DynamicConversationEngine();
+    this.toolRegistry = new MCPToolRegistry();
+    this.toolDiscovery = new RealTimeToolDiscovery(this.toolRegistry);
     this.initializeAgents();
+    this.startEnhancedSystems();
+    console.log('🚀 Enhanced AgentOrchestrator initialized with full MCP integration, dynamic conversations, and advanced memory');
   }
 
   private initializeBusinessContext(): BusinessContext {
@@ -46,6 +62,34 @@ export class AgentOrchestrator {
     });
 
     console.log('🤖 AI Agent Orchestrator initialized with', this.agents.size, 'micro-agents');
+  }
+
+  private startEnhancedSystems(): void {
+    console.log('🚀 Starting enhanced MCP systems...');
+
+    // Initialize advanced memory for each agent
+    for (const agent of this.agents.values()) {
+      const memory = new AdvancedAgentMemory(agent.id);
+      this.agentMemories.set(agent.id, memory);
+
+      const conversationFlow = new DynamicConversationFlow(
+        agent.id,
+        memory,
+        this.conversationEngine,
+        this.toolRegistry,
+        this.toolDiscovery
+      );
+      this.conversationFlows.set(agent.id, conversationFlow);
+    }
+
+    // Start tool discovery
+    this.toolDiscovery.startDiscovery();
+
+    console.log('✅ Enhanced systems started:');
+    console.log(`   📚 ${this.agentMemories.size} agent memory systems`);
+    console.log(`   🌊 ${this.conversationFlows.size} conversation flows`);
+    console.log(`   🔍 Real-time tool discovery active`);
+    console.log(`   🧠 ${this.toolRegistry.getAllTools().length} MCP tools available`);
   }
 
   private createBusinessManagerAgent(): AgentConfiguration {
@@ -546,38 +590,131 @@ export class AgentOrchestrator {
       throw new Error(`Agent ${agentId} not found`);
     }
 
-    // Simulate agent processing (would integrate with actual AI models)
-    const response: AgentResponse = {
+    // Use the advanced conversation flow if available
+    const conversationFlow = this.conversationFlows.get(agentId);
+    if (conversationFlow) {
+      console.log(`🌊 Using enhanced conversation flow for agent: ${agentId}`);
+
+      const flowResult = await conversationFlow.processUserInput(message, {
+        ...context,
+        agent,
+        businessContext: this.businessContext
+      });
+
+      // Update agent's performance metrics
+      agent.lastActive = Date.now();
+      agent.performanceMetrics.tasksCompleted++;
+      agent.performanceMetrics.averageResponseTime = flowResult.estimatedWorkTime || 120;
+
+      const response: AgentResponse = {
+        agentId,
+        message: flowResult.response,
+        confidence: flowResult.confidenceScore,
+        suggestedActions: flowResult.recommendedActions.map(action => ({
+          type: 'task' as const,
+          description: action,
+          priority: 7
+        })),
+        needsFollowUp: flowResult.confidenceScore < 0.9,
+        estimatedWorkTime: flowResult.estimatedWorkTime || 60,
+        reasoning: [`Used dynamic conversation flow in ${flowResult.newState.phase} phase`],
+        toolsUsed: flowResult.newState.toolsInUse || [],
+        metadata: {
+          responseType: 'action_oriented',
+          personalityTraits: agent.personality.expertise,
+          contextFactors: [`phase_${flowResult.newState.phase}`, `complexity_${flowResult.newState.complexity}`]
+        }
+      };
+
+      return response;
+    }
+
+    // Fallback to original conversation engine for compatibility
+    console.log(`⚠️ Fallback to basic conversation engine for agent: ${agentId}`);
+
+    // Get or initialize conversation history for this agent
+    if (!this.conversationHistories.has(agentId)) {
+      this.conversationHistories.set(agentId, []);
+    }
+    const conversationHistory = this.conversationHistories.get(agentId)!;
+
+    // Build conversation context
+    const conversationContext: ConversationContext = {
       agentId,
-      message: this.generateAgentResponse(agent, message, context),
-      confidence: 0.85 + Math.random() * 0.14, // 85-99% confidence
-      suggestedActions: this.generateSuggestedActions(agent, message),
-      needsFollowUp: Math.random() > 0.7,
-      estimatedWorkTime: Math.floor(Math.random() * 120) + 30 // 30-150 minutes
+      userMessage: message,
+      conversationHistory,
+      businessContext: this.businessContext,
+      userProfile: context?.userProfile || {},
+      sessionData: context?.sessionData || {},
+      availableTools: this.toolRegistry.getAllTools(),
+      currentTask: context?.currentTask,
+      urgencyLevel: this.determineUrgencyLevel(message, context)
     };
 
-    // Update agent's last active time
+    // Generate dynamic response using conversation engine
+    const dynamicResponse = await this.conversationEngine.generateResponse(conversationContext, agent);
+
+    // Update conversation history
+    conversationHistory.push(
+      { role: 'user', content: message, timestamp: Date.now() },
+      { role: 'agent', content: dynamicResponse.content, timestamp: Date.now(), agentId }
+    );
+
+    // Keep conversation history manageable (last 20 messages)
+    if (conversationHistory.length > 20) {
+      conversationHistory.splice(0, conversationHistory.length - 20);
+    }
+
+    // Update agent's performance metrics
     agent.lastActive = Date.now();
     agent.performanceMetrics.tasksCompleted++;
+    agent.performanceMetrics.averageResponseTime = dynamicResponse.estimatedWorkTime || 120;
+
+    // Convert dynamic response to legacy format for compatibility
+    const response: AgentResponse = {
+      agentId,
+      message: dynamicResponse.content,
+      confidence: dynamicResponse.confidence,
+      suggestedActions: dynamicResponse.suggestedActions.map(action => ({
+        type: action.type === 'tool_use' ? 'task' : action.type === 'collaboration' ? 'meeting' : 'research',
+        description: action.description,
+        priority: action.priority
+      })),
+      needsFollowUp: dynamicResponse.needsFollowUp,
+      estimatedWorkTime: dynamicResponse.estimatedWorkTime || 60,
+      reasoning: dynamicResponse.reasoning,
+      toolsUsed: dynamicResponse.toolsUsed,
+      metadata: dynamicResponse.metadata
+    };
 
     return response;
   }
 
-  private generateAgentResponse(agent: AgentConfiguration, message: string, context?: any): string {
-    // This would integrate with Claude/GPT-4 for actual responses
-    // For now, return agent-specific response patterns
-    const responses = {
-      'business-manager': `As your business manager, I've analyzed the situation. Here's my strategic assessment: ${message}. I recommend we focus on scalable solutions that align with our growth objectives.`,
-      'design-specialist': `From a design perspective, I see opportunities to enhance the visual impact. ${message}. Let me create some concepts that balance aesthetics with user experience.`,
-      'marketing-strategist': `Looking at this from a marketing lens, ${message}. I suggest we develop a multi-channel approach that maximizes ROI and brand visibility.`,
-      'ai-engineer': `Technically speaking, ${message}. I can implement an AI-driven solution that automates this process and scales efficiently.`,
-      'client-liaison': `I'll handle the client communication aspect. ${message}. I'll ensure all stakeholders are aligned and expectations are clearly set.`,
-      'project-coordinator': `From a project management standpoint, ${message}. I'll create a detailed timeline with milestones and resource allocation.`,
-      'financial-analyst': `Financially, ${message}. Let me run the numbers and provide a cost-benefit analysis with ROI projections.`,
-      'research-specialist': `Based on my research, ${message}. I'll gather comprehensive market data to support our decision-making process.`
-    };
+  private determineUrgencyLevel(message: string, context?: any): 'low' | 'medium' | 'high' | 'critical' {
+    const lowerMessage = message.toLowerCase();
 
-    return responses[agent.id] || `${agent.personality.name} here. I'll help you with ${message} using my expertise in ${agent.personality.expertise.join(', ')}.`;
+    // Critical urgency indicators
+    if (lowerMessage.includes('urgent') || lowerMessage.includes('asap') ||
+        lowerMessage.includes('emergency') || lowerMessage.includes('critical') ||
+        lowerMessage.includes('deadline today') || lowerMessage.includes('right now')) {
+      return 'critical';
+    }
+
+    // High urgency indicators
+    if (lowerMessage.includes('soon') || lowerMessage.includes('deadline') ||
+        lowerMessage.includes('important') || lowerMessage.includes('priority') ||
+        lowerMessage.includes('this week')) {
+      return 'high';
+    }
+
+    // Medium urgency indicators
+    if (lowerMessage.includes('when possible') || lowerMessage.includes('next week') ||
+        lowerMessage.includes('schedule') || lowerMessage.includes('planning')) {
+      return 'medium';
+    }
+
+    // Default to low urgency
+    return 'low';
   }
 
   private generateSuggestedActions(agent: AgentConfiguration, message: string): Array<{type: 'task' | 'meeting' | 'research' | 'decision', description: string, priority: number}> {
@@ -625,5 +762,90 @@ export class AgentOrchestrator {
         systemUptime: Date.now() - (Date.now() - 86400000) // 24 hours
       }
     };
+  }
+
+  // === ENHANCED SYSTEM ACCESS ===
+
+  public getToolRegistry(): MCPToolRegistry {
+    return this.toolRegistry;
+  }
+
+  public getToolDiscoveryStats(): any {
+    return this.toolDiscovery.getDiscoveryStats();
+  }
+
+  public getAgentMemoryStats(agentId: string): any {
+    const memory = this.agentMemories.get(agentId);
+    return memory ? memory.getMemoryStats() : null;
+  }
+
+  public getConversationFlowStats(agentId: string): any {
+    const flow = this.conversationFlows.get(agentId);
+    return flow ? flow.getFlowStats() : null;
+  }
+
+  public async approveToolManually(toolName: string): Promise<boolean> {
+    return this.toolDiscovery.approveToolManually(toolName);
+  }
+
+  public async rejectToolManually(toolName: string): Promise<boolean> {
+    return this.toolDiscovery.rejectToolManually(toolName);
+  }
+
+  public getDiscoveredTools(): any[] {
+    return this.toolDiscovery.getDiscoveredTools();
+  }
+
+  public getSystemStats(): any {
+    return {
+      agents: {
+        total: this.agents.size,
+        active: this.getActiveAgents().length,
+        withMemory: this.agentMemories.size,
+        withFlow: this.conversationFlows.size
+      },
+      tools: {
+        registered: this.toolRegistry.getAllTools().length,
+        discovered: this.toolDiscovery.getDiscoveredTools().length,
+        discoveryActive: this.toolDiscovery.getDiscoveryStats().isActive
+      },
+      performance: {
+        totalTasks: this.activeTasks.size,
+        avgResponseTime: this.calculateAvgResponseTime(),
+        systemUptime: Date.now() - (Date.now() - 86400000)
+      }
+    };
+  }
+
+  private calculateAvgResponseTime(): number {
+    const agents = Array.from(this.agents.values());
+    if (agents.length === 0) return 0;
+
+    const totalResponseTime = agents.reduce(
+      (sum, agent) => sum + agent.performanceMetrics.averageResponseTime, 0
+    );
+    return totalResponseTime / agents.length;
+  }
+
+  public destroy(): void {
+    console.log('🧹 Cleaning up enhanced agent systems...');
+
+    // Stop tool discovery
+    this.toolDiscovery.stopDiscovery();
+
+    // Destroy agent memories
+    for (const memory of this.agentMemories.values()) {
+      memory.destroy();
+    }
+
+    // Clear all maps
+    this.agents.clear();
+    this.activeTasks.clear();
+    this.collaborations.clear();
+    this.conversationHistories.clear();
+    this.agentMemories.clear();
+    this.conversationFlows.clear();
+
+    console.log('✅ Enhanced agent orchestrator destroyed');
   }
 }

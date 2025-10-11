@@ -149,6 +149,13 @@ export interface AgentResponse {
   }>;
   needsFollowUp: boolean;
   estimatedWorkTime?: number; // in minutes
+  reasoning?: string[]; // AI reasoning steps
+  toolsUsed?: string[]; // MCP tools utilized
+  metadata?: {
+    responseType: 'analytical' | 'creative' | 'problem_solving' | 'informational' | 'action_oriented';
+    personalityTraits: string[];
+    contextFactors: string[];
+  };
 }
 
 export interface AgentCollaboration {
