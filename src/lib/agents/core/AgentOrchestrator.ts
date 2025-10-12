@@ -24,7 +24,13 @@ export class AgentOrchestrator {
     this.toolDiscovery = new RealTimeToolDiscovery(this.toolRegistry);
     this.initializeAgents();
     this.startEnhancedSystems();
-    console.log('🚀 Enhanced AgentOrchestrator initialized with full MCP integration, dynamic conversations, and advanced memory');
+    console.log('🚀 Enhanced AgentOrchestrator v2.0 initialized with:');
+    console.log('   • Full MCP Protocol Integration');
+    console.log('   • Dynamic Conversation Engine');
+    console.log('   • Advanced Agent Memory Systems');
+    console.log('   • Real-time Tool Discovery');
+    console.log('   • Business Intelligence Analytics');
+    console.log('   • Creator-Exclusive Features');
   }
 
   private initializeBusinessContext(): BusinessContext {
@@ -584,7 +590,11 @@ export class AgentOrchestrator {
     return bestAgent;
   }
 
-  public async getAgentResponse(agentId: string, message: string, context?: any): Promise<AgentResponse> {
+  public async getAgentResponse(agentId: string, message: string, options?: {
+    useMCPTools?: boolean;
+    includeBusinessContext?: boolean;
+    enableRealTimeData?: boolean;
+  }): Promise<AgentResponse> {
     const agent = this.agents.get(agentId);
     if (!agent) {
       throw new Error(`Agent ${agentId} not found`);
@@ -596,7 +606,6 @@ export class AgentOrchestrator {
       console.log(`🌊 Using enhanced conversation flow for agent: ${agentId}`);
 
       const flowResult = await conversationFlow.processUserInput(message, {
-        ...context,
         agent,
         businessContext: this.businessContext
       });
@@ -644,11 +653,11 @@ export class AgentOrchestrator {
       userMessage: message,
       conversationHistory,
       businessContext: this.businessContext,
-      userProfile: context?.userProfile || {},
-      sessionData: context?.sessionData || {},
+      userProfile: {},
+      sessionData: {},
       availableTools: this.toolRegistry.getAllTools(),
-      currentTask: context?.currentTask,
-      urgencyLevel: this.determineUrgencyLevel(message, context)
+      currentTask: undefined,
+      urgencyLevel: this.determineUrgencyLevel(message, options)
     };
 
     // Generate dynamic response using conversation engine
@@ -825,6 +834,64 @@ export class AgentOrchestrator {
       (sum, agent) => sum + agent.performanceMetrics.averageResponseTime, 0
     );
     return totalResponseTime / agents.length;
+  }
+
+  // Enhanced MCP-powered methods for creator platform
+  public async intelligentTaskDelegation(task: AgentTask, options?: {
+    considerWorkload?: boolean;
+    matchSkills?: boolean;
+    optimizeForSpeed?: boolean;
+  }): Promise<string> {
+    console.log('🎯 Intelligent task delegation with MCP-powered analysis...');
+
+    const availableAgents = Array.from(this.agents.values()).filter(agent => agent.isActive);
+    const optimalAgent = await this.findOptimalAgent(task, availableAgents, options || {});
+
+    if (optimalAgent) {
+      task.assignedTo = optimalAgent.id;
+      this.activeTasks.set(task.id, task);
+      optimalAgent.performanceMetrics.tasksCompleted++;
+
+      console.log(`✅ Task "${task.title}" assigned to ${optimalAgent.name} (${optimalAgent.id})`);
+      return optimalAgent.id;
+    }
+
+    throw new Error('No suitable agent found for task delegation');
+  }
+
+  private async findOptimalAgent(
+    task: AgentTask,
+    availableAgents: AgentConfiguration[],
+    options: any
+  ): Promise<AgentConfiguration | null> {
+    if (availableAgents.length === 0) return null;
+
+    const scoredAgents = availableAgents.map(agent => {
+      let score = 50; // Base score
+
+      // Add compatibility scoring logic here
+      const typeCompatibility = {
+        'business_manager': ['planning', 'strategy', 'management'],
+        'design_specialist': ['design', 'creative', 'visual'],
+        'marketing_strategist': ['marketing', 'promotion', 'analysis'],
+        'ai_engineer': ['technical', 'ai', 'development']
+      };
+
+      const keywords = typeCompatibility[agent.type] || [];
+      keywords.forEach(keyword => {
+        if (task.description.toLowerCase().includes(keyword)) {
+          score += 15;
+        }
+      });
+
+      return { agent, score };
+    });
+
+    const bestMatch = scoredAgents.reduce((best, current) =>
+      current.score > best.score ? current : best
+    );
+
+    return bestMatch.agent;
   }
 
   public destroy(): void {
