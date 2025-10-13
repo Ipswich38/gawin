@@ -31,7 +31,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} antialiased`}>
         <ProductionErrorBoundary boundaryName="RootLayout">
-          <div className="min-h-screen" style={{backgroundColor: '#1b1e1e'}}>
+          <div className="min-h-screen bg-white">
             <main className="relative">
               {children}
             </main>

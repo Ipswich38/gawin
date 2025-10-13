@@ -126,36 +126,22 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Video Background */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="absolute inset-0 w-full h-full object-cover z-0"
-        style={{ filter: 'brightness(0.3)' }}
-      >
-        <source src="/background/new.mp4" type="video/mp4" />
-      </video>
-
-      {/* Dark overlay for better text readability */}
-      <div className="absolute inset-0 bg-black/40 z-10"></div>
-      <div className="w-full max-w-md relative z-20">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-white">
+      <div className="w-full max-w-md">
         {/* App Logo and Title */}
         <div className="text-center mb-12">
-          <div className="w-20 h-20 bg-gradient-to-br from-[#00C2A8] to-[#00A693] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-[#00C2A8]/30 backdrop-blur-sm">
+          <div className="w-20 h-20 bg-gradient-to-br from-gray-900 to-gray-700 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
             <span className="text-white text-3xl font-bold">G</span>
           </div>
-          <h1 className="text-3xl text-white mb-2 drop-shadow-lg" style={{fontFamily: 'Avenir, -apple-system, BlinkMacSystemFont, sans-serif', fontWeight: 400}}>Welcome to Gawin</h1>
-          <p className="text-gray-200 text-lg drop-shadow-md" style={{fontFamily: 'Avenir, -apple-system, BlinkMacSystemFont, sans-serif', fontWeight: 400}}>Your learning assistant</p>
+          <h1 className="text-3xl text-gray-900 mb-2" style={{fontFamily: 'Avenir, -apple-system, BlinkMacSystemFont, sans-serif', fontWeight: 400}}>Welcome to Gawin</h1>
+          <p className="text-gray-600 text-lg" style={{fontFamily: 'Avenir, -apple-system, BlinkMacSystemFont, sans-serif', fontWeight: 400}}>Your intelligent AI assistant</p>
         </div>
 
         {/* Login Card */}
-        <div className="bg-[#1E1E1E]/60 backdrop-blur-lg rounded-2xl p-8 shadow-2xl border border-gray-700/40">
+        <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200">
           <div className="text-center mb-8">
-            <h2 className="text-xl text-white mb-2" style={{fontFamily: 'Avenir, -apple-system, BlinkMacSystemFont, sans-serif', fontWeight: 400}}>Sign in to continue</h2>
-            <p className="text-gray-400" style={{fontFamily: 'Avenir, -apple-system, BlinkMacSystemFont, sans-serif', fontWeight: 400}}>Simple authentication system</p>
+            <h2 className="text-xl text-gray-900 mb-2" style={{fontFamily: 'Avenir, -apple-system, BlinkMacSystemFont, sans-serif', fontWeight: 400}}>Sign in to continue</h2>
+            <p className="text-gray-600" style={{fontFamily: 'Avenir, -apple-system, BlinkMacSystemFont, sans-serif', fontWeight: 400}}>Simple authentication system</p>
           </div>
 
           {/* Error Message */}
@@ -177,8 +163,8 @@ export default function HomePage() {
           {showCreatorLogin ? (
             <div className="mb-6 space-y-4">
               <div className="text-center mb-6">
-                <h3 className="text-lg text-white mb-2" style={{fontFamily: 'Avenir, -apple-system, BlinkMacSystemFont, sans-serif', fontWeight: 400}}>Creator Access</h3>
-                <p className="text-gray-400 text-sm">Sign in with kreativloops@gmail.com</p>
+                <h3 className="text-lg text-gray-900 mb-2" style={{fontFamily: 'Avenir, -apple-system, BlinkMacSystemFont, sans-serif', fontWeight: 400}}>Creator Access</h3>
+                <p className="text-gray-600 text-sm">Sign in with kreativloops@gmail.com</p>
               </div>
 
               <button
@@ -209,7 +195,7 @@ export default function HomePage() {
 
               <button
                 onClick={() => setShowCreatorLogin(false)}
-                className="w-full text-sm text-gray-400 hover:text-gray-300 transition-colors"
+                className="w-full text-sm text-gray-600 hover:text-gray-900 transition-colors"
               >
                 ← Back to regular login
               </button>
@@ -257,7 +243,7 @@ export default function HomePage() {
               <button
                 onClick={handleAnonymousLogin}
                 disabled={loading}
-                className="w-full py-3 px-6 bg-[#2A2A2A] hover:bg-[#333333] disabled:opacity-50 disabled:cursor-not-allowed text-gray-300 hover:text-white font-medium rounded-xl border border-gray-600 hover:border-[#00C2A8]/30 transition-all duration-200 flex items-center justify-center space-x-2 mb-4"
+                className="w-full py-3 px-6 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 hover:text-gray-900 font-medium rounded-xl border border-gray-300 hover:border-gray-400 transition-all duration-200 flex items-center justify-center space-x-2 mb-4"
               >
                 {loading ? (
                   <>
@@ -284,12 +270,12 @@ export default function HomePage() {
 
         {/* Footer */}
         <div className="text-center mt-8">
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-600">
             Click any button to access Gawin AI
           </p>
           <button
             onClick={() => setShowCreatorLogin(true)}
-            className="text-xs text-gray-600 hover:text-[#00C2A8] transition-colors duration-200 mt-2"
+            className="text-xs text-gray-700 hover:text-gray-900 transition-colors duration-200 mt-2"
           >
             Creator Access
           </button>
@@ -298,13 +284,13 @@ export default function HomePage() {
 
       {/* Google Login Modal */}
       {showGoogleModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1E1E1E]/95 backdrop-blur-lg rounded-2xl p-8 max-w-md w-full shadow-2xl border border-gray-700/40">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl border border-gray-200">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold text-white" style={{fontFamily: 'Avenir, -apple-system, BlinkMacSystemFont, sans-serif', fontWeight: 400}}>Continue with Google</h3>
+              <h3 className="text-xl font-semibold text-gray-900" style={{fontFamily: 'Avenir, -apple-system, BlinkMacSystemFont, sans-serif', fontWeight: 400}}>Continue with Google</h3>
               <button
                 onClick={handleCloseModal}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-gray-600 hover:text-gray-900 transition-colors"
               >
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -327,14 +313,14 @@ export default function HomePage() {
             <div className="space-y-6">
               {/* Email Input Option */}
               <div>
-                <h4 className="text-white mb-4 text-center" style={{fontFamily: 'Avenir, -apple-system, BlinkMacSystemFont, sans-serif', fontWeight: 400}}>Enter your email to sign in</h4>
+                <h4 className="text-gray-900 mb-4 text-center" style={{fontFamily: 'Avenir, -apple-system, BlinkMacSystemFont, sans-serif', fontWeight: 400}}>Enter your email to sign in</h4>
                 <div className="space-y-4">
                   <input
                     type="email"
                     placeholder="Enter your email address"
                     value={userEmail}
                     onChange={(e) => setUserEmail(e.target.value)}
-                    className="w-full px-4 py-3 bg-[#2A2A2A] border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00C2A8] focus:border-transparent"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
                     style={{fontFamily: 'Avenir, -apple-system, BlinkMacSystemFont, sans-serif', fontWeight: 400}}
                   />
                   <button
@@ -371,20 +357,20 @@ export default function HomePage() {
                   <div className="w-full border-t border-gray-600"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-[#1E1E1E]/95 text-gray-400">or</span>
+                  <span className="px-2 bg-white text-gray-600">or</span>
                 </div>
               </div>
 
               {/* Guest Option */}
               <div>
-                <h4 className="text-white mb-4 text-center" style={{fontFamily: 'Avenir, -apple-system, BlinkMacSystemFont, sans-serif', fontWeight: 400}}>Continue without account</h4>
+                <h4 className="text-gray-900 mb-4 text-center" style={{fontFamily: 'Avenir, -apple-system, BlinkMacSystemFont, sans-serif', fontWeight: 400}}>Continue without account</h4>
                 <button
                   onClick={() => {
                     handleCloseModal();
                     handleAnonymousLogin();
                   }}
                   disabled={loading}
-                  className="w-full py-3 px-6 bg-[#2A2A2A] hover:bg-[#333333] disabled:opacity-50 disabled:cursor-not-allowed text-gray-300 hover:text-white font-medium rounded-xl border border-gray-600 hover:border-[#00C2A8]/30 transition-all duration-200 flex items-center justify-center space-x-2"
+                  className="w-full py-3 px-6 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 hover:text-gray-900 font-medium rounded-xl border border-gray-300 hover:border-gray-400 transition-all duration-200 flex items-center justify-center space-x-2"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
