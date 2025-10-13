@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import NotionStyleDashboard from '@/components/NotionStyleDashboard';
+import GawinApp from '@/components/GawinApp';
 
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
@@ -56,12 +56,11 @@ export default function DashboardPage() {
     );
   }
 
-  // Show new dashboard interface for authenticated users
+  // Show new redesigned app interface for authenticated users
   return (
-    <NotionStyleDashboard
+    <GawinApp
       user={user}
       onLogout={handleLogout}
-      onBackToLanding={handleBackToLanding}
     />
   );
 }
