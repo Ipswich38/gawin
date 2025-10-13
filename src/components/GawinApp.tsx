@@ -30,7 +30,7 @@ import {
   Clock
 } from 'lucide-react';
 import { NotionCard, NotionButton, NotionInput, NotionModal, NotionTag } from './ui/NotionUI';
-import AgentWorkflowBuilder from './AgentWorkflowBuilder';
+import EnhancedWorkflowBuilder from './EnhancedWorkflowBuilder';
 import AgentMarketplace from './AgentMarketplace';
 import MCPStatusIndicator from './MCPStatusIndicator';
 
@@ -88,7 +88,7 @@ const GawinApp: React.FC<GawinAppProps> = ({ user, onLogout }) => {
       icon: Workflow,
       color: 'purple',
       isAvailable: true,
-      component: AgentWorkflowBuilder
+      component: EnhancedWorkflowBuilder
     },
     {
       id: 'research',
