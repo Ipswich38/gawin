@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import "../styles/accessibility.css";
 import ProductionErrorBoundary from "@/lib/reliability/errorBoundary";
+import Providers from "./providers";
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -31,11 +32,13 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} antialiased`}>
         <ProductionErrorBoundary boundaryName="RootLayout">
-          <div className="min-h-screen bg-white">
-            <main className="relative">
-              {children}
-            </main>
-          </div>
+          <Providers>
+            <div className="min-h-screen bg-white">
+              <main className="relative">
+                {children}
+              </main>
+            </div>
+          </Providers>
         </ProductionErrorBoundary>
 
         {/* X-Frame-Bypass for enhanced browser functionality */}

@@ -197,3 +197,90 @@ export interface CreatorBusinessIntelligence {
     timeline: string;
   }>;
 }
+
+// Production Agent Execution Engine Types
+export interface AgentExecutionContext {
+  userId: string;
+  workflowId: string;
+  executionId: string;
+  organizationId?: string;
+  credits: number;
+}
+
+export interface AgentInput {
+  type: string;
+  data: any;
+  metadata?: Record<string, any>;
+}
+
+export interface AgentOutput {
+  type: string;
+  data: any;
+  metadata?: Record<string, any>;
+  error?: string;
+}
+
+export interface AgentIntegration {
+  id: string;
+  name: string;
+  type: 'mcp' | 'api' | 'webhook';
+  config: Record<string, any>;
+  isEnabled: boolean;
+}
+
+export interface ExecutableAgent {
+  id: string;
+  name: string;
+  type: string;
+  version: string;
+  config: any;
+  capabilities: AgentCapability[];
+  integrations: AgentIntegration[];
+}
+
+export interface AgentExecutionResult {
+  success: boolean;
+  output?: AgentOutput;
+  error?: string;
+  duration: number;
+  creditsUsed: number;
+  logs: string[];
+}
+
+export interface WorkflowNode {
+  id: string;
+  type: string;
+  position: { x: number; y: number };
+  data: {
+    agentId: string;
+    config: Record<string, any>;
+    inputs: Record<string, any>;
+    outputs: Record<string, any>;
+  };
+}
+
+export interface WorkflowConnection {
+  id: string;
+  source: string;
+  target: string;
+  sourceHandle: string;
+  targetHandle: string;
+  data?: Record<string, any>;
+}
+
+export interface ExecutableWorkflow {
+  id: string;
+  name: string;
+  nodes: WorkflowNode[];
+  connections: WorkflowConnection[];
+  settings: Record<string, any>;
+}
+
+export interface WorkflowExecutionResult {
+  success: boolean;
+  outputs: Record<string, AgentOutput>;
+  errors: Record<string, string>;
+  totalDuration: number;
+  totalCreditsUsed: number;
+  executionLog: string[];
+}
