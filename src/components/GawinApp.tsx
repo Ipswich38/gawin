@@ -33,6 +33,7 @@ import { NotionCard, NotionButton, NotionInput, NotionModal, NotionTag } from '.
 import EnhancedWorkflowBuilder from './EnhancedWorkflowBuilder';
 import AgentMarketplace from './AgentMarketplace';
 import MCPStatusIndicator from './MCPStatusIndicator';
+import AdvancedAnalytics from './AdvancedAnalytics';
 
 interface User {
   full_name?: string;
@@ -117,11 +118,12 @@ const GawinApp: React.FC<GawinAppProps> = ({ user, onLogout }) => {
     {
       id: 'analytics',
       title: 'Analytics',
-      description: 'Usage insights and metrics',
+      description: 'Advanced insights and real-time metrics',
       icon: BarChart3,
       color: 'cyan',
       isAvailable: isCreator,
-      isPremium: true
+      isPremium: true,
+      component: AdvancedAnalytics
     },
     {
       id: 'agents',
